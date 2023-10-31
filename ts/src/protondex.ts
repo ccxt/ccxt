@@ -40,6 +40,7 @@ export default class protondex extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -485,6 +486,77 @@ export default class protondex extends Exchange {
         return this.parseTrades (data, market, 1, 100, { 'account': params['account'] });
     }
 
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name proton#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the proton api endpoint
+         * @param {int|undefined} params.account user account to fetch orders for
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (params['account'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a account argument in params');
+        }
+        const request = {
+            'account': params['account'],
+            'symbol': market['symbol'],
+        };
+        request['offset'] = (params['offset'] !== undefined) ? params['offset'] : 0;
+        request['limit'] = (limit !== undefined) ? limit : 100;
+        const response = await this.publicGetOrdersHistory (this.extend (request, params));
+        //
+        //      {
+        //          "data":[
+        //              {
+        //                  "id":"5ec36295-5c8d-4874-8d66-2609d4938557",
+        //                  "price":"4050.06","size":"0.0044",
+        //                  "market_name":"ETH-USDT",
+        //                  "side":"sell",
+        //                  "created_at":"2021-12-07T17:47:36.811000Z"
+        //              },
+        //          ]
+        //      }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const closedOrders = [];
+        for (let p = 0; p < data.length; p++) {
+            if (data[p]['status'] === 'delete' || data[p]['status'] === 'cancel') {
+                let avgPrice = 0.0;
+                let feeCost = undefined;
+                let cost = 0.0;
+                let amount = 0.0;
+                const fee = {};
+                const ordinalId = this.safeString (data[p], 'ordinal_order_id');
+                const account = this.safeString (data[p], 'account_name');
+                let currency = undefined;
+                const trades = await this.fetchOrderTrades (ordinalId, symbol, 1, 1, { 'account': account });
+                for (let j = 0; j < trades.length; j++) {
+                    cost += this.safeFloat (trades[j], 'cost');
+                    amount += this.safeFloat (trades[j], 'amount');
+                    feeCost = Precise.stringAdd (feeCost, this.safeString (trades[j]['fee'], 'cost'));
+                    currency = this.safeString (trades[j]['fee'], 'currency');
+                }
+                if (trades.length !== 0) {
+                    avgPrice = parseFloat ((cost / amount).toString ());
+                }
+                const askTokenPrecision = this.parseToInt (market.info.ask_token.precision);
+                fee['cost'] = feeCost;
+                fee['currency'] = currency;
+                data[p]['avgPrice'] = avgPrice.toFixed (askTokenPrecision);
+                data[p]['fee'] = fee;
+                data[p]['cost'] = cost.toFixed (askTokenPrecision);
+                closedOrders.push (data[p]);
+            }
+        }
+        return this.parseOrders (closedOrders, market);
+    }
+
     async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -555,6 +627,7 @@ export default class protondex extends Exchange {
             fee['currency'] = currency;
             data[p]['avgPrice'] = avgPrice.toFixed (askTokenPrecision);
             data[p]['fee'] = fee;
+            data[p]['cost'] = cost.toFixed (askTokenPrecision);
         }
         return this.parseOrders (data, market);
     }
@@ -697,7 +770,7 @@ export default class protondex extends Exchange {
         const statuses = {
             'fulfilled': 'closed',
             'delete': 'closed',
-            'canceled': 'canceled',
+            'cancel': 'canceled',
             'pending': 'open',
             'open': 'open',
             'partially_filled': 'open',
@@ -819,6 +892,7 @@ export default class protondex extends Exchange {
         const askTokenPrecision = this.parseToInt (market.info.ask_token.precision);
         data[0]['avgPrice'] = avgPrice.toFixed (askTokenPrecision);
         data[0]['fee'] = fee;
+        data[0]['cost'] = cost.toFixed (askTokenPrecision);
         return this.parseOrder (data[0], market);
     }
 
