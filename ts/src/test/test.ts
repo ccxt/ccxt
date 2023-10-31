@@ -906,7 +906,7 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
             }
         }
-        await exchange.close ();
+        await close (exchange);
     }
 
     getNumberOfTestsFromExchange (exchangeData: object) {
