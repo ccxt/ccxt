@@ -138,7 +138,7 @@ done
 npm run check-php-syntax
 
 # only run the python linter if exchange related files are changed
-if [ ${#REST_EXCHANGES[@]} -gt 0 ] || [ ${#WS_EXCHANGES[@]} -gt 0 ]; then
+if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
   echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
   ruff ${PYTHON_FILES[*]}
 fi
