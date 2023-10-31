@@ -1,0 +1,23 @@
+{
+    "exchange": "binance",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "spot market order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": {
+                  "symbol": "BTC/USDT",
+                  "type": "market",
+                  "side": "buy",
+                  "amount": 1,
+                  "price": 10,
+                  "params": {}
+                },
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
+              }
+        ]
+    }
+}
