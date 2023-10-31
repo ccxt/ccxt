@@ -803,6 +803,19 @@ export default class testMainClass extends baseMainTestClass {
         return urlParts.slice (3).join ('/');
     }
 
+    urlencodedToDict (url: string) {
+        const result = {};
+        const parts = url.split ('&');
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const keyValue = part.split ('=');
+            const key = keyValue[0];
+            const value = keyValue[1];
+            result[key] = value;
+        }
+        return result;
+    }
+
     assertStaticOutput (type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
@@ -817,21 +830,24 @@ export default class testMainClass extends baseMainTestClass {
             if (typeof newOutput === 'string') {
                 newOutput = JSON.parse (newOutput);
             }
-            const storedOutputKeys = Object.keys (storedOutput);
-            const newOutputKeys = Object.keys (newOutput);
-            this.assertStaticError (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch', storedOutput, newOutput);
-            for (let i = 0; i < storedOutputKeys.length; i++) {
-                const key = storedOutputKeys[i];
-                if (key in skipKeys) {
-                    continue;
-                }
-                if (!(key in newOutputKeys)) {
-                    this.assertStaticError (false, 'output key mismatch', storedOutput, newOutput);
-                }
-                const storedValue = storedOutput[key];
-                const newValue = newOutput[key];
-                this.assertStaticError (storedValue === newValue, 'output value mismatch', storedOutput, newOutput);
+        } else if (type === 'urlencoded') {
+            storedOutput = this.urlencodedToDict (storedOutput);
+            newOutput = this.urlencodedToDict (newOutput);
+        }
+        const storedOutputKeys = Object.keys (storedOutput);
+        const newOutputKeys = Object.keys (newOutput);
+        this.assertStaticError (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch', storedOutput, newOutput);
+        for (let i = 0; i < storedOutputKeys.length; i++) {
+            const key = storedOutputKeys[i];
+            if (key in skipKeys) {
+                continue;
             }
+            if (!(key in newOutputKeys)) {
+                this.assertStaticError (false, 'output key mismatch', storedOutput, newOutput);
+            }
+            const storedValue = storedOutput[key];
+            const newValue = newOutput[key];
+            this.assertStaticError (storedValue === newValue, 'output value mismatch', storedOutput, newOutput);
         }
     }
 
@@ -840,8 +856,13 @@ export default class testMainClass extends baseMainTestClass {
         let requestUrl = undefined;
         try {
             const inputArgs = Object.values (data['input']);
-            const _res = await callExchangeMethodDynamically (exchange, method, inputArgs);
+            await callExchangeMethodDynamically (exchange, method, inputArgs);
         } catch (e) {
+            if (!(e instanceof NetworkError)) {
+                // if it's not a network error, it means our request was not created succesfully
+                // so we might have an error in the request creation
+                throw e;
+            }
             output = exchange.last_request_body;
             requestUrl = exchange.last_request_url;
         }
