@@ -84,7 +84,7 @@ export default class digifinex extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -3840,6 +3840,31 @@ export default class digifinex extends Exchange {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+
+    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol ('setMarginMode', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        marginMode = marginMode.toLowerCase ();
+        if (marginMode === 'cross') {
+            marginMode = 'crossed';
+        }
+        const request = {
+            'instrument_id': market['id'],
+            'margin_mode': marginMode,
+        };
+        return await this.privateSwapPostAccountPositionMode (this.extend (request, params));
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
