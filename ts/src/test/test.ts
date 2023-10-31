@@ -815,8 +815,16 @@ export default class testMainClass extends baseMainTestClass {
         let res = '';
         for (let i = 0; i < urlParts.length; i++) {
             if (i > 2) {
+                const current = urlParts[i];
+                if (current.indexOf ('?') > -1) {
+                    // handle urls like this: /v1/account/accounts?AccessK
+                    const currentParts = current.split ('?');
+                    res += '/';
+                    res += currentParts[0];
+                    break;
+                }
                 res += '/';
-                res += urlParts[i];
+                res += current;
             }
         }
         return res;
@@ -921,7 +929,7 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeStatically (exchangeName: string, exchangeData: object) {
         const markets = this.loadMarketsFromFile (exchangeName);
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
