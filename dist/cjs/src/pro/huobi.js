@@ -544,6 +544,9 @@ class huobi extends huobi$1 {
             orderbook.reset(snapshot);
             orderbook['nonce'] = seqNum;
         }
+        if (prevSeqNum !== undefined && prevSeqNum > orderbook['nonce']) {
+            throw new errors.InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
+        }
         if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue(tick, 'asks', []);
             const bids = this.safeValue(tick, 'bids', []);

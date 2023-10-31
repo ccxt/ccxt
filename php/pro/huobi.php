@@ -562,6 +562,9 @@ class huobi extends \ccxt\async\huobi {
             $orderbook->reset ($snapshot);
             $orderbook['nonce'] = $seqNum;
         }
+        if ($prevSeqNum !== null && $prevSeqNum > $orderbook['nonce']) {
+            throw new InvalidNonce($this->id . ' watchOrderBook() received a mesage out of order');
+        }
         if (($prevSeqNum === null || $prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());

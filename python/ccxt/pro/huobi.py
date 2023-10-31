@@ -524,6 +524,8 @@ class huobi(ccxt.async_support.huobi):
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
             orderbook['nonce'] = seqNum
+        if prevSeqNum is not None and prevSeqNum > orderbook['nonce']:
+            raise InvalidNonce(self.id + ' watchOrderBook() received a mesage out of order')
         if (prevSeqNum is None or prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
