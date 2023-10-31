@@ -852,11 +852,10 @@ export default class testMainClass extends baseMainTestClass {
             const storedValue = storedOutput[key];
             const newValue = newOutput[key];
             if (typeof storedValue === 'object') {
-                if (typeof newValue !== 'object') {
+                if (typeof newValue === 'object') {
                     // recursive objects
-                    this.assertStaticError (false, 'output type mismatch', storedOutput, newOutput);
+                    return this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
                 }
-                return this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
             }
             const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
             this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
@@ -881,7 +880,6 @@ export default class testMainClass extends baseMainTestClass {
             storedOutput = this.urlencodedToDict (storedOutput);
             newOutput = this.urlencodedToDict (newOutput);
         }
-
         if (Array.isArray (storedOutput)) {
             if (!Array.isArray (newOutput)) {
                 this.assertStaticError (false, 'output type mismatch', storedOutput, newOutput);
