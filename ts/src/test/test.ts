@@ -877,6 +877,19 @@ export default class testMainClass extends baseMainTestClass {
             const secondPath = this.removeHostnamefromUrl (requestUrl);
             this.assertStaticError (firstPath === secondPath, 'url mismatch', firstPath, secondPath);
         }
+        // body (aka storedOutput and newOutput) is not defined and information is in the url
+        // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if ((storedOutput === undefined) && (newOutput === undefined)) {
+            if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
+                const storedUrlParts = storedUrl.split ('?');
+                const newUrlParts = requestUrl.split ('?');
+                const storedUrlParams = this.urlencodedToDict (storedUrlParts[1]);
+                const newUrlParams = this.urlencodedToDict (newUrlParts[1]);
+                this.assertNewAndStoredOutput (exchange, skipKeys, newUrlParams, storedUrlParams);
+                return;
+            }
+        // body is defined
+        }
         if (type === 'json') {
             if (typeof storedOutput === 'string') {
                 storedOutput = jsonParse (storedOutput);
