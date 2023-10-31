@@ -30,6 +30,7 @@ const NotSupported = ccxt.NotSupported;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
+    lang = 'JS';
     staticTestsFailed = false;
     staticTests = false;
     info = false;
@@ -819,7 +820,7 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    assertStaticOutput (type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticOutput (exchange: Exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -842,15 +843,16 @@ export default class testMainClass extends baseMainTestClass {
         this.assertStaticError (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch', storedOutput, newOutput);
         for (let i = 0; i < storedOutputKeys.length; i++) {
             const key = storedOutputKeys[i];
-            if (key in skipKeys) {
+            if (exchange.inArray (key, skipKeys)) {
                 continue;
             }
-            if (!(key in newOutputKeys)) {
-                this.assertStaticError (false, 'output key mismatch', storedOutput, newOutput);
+            if (!(exchange.inArray (key, newOutputKeys))) {
+                this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
             }
             const storedValue = storedOutput[key];
             const newValue = newOutput[key];
-            this.assertStaticError (storedValue === newValue, 'output value mismatch', storedOutput, newOutput);
+            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
+            this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
         }
     }
 
@@ -870,7 +872,7 @@ export default class testMainClass extends baseMainTestClass {
             requestUrl = exchange.last_request_url;
         }
         try {
-            this.assertStaticOutput (type, skipKeys, data['url'], requestUrl, data['output'], output);
+            this.assertStaticOutput (exchange, type, skipKeys, data['url'], requestUrl, data['output'], output);
         }
         catch (e) {
             this.staticTestsFailed = true;
@@ -924,7 +926,8 @@ export default class testMainClass extends baseMainTestClass {
         if (this.staticTestsFailed) {
             exitScript (1);
         } else {
-            dump ('[TEST_SUCCESS]', count.toString (), 'static tests passed');
+            const successMessage = '[' + this.lang + '] + [TEST_SUCCESS]' + count.toString () + 'static tests passed';
+            dump (successMessage);
         }
     }
 

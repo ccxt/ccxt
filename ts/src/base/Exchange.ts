@@ -885,7 +885,6 @@ export default class Exchange {
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
-        this.last_request_url = url;
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
         const [ proxyUrl, httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);

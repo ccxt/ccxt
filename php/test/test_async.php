@@ -30,6 +30,7 @@ $exchangeSymbol = null; // todo: this should be different than JS
 // non-transpiled part, but shared names among langs
 
 class baseMainTestClass {
+    public $lang = 'PHP';
     public $testFiles = [];
     public $skippedMethods = [];
     public $checkedPublicTests = [];
@@ -865,7 +866,20 @@ class testMainClass extends baseMainTestClass {
         return mb_substr($urlParts, implode('/', 3));
     }
 
-    public function assert_static_output(string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
+    public function urlencoded_to_dict(string $url) {
+        $result = array();
+        $parts = explode('&', $url);
+        for ($i = 0; $i < count($parts); $i++) {
+            $part = $parts[$i];
+            $keyValue = explode('=', $part);
+            $key = $keyValue[0];
+            $value = $keyValue[1];
+            $result[$key] = $value;
+        }
+        return $result;
+    }
+
+    public function assert_static_output(Exchange $exchange, string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
         if ($storedUrl !== $requestUrl) {
             // remove the host part from the url
             $firstPath = $this->remove_hostnamefrom_url($storedUrl);
@@ -879,21 +893,25 @@ class testMainClass extends baseMainTestClass {
             if (gettype($newOutput) === 'string') {
                 $newOutput = json_decode($newOutput, $as_associative_array = true);
             }
-            $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
-            $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
-            $this->assert_static_error(strlen($storedOutputKeys) === strlen($newOutputKeys), 'output length mismatch', $storedOutput, $newOutput);
-            for ($i = 0; $i < count($storedOutputKeys); $i++) {
-                $key = $storedOutputKeys[$i];
-                if (is_array($skipKeys) && array_key_exists($key, $skipKeys)) {
-                    continue;
-                }
-                if (!(is_array($newOutputKeys) && array_key_exists($key, $newOutputKeys))) {
-                    $this->assert_static_error(false, 'output $key mismatch', $storedOutput, $newOutput);
-                }
-                $storedValue = $storedOutput[$key];
-                $newValue = $newOutput[$key];
-                $this->assert_static_error($storedValue === $newValue, 'output value mismatch', $storedOutput, $newOutput);
+        } elseif ($type === 'urlencoded') {
+            $storedOutput = $this->urlencoded_to_dict($storedOutput);
+            $newOutput = $this->urlencoded_to_dict($newOutput);
+        }
+        $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
+        $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
+        $this->assert_static_error(strlen($storedOutputKeys) === strlen($newOutputKeys), 'output length mismatch', $storedOutput, $newOutput);
+        for ($i = 0; $i < count($storedOutputKeys); $i++) {
+            $key = $storedOutputKeys[$i];
+            if ($exchange->in_array($key, $skipKeys)) {
+                continue;
             }
+            if (!($exchange->in_array($key, $newOutputKeys))) {
+                $this->assert_static_error(false, 'output $key missing => ' . $key, $storedOutput, $newOutput);
+            }
+            $storedValue = $storedOutput[$key];
+            $newValue = $newOutput[$key];
+            $messageError = 'output value mismatch for => ' . $key . ' : ' . (string) $storedValue . ' != ' . (string) $newValue;
+            $this->assert_static_error($storedValue === $newValue, $messageError, $storedOutput, $newOutput);
         }
     }
 
@@ -903,13 +921,18 @@ class testMainClass extends baseMainTestClass {
             $requestUrl = null;
             try {
                 $inputArgs = is_array($data['input']) ? array_values($data['input']) : array();
-                $_res = Async\await(call_exchange_method_dynamically ($exchange, $method, $inputArgs));
+                Async\await(call_exchange_method_dynamically ($exchange, $method, $inputArgs));
             } catch (Exception $e) {
+                if (!($e instanceof NetworkError)) {
+                    // if it's not a network error, it means our request was not created succesfully
+                    // so we might have an error in the request creation
+                    throw $e;
+                }
                 $output = $exchange->last_request_body;
                 $requestUrl = $exchange->last_request_url;
             }
             try {
-                $this->assert_static_output($type, $skipKeys, $data['url'], $requestUrl, $data['output'], $output);
+                $this->assert_static_output($exchange, $type, $skipKeys, $data['url'], $requestUrl, $data['output'], $output);
             } catch (Exception $e) {
                 $this->staticTestsFailed = true;
                 dump ('[STATIC_TEST_FAILURE]', '[' . $exchange->id . ']', '[' . $method . ']', '[' . $data['description'] . ']', $e);
@@ -922,7 +945,7 @@ class testMainClass extends baseMainTestClass {
             $markets = $this->load_markets_from_file($exchangeName);
             // instantiate the $exchange and make sure that we sink the requests to avoid an actual request
             $exchange = init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secret', 'password' => 'password', 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
-            $methods = $exchange->safe_value($exchangeData, 'methods');
+            $methods = $exchange->safe_value($exchangeData, 'methods', array());
             $methodsNames = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($methodsNames); $i++) {
                 $method = $methodsNames[$i];
@@ -966,7 +989,8 @@ class testMainClass extends baseMainTestClass {
             if ($this->staticTestsFailed) {
                 exit_script (1);
             } else {
-                dump ('[TEST_SUCCESS]', (string) $count, 'static tests passed');
+                $successMessage = '[' . $this->lang . '] . [TEST_SUCCESS]' . (string) $count . 'static tests passed';
+                dump ($successMessage);
             }
         }) ();
     }
