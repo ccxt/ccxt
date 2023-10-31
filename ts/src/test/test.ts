@@ -804,7 +804,14 @@ export default class testMainClass extends baseMainTestClass {
             return undefined;
         }
         const urlParts = url.split ('/');
-        return urlParts.slice (3).join ('/');
+        let res = '';
+        for (let i = 0; i < urlParts.length; i++) {
+            if (i > 2) {
+                res += '/';
+                res += urlParts[i];
+            }
+        }
+        return res;
     }
 
     urlencodedToDict (url: string) {
@@ -840,7 +847,9 @@ export default class testMainClass extends baseMainTestClass {
         }
         const storedOutputKeys = Object.keys (storedOutput);
         const newOutputKeys = Object.keys (newOutput);
-        this.assertStaticError (storedOutputKeys.length === newOutputKeys.length, 'output length mismatch', storedOutput, newOutput);
+        const storedLenght = storedOutputKeys.length;
+        const newLength = newOutputKeys.length;
+        this.assertStaticError (storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
         for (let i = 0; i < storedOutputKeys.length; i++) {
             const key = storedOutputKeys[i];
             if (exchange.inArray (key, skipKeys)) {
