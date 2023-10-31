@@ -197,6 +197,33 @@ export default class bitrue extends Exchange {
                         'public': {
                             'get': {
                                 'ping': 1,
+                                'time': 1,
+                                'contracts': 1,
+                                'depth': 1,
+                                'ticker': 1,
+                                'klines': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 1,
+                                'openOrders': 1,
+                                'order': 1,
+                                'account': 1,
+                                'leverageBracket': 1,
+                                'commissionRate': 1,
+                                'futures_transfer_history': 1,
+                                'forceOrdersHistory': 1,
+                            },
+                            'post': {
+                                'positionMargin': 1,
+                                'level_edit': 1,
+                                'cancel': 1,
+                                'order': 1,
+                                'allOpenOrders': 1,
+                                'futures_transfer': 1,
                             },
                         },
                     },
