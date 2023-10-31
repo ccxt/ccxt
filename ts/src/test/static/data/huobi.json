@@ -1,0 +1,35 @@
+{
+    "exchange": "huobi",
+    "skipKeys": ["account-id", "client-order-id"],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+          {
+            "description": "Spot market buy",
+            "method": "createOrder",
+            "url": "https://api.huobi.pro/v1/order/orders/place?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-10-31T18%3A05%3A01&Signature=%2FSW3LCI9ob9vzRUna%2F3iwfAfKDZRIj5X1oPKMxO0Re0%3D",
+            "input": [
+              "LTC/USDT",
+              "market",
+              "buy",
+              0.21,
+              50
+            ],
+            "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-market\",\"client-order-id\":\"AA03022abc6dc8eac0-c980-4b1d-b4b0-6cf159701f7a\",\"amount\":\"10.5\"}"
+          },
+          {
+            "description": "Swap market buy",
+            "method": "createOrder",
+            "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-10-31T18%3A06%3A10&Signature=KtaWYexJ0MINBs3bpo75KXIsgSmN8FOwgzMZTNll0Uo%3D",
+            "input": [
+              "LTC/USDT:USDT",
+              "market",
+              "buy",
+              1,
+              50
+            ],
+            "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"market\",\"channel_code\":\"AA03022abc\"}"
+          }
+        ]
+    }
+}
