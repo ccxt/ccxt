@@ -102,7 +102,7 @@ function setExchangeProp (exchange, prop, value) {
     exchange[prop] = value;
 }
 
-function initExchange (exchangeId, args) {
+function initExchange (exchangeId, args): Exchange {
     return new (ccxt)[exchangeId] (args);
 }
 
@@ -909,14 +909,15 @@ export default class testMainClass extends baseMainTestClass {
         await close (exchange);
     }
 
-    getNumberOfTestsFromExchange (exchangeData: object) {
+    getNumberOfTestsFromExchange (exchange, exchangeData: object) {
         let sum = 0;
         const methods = exchangeData['methods'];
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
             const method = methodsNames[i];
             const results = methods[method];
-            sum += results.length;
+            const resultsLength = results.length;
+            sum = exchange.sum (sum, resultsLength);
         }
         return sum;
     }
@@ -924,12 +925,14 @@ export default class testMainClass extends baseMainTestClass {
     async runStaticTests () {
         const staticData = this.loadStaticData ();
         const exchanges = Object.keys (staticData);
+        const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
         let sum = 0;
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
-            sum += this.getNumberOfTestsFromExchange (exchangeData);
+            const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData);
+            sum = exchange.sum (sum, numberOfTests);
             promises.push (this.testExchangeStatically (exchangeName, exchangeData));
         }
         await Promise.all (promises);
@@ -940,7 +943,6 @@ export default class testMainClass extends baseMainTestClass {
             dump (successMessage);
         }
     }
-
 }
 // ***** AUTO-TRANSPILER-END *****
 // *******************************
