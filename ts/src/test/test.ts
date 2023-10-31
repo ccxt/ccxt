@@ -835,6 +835,27 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
+    assertNewAndStoredOutput (exchange, skipKeys: string[], newOutput: object, storedOutput: object) {
+        const storedOutputKeys = Object.keys (storedOutput);
+        const newOutputKeys = Object.keys (newOutput);
+        const storedLenght = storedOutputKeys.length;
+        const newLength = newOutputKeys.length;
+        this.assertStaticError (storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
+        for (let i = 0; i < storedOutputKeys.length; i++) {
+            const key = storedOutputKeys[i];
+            if (exchange.inArray (key, skipKeys)) {
+                continue;
+            }
+            if (!(exchange.inArray (key, newOutputKeys))) {
+                this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
+            }
+            const storedValue = storedOutput[key];
+            const newValue = newOutput[key];
+            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
+            this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
+        }
+    }
+
     assertStaticOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
@@ -853,23 +874,18 @@ export default class testMainClass extends baseMainTestClass {
             storedOutput = this.urlencodedToDict (storedOutput);
             newOutput = this.urlencodedToDict (newOutput);
         }
-        const storedOutputKeys = Object.keys (storedOutput);
-        const newOutputKeys = Object.keys (newOutput);
-        const storedLenght = storedOutputKeys.length;
-        const newLength = newOutputKeys.length;
-        this.assertStaticError (storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
-        for (let i = 0; i < storedOutputKeys.length; i++) {
-            const key = storedOutputKeys[i];
-            if (exchange.inArray (key, skipKeys)) {
-                continue;
+
+        if (Array.isArray (storedOutput)) {
+            if (!Array.isArray (newOutput)) {
+                this.assertStaticError (false, 'output type mismatch', storedOutput, newOutput);
             }
-            if (!(exchange.inArray (key, newOutputKeys))) {
-                this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
+            for (let i = 0; i < storedOutput.length; i++) {
+                const storedItem = storedOutput[i];
+                const newItem = newOutput[i];
+                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
             }
-            const storedValue = storedOutput[key];
-            const newValue = newOutput[key];
-            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
-            this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
+        } else {
+            this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
         }
     }
 
