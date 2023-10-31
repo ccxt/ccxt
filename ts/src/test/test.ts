@@ -820,7 +820,7 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    assertStaticOutput (exchange: Exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
