@@ -1564,6 +1564,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1674,6 +1675,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
@@ -1736,6 +1738,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingRates
          * @description fetch the funding rate for multiple markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure}, indexe by market symbols
@@ -2202,6 +2205,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2902,6 +2907,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
@@ -2995,6 +3001,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#options-trade-history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -3098,6 +3108,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3415,6 +3429,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3452,6 +3467,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3489,6 +3505,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#withdraw
          * @description make a withdrawal
+         * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3635,6 +3652,13 @@ class gate extends gate$1 {
          * @method
          * @name gate#createOrder
          * @description Create an order on the exchange
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
@@ -4447,6 +4471,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -4463,6 +4488,13 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -4671,6 +4703,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#cancelOrder
          * @description Cancels an open order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol
          * @param {object} [params] Parameters specified by the exchange api
@@ -4781,6 +4817,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#cancelAllOrders
          * @description cancel all open orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -4912,6 +4952,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#setLeverage
          * @description set the level of leverage for a market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage-2
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the gate api endpoint
@@ -5276,6 +5318,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
@@ -5531,12 +5575,12 @@ class gate extends gate$1 {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        let method = undefined;
+        let response = undefined;
+        params = this.omit(params, ['marginMode']);
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossRepayments';
+            response = await this.privateMarginPostCrossRepayments(this.extend(request, params));
         }
         else {
-            method = 'privateMarginPostLoansLoanIdRepayment';
             const market = this.market(symbol);
             request['currency_pair'] = market['id'];
             request['mode'] = 'partial';
@@ -5545,9 +5589,9 @@ class gate extends gate$1 {
                 throw new errors.ArgumentsRequired(this.id + ' repayMargin() requires loan_id param for isolated margin');
             }
             request['loan_id'] = loanId;
+            params = this.omit(params, ['loan_id', 'id']);
+            response = await this.privateMarginPostLoansLoanIdRepayment(this.extend(request, params));
         }
-        params = this.omit(params, ['marginMode', 'loan_id', 'id']);
-        let response = await this[method](this.extend(request, params));
         //
         // Cross
         //
@@ -5614,9 +5658,9 @@ class gate extends gate$1 {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossLoans';
+            response = await this.privateMarginPostCrossLoans(this.extend(request, params));
         }
         else {
             const market = this.market(symbol);
@@ -5626,10 +5670,9 @@ class gate extends gate$1 {
             // as it is the smallest tick size currently offered by gateio
             request['rate'] = this.safeString(params, 'rate', '0.0001');
             request['auto_renew'] = true;
-            method = 'privateMarginPostLoans';
+            params = this.omit(params, ['rate']);
+            response = await this.privateMarginPostLoans(this.extend(request, params));
         }
-        params = this.omit(params, ['marginMode', 'rate']);
-        const response = await this[method](this.extend(request, params));
         //
         // Cross
         //
@@ -5853,6 +5896,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#reduceMargin
          * @description remove margin from a position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exmo api endpoint
@@ -5865,6 +5910,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#addMargin
          * @description add margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exmo api endpoint
@@ -6402,6 +6449,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchUnderlyingAssets
          * @description fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
          * @param {object} [params] exchange specific params
          * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}

@@ -1194,9 +1194,6 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
-            'commonCurrencies' => array(
-                'GAS' => 'GASDAO',
-            ),
         ));
     }
 

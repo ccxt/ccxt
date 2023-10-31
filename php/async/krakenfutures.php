@@ -1925,7 +1925,7 @@ class krakenfutures extends Exchange {
                 $result[] = array(
                     'info' => $item,
                     'symbol' => $symbol,
-                    'fundingRate' => $this->safe_number($item, 'fundingRate'),
+                    'fundingRate' => $this->safe_number($item, 'relativeFundingRate'),
                     'timestamp' => $this->parse8601($datetime),
                     'datetime' => $datetime,
                 );
@@ -2361,6 +2361,7 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
+            $this->check_required_credentials();
             $auth = $postData . '/api/';
             if ($api !== 'private') {
                 $auth .= $api . '/';

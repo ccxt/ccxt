@@ -1121,14 +1121,15 @@ class bitopro extends bitopro$1 {
         const request = {
         // 'pair': market['id'], // optional
         };
-        // privateDeleteOrdersAll or privateDeleteOrdersPair
-        let method = this.safeString(this.options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll');
+        let response = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
             request['pair'] = market['id'];
-            method = 'privateDeleteOrdersPair';
+            response = await this.privateDeleteOrdersPair(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.privateDeleteOrdersAll(this.extend(request, params));
+        }
         const result = this.safeValue(response, 'data', {});
         //
         //     {

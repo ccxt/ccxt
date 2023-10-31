@@ -906,23 +906,21 @@ class woo(Exchange, ImplicitAPI):
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        method = None
-        if isByClientOrder:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId'
-                request['oid'] = id
-            else:
-                method = 'v3PrivatePutOrderClientClientOrderId'
-                request['client_order_id'] = clientOrderIdExchangeSpecific
-        else:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderOid'
-            else:
-                method = 'v3PrivatePutOrderOid'
-            request['oid'] = id
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice'])
-        response = await getattr(self, method)(self.extend(request, params))
+        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        response = None
+        if isByClientOrder:
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            if isStop:
+                response = await self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
+            else:
+                response = await self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
+        else:
+            request['oid'] = id
+            if isStop:
+                response = await self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
+            else:
+                response = await self.v3PrivatePutOrderOid(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -955,27 +953,26 @@ class woo(Exchange, ImplicitAPI):
         if not stop:
             self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateDeleteAlgoOrderOrderId'
             request['order_id'] = id
-        elif isByClientOrder:
-            method = 'v1PrivateDeleteClientOrder'
-            request['client_order_id'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+            response = await self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateDeleteOrder'
-            request['order_id'] = id
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        if not stop:
             request['symbol'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            if isByClientOrder:
+                request['client_order_id'] = clientOrderIdExchangeSpecific
+                params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+                response = await self.v1PrivateDeleteClientOrder(self.extend(request, params))
+            else:
+                request['order_id'] = id
+                response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #
@@ -1032,17 +1029,16 @@ class woo(Exchange, ImplicitAPI):
         params = self.omit(params, 'stop')
         request = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateGetAlgoOrderOid'
             request['oid'] = id
+            response = await self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
-            method = 'v1PrivateGetClientOrderClientOrderId'
             request['client_order_id'] = clientOrderId
+            response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateGetOrderOid'
             request['oid'] = id
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
         #     success: True,

@@ -1,0 +1,186 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT_SPBL",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0,
+                "max": 0
+            },
+            "price": {},
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "baseCoin": "BTC",
+            "buyLimitPriceRatio": "0.05",
+            "makerFeeRate": "0.002",
+            "maxOrderNum": "500",
+            "maxTradeAmount": "0",
+            "minTradeAmount": "0",
+            "minTradeUSDT": "5",
+            "priceScale": "2",
+            "quantityScale": "4",
+            "quoteCoin": "USDT",
+            "quotePrecision": "6",
+            "sellLimitPriceRatio": "0.05",
+            "status": "online",
+            "symbol": "BTCUSDT_SPBL",
+            "symbolName": "BTCUSDT",
+            "takerFeeRate": "0.002"
+        },
+        "taker": 0.002,
+        "maker": 0.002
+    },
+    "BTC/USDT:USDT": {
+        "id": "BTCUSDT_UMCBL",
+        "symbol": "BTC/USDT:USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "active": true,
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USDT",
+        "settleId": "USDT",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {
+                "min": 5
+            },
+            "leverage": {}
+        },
+        "info": {
+            "baseCoin": "BTC",
+            "buyLimitPriceRatio": "0.01",
+            "feeRateUpRatio": "0.005",
+            "limitOpenTime": "-1",
+            "maintainTime": "",
+            "makerFeeRate": "0.0002",
+            "maxOrderNum": "400",
+            "maxPositionNum": "150",
+            "minTradeNum": "0.001",
+            "minTradeUSDT": "5",
+            "offTime": "-1",
+            "openCostUpRatio": "0.01",
+            "priceEndStep": "1",
+            "pricePlace": "1",
+            "quoteCoin": "USDT",
+            "sellLimitPriceRatio": "0.01",
+            "sizeMultiplier": "0.001",
+            "supportMarginCoins": [
+                "USDT"
+            ],
+            "symbol": "BTCUSDT_UMCBL",
+            "symbolName": "BTCUSDT",
+            "symbolStatus": "normal",
+            "symbolType": "perpetual",
+            "takerFeeRate": "0.0006",
+            "volumePlace": "3"
+        },
+        "taker": 0.0006,
+        "maker": 0.0002
+    },
+    "BTC/USD:BTC": {
+        "id": "BTCUSD_DMCBL",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "active": true,
+        "type": "swap",
+        "linear": false,
+        "inverse": true,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "BTC",
+        "settleId": "BTC",
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "baseCoin": "BTC",
+            "buyLimitPriceRatio": "0.01",
+            "feeRateUpRatio": "0.005",
+            "limitOpenTime": "-1",
+            "maintainTime": "",
+            "makerFeeRate": "0.0002",
+            "maxOrderNum": "400",
+            "maxPositionNum": "150",
+            "minTradeNum": "0.001",
+            "minTradeUSDT": "5",
+            "offTime": "-1",
+            "openCostUpRatio": "0.01",
+            "priceEndStep": "1",
+            "pricePlace": "1",
+            "quoteCoin": "USD",
+            "sellLimitPriceRatio": "0.01",
+            "sizeMultiplier": "0.001",
+            "supportMarginCoins": [
+                "BTC",
+                "ETH",
+                "USDC",
+                "XRP",
+                "BGB",
+                "STETH"
+            ],
+            "symbol": "BTCUSD_DMCBL",
+            "symbolName": "BTCUSD",
+            "symbolStatus": "normal",
+            "symbolType": "perpetual",
+            "takerFeeRate": "0.0006",
+            "volumePlace": "3"
+        },
+        "taker": 0.0006,
+        "maker": 0.0002
+    }
+}

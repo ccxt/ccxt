@@ -1811,7 +1811,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             result.append({
                 'info': item,
                 'symbol': symbol,
-                'fundingRate': self.safe_number(item, 'fundingRate'),
+                'fundingRate': self.safe_number(item, 'relativeFundingRate'),
                 'timestamp': self.parse8601(datetime),
                 'datetime': datetime,
             })
@@ -2206,6 +2206,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
+            self.check_required_credentials()
             auth = postData + '/api/'
             if api != 'private':
                 auth += api + '/'

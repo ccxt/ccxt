@@ -1817,6 +1817,9 @@ export default class phemex extends Exchange {
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let method = 'privateGetSpotWallets';
         const request = {};
+        if ((type !== 'spot') && (type !== 'swap')) {
+            throw new BadRequest(this.id + ' does not support ' + type + ' markets, only spot and swap');
+        }
         if (type === 'swap') {
             const code = this.safeString(params, 'code');
             let settle = undefined;
@@ -3633,17 +3636,19 @@ export default class phemex extends Exchange {
             // 'limit': 20, // Page size default 20, max 200
             // 'offset': 0, // Page start default 0
         };
-        if (limit > 200) {
-            throw new BadRequest(this.id + ' fetchFundingHistory() limit argument cannot exceed 200');
-        }
         if (limit !== undefined) {
+            if (limit > 200) {
+                throw new BadRequest(this.id + ' fetchFundingHistory() limit argument cannot exceed 200');
+            }
             request['limit'] = limit;
         }
-        let method = 'privateGetApiDataFuturesFundingFees';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privateGetApiDataGFuturesFundingFees';
+            response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.privateGetApiDataFuturesFundingFees(this.extend(request, params));
+        }
         //
         //     {
         //         "code": 0,

@@ -1920,7 +1920,7 @@ export default class krakenfutures extends Exchange {
             result.push({
                 'info': item,
                 'symbol': symbol,
-                'fundingRate': this.safeNumber(item, 'fundingRate'),
+                'fundingRate': this.safeNumber(item, 'relativeFundingRate'),
                 'timestamp': this.parse8601(datetime),
                 'datetime': datetime,
             });
@@ -2346,6 +2346,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
+            this.checkRequiredCredentials();
             let auth = postData + '/api/';
             if (api !== 'private') {
                 auth += api + '/';

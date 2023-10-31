@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniexfutures.js';
-import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class poloniexfutures
  * @extends Exchange
@@ -47,7 +47,7 @@ export default class poloniexfutures extends Exchange {
         stopLossPrice: any;
         takeProfitPrice: any;
     };
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any[]>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
