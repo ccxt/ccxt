@@ -89,66 +89,88 @@ export default class bitrue extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
                 'api': {
-                    'v1': 'https://www.bitrue.com/api/v1',
-                    'v2': 'https://www.bitrue.com/api/v2',
+                    'spot': 'https://www.bitrue.com/api',
+                    'fapi': 'https://fapi.bitrue.com/fapi',
+                    'dapi': 'https://fapi.bitrue.com/dapi',
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
                 'referral': 'https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000',
                 'doc': [
                     'https://github.com/Bitrue-exchange/bitrue-official-api-docs',
+                    'https://www.bitrue.com/api-docs',
                 ],
                 'fees': 'https://bitrue.zendesk.com/hc/en-001/articles/4405479952537',
             },
             'api': {
-                'kline': {
-                    'public': {
-                        'get': {
-                            'public.json': 1,
-                            'public{currency}.json': 1,
+                'spot': {
+                    'kline': {
+                        'public': {
+                            'get': {
+                                'public.json': 1,
+                                'public{currency}.json': 1,
+                            },
+                        },
+                    },
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                                'time': 1,
+                                'exchangeInfo': 1,
+                                'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ] ] },
+                                'trades': 1,
+                                'historicalTrades': 5,
+                                'aggTrades': 1,
+                                'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
+                                'ticker/price': { 'cost': 1, 'noSymbol': 2 },
+                                'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
+                                'market/kline': 1,
+                            },
+                        },
+                        'private': {
+                            'get': {
+                                'order': 1,
+                                'openOrders': 1,
+                                'allOrders': 5,
+                                'account': 5,
+                                'myTrades': { 'cost': 5, 'noSymbol': 40 },
+                                'etf/net-value/{symbol}': 1,
+                                'withdraw/history': 1,
+                                'deposit/history': 1,
+                            },
+                            'post': {
+                                'order': 4,
+                                'withdraw/commit': 1,
+                            },
+                            'delete': {
+                                'order': 1,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'get': {
+                                'myTrades': 5,
+                            },
                         },
                     },
                 },
-                'v1': {
-                    'public': {
-                        'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'exchangeInfo': 1,
-                            'depth': { 'cost': 1, 'byLimit': [ [ 100, 1 ], [ 500, 5 ], [ 1000, 10 ] ] },
-                            'trades': 1,
-                            'historicalTrades': 5,
-                            'aggTrades': 1,
-                            'ticker/24hr': { 'cost': 1, 'noSymbol': 40 },
-                            'ticker/price': { 'cost': 1, 'noSymbol': 2 },
-                            'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
-                            'market/kline': 1,
-                        },
-                    },
-                    'private': {
-                        'get': {
-                            'order': 1,
-                            'openOrders': 1,
-                            'allOrders': 5,
-                            'account': 5,
-                            'myTrades': { 'cost': 5, 'noSymbol': 40 },
-                            'etf/net-value/{symbol}': 1,
-                            'withdraw/history': 1,
-                            'deposit/history': 1,
-                        },
-                        'post': {
-                            'order': 4,
-                            'withdraw/commit': 1,
-                        },
-                        'delete': {
-                            'order': 1,
+                'fapi': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                            },
                         },
                     },
                 },
-                'v2': {
-                    'private': {
-                        'get': {
-                            'myTrades': 5,
+                'dapi': {
+                    'v1': {
+                        'public': {
+                            'get': {
+                                'ping': 1,
+                            },
                         },
                     },
                 },
@@ -235,7 +257,7 @@ export default class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
-                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -354,7 +376,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
-        const response = await this.v1PublicGetPing (params);
+        const response = await this.spotV1PublicGetPing (params);
         //
         // empty means working status.
         //
@@ -380,7 +402,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.v1PublicGetTime (params);
+        const response = await this.spotV1PublicGetTime (params);
         //
         //     {
         //         "serverTime":1635467280514
@@ -469,7 +491,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.v1PublicGetExchangeInfo (params);
+        const response = await this.spotV1PublicGetExchangeInfo (params);
         //
         //     {
         //         "timezone":"CTT",
@@ -598,7 +620,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.v1PublicGetExchangeInfo (params);
+        const response = await this.spotV1PublicGetExchangeInfo (params);
         //
         //     {
         //         "timezone":"CTT",
@@ -748,7 +770,7 @@ export default class bitrue extends Exchange {
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v1PrivateGetAccount (params);
+        const response = await this.spotV1PrivateGetAccount (params);
         //
         //     {
         //         "makerCommission":0,
@@ -787,7 +809,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
         }
-        const response = await this.v1PublicGetDepth (this.extend (request, params));
+        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId":1635474910177,
@@ -878,7 +900,7 @@ export default class bitrue extends Exchange {
             'currency': uppercaseQuoteId,
             'command': 'returnTicker',
         };
-        const response = await this.klinePublicGetPublicCurrencyJson (this.extend (request, params));
+        const response = await this.spotKlinePublicGetPublicCurrencyJson (this.extend (request, params));
         //
         //     {
         //         "code":"200",
@@ -929,7 +951,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PublicGetMarketKline (this.extend (request, params));
+        const response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
         //
         //       {
         //           "symbol":"BTCUSDT",
@@ -992,7 +1014,7 @@ export default class bitrue extends Exchange {
             market = this.market (first);
             request['symbol'] = market['id'];
         }
-        const response = await this.v1PublicGetTickerBookTicker (this.extend (request, params));
+        const response = await this.spotV1PublicGetTickerBookTicker (this.extend (request, params));
         //     {
         //         "symbol": "LTCBTC",
         //         "bidPrice": "4.00000000",
@@ -1018,7 +1040,7 @@ export default class bitrue extends Exchange {
         const request = {
             'command': 'returnTicker',
         };
-        const response = await this.klinePublicGetPublicJson (this.extend (request, params));
+        const response = await this.spotKlinePublicGetPublicJson (this.extend (request, params));
         //
         //     {
         //         "code":"200",
@@ -1055,7 +1077,7 @@ export default class bitrue extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         // aggregate trades
-        //  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
+        //  - "T" is timestamp of *api-call* not trades. Use more expensive spotV1PublicGetHistoricalTrades if actual timestamp of trades matter
         //  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
         //
         //     {
@@ -1160,7 +1182,7 @@ export default class bitrue extends Exchange {
             'symbol': market['id'],
             // 'limit': 100, // default 100, max = 1000
         };
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'v1PublicGetAggTrades');
+        const method = this.safeString (this.options, 'fetchTradesMethod', 'spotV1PublicGetAggTrades');
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -1369,7 +1391,7 @@ export default class bitrue extends Exchange {
             params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const response = await this.v1PrivatePostOrder (this.extend (request, params));
+        const response = await this.spotV1PrivatePostOrder (this.extend (request, params));
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1405,7 +1427,7 @@ export default class bitrue extends Exchange {
             request['orderId'] = id;
         }
         const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.v1PrivateGetOrder (this.extend (request, query));
+        const response = await this.spotV1PrivateGetOrder (this.extend (request, query));
         return this.parseOrder (response, market);
     }
 
@@ -1438,7 +1460,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
-        const response = await this.v1PrivateGetAllOrders (this.extend (request, params));
+        const response = await this.spotV1PrivateGetAllOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1483,7 +1505,7 @@ export default class bitrue extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1PrivateGetOpenOrders (this.extend (request, params));
+        const response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1537,7 +1559,7 @@ export default class bitrue extends Exchange {
             request['origClientOrderId'] = origClientOrderId;
         }
         const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await this.v1PrivateDeleteOrder (this.extend (request, query));
+        const response = await this.spotV1PrivateDeleteOrder (this.extend (request, query));
         //
         //     {
         //         "symbol": "LTCBTC",
@@ -1636,7 +1658,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetDepositHistory (this.extend (request, params));
+        const response = await this.spotV1PrivateGetDepositHistory (this.extend (request, params));
         //
         //     {
         //         "code":200,
@@ -1708,7 +1730,7 @@ export default class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetWithdrawHistory (this.extend (request, params));
+        const response = await this.spotV1PrivateGetWithdrawHistory (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -1910,7 +1932,7 @@ export default class bitrue extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
+        const response = await this.spotV1PrivatePostWithdrawCommit (this.extend (request, params));
         //
         //     {
         //         "code": 200,
@@ -1983,15 +2005,22 @@ export default class bitrue extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v1PublicGetExchangeInfo (params);
+        const response = await this.spotV1PublicGetExchangeInfo (params);
         const coins = this.safeValue (response, 'coins');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = this.safeString (api, 0);
-        const access = this.safeString (api, 1);
-        let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
+        const type = this.safeString (api, 0);
+        const version = this.safeString (api, 1);
+        const access = this.safeString (api, 2);
+        let url = undefined;
+        if (type === 'api' && version === 'kline') {
+            url = this.urls['api'][type];
+        } else {
+            url = this.urls['api'][type] + '/' + version;
+        }
+        url = url + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (access === 'private') {
             this.checkRequiredCredentials ();
