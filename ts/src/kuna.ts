@@ -809,8 +809,11 @@ export default class kuna extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'pair': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.v4PublicGetTradePublicBookPairs (this.extend (request, params));
         //
         //    {
