@@ -1379,9 +1379,9 @@ export default class binance extends Exchange {
                 'spot': {
                     // https://binance-docs.github.io/apidocs/spot/en/#error-codes
                     'exact': {
-                        '-1004': ExchangeNotAvailable, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                        '-1004': OperationFailed, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
                         '-1005': ExchangeError, // undocumented
-                        '-1008': ExchangeNotAvailable, // Server is currently overloaded with other requests. Please try again in a few minutes.
+                        '-1008': OperationFailed, // Server is currently overloaded with other requests. Please try again in a few minutes.
                         '-1010': ExchangeError, // undocumented | ERROR_MSG_RECEIVED
                         '-1011': ExchangeError, // undocumented
                         '-1013': ExchangeError, // undocumented
@@ -1396,19 +1396,19 @@ export default class binance extends Exchange {
                         '-2022': BadResponse, // This code is sent when both the cancellation of the order failed and the new order placement failed.
                         '-2026': InvalidOrder, // Order was canceled or expired with no executed qty over 90 days ago and has been archived.
                         // 3xxx errors are available only for spot
-                        '-3000': ExchangeNotAvailable, // {"code":-3000,"msg":"Internal server error."}
+                        '-3000': OperationFailed, // {"code":-3000,"msg":"Internal server error."}
                         '-3001': AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
                         '-3002': BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
                         '-3003': BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
-                        '-3004': BadRequest, // {"code":-3004,"msg":"Trade not allowed."}
-                        '-3005': BadRequest, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
-                        '-3006': BadRequest, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
-                        '-3007': BadResponse, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
-                        '-3008': BadRequest, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
-                        '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                        '-3010': BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                        '-3004': InvalidOperation, // {"code":-3004,"msg":"Trade not allowed."}
+                        '-3005': InvalidOperation, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                        '-3006': InvalidOperation, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                        '-3007': OperationFailed, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
+                        '-3008': InvalidOperation, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                        '-3009': InvalidOperation, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
+                        '-3010': InvalidOperation, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                         '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
-                        '-3012': BadRequest, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                        '-3012': InvalidOperation, // {"code":-3012,"msg":"Borrow is banned for this asset."}
                         '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
                         '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
                         '-3015': BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
