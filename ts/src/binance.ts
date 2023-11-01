@@ -1645,13 +1645,13 @@ export default class binance extends Exchange {
                         '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
                         '-4006': BadRequest, // STOP_PRICE_LESS_THAN_ZERO
                         '-4007': BadRequest, // STOP_PRICE_GREATER_THAN_MAX_PRICE
-                        '-4008': BadRequest, // TICK_SIZE_LESS_THAN_ZERO
+                        '-4008': BadRequest, // TICK SIZE LESS THAN ZERO
                         '-4009': BadRequest, // MAX_PRICE_LESS_THAN_MIN_PRICE
                         '-4010': BadRequest, // MAX_QTY_LESS_THAN_MIN_QTY
                         '-4011': BadRequest, // STEP_SIZE_LESS_THAN_ZERO
                         '-4012': BadRequest, // MAX_NUM_ORDERS_LESS_THAN_ZERO
                         '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
-                        '-4014': BadRequest, // PRICE_NOT_INCREASED_BY_TICK_SIZE
+                        '-4014': BadRequest, // PRICE NOT INCREASED BY TICK SIZE
                         '-4015': BadRequest, // Client order id is not valid
                         '-4016': OperationRejected, // Price is higher than mark price multiplier cap.
                         '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
@@ -1666,7 +1666,7 @@ export default class binance extends Exchange {
                         '-4026': BadRequest, // COMMISSION_INVALID
                         '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
                         '-4028': BadRequest, // INVALID_LEVERAGE
-                        '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                        '-4029': BadRequest, // INVALID TICK SIZE PRECISION
                         '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
                         '-4031': BadRequest, // INVALID_WORKING_TYPE
                         '-4032': OperationRejected, // EXCEED_MAX_CANCEL_ORDER_SIZE
@@ -1794,13 +1794,13 @@ export default class binance extends Exchange {
                         '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
                         '-4006': BadRequest, // STOP_PRICE_LESS_THAN_ZERO
                         '-4007': BadRequest, // STOP_PRICE_GREATER_THAN_MAX_PRICE
-                        '-4008': BadRequest, // TICK_SIZE_LESS_THAN_ZERO
+                        '-4008': BadRequest, // TICK SIZE LESS THAN ZERO
                         '-4009': BadRequest, // MAX_PRICE_LESS_THAN_MIN_PRICE
                         '-4010': BadRequest, // MAX_QTY_LESS_THAN_MIN_QTY
                         '-4011': BadRequest, // STEP_SIZE_LESS_THAN_ZERO
                         '-4012': BadRequest, // MAX_NUM_ORDERS_LESS_THAN_ZERO
                         '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
-                        '-4014': BadRequest, // PRICE_NOT_INCREASED_BY_TICK_SIZE
+                        '-4014': BadRequest, // PRICE NOT INCREASED BY TICK SIZE
                         '-4015': BadRequest, // Client order id is not valid
                         '-4016': OperationRejected, // Price is higher than mark price multiplier cap.
                         '-4017': BadRequest, // MULTIPLIER_UP_LESS_THAN_ZERO
