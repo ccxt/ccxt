@@ -336,5 +336,122 @@
         "maker": -0.0002,
         "index": false,
         "created": 1647955125000
+    },
+    "LTC/USD:USD": {
+        "id": "PF_LTCUSD",
+        "symbol": "LTC/USD:USD",
+        "base": "LTC",
+        "quote": "USD",
+        "baseId": "LTC",
+        "quoteId": "usd",
+        "type": "swap",
+        "linear": true,
+        "inverse": false,
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": true,
+        "contractSize": 1,
+        "settle": "USD",
+        "settleId": "usd",
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {},
+            "price": {},
+            "cost": {},
+            "leverage": {}
+        },
+        "info": {
+            "symbol": "PF_LTCUSD",
+            "type": "flexible_futures",
+            "tickSize": "0.01",
+            "contractSize": "1",
+            "tradeable": true,
+            "impactMidSize": "1.50",
+            "maxPositionSize": "200000.00000000000",
+            "openingDate": "2022-03-22T14:39:25.000Z",
+            "marginLevels": [
+                {
+                    "numNonContractUnits": "0E-20",
+                    "initialMargin": "0.02",
+                    "maintenanceMargin": "0.01"
+                },
+                {
+                    "numNonContractUnits": "250000.00000000000000000000",
+                    "initialMargin": "0.04",
+                    "maintenanceMargin": "0.02"
+                },
+                {
+                    "numNonContractUnits": "500000.00000000000000000000",
+                    "initialMargin": "0.1",
+                    "maintenanceMargin": "0.05"
+                },
+                {
+                    "numNonContractUnits": "2000000.00000000000000000000",
+                    "initialMargin": "0.2",
+                    "maintenanceMargin": "0.1"
+                },
+                {
+                    "numNonContractUnits": "5000000.00000000000000000000",
+                    "initialMargin": "0.3",
+                    "maintenanceMargin": "0.15"
+                },
+                {
+                    "numNonContractUnits": "10000000.00000000000000000000",
+                    "initialMargin": "0.5",
+                    "maintenanceMargin": "0.25"
+                }
+            ],
+            "fundingRateCoefficient": "24",
+            "maxRelativeFundingRate": "0.0025",
+            "contractValueTradePrecision": "2",
+            "postOnly": false,
+            "feeScheduleUid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+            "retailMarginLevels": [
+                {
+                    "numNonContractUnits": "0E-20",
+                    "initialMargin": "0.02",
+                    "maintenanceMargin": "0.01"
+                },
+                {
+                    "numNonContractUnits": "250000.00000000000000000000",
+                    "initialMargin": "0.04",
+                    "maintenanceMargin": "0.02"
+                },
+                {
+                    "numNonContractUnits": "500000.00000000000000000000",
+                    "initialMargin": "0.1",
+                    "maintenanceMargin": "0.05"
+                },
+                {
+                    "numNonContractUnits": "2000000.00000000000000000000",
+                    "initialMargin": "0.2",
+                    "maintenanceMargin": "0.1"
+                },
+                {
+                    "numNonContractUnits": "5000000.00000000000000000000",
+                    "initialMargin": "0.3",
+                    "maintenanceMargin": "0.15"
+                },
+                {
+                    "numNonContractUnits": "10000000.00000000000000000000",
+                    "initialMargin": "0.5",
+                    "maintenanceMargin": "0.25"
+                }
+            ],
+            "category": "Layer 1",
+            "tags": []
+        },
+        "tierBased": false,
+        "percentage": true,
+        "taker": 0.00075,
+        "maker": -0.0002,
+        "index": false,
+        "created": 1647959965000
     }
 }
