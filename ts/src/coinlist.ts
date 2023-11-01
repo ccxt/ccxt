@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, InvalidAddress, OnMaintenance, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -22,7 +22,7 @@ export default class coinlist extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -42,7 +42,7 @@ export default class coinlist extends Exchange {
                 'deposit': false,
                 'editOrder': true,
                 'fetchAccounts': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -98,7 +98,7 @@ export default class coinlist extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false, // todo: check
@@ -111,7 +111,7 @@ export default class coinlist extends Exchange {
                 'setPositionMode': false,
                 'signIn': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
                 'ws': false,
             },
             'timeframes': {
@@ -257,9 +257,14 @@ export default class coinlist extends Exchange {
                 },
                 'broad': {
                     'A destinationAddress is required for non-USD withdrawals': InvalidAddress, // {"status":400,"message":"400 - {\"message\":\"A destinationAddress is required for non-USD withdrawals.\"}"}
-                    'is required': ArgumentsRequired, // {"status":400,"message":"\"asset\" is required"}
+                    'fails to match the JsonSchema date-time format pattern': BadRequest, // {"status":401,"message":"\"end_time\" with value \"1698862680000\" fails to match the JsonSchema date-time format pattern"}
+                    'is required': ArgumentsRequired, // {"status":400,"message":"\"type\" is required"}
                     'must be a string': BadRequest, // {"status":400,"message":"\"destination_address\" must be a string"}
                     'must be a valid GUID': BadRequest, // {"status":400,"message":"\"order_id\" must be a valid GUID"}
+                    'must be greater than or equal to': BadRequest, // {"status":401,"message":"\"count\" must be greater than or equal to 1"}
+                    'must be less than or equal to': BadRequest, // {"status":401,"message":"\"count\" must be less than or equal to 500"}
+                    'must be one of': BadRequest, // {"status":401,"message":"\"granularity\" must be one of [1m, 5m, 30m]"}
+                    'Symbol not found': BadSymbol, // {"message":"Symbol not found: {symbol}"}
                 },
             },
         });
@@ -1179,6 +1184,7 @@ export default class coinlist extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
+            // todo: check for limit <= 22
             request['count'] = limit;
         }
         const response = await this.privateGetV1Orders (this.extend (request, params));
@@ -1592,7 +1598,7 @@ export default class coinlist extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-            'postOnly': postOnly,
+            'postOnly': postOnly, // todo: check
         }, market);
     }
 
