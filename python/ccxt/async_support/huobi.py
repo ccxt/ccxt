@@ -893,6 +893,7 @@ class huobi(Exchange, ImplicitAPI):
                     '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718}
                     '1303': BadRequest,  # {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder,  # {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits(5000USDT). Please modify.","ts":1652554651234}
+                    '4007': BadRequest,  # {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest,  # {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
                     'validation-constraints-required': BadRequest,  # {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
@@ -2849,6 +2850,13 @@ class huobi(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}):
         """
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
@@ -2861,10 +2869,8 @@ class huobi(Exchange, ImplicitAPI):
         isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
         params = self.omit(params, ['isUnifiedAccount', 'unified'])
         request = {}
-        method = None
         spot = (type == 'spot')
         future = (type == 'future')
-        swap = (type == 'swap')
         defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
         subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
         subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
@@ -2876,30 +2882,30 @@ class huobi(Exchange, ImplicitAPI):
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
+        response = None
         if spot or margin:
             if margin:
                 if isolated:
-                    method = 'spotPrivateGetV1MarginAccountsBalance'
+                    response = await self.spotPrivateGetV1MarginAccountsBalance(self.extend(request, params))
                 else:
-                    method = 'spotPrivateGetV1CrossMarginAccountsBalance'
+                    response = await self.spotPrivateGetV1CrossMarginAccountsBalance(self.extend(request, params))
             else:
                 await self.load_accounts()
                 accountId = await self.fetch_account_id_by_type(type, None, None, params)
                 request['account-id'] = accountId
-                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+                response = await self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, params))
         elif isUnifiedAccount:
-            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo'
+            response = await self.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(self.extend(request, params))
         elif linear:
             if isolated:
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                response = await self.contractPrivatePostLinearSwapApiV1SwapAccountInfo(self.extend(request, params))
             else:
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
+                response = await self.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(self.extend(request, params))
         elif inverse:
             if future:
-                method = 'contractPrivatePostApiV1ContractAccountInfo'
-            elif swap:
-                method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
-        response = await getattr(self, method)(self.extend(request, params))
+                response = await self.contractPrivatePostApiV1ContractAccountInfo(self.extend(request, params))
+            else:
+                response = await self.contractPrivatePostSwapApiV1SwapAccountInfo(self.extend(request, params))
         #
         # spot
         #

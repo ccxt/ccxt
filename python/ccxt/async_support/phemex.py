@@ -3398,14 +3398,15 @@ class phemex(Exchange, ImplicitAPI):
             # 'limit': 20,  # Page size default 20, max 200
             # 'offset': 0,  # Page start default 0
         }
-        if limit > 200:
-            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
         if limit is not None:
+            if limit > 200:
+                raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
             request['limit'] = limit
-        method = 'privateGetApiDataFuturesFundingFees'
+        response = None
         if market['settle'] == 'USDT':
-            method = 'privateGetApiDataGFuturesFundingFees'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetApiDataGFuturesFundingFees(self.extend(request, params))
+        else:
+            response = await self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
         #
         #     {
         #         "code": 0,

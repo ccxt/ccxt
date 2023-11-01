@@ -3633,17 +3633,19 @@ class phemex extends phemex$1 {
             // 'limit': 20, // Page size default 20, max 200
             // 'offset': 0, // Page start default 0
         };
-        if (limit > 200) {
-            throw new errors.BadRequest(this.id + ' fetchFundingHistory() limit argument cannot exceed 200');
-        }
         if (limit !== undefined) {
+            if (limit > 200) {
+                throw new errors.BadRequest(this.id + ' fetchFundingHistory() limit argument cannot exceed 200');
+            }
             request['limit'] = limit;
         }
-        let method = 'privateGetApiDataFuturesFundingFees';
+        let response = undefined;
         if (market['settle'] === 'USDT') {
-            method = 'privateGetApiDataGFuturesFundingFees';
+            response = await this.privateGetApiDataGFuturesFundingFees(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.privateGetApiDataFuturesFundingFees(this.extend(request, params));
+        }
         //
         //     {
         //         "code": 0,

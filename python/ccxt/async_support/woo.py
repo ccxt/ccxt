@@ -252,6 +252,7 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -2018,13 +2019,15 @@ class woo(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):
-                applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
-                brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                isStop = path.find('algo') > -1
-                if isStop:
-                    params['brokerId'] = brokerId
-                else:
-                    params['broker_id'] = brokerId
+                isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+                if not isSandboxMode:
+                    applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+                    brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+                    isStop = path.find('algo') > -1
+                    if isStop:
+                        params['brokerId'] = brokerId
+                    else:
+                        params['broker_id'] = brokerId
                 params = self.keysort(params)
             auth = ''
             ts = str(self.nonce())
@@ -2454,3 +2457,7 @@ class woo(Exchange, ImplicitAPI):
                 return network
         # if it was not returned according to above options, then return the first network of currency
         return self.safe_value(networkKeys, 0)
+
+    def set_sandbox_mode(self, enable):
+        super(woo, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable

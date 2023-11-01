@@ -1664,18 +1664,15 @@ class bitmex extends Exchange {
         //         "timestamp":"2021-01-02T21:38:49.246Z"
         //     }
         //
-        $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
-        $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'transactTime'));
-        $price = $this->safe_string($order, 'price');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $qty = $this->safe_string($order, 'orderQty');
         $cost = null;
         $amount = null;
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
         $isInverse = false;
-        if ($market === null) {
+        if ($marketId === null) {
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $isInverse = ($defaultSubType === 'inverse');
         } else {
             $isInverse = $this->safe_value($market, 'inverse', false);
@@ -1693,38 +1690,35 @@ class bitmex extends Exchange {
         } else {
             $filled = $cumQty;
         }
-        $id = $this->safe_string($order, 'orderID');
-        $type = $this->safe_string_lower($order, 'ordType');
-        $side = $this->safe_string_lower($order, 'side');
-        $clientOrderId = $this->safe_string($order, 'clOrdID');
-        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $stopPrice = $this->safe_number($order, 'stopPx');
         $execInst = $this->safe_string($order, 'execInst');
         $postOnly = null;
         if ($execInst !== null) {
             $postOnly = ($execInst === 'ParticipateDoNotInitiate');
         }
+        $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
+        $stopPrice = $this->safe_number($order, 'stopPx');
+        $remaining = $this->safe_string($order, 'leavesQty');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'id' => $this->safe_string($order, 'orderID'),
+            'clientOrderId' => $this->safe_string($order, 'clOrdID'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => $this->parse8601($this->safe_string($order, 'transactTime')),
             'symbol' => $symbol,
-            'type' => $type,
-            'timeInForce' => $timeInForce,
+            'type' => $this->safe_string_lower($order, 'ordType'),
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'timeInForce')),
             'postOnly' => $postOnly,
-            'side' => $side,
-            'price' => $price,
+            'side' => $this->safe_string_lower($order, 'side'),
+            'price' => $this->safe_string($order, 'price'),
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => null,
-            'status' => $status,
+            'remaining' => $this->convert_from_raw_quantity($symbol, $remaining),
+            'status' => $this->parse_order_status($this->safe_string($order, 'ordStatus')),
             'fee' => null,
             'trades' => null,
         ), $market);
