@@ -20,11 +20,6 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
-print('Python v' + platform.python_version())
-print('CCXT v' + ccxt.__version__)
-
-# ------------------------------------------------------------------------------
-
 
 class Argv(object):
 
@@ -42,6 +37,7 @@ class Argv(object):
     spot = False
     swap = False
     future = False
+    json = False
     args = []
 
 
@@ -60,6 +56,7 @@ parser.add_argument('--spot', action='store_true', help='enable spot markets')
 parser.add_argument('--swap', action='store_true', help='enable swap markets')
 parser.add_argument('--future', action='store_true', help='enable future markets')
 parser.add_argument('--option', action='store_true', help='enable option markets')
+parser.add_argument('--json', action='store_true', help='output as json')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -68,6 +65,11 @@ parser.parse_args(namespace=argv)
 
 # ------------------------------------------------------------------------------
 
+if not argv.json:
+    print('Python v' + platform.python_version())
+    print('CCXT v' + ccxt.__version__)
+
+# ------------------------------------------------------------------------------
 
 def table(values):
     first = values[0]
@@ -209,7 +211,8 @@ async def main():
         if callable(method):
             if argv.method.startswith('watch'):
                 is_ws_method = True # handle ws methods
-            print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
+            if not argv.json or is_ws_method:
+                print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
             while True:
                 result = None
                 if asyncio.iscoroutinefunction(method):
@@ -220,7 +223,10 @@ async def main():
                     result = list(result.values()) if isinstance(result, dict) else result
                     print(table([exchange.omit(v, 'info') for v in result]))
                 else:
-                    pprint(result)
+                    if argv.json:
+                        print(json.dumps(result))
+                    else:
+                        pprint(result)
                 if not is_ws_method:
                     await exchange.close()
                     return
