@@ -67,7 +67,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -102,7 +102,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -214,6 +214,7 @@ class digifinex(Exchange, ImplicitAPI):
                             'account/finance_record',
                             'account/trading_fee_rate',
                             'account/transfer_record',
+                            'account/funding_fee',
                             'trade/history_orders',
                             'trade/history_trades',
                             'trade/open_orders',
@@ -221,10 +222,23 @@ class digifinex(Exchange, ImplicitAPI):
                         ],
                         'post': [
                             'account/leverage',
+                            'account/position_mode',
+                            'account/position_margin',
                             'trade/batch_cancel_order',
                             'trade/batch_order',
                             'trade/cancel_order',
                             'trade/order_place',
+                            'follow/sponsor_order',
+                            'follow/close_order',
+                            'follow/cancel_order',
+                            'follow/user_center_current',
+                            'follow/user_center_history',
+                            'follow/expert_current_open_order',
+                            'follow/add_algo',
+                            'follow/cancel_algo',
+                            'follow/account_available',
+                            'follow/plan_task',
+                            'follow/instrument_list',
                         ],
                     },
                 },
@@ -3572,6 +3586,88 @@ class digifinex(Exchange, ImplicitAPI):
             currency = self.currency(code)
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
+
+    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#funding-fee
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding payment
+        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
+        """
+        self.load_markets()
+        request = {}
+        request, params = self.handle_until_option('end_timestamp', request, params)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_timestamp'] = since
+        response = self.privateSwapGetAccountFundingFee(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "currency": "USDT",
+        #                 "amount": "-0.000342814",
+        #                 "timestamp": 1698768009440
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_incomes(data, market, since, limit)
+
+    def parse_income(self, income, market=None):
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "currency": "USDT",
+        #         "amount": "-0.000342814",
+        #         "timestamp": 1698768009440
+        #     }
+        #
+        marketId = self.safe_string(income, 'instrument_id')
+        currencyId = self.safe_string(income, 'currency')
+        timestamp = self.safe_integer(income, 'timestamp')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(income, 'amount'),
+        }
+
+    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setMarginMode', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        marginMode = marginMode.lower()
+        if marginMode == 'cross':
+            marginMode = 'crossed'
+        request = {
+            'instrument_id': market['id'],
+            'margin_mode': marginMode,
+        }
+        return self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'

@@ -874,6 +874,7 @@ export default class huobi extends Exchange {
                     '1220': AccountNotEnabled, // {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
                     '1303': BadRequest, // {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder, // {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234}
+                    '4007': BadRequest, // {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest, // {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
                     'validation-constraints-required': BadRequest, // {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
@@ -1050,7 +1051,6 @@ export default class huobi extends Exchange {
                 'GET': 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
@@ -2990,6 +2990,13 @@ export default class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchBalance
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
@@ -3002,10 +3009,8 @@ export default class huobi extends Exchange {
         const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
         params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
         const request = {};
-        let method = undefined;
         const spot = (type === 'spot');
         const future = (type === 'future');
-        const swap = (type === 'swap');
         const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
         let subType = this.safeString2 (options, 'defaultSubType', 'subType', defaultSubType);
         subType = this.safeString2 (params, 'defaultSubType', 'subType', subType);
@@ -3017,35 +3022,35 @@ export default class huobi extends Exchange {
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
+        let response = undefined;
         if (spot || margin) {
             if (margin) {
                 if (isolated) {
-                    method = 'spotPrivateGetV1MarginAccountsBalance';
+                    response = await this.spotPrivateGetV1MarginAccountsBalance (this.extend (request, params));
                 } else {
-                    method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                    response = await this.spotPrivateGetV1CrossMarginAccountsBalance (this.extend (request, params));
                 }
             } else {
                 await this.loadAccounts ();
                 const accountId = await this.fetchAccountIdByType (type, undefined, undefined, params);
                 request['account-id'] = accountId;
-                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+                response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance (this.extend (request, params));
             }
         } else if (isUnifiedAccount) {
-            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
+            response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (this.extend (request, params));
         } else if (linear) {
             if (isolated) {
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountInfo (this.extend (request, params));
             } else {
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (this.extend (request, params));
             }
         } else if (inverse) {
             if (future) {
-                method = 'contractPrivatePostApiV1ContractAccountInfo';
-            } else if (swap) {
-                method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+                response = await this.contractPrivatePostApiV1ContractAccountInfo (this.extend (request, params));
+            } else {
+                response = await this.contractPrivatePostSwapApiV1SwapAccountInfo (this.extend (request, params));
             }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //

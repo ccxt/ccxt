@@ -426,6 +426,7 @@ interface Exchange {
     privatePostV5PositionTradingStop(params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetAutoAddMargin(params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionAddMargin(params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionConfirmPendingMmr(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify(params?: {}): Promise<implicitReturnType>;

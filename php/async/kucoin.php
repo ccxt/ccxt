@@ -44,6 +44,7 @@ class kucoin extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -226,12 +227,14 @@ class kucoin extends Exchange {
                         'deposit-addresses' => 1,
                         'withdrawals' => 1,
                         'orders' => 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders/test' => 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi' => 20, // 3/3s = 1/s => cost = 20 / 1 = 20
                         'isolated/borrow' => 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
                         'isolated/repay/all' => 2,
                         'isolated/repay/single' => 2,
                         'margin/borrow' => 1,
                         'margin/order' => 1,
+                        'margin/order/test' => 1,
                         'margin/repay/all' => 1,
                         'margin/repay/single' => 1,
                         'margin/lend' => 1,
@@ -1847,6 +1850,8 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/spot#place-a-new-order-2
              * @see https://docs.kucoin.com/spot#place-a-margin-order
              * @see https://docs.kucoin.com/spot-hf/#place-hf-order
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
+             * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
@@ -1876,76 +1881,38 @@ class kucoin extends Exchange {
              * @param {string} [$params->stp] '', // self trade prevention, CN, CO, CB or DC
              * @param {bool} [$params->autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
              * @param {bool} [$params->hf] false, // true for hf order
+             * @param {bool} [$params->test] set to true to test an order, no order will be created but the request will be validated
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            // required param, cannot be used twice
-            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
-            $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-            $request = array(
-                'clientOid' => $clientOrderId,
-                'side' => $side,
-                'symbol' => $market['id'],
-                'type' => $type, // limit or $market
-            );
-            $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
-            $amountString = null;
-            $costString = null;
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            if ($type === 'market') {
-                if ($quoteAmount !== null) {
-                    $params = $this->omit($params, array( 'cost', 'funds' ));
-                    // kucoin uses base precision even for quote values
-                    $costString = $this->amount_to_precision($symbol, $quoteAmount);
-                    $request['funds'] = $costString;
-                } else {
-                    $amountString = $this->amount_to_precision($symbol, $amount);
-                    $request['size'] = $this->amount_to_precision($symbol, $amount);
-                }
-            } else {
-                $amountString = $this->amount_to_precision($symbol, $amount);
-                $request['size'] = $amountString;
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
-            $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
-            $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
-            $method = 'privatePostOrders';
+            $testOrder = $this->safe_value($params, 'test', false);
+            $params = $this->omit($params, 'test');
             $isHf = $this->safe_value($params, 'hf', false);
-            if ($isHf) {
-                $method = 'privatePostHfOrders';
-            } elseif ($triggerPrice || $stopLossPrice || $takeProfitPrice) {
-                if ($triggerPrice) {
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                } elseif ($stopLossPrice || $takeProfitPrice) {
-                    if ($stopLossPrice) {
-                        $request['stop'] = ($side === 'buy') ? 'entry' : 'loss';
-                        $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-                    } else {
-                        $request['stop'] = ($side === 'buy') ? 'loss' : 'entry';
-                        $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                    }
+            list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+            $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
+            $isTriggerOrder = ($triggerPrice || $stopLossPrice || $takeProfitPrice);
+            $marginResult = $this->handle_margin_mode_and_params('createOrder', $params);
+            $marginMode = $this->safe_string($marginResult, 0);
+            $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
+            // don't omit anything before calling createOrderRequest
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = null;
+            if ($testOrder) {
+                if ($isMarginOrder) {
+                    $response = Async\await($this->privatePostMarginOrderTest ($orderRequest));
+                } else {
+                    $response = Async\await($this->privatePostOrdersTest ($orderRequest));
                 }
-                $method = 'privatePostStopOrder';
-                if ($marginMode === 'isolated') {
-                    throw new BadRequest($this->id . ' createOrder does not support isolated margin for stop orders');
-                } elseif ($marginMode === 'cross') {
-                    $request['tradeType'] = $this->options['marginModes'][$marginMode];
-                }
-            } elseif ($tradeType === 'MARGIN_TRADE' || $marginMode !== null) {
-                $method = 'privatePostMarginOrder';
-                if ($marginMode === 'isolated') {
-                    $request['marginModel'] = 'isolated';
-                }
+            } elseif ($isHf) {
+                $response = Async\await($this->privatePostHfOrders ($orderRequest));
+            } elseif ($isTriggerOrder) {
+                $response = Async\await($this->privatePostStopOrder ($orderRequest));
+            } elseif ($isMarginOrder) {
+                $response = Async\await($this->privatePostMarginOrder ($orderRequest));
+            } else {
+                $response = Async\await($this->privatePostOrders ($orderRequest));
             }
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
-            if ($postOnly) {
-                $request['postOnly'] = true;
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         code => '200000',
@@ -1957,6 +1924,156 @@ class kucoin extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-$orders
+             * @see https://www.kucoin.com/docs/rest/spot-trading/spot-$hf-trade-pro-account/place-multiple-$hf-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params]  Extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->hf] false, // true for $hf $orders
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                if ($type !== 'limit') {
+                    throw new BadRequest($this->id . ' createOrders() only supports limit orders');
+                }
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'orderList' => $ordersRequests,
+            );
+            $hf = $this->safe_value($params, 'hf', false);
+            $params = $this->omit($params, 'hf');
+            $response = null;
+            if ($hf) {
+                $response = Async\await($this->privatePostHfOrdersMulti (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostOrdersMulti (array_merge($request, $params)));
+            }
+            //
+            // {
+            //     "code" => "200000",
+            //     "data" => {
+            //        "data" => [
+            //           array(
+            //              "symbol" => "LTC-USDT",
+            //              "type" => "limit",
+            //              "side" => "sell",
+            //              "price" => "90",
+            //              "size" => "0.1",
+            //              "funds" => null,
+            //              "stp" => "",
+            //              "stop" => "",
+            //              "stopPrice" => null,
+            //              "timeInForce" => "GTC",
+            //              "cancelAfter" => 0,
+            //              "postOnly" => false,
+            //              "hidden" => false,
+            //              "iceberge" => false,
+            //              "iceberg" => false,
+            //              "visibleSize" => null,
+            //              "channel" => "API",
+            //              "id" => "6539148443fcf500079d15e5",
+            //              "status" => "success",
+            //              "failMsg" => null,
+            //              "clientOid" => "5c4c5398-8ab2-4b4e-af8a-e2d90ad2488f"
+            //           ),
+            // }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_value($data, 'data', array());
+            return $this->parse_orders($data);
+        }) ();
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        // required param, cannot be used twice
+        $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
+        $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
+        $request = array(
+            'clientOid' => $clientOrderId,
+            'side' => $side,
+            'symbol' => $market['id'],
+            'type' => $type, // limit or $market
+        );
+        $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
+        $amountString = null;
+        $costString = null;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($type === 'market') {
+            if ($quoteAmount !== null) {
+                $params = $this->omit($params, array( 'cost', 'funds' ));
+                // kucoin uses base precision even for quote values
+                $costString = $this->amount_to_precision($symbol, $quoteAmount);
+                $request['funds'] = $costString;
+            } else {
+                $amountString = $this->amount_to_precision($symbol, $amount);
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+            }
+        } else {
+            $amountString = $this->amount_to_precision($symbol, $amount);
+            $request['size'] = $amountString;
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
+        list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
+        $isTriggerOrder = ($triggerPrice || $stopLossPrice || $takeProfitPrice);
+        $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
+        $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ));
+        if ($isTriggerOrder) {
+            if ($triggerPrice) {
+                $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            } elseif ($stopLossPrice || $takeProfitPrice) {
+                if ($stopLossPrice) {
+                    $request['stop'] = ($side === 'buy') ? 'entry' : 'loss';
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                } else {
+                    $request['stop'] = ($side === 'buy') ? 'loss' : 'entry';
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                }
+            }
+            if ($marginMode === 'isolated') {
+                throw new BadRequest($this->id . ' createOrder does not support isolated margin for stop orders');
+            } elseif ($marginMode === 'cross') {
+                $request['tradeType'] = $this->options['marginModes'][$marginMode];
+            }
+        } elseif ($isMarginOrder) {
+            if ($marginMode === 'isolated') {
+                $request['marginModel'] = 'isolated';
+            }
+        }
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+        if ($postOnly) {
+            $request['postOnly'] = true;
+        }
+        return array_merge($request, $params);
     }
 
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -2481,6 +2598,7 @@ class kucoin extends Exchange {
         $stop = $responseStop !== null;
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $isActive = $this->safe_value_2($order, 'isActive', 'active');
+        $responseStatus = $this->safe_string($order, 'status');
         $status = null;
         if ($isActive !== null) {
             if ($isActive === true) {
@@ -2490,7 +2608,6 @@ class kucoin extends Exchange {
             }
         }
         if ($stop) {
-            $responseStatus = $this->safe_string($order, 'status');
             if ($responseStatus === 'NEW') {
                 $status = 'open';
             } elseif (!$isActive && !$stopTriggered) {
@@ -2499,6 +2616,9 @@ class kucoin extends Exchange {
         }
         if ($cancelExist) {
             $status = 'canceled';
+        }
+        if ($responseStatus === 'fail') {
+            $status = 'rejected';
         }
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(

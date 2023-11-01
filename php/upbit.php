@@ -960,17 +960,18 @@ class upbit extends Exchange {
             'timeframe' => $timeframeValue,
             'count' => $limit,
         );
-        $method = 'publicGetCandlesTimeframe';
-        if ($timeframeValue === 'minutes') {
-            $numMinutes = (int) round($timeframePeriod / 60);
-            $request['unit'] = $numMinutes;
-            $method .= 'Unit';
-        }
+        $response = null;
         if ($since !== null) {
             // convert `$since` to `to` value
             $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
         }
-        $response = $this->$method (array_merge($request, $params));
+        if ($timeframeValue === 'minutes') {
+            $numMinutes = (int) round($timeframePeriod / 60);
+            $request['unit'] = $numMinutes;
+            $response = $this->publicGetCandlesTimeframeUnit (array_merge($request, $params));
+        } else {
+            $response = $this->publicGetCandlesTimeframe (array_merge($request, $params));
+        }
         //
         //     array(
         //         array(

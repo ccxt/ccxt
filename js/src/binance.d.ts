@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation } from './base/types.js';
+import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest } from './base/types.js';
 /**
  * @class binance
  * @extends Exchange
@@ -124,6 +124,7 @@ export default class binance extends Exchange {
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
@@ -374,7 +375,7 @@ export default class binance extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchAccountPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: string, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;

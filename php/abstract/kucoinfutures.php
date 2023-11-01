@@ -250,6 +250,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function private_post_orders_test($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function private_post_orders_multi($params = array()) {
         return $this->request('orders/multi', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
@@ -267,6 +270,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function private_post_margin_order($params = array()) {
         return $this->request('margin/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_margin_order_test($params = array()) {
+        return $this->request('margin/order/test', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_margin_repay_all($params = array()) {
         return $this->request('margin/repay/all', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -507,6 +513,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function futuresprivate_post_transfer_in($params = array()) {
         return $this->request('transfer-in', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresprivate_post_orders_test($params = array()) {
+        return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1.33));
     }
     public function futuresprivate_post_position_risk_limit_level_change($params = array()) {
         return $this->request('position/risk-limit-level/change', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -784,6 +793,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array("cost" => 4));
     }
+    public function privatePostOrdersTest($params = array()) {
+        return $this->request('orders/test', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
     public function privatePostOrdersMulti($params = array()) {
         return $this->request('orders/multi', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
@@ -801,6 +813,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function privatePostMarginOrder($params = array()) {
         return $this->request('margin/order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostMarginOrderTest($params = array()) {
+        return $this->request('margin/order/test', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostMarginRepayAll($params = array()) {
         return $this->request('margin/repay/all', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1041,6 +1056,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function futuresPrivatePostTransferIn($params = array()) {
         return $this->request('transfer-in', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivatePostOrdersTest($params = array()) {
+        return $this->request('orders/test', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1.33));
     }
     public function futuresPrivatePostPositionRiskLimitLevelChange($params = array()) {
         return $this->request('position/risk-limit-level/change', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));

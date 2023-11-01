@@ -160,7 +160,7 @@ export default class woo extends Exchange {
         amount: number;
         rate: number;
     };
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     parseFundingRate(fundingRate: any, market?: any): {
         info: any;
         symbol: any;
@@ -210,4 +210,5 @@ export default class woo extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
+    setSandboxMode(enable: any): void;
 }

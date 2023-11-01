@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinex
  * @extends Exchange
@@ -94,7 +94,7 @@ export default class coinex extends Exchange {
     };
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;

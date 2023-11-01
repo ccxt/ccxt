@@ -565,7 +565,7 @@ class coinex(ccxt.async_support.coinex):
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the coinex api endpoint
         :param int|None params['end']: the end time for spot markets, self.seconds() is set
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ export default class okx extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -373,6 +374,7 @@ export default class okx extends Exchange {
                         'sprd/order': 1,
                         'sprd/cancel-order': 1,
                         'sprd/mass-cancel': 1,
+                        'sprd/amend-order': 1,
                         // trade
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
@@ -2765,6 +2767,56 @@ export default class okx extends Exchange {
         return order;
     }
 
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name okx#createOrders
+         * @description create a list of trade orders
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            ordersRequests.push (orderRequest);
+        }
+        const response = await this.privatePostTradeBatchOrders (ordersRequests);
+        // {
+        //     "code": "0",
+        //     "data": [
+        //        {
+        //           "clOrdId": "e847386590ce4dBCc7f2a1b4c4509f82",
+        //           "ordId": "636305438765568000",
+        //           "sCode": "0",
+        //           "sMsg": "Order placed",
+        //           "tag": "e847386590ce4dBC"
+        //        },
+        //        {
+        //           "clOrdId": "e847386590ce4dBC0b9993fe642d8f62",
+        //           "ordId": "636305438765568001",
+        //           "sCode": "0",
+        //           "sMsg": "Order placed",
+        //           "tag": "e847386590ce4dBC"
+        //        }
+        //     ],
+        //     "inTime": "1697979038584486",
+        //     "msg": "",
+        //     "outTime": "1697979038586493"
+        // }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data);
+    }
+
     editOrderRequest (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market (symbol);
         const request = {
@@ -3030,6 +3082,7 @@ export default class okx extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'canceled': 'canceled',
+            'order_failed': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -3144,6 +3197,15 @@ export default class okx extends Exchange {
         //         "uly": "BTC-USDT"
         //     }
         //
+        const scode = this.safeString (order, 'sCode');
+        if ((scode !== undefined) && (scode !== '0')) {
+            return this.safeOrder ({
+                'id': this.safeString (order, 'ordId'),
+                'clientOrderId': this.safeString (order, 'clOrdId'),
+                'status': 'rejected',
+                'info': order,
+            });
+        }
         const id = this.safeString2 (order, 'algoId', 'ordId');
         const timestamp = this.safeInteger (order, 'cTime');
         const lastUpdateTimestamp = this.safeInteger (order, 'uTime');
@@ -5704,7 +5766,7 @@ export default class okx extends Exchange {
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingHistory[];
     }
 
     async setLeverage (leverage, symbol: string = undefined, params = {}) {
@@ -6922,7 +6984,7 @@ export default class okx extends Exchange {
         //    }
         //
         const code = this.safeString (response, 'code');
-        if (code !== '0') {
+        if ((code !== '0') && (code !== '2')) { // 2 means that bulk operation partially succeeded
             const feedback = this.id + ' ' + body;
             const data = this.safeValue (response, 'data', []);
             for (let i = 0; i < data.length; i++) {

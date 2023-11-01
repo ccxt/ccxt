@@ -50,6 +50,8 @@ spl_autoload_register(function ($class) {
     $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
     $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
     $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
+    $class_name = str_replace('Ratchet\\Client', 'ratchet\\pawl\\src', $class_name);
+    $class_name = str_replace('Ratchet\\RFC6455', 'ratchet\\rfc6455\\src', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
     if (file_exists($file)) {
@@ -68,8 +70,10 @@ require_once PATH_TO_CCXT . 'BadRequest.php';
 require_once PATH_TO_CCXT . 'BadSymbol.php';
 require_once PATH_TO_CCXT . 'MarginModeAlreadySet.php';
 require_once PATH_TO_CCXT . 'NoChange.php';
+require_once PATH_TO_CCXT . 'InvalidOperation.php';
 require_once PATH_TO_CCXT . 'BadResponse.php';
 require_once PATH_TO_CCXT . 'NullResponse.php';
+require_once PATH_TO_CCXT . 'OperationFailed.php';
 require_once PATH_TO_CCXT . 'InsufficientFunds.php';
 require_once PATH_TO_CCXT . 'InvalidAddress.php';
 require_once PATH_TO_CCXT . 'AddressPending.php';

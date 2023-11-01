@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.23'
+__version__ = '4.1.34'
 
 # ----------------------------------------------------------------------------
 
@@ -52,8 +52,10 @@ from ccxt.base.errors import BadRequest                               # noqa: F4
 from ccxt.base.errors import BadSymbol                                # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import NoChange                                 # noqa: F401
+from ccxt.base.errors import InvalidOperation                         # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
+from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401

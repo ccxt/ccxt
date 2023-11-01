@@ -82,12 +82,14 @@ interface Exchange {
     privatePostDepositAddresses(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawals(params?: {}): Promise<implicitReturnType>;
     privatePostOrders(params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersTest(params?: {}): Promise<implicitReturnType>;
     privatePostOrdersMulti(params?: {}): Promise<implicitReturnType>;
     privatePostIsolatedBorrow(params?: {}): Promise<implicitReturnType>;
     privatePostIsolatedRepayAll(params?: {}): Promise<implicitReturnType>;
     privatePostIsolatedRepaySingle(params?: {}): Promise<implicitReturnType>;
     privatePostMarginBorrow(params?: {}): Promise<implicitReturnType>;
     privatePostMarginOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostMarginOrderTest(params?: {}): Promise<implicitReturnType>;
     privatePostMarginRepayAll(params?: {}): Promise<implicitReturnType>;
     privatePostMarginRepaySingle(params?: {}): Promise<implicitReturnType>;
     privatePostMarginLend(params?: {}): Promise<implicitReturnType>;

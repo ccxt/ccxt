@@ -33,7 +33,7 @@ class Throttler {
                 $cost = $cost ? $cost : $this->config['cost'];
                 if ($this->config['tokens'] >= 0) {
                     $this->config['tokens'] -= $cost;
-                    $future->resolve();
+                    $future->resolve(null);
                     $this->queue->dequeue();
                     # context switch?
                     # yield 0;
