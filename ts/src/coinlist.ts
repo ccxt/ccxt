@@ -344,7 +344,7 @@ export default class coinlist extends Exchange {
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': undefined,
+                'name': code,
                 'info': currency,
                 'active': active,
                 'deposit': depositEnabled,
@@ -355,6 +355,7 @@ export default class coinlist extends Exchange {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': minWithdrawal, 'max': undefined },
                 },
+                'networks': {},
             };
         }
         return result;
