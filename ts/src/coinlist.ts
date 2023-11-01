@@ -194,8 +194,8 @@ export default class coinlist extends Exchange {
                     'feeSide': 'get',
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.0025'),
                     'taker': this.parseNumber ('0.0045'),
+                    'maker': this.parseNumber ('0.0025'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0045') ],
@@ -338,6 +338,8 @@ export default class coinlist extends Exchange {
             const withdrawEnabled = isTransferable;
             const depositEnabled = isTransferable;
             const active = isTransferable;
+            const decimalPlaces = this.safeString (currency, 'decimal_places');
+            const precision = this.parseNumber (this.parsePrecision (decimalPlaces));
             const minWithdrawal = this.safeString (currency, 'min_withdrawal', undefined);
             result[code] = {
                 'id': id,
@@ -348,7 +350,7 @@ export default class coinlist extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': undefined,
-                'precision': undefined, // todo
+                'precision': precision,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': minWithdrawal, 'max': undefined },
