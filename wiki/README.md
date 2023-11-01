@@ -1,5 +1,7 @@
 Welcome to the ccxt wiki!
 
+> We recommend to visit our full documentation at https://docs.ccxt.com
+
 ## General Information
 
 - [Supported Exchanges](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
@@ -92,4 +94,4 @@ Welcome to the ccxt wiki!
 
 ## API Reference
 
-- API Reference (under construction right now!)
+- [API Reference](https://docs.ccxt.com/#/spec)
