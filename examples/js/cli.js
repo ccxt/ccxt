@@ -35,12 +35,15 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
+    , isJson = process.argv.includes ('--json')
 
 //-----------------------------------------------------------------------------
 
-log ((new Date ()).toISOString())
-log ('Node.js:', process.version)
-log ('CCXT v' + ccxt.version)
+if (!isJson) {
+    log ((new Date ()).toISOString())
+    log ('Node.js:', process.version)
+    log ('CCXT v' + ccxt.version)
+}
 
 //-----------------------------------------------------------------------------
 
@@ -281,27 +284,33 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                let isWsMethod = false
+                if (methodName.startsWith("watch")) { // handle WS methods
+                    isWsMethod = true;
+                }
+
+                if (!isJson || isWsMethod || poll) {
+                    log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                }
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
 
                 let i = 0;
 
-                let isWsMethod = false
-                if (methodName.startsWith("watch")) { // handle WS methods
-                    isWsMethod = true;
-                }
-
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        if (!isWsMethod) {
+                        if ((!isWsMethod && !isJson) || poll) {
                             log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         }
-                        printHumanReadable (exchange, result)
-                        if (!isWsMethod) {
+                        if (isJson && !isWsMethod && !poll) {
+                            log (JSON.stringify(result))
+                        } else {
+                            printHumanReadable (exchange, result)
+                        }
+                        if ((!isWsMethod && !isJson) || poll) {
                             log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
                         }
                         start = end
@@ -325,7 +334,7 @@ async function run () {
                         log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
-                    if (!poll && !isWsMethod){
+                    if (!poll && !isWsMethod) {
                         break
                     }
                 }
@@ -333,10 +342,18 @@ async function run () {
             } else if (exchange[methodName] === undefined) {
                 log.red (exchange.id + '.' + methodName + ': no such property')
             } else {
-                printHumanReadable (exchange, exchange[methodName])
+                if (isJson) {
+                    log (JSON.stringify(exchange[methodName]))
+                } else {
+                    printHumanReadable (exchange, exchange[methodName])
+                }
             }
         } else {
-            log (exchange)
+            if (isJson) {
+                log (JSON.stringify(exchange))
+            } else {
+                log (exchange)
+            }
         }
     }
 
