@@ -625,6 +625,10 @@
                 "bid": "broken bid-ask",
                 "ask": "broken bid-ask",
                 "baseVolume": "negative value"
+            },
+            "loadMarkets": {
+                "taker": "key is there when run locally, but not on travis",
+                "maker": "key is there when run locally, but not on travis"
             }
         }
     },
