@@ -12,10 +12,6 @@ use React\Async;
 
 date_default_timezone_set('UTC');
 
-echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
-echo 'CCXT version :' . \ccxt\async\Exchange::VERSION . "\n";
-
-
 $main = function() use ($argv) {
     if (count($argv) > 2) {
         # first we filter the args
@@ -42,6 +38,14 @@ $main = function() use ($argv) {
 
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
+
+        $isJson = count(array_filter($argv, function ($option) { return strstr($option, '--json') !== false; })) > 0;
+        $args = array_values(array_filter($argv, function ($option) { return strstr($option, '--json') === false; }));
+
+        if (!$isJson) {
+            echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
+            echo 'CCXT version :' . \ccxt\async\Exchange::VERSION . "\n";
+        }
 
         $id = $args[1];
         $member = $args[2];
@@ -124,12 +128,14 @@ $main = function() use ($argv) {
 
             $exchange->verbose = $verbose;
 
-            echo $exchange->id . '->' . $member . '(' . @implode(', ', $args) . ")\n";
-
             $is_ws_method = false;
 
             if (mb_strpos($member, 'watch') !== false) {
                 $is_ws_method = true;
+            }
+
+            if (!$isJson || $is_ws_method) {
+                echo $exchange->id . '->' . $member . '(' . @implode(', ', $args) . ")\n";
             }
 
             while (true) {
@@ -138,7 +144,11 @@ $main = function() use ($argv) {
 
                     $result = yield call_user_func_array(array($exchange, $member), $args);
 
-                    echo print_r($result, true) . "\n";
+                    if ($isJson && !$is_ws_method) {
+                        echo json_encode ($result);
+                    } else {
+                        echo print_r($result, true) . "\n";
+                    }
 
                     if (!$is_ws_method) {
                         # make sure to exit with exit code zero here
