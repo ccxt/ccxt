@@ -930,11 +930,12 @@ export default class testMainClass extends baseMainTestClass {
             requestUrl = exchange.last_request_url;
         }
         try {
-            this.assertStaticOutput (exchange, type, skipKeys, data['url'], requestUrl, data['output'], output);
+            const callOutput = exchange.safeValue (data, 'output');
+            this.assertStaticOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
         }
         catch (e) {
             this.staticTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e;
+            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
     }

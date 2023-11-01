@@ -131,7 +131,7 @@ function createTemplate(exchange, methodName, args, result) {
         'method': methodName,
         'url': exchange.last_request_url ?? '',
         'input': args,
-        'output': exchange.last_request_body
+        'output': exchange.last_request_body ?? undefined
     }
     log('Report: (paste inside static/data/' + exchange.id + '.json ->' + methodName + ')')
     log.green('-------------------------------------------')
