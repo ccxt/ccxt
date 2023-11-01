@@ -79,7 +79,7 @@ class digifinex extends Exchange {
                 'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -3832,6 +3832,29 @@ class digifinex extends Exchange {
             'id' => null,
             'amount' => $this->safe_number($income, 'amount'),
         );
+    }
+
+    public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+         * @return {array} response from the exchange
+         */
+        $this->check_required_symbol('setMarginMode', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marginMode = strtolower($marginMode);
+        if ($marginMode === 'cross') {
+            $marginMode = 'crossed';
+        }
+        $request = array(
+            'instrument_id' => $market['id'],
+            'margin_mode' => $marginMode,
+        );
+        return $this->privateSwapPostAccountPositionMode (array_merge($request, $params));
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

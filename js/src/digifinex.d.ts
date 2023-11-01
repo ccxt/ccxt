@@ -234,6 +234,7 @@ export default class digifinex extends Exchange {
         id: any;
         amount: number;
     };
+    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

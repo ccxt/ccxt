@@ -103,7 +103,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'reduceMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -3648,6 +3648,27 @@ class digifinex(Exchange, ImplicitAPI):
             'id': None,
             'amount': self.safe_number(income, 'amount'),
         }
+
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setMarginMode', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        marginMode = marginMode.lower()
+        if marginMode == 'cross':
+            marginMode = 'crossed'
+        request = {
+            'instrument_id': market['id'],
+            'margin_mode': marginMode,
+        }
+        return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
