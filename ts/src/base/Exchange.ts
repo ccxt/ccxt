@@ -223,6 +223,7 @@ export default class Exchange {
     token: string; // reserved for HTTP auth in some cases
 
     balance      = {}
+    liquidations = {}
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
@@ -554,6 +555,12 @@ export default class Exchange {
                 'watchOrderBookForSymbols': undefined,
                 'watchOHLCVForSymbols': undefined,
                 'watchBalance': undefined,
+                'watchLiquidations': undefined,
+                'watchAllLiquidations': undefined,
+                'watchLiquidationsForSymbols': undefined,
+                'watchMyLiquidations': undefined,
+                'watchAllMyLiquidations': undefined,
+                'watchMyLiquidationsForSymbols': undefined,
                 'watchOHLCV': undefined,
             },
             'urls': {
@@ -688,6 +695,7 @@ export default class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
+        this.liquidations = {}
         this.orders       = undefined
         this.trades       = {}
         this.transactions = {}
@@ -1594,6 +1602,36 @@ export default class Exchange {
 
     async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
+    }
+
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
+    }
+
+    async watchAllLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        throw new NotSupported (this.id + ' watchAllLiquidations() is not supported yet');
+    }
+
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.has['watchAllLiquidations']) {
+            return this.watchAllLiquidations (symbols, since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        throw new NotSupported (this.id + ' watchMyLiquidations() is not supported yet');
+    }
+
+    async watchAllMyLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        throw new NotSupported (this.id + ' watchAllMyLiquidations() is not supported yet');
+    }
+
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.has['watchAllMyLiquidations']) {
+            return this.watchAllMyLiquidations (symbols, since, limit, params);
+        }
+        throw new NotSupported (this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

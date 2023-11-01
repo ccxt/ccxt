@@ -17,6 +17,8 @@ export default class binance extends binanceRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchLiquidations': true,
+                'watchMyLiquidations': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
@@ -73,6 +75,7 @@ export default class binance extends binanceRest {
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
+                'liquidationsLimit': 1000,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -128,6 +131,211 @@ export default class binance extends binanceRest {
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
         }
         return stream;
+    }
+
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+         * @see
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidations', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidations', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        const subParams = [];
+        const subscriptionHash = market['lowercaseId'] + '@forceOrder';
+        subParams.push (subscriptionHash);
+        const messageHash = 'liquidations::' + symbol;
+        const query = this.omit (params, 'type');
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHash);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const liquidations = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscribe);
+        if (this.newUpdates) {
+            limit = liquidations.getLimit (liquidations, limit);
+        }
+        return this.filterBySinceLimit (liquidations, since, limit, 'timestamp', true);
+    }
+
+    async watchAllLiquidations (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+         * @see
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        const subscriptionHash = '!forceOrder@arr';
+        let messageHash = 'liquidations';
+        symbols = this.symbols (symbols);
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join (',');
+        }
+        const markets = this.marketSymbols (symbols, undefined, true, true);
+        const firstMarket = this.safeValue (markets, 0);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchAllLiquidations', firstMarket, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchAllLiquidations', firstMarket, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, subscriptionHash);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': [ subscriptionHash ],
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const liquidations = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscribe);
+        if (this.newUpdates) {
+            limit = liquidations.getLimit (liquidations, limit);
+        }
+        return this.filterBySince (liquidations, symbols, since, limit, 'timestamp', true);
+    }
+
+    handleLiquidation (client: Client, message) {
+        //
+        // future
+        //    {
+        //        "e":"forceOrder",
+        //        "E":1698871323061,
+        //        "o":{
+        //           "s":"BTCUSDT",
+        //           "S":"BUY",
+        //           "o":"LIMIT",
+        //           "f":"IOC",
+        //           "q":"1.437",
+        //           "p":"35100.81",
+        //           "ap":"34959.70",
+        //           "X":"FILLED",
+        //           "l":"1.437",
+        //           "z":"1.437",
+        //           "T":1698871323059
+        //        }
+        //    }
+        // delivery
+        //    {
+        //        "e":"forceOrder",              // Event Type
+        //        "E": 1591154240950,            // Event Time
+        //        "o":{
+        //            "s":"BTCUSD_200925",       // Symbol
+        //            "ps": "BTCUSD",            // Pair
+        //            "S":"SELL",                // Side
+        //            "o":"LIMIT",               // Order Type
+        //            "f":"IOC",                 // Time in Force
+        //            "q":"1",                   // Original Quantity
+        //            "p":"9425.5",              // Price
+        //            "ap":"9496.5",             // Average Price
+        //            "X":"FILLED",              // Order Status
+        //            "l":"1",                   // Order Last Filled Quantity
+        //            "z":"1",                   // Order Filled Accumulated Quantity
+        //            "T": 1591154240949,        // Order Trade Time
+        //        }
+        //    }
+        //
+        const rawLiquidation = this.safeValue (message, 'o', {});
+        const marketId = this.safeString (rawLiquidation, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId);
+        const liquidation = this.parseWsLiquidation (rawLiquidation, market);
+        let liquidations = this.safeValue (this.liquidations, symbol);
+        if (liquidations === undefined) {
+            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+            liquidations = new ArrayCache (limit);
+        }
+        liquidations.append (liquidation);
+        this.liquidations[symbol] = liquidations;
+        client.resolve (liquidations, 'liquidations');
+        this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, liquidations);
+    }
+
+    parseWsLiquidation (liquidation, market = undefined) {
+        //
+        // future
+        //    {
+        //        "s":"BTCUSDT",
+        //        "S":"BUY",
+        //        "o":"LIMIT",
+        //        "f":"IOC",
+        //        "q":"1.437",
+        //        "p":"35100.81",
+        //        "ap":"34959.70",
+        //        "X":"FILLED",
+        //        "l":"1.437",
+        //        "z":"1.437",
+        //        "T":1698871323059
+        //    }
+        // delivery
+        //    {
+        //        "s":"BTCUSD_200925",       // Symbol
+        //        "ps": "BTCUSD",            // Pair
+        //        "S":"SELL",                // Side
+        //        "o":"LIMIT",               // Order Type
+        //        "f":"IOC",                 // Time in Force
+        //        "q":"1",                   // Original Quantity
+        //        "p":"9425.5",              // Price
+        //        "ap":"9496.5",             // Average Price
+        //        "X":"FILLED",              // Order Status
+        //        "l":"1",                   // Order Last Filled Quantity
+        //        "z":"1",                   // Order Filled Accumulated Quantity
+        //        "T": 1591154240949,        // Order Trade Time
+        //    }
+        //
+        const marketId = this.safeString (liquidation, 's');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (liquidation, 'T');
+        return {
+            'info': liquidation,
+            'symbol': this.safeSymbol (marketId, market),
+            'contracts': this.safeNumber (liquidation, 'l'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'price': this.safeNumber (liquidation, 'ap'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -2602,6 +2810,7 @@ export default class binance extends binanceRest {
             'ACCOUNT_UPDATE': this.handleBalance,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
+            'forceOrder': this.handleLiquidation,
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
