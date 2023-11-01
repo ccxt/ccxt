@@ -425,8 +425,6 @@ export default class coinlist extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
