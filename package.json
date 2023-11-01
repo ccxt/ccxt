@@ -24,7 +24,7 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "fixTSBug": "node build/fixTSBug",
-    "build-docs": "node jsdoc2md.js",
+    "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
     "tsBuild": "tsc || true",
     "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
