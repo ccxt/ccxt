@@ -275,7 +275,8 @@ export default class probit extends probitRest {
         //     }
         //
         const rawTrades = this.safeValue(message, 'data', []);
-        if (rawTrades.length === 0) {
+        const length = rawTrades.length;
+        if (length === 0) {
             return;
         }
         const reset = this.safeValue(message, 'reset', false);
@@ -361,7 +362,8 @@ export default class probit extends probitRest {
         //     }
         //
         const rawOrders = this.safeValue(message, 'data', []);
-        if (rawOrders.length === 0) {
+        const length = rawOrders.length;
+        if (length === 0) {
             return;
         }
         const messageHash = 'orders';

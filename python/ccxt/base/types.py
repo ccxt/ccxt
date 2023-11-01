@@ -69,7 +69,7 @@ class Position(TypedDict):
     timestamp: int
     datetime: str
     contracts: Numeric
-    contractsSize: Numeric
+    contractSize: Numeric
     side: str
     notional: Numeric
     leverage: Numeric
@@ -91,3 +91,12 @@ class Position(TypedDict):
     stopLossPrice: Numeric
     takeProfitPrice: Numeric
     info: TypedDict
+
+
+class OrderRequest(TypedDict):
+    symbol: str
+    type: str
+    side: str
+    amount: Union[None, float]
+    price: Union[None, float]
+    params: TypedDict

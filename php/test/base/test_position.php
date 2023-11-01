@@ -36,7 +36,7 @@ function test_position($exchange, $skipped_properties, $method, $entry, $symbol,
     );
     $emptyot_allowed_for = ['liquidationPrice', 'initialMargin', 'initialMarginPercentage', 'maintenanceMargin', 'maintenanceMarginPercentage', 'marginRatio'];
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $emptyot_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry, $now);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry, $now);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'side', ['long', 'short']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'marginMode', ['cross', 'isolated']);
@@ -54,5 +54,4 @@ function test_position($exchange, $skipped_properties, $method, $entry, $symbol,
     assert_greater($exchange, $skipped_properties, $method, $entry, 'liquidationPrice', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'markPrice', '0');
     assert_greater($exchange, $skipped_properties, $method, $entry, 'collateral', '0');
-    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'percentage', '0');
 }

@@ -325,8 +325,7 @@ class huobijp extends huobijp$1 {
         // unroll the accumulated deltas
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
-            const message = messages[i];
-            this.handleOrderBookMessage(client, message, orderbook);
+            this.handleOrderBookMessage(client, messages[i], orderbook);
         }
         this.orderbooks[symbol] = orderbook;
         client.resolve(orderbook, messageHash);

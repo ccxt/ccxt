@@ -28,7 +28,7 @@ def test_order_book(exchange, skipped_properties, method, entry, symbol):
     }
     empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']  # todo: make timestamp required
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #

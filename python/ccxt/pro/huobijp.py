@@ -316,8 +316,7 @@ class huobijp(ccxt.async_support.huobijp):
         # unroll the accumulated deltas
         messages = orderbook.cache
         for i in range(0, len(messages)):
-            message = messages[i]
-            self.handle_order_book_message(client, message, orderbook)
+            self.handle_order_book_message(client, messages[i], orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 

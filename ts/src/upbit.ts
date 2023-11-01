@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/upbit.js';
-import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending } from './base/errors.js';
+import { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied, AddressPending, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -473,6 +473,7 @@ export default class upbit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -594,7 +595,7 @@ export default class upbit extends Exchange {
                 'nonce': undefined,
             };
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -609,7 +610,7 @@ export default class upbit extends Exchange {
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const orderbooks = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return this.safeValue (orderbooks, symbol);
+        return this.safeValue (orderbooks, symbol) as OrderBook;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -731,7 +732,7 @@ export default class upbit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -745,7 +746,7 @@ export default class upbit extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol) as Ticker;
     }
 
     parseTrade (trade, market = undefined) {
@@ -984,17 +985,18 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let method = 'publicGetCandlesTimeframe';
-        if (timeframeValue === 'minutes') {
-            const numMinutes = Math.round (timeframePeriod / 60);
-            request['unit'] = numMinutes;
-            method += 'Unit';
-        }
+        let response = undefined;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
         }
-        const response = await this[method] (this.extend (request, params));
+        if (timeframeValue === 'minutes') {
+            const numMinutes = Math.round (timeframePeriod / 60);
+            request['unit'] = numMinutes;
+            response = await this.publicGetCandlesTimeframeUnit (this.extend (request, params));
+        } else {
+            response = await this.publicGetCandlesTimeframe (this.extend (request, params));
+        }
         //
         //     [
         //         {
@@ -1749,12 +1751,20 @@ export default class upbit extends Exchange {
         };
         let method = 'privatePostWithdraws';
         if (code !== 'KRW') {
+            // 2023-05-23 Change to required parameters for digital assets
+            const network = this.safeStringUpper2 (params, 'network', 'net_type');
+            if (network === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a network argument');
+            }
+            params = this.omit (params, [ 'network' ]);
+            request['net_type'] = network;
             method += 'Coin';
             request['currency'] = currency['id'];
             request['address'] = address;
             if (tag !== undefined) {
                 request['secondary_address'] = tag;
             }
+            params = this.omit (params, 'network');
         } else {
             method += 'Krw';
         }

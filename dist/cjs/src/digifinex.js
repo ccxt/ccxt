@@ -47,7 +47,7 @@ class digifinex extends digifinex$1 {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -194,6 +194,7 @@ class digifinex extends digifinex$1 {
                             'account/finance_record',
                             'account/trading_fee_rate',
                             'account/transfer_record',
+                            'account/funding_fee',
                             'trade/history_orders',
                             'trade/history_trades',
                             'trade/open_orders',
@@ -201,10 +202,23 @@ class digifinex extends digifinex$1 {
                         ],
                         'post': [
                             'account/leverage',
+                            'account/position_mode',
+                            'account/position_margin',
                             'trade/batch_cancel_order',
                             'trade/batch_order',
                             'trade/cancel_order',
                             'trade/order_place',
+                            'follow/sponsor_order',
+                            'follow/close_order',
+                            'follow/cancel_order',
+                            'follow/user_center_current',
+                            'follow/user_center_history',
+                            'follow/expert_current_open_order',
+                            'follow/add_algo',
+                            'follow/cancel_algo',
+                            'follow/account_available',
+                            'follow/plan_task',
+                            'follow/instrument_list',
                         ],
                     },
                 },
@@ -653,6 +667,7 @@ class digifinex extends digifinex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1003,7 +1018,7 @@ class digifinex extends digifinex$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1366,7 +1381,7 @@ class digifinex extends digifinex$1 {
             request['symbol'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = market['swap'] ? Math.min(limit, 100) : limit;
         }
         const response = await this[method](this.extend(request, params));
         //
@@ -1641,14 +1656,13 @@ class digifinex extends digifinex$1 {
         //         "data": "1590873693003714560"
         //     }
         //
-        const result = this.parseOrder(response, market);
-        return this.extend(result, {
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-        });
+        const order = this.parseOrder(response, market);
+        order['symbol'] = symbol;
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2807,14 +2821,16 @@ class digifinex extends digifinex$1 {
         //         "leverage_ratio": 3
         //     }
         //
-        const symbol = this.safeString(info, 'symbol');
+        const marketId = this.safeString(info, 'symbol');
         const amountString = this.safeString(info, 'amount');
         const leverageString = this.safeString(info, 'leverage_ratio');
         const amountInvested = Precise["default"].stringDiv(amountString, leverageString);
         const amountBorrowed = Precise["default"].stringSub(amountString, amountInvested);
         const currency = (market === undefined) ? undefined : market['base'];
+        const symbol = this.safeSymbol(marketId, market);
         return {
-            'account': this.safeSymbol(symbol, market),
+            'account': symbol,
+            'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001,
@@ -3294,10 +3310,9 @@ class digifinex extends digifinex$1 {
             return position;
         }
         else {
-            return this.extend(position, {
-                'collateral': this.safeNumber(response, 'margin'),
-                'marginRatio': this.safeNumber(response, 'margin_rate'),
-            });
+            position['collateral'] = this.safeNumber(response, 'margin');
+            position['marginRatio'] = this.safeNumber(response, 'margin_rate');
+            return position;
         }
     }
     parsePosition(position, market = undefined) {
@@ -3357,7 +3372,7 @@ class digifinex extends digifinex$1 {
         else if (side === 'go_short') {
             side = 'short';
         }
-        return {
+        return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': symbol,
@@ -3383,7 +3398,7 @@ class digifinex extends digifinex$1 {
             'percentage': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
-        };
+        });
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
         /**
@@ -3781,6 +3796,72 @@ class digifinex extends digifinex$1 {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#funding-fee
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding payment
+         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         */
+        await this.loadMarkets();
+        let request = {};
+        [request, params] = this.handleUntilOption('end_timestamp', request, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['instrument_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        const response = await this.privateSwapGetAccountFundingFee(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "currency": "USDT",
+        //                 "amount": "-0.000342814",
+        //                 "timestamp": 1698768009440
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        return this.parseIncomes(data, market, since, limit);
+    }
+    parseIncome(income, market = undefined) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "currency": "USDT",
+        //         "amount": "-0.000342814",
+        //         "timestamp": 1698768009440
+        //     }
+        //
+        const marketId = this.safeString(income, 'instrument_id');
+        const currencyId = this.safeString(income, 'currency');
+        const timestamp = this.safeInteger(income, 'timestamp');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode(currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': undefined,
+            'amount': this.safeNumber(income, 'amount'),
+        };
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';

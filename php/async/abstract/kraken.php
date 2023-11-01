@@ -28,6 +28,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     public function public_get_spread($params = array()) {
         return $this->request('Spread', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_systemstatus($params = array()) {
+        return $this->request('SystemStatus', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_ticker($params = array()) {
         return $this->request('Ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -51,6 +54,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function private_post_cancelall($params = array()) {
         return $this->request('CancelAll', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_cancelallordersafter($params = array()) {
+        return $this->request('CancelAllOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function private_post_cancelorder($params = array()) {
         return $this->request('CancelOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
@@ -151,6 +157,24 @@ abstract class kraken extends \ccxt\async\Exchange {
     public function private_post_accounttransfer($params = array()) {
         return $this->request('AccountTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_earn_allocate($params = array()) {
+        return $this->request('Earn/Allocate', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_earn_deallocate($params = array()) {
+        return $this->request('Earn/Deallocate', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_earn_allocatestatus($params = array()) {
+        return $this->request('Earn/AllocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_earn_deallocatestatus($params = array()) {
+        return $this->request('Earn/DeallocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_earn_strategies($params = array()) {
+        return $this->request('Earn/Strategies', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function private_post_earn_allocations($params = array()) {
+        return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
     public function zendeskGet360000292886($params = array()) {
         return $this->request('360000292886', 'zendesk', 'GET', $params, null, null, array());
     }
@@ -171,6 +195,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function publicGetSpread($params = array()) {
         return $this->request('Spread', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetSystemStatus($params = array()) {
+        return $this->request('SystemStatus', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTicker($params = array()) {
         return $this->request('Ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -195,6 +222,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function privatePostCancelAll($params = array()) {
         return $this->request('CancelAll', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostCancelAllOrdersAfter($params = array()) {
+        return $this->request('CancelAllOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
     public function privatePostCancelOrder($params = array()) {
         return $this->request('CancelOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
@@ -294,5 +324,23 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function privatePostAccountTransfer($params = array()) {
         return $this->request('AccountTransfer', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostEarnAllocate($params = array()) {
+        return $this->request('Earn/Allocate', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostEarnDeallocate($params = array()) {
+        return $this->request('Earn/Deallocate', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostEarnAllocateStatus($params = array()) {
+        return $this->request('Earn/AllocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostEarnDeallocateStatus($params = array()) {
+        return $this->request('Earn/DeallocateStatus', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostEarnStrategies($params = array()) {
+        return $this->request('Earn/Strategies', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostEarnAllocations($params = array()) {
+        return $this->request('Earn/Allocations', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
 }

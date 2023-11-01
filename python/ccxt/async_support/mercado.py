@@ -239,6 +239,7 @@ class mercado(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': coin,
             })
         return result

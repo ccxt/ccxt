@@ -17,10 +17,13 @@ const errorHierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'InvalidOperation': {},
             },
             'BadResponse': {
                 'NullResponse': {},
             },
+            'OperationFailed': {},
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},

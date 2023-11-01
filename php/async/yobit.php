@@ -207,7 +207,6 @@ class yobit extends Exchange {
                 'PAC' => '$PAC',
                 'PLAY' => 'PlayCoin',
                 'PIVX' => 'Darknet',
-                'PRS' => 'PRE',
                 'PURE' => 'PurePOS',
                 'PUTIN' => 'PutinCoin',
                 'SPACE' => 'Spacecoin',
@@ -431,6 +430,7 @@ class yobit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -590,7 +590,7 @@ class yobit extends Exchange {
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 

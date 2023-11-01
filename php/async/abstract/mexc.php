@@ -151,6 +151,12 @@ abstract class mexc extends \ccxt\async\Exchange {
     public function spot_private_get_rebate_affiliate_commission($params = array()) {
         return $this->request('rebate/affiliate/commission', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_private_get_rebate_affiliate_withdraw($params = array()) {
+        return $this->request('rebate/affiliate/withdraw', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function spot_private_get_rebate_affiliate_commission_detail($params = array()) {
+        return $this->request('rebate/affiliate/commission/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_private_get_mxdeduct_enable($params = array()) {
         return $this->request('mxDeduct/enable', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -663,6 +669,12 @@ abstract class mexc extends \ccxt\async\Exchange {
     }
     public function spotPrivateGetRebateAffiliateCommission($params = array()) {
         return $this->request('rebate/affiliate/commission', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivateGetRebateAffiliateWithdraw($params = array()) {
+        return $this->request('rebate/affiliate/withdraw', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivateGetRebateAffiliateCommissionDetail($params = array()) {
+        return $this->request('rebate/affiliate/commission/detail', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spotPrivateGetMxDeductEnable($params = array()) {
         return $this->request('mxDeduct/enable', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));

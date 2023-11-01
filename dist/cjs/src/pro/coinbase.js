@@ -326,12 +326,11 @@ class coinbase extends coinbase$1 {
             this.trades[symbol] = tradesArray;
         }
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
-            const trades = this.safeValue(event, 'trades');
-            for (let i = 0; i < trades.length; i++) {
-                const item = trades[i];
-                const trade = this.parseTrade(item);
-                tradesArray.append(trade);
+            const currentEvent = events[i];
+            const currentTrades = this.safeValue(currentEvent, 'trades');
+            for (let j = 0; j < currentTrades.length; j++) {
+                const item = currentTrades[i];
+                tradesArray.append(this.parseTrade(item));
             }
         }
         client.resolve(tradesArray, messageHash);

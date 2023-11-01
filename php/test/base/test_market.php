@@ -200,4 +200,5 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
     }
+    assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
 }

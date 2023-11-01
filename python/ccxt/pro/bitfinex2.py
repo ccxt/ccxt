@@ -256,13 +256,13 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
-        array = self.myTrades
-        array.append(trade)
-        self.myTrades = array
+        tradesArray = self.myTrades
+        tradesArray.append(trade)
+        self.myTrades = tradesArray
         # generic subscription
-        client.resolve(array, name)
+        client.resolve(tradesArray, name)
         # specific subscription
-        client.resolve(array, messageHash)
+        client.resolve(tradesArray, messageHash)
 
     def handle_trades(self, client: Client, message, subscription):
         #
@@ -547,7 +547,6 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         messageHash = channel + ':' + marketId
         prec = self.safe_string(subscription, 'prec', 'P0')
         isRaw = (prec == 'R0')
-        id = self.safe_string(message, 0)
         # if it is an initial snapshot
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -566,9 +565,9 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     size = -delta[2] if (delta[2] < 0) else delta[2]
                     side = 'asks' if (delta[2] < 0) else 'bids'
                     bookside = orderbook[side]
-                    id = self.safe_string(delta, 0)
+                    idString = self.safe_string(delta, 0)
                     price = self.safe_float(delta, 1)
-                    bookside.store(price, size, id)
+                    bookside.store(price, size, idString)
             else:
                 deltas = message[1]
                 for i in range(0, len(deltas)):
@@ -580,25 +579,27 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     side = 'asks' if (amount < 0) else 'bids'
                     bookside = orderbook[side]
                     bookside.store(price, size, counter)
+            orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
         else:
             deltas = message[1]
-            orderbook = self.orderbooks[symbol]
+            orderbookItem = self.orderbooks[symbol]
             if isRaw:
                 price = self.safe_string(deltas, 1)
                 size = -deltas[2] if (deltas[2] < 0) else deltas[2]
                 side = 'asks' if (deltas[2] < 0) else 'bids'
-                bookside = orderbook[side]
+                bookside = orderbookItem[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
-                bookside.store(self.parse_number(price), self.parse_number(amount), id)
+                idString = self.safe_string(deltas, 0)
+                bookside.store(self.parse_number(price), self.parse_number(amount), idString)
             else:
                 amount = self.safe_string(deltas, 2)
                 counter = self.safe_string(deltas, 1)
                 price = self.safe_string(deltas, 0)
                 size = Precise.string_neg(amount) if Precise.string_lt(amount, '0') else amount
                 side = 'asks' if Precise.string_lt(amount, '0') else 'bids'
-                bookside = orderbook[side]
+                bookside = orderbookItem[side]
                 bookside.store(self.parse_number(price), self.parse_number(size), self.parse_number(counter))
             client.resolve(orderbook, messageHash)
 
@@ -617,15 +618,18 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         stringArray = []
         bids = book['bids']
         asks = book['asks']
+        prec = self.safe_string(subscription, 'prec', 'P0')
+        isRaw = (prec == 'R0')
+        idToCheck = 2 if isRaw else 0
         # pepperoni pizza from bitfinex
         for i in range(0, depth):
             bid = self.safe_value(bids, i)
             ask = self.safe_value(asks, i)
             if bid is not None:
-                stringArray.append(self.number_to_string(bids[i][0]))
+                stringArray.append(self.number_to_string(bids[i][idToCheck]))
                 stringArray.append(self.number_to_string(bids[i][1]))
             if ask is not None:
-                stringArray.append(self.number_to_string(asks[i][0]))
+                stringArray.append(self.number_to_string(asks[i][idToCheck]))
                 stringArray.append(self.number_to_string(-asks[i][1]))
         payload = ':'.join(stringArray)
         localChecksum = self.crc32(payload, True)

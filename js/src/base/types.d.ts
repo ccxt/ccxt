@@ -51,6 +51,7 @@ export interface Market {
         leverage?: MinMax;
         price?: MinMax;
     };
+    created?: number | undefined;
     info: any;
 }
 export interface Trade {
@@ -154,6 +155,8 @@ export interface PartialBalances extends Dictionary<number> {
 }
 export interface Balances extends Dictionary<Balance> {
     info: any;
+    timestamp?: any;
+    datetime?: any;
 }
 export interface DepositAddress {
     currency: string;
@@ -177,7 +180,7 @@ export interface Position {
     timestamp?: number;
     datetime: string;
     contracts?: number;
-    contractsSize?: number;
+    contractSize?: number;
     side: string;
     notional?: number;
     leverage?: number;
@@ -200,6 +203,49 @@ export interface Position {
     stopLossPrice?: number;
     takeProfitPrice?: number;
     info: any;
+}
+export interface FundingRateHistory {
+    info: any;
+    symbol: string;
+    fundingRate: number;
+    timestamp?: number;
+    datetime?: string;
+}
+export interface OpenInterest {
+    symbol: string;
+    openInterestAmount?: number;
+    openInterestValue?: number;
+    baseVolume?: number;
+    quoteVolume?: number;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
+}
+export interface Liquidation {
+    info: any;
+    symbol: string;
+    timestamp?: number;
+    datetime?: string;
+    price: number;
+    baseValue?: number;
+    quoteValue?: number;
+}
+export interface OrderRequest {
+    symbol: string;
+    type: string;
+    side: string;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
+}
+export interface FundingHistory {
+    info: any;
+    symbol: string;
+    code: string;
+    timestamp?: number;
+    datetime?: string;
+    id: string;
+    amount: number;
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [number, number, number, number, number, number];

@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\upbit as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\AddressPending;
 use ccxt\Precise;
@@ -478,6 +479,7 @@ class upbit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -736,7 +738,7 @@ class upbit extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -989,17 +991,18 @@ class upbit extends Exchange {
                 'timeframe' => $timeframeValue,
                 'count' => $limit,
             );
-            $method = 'publicGetCandlesTimeframe';
-            if ($timeframeValue === 'minutes') {
-                $numMinutes = (int) round($timeframePeriod / 60);
-                $request['unit'] = $numMinutes;
-                $method .= 'Unit';
-            }
+            $response = null;
             if ($since !== null) {
                 // convert `$since` to `to` value
                 $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($timeframeValue === 'minutes') {
+                $numMinutes = (int) round($timeframePeriod / 60);
+                $request['unit'] = $numMinutes;
+                $response = Async\await($this->publicGetCandlesTimeframeUnit (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetCandlesTimeframe (array_merge($request, $params)));
+            }
             //
             //     array(
             //         array(
@@ -1756,12 +1759,20 @@ class upbit extends Exchange {
             );
             $method = 'privatePostWithdraws';
             if ($code !== 'KRW') {
+                // 2023-05-23 Change to required parameters for digital assets
+                $network = $this->safe_string_upper_2($params, 'network', 'net_type');
+                if ($network === null) {
+                    throw new ArgumentsRequired($this->id . ' withdraw() requires a $network argument');
+                }
+                $params = $this->omit($params, array( 'network' ));
+                $request['net_type'] = $network;
                 $method .= 'Coin';
                 $request['currency'] = $currency['id'];
                 $request['address'] = $address;
                 if ($tag !== null) {
                     $request['secondary_address'] = $tag;
                 }
+                $params = $this->omit($params, 'network');
             } else {
                 $method .= 'Krw';
             }

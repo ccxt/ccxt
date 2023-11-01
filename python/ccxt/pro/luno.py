@@ -40,7 +40,7 @@ class luno(ccxt.async_support.luno):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://www.luno.com/en/developers/api#tag/Streaming-API
+        :see: https://www.luno.com/en/developers/api#tag/Streaming-API
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
@@ -281,12 +281,12 @@ class luno(ccxt.async_support.luno):
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
         if createUpdate is not None:
-            array = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
+            bidAskArray = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
             type = self.safe_string(createUpdate, 'type')
             if type == 'ASK':
-                asksOrderSide.storeArray(array)
+                asksOrderSide.storeArray(bidAskArray)
             elif type == 'BID':
-                bidsOrderSide.storeArray(array)
+                bidsOrderSide.storeArray(bidAskArray)
         deleteUpdate = self.safe_value(message, 'delete_update')
         if deleteUpdate is not None:
             orderId = self.safe_string(deleteUpdate, 'order_id')

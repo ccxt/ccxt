@@ -358,7 +358,11 @@ class ndax(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'ProductId')
             name = self.safe_string(currency, 'ProductFullName')
-            type = self.safe_string(currency, 'ProductType')
+            ProductType = self.safe_string(currency, 'ProductType')
+            type = 'fiat' if (ProductType == 'NationalCurrency') else 'crypto'
+            if ProductType == 'Unknown':
+                # such currency is just a blanket entry
+                type = 'other'
             code = self.safe_currency_code(self.safe_string(currency, 'Product'))
             isDisabled = self.safe_value(currency, 'IsDisabled')
             active = not isDisabled
@@ -502,6 +506,7 @@ class ndax(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1922,7 +1927,7 @@ class ndax(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        see https://apidoc.ndax.io/#getdeposits
+        :see: https://apidoc.ndax.io/#getdeposits
         :param str code: unified currency code
         :param int [since]: not used by ndax fetchDeposits
         :param int [limit]: the maximum number of deposits structures to retrieve

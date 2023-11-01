@@ -11,10 +11,13 @@ error_hierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'InvalidOperation': {},
             },
             'BadResponse': {
                 'NullResponse': {},
             },
+            'OperationFailed': {},
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
@@ -84,11 +87,23 @@ class MarginModeAlreadySet(BadRequest):
     pass
 
 
+class NoChange(BadRequest):
+    pass
+
+
+class InvalidOperation(BadRequest):
+    pass
+
+
 class BadResponse(ExchangeError):
     pass
 
 
 class NullResponse(BadResponse):
+    pass
+
+
+class OperationFailed(ExchangeError):
     pass
 
 
@@ -180,8 +195,11 @@ __all__ = [
     'BadRequest',
     'BadSymbol',
     'MarginModeAlreadySet',
+    'NoChange',
+    'InvalidOperation',
     'BadResponse',
     'NullResponse',
+    'OperationFailed',
     'InsufficientFunds',
     'InvalidAddress',
     'AddressPending',

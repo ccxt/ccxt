@@ -375,6 +375,7 @@ class bittrex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'createdAt')),
                     'info' => $market,
                 );
             }
@@ -486,11 +487,22 @@ class bittrex extends Exchange {
                 $precision = $this->parse_number('1e-8'); // default $precision, seems exchange has same amount-$precision across all pairs in UI too. todo => fix "magic constants"
                 $fee = $this->safe_number($currency, 'txFee'); // todo => redesign
                 $isActive = $this->safe_string($currency, 'status');
+                $coinType = $this->safe_string($currency, 'coinType');
+                $type = null;
+                if ($coinType === 'FIAT') {
+                    $type = 'fiat';
+                } elseif ($coinType === 'Award') {
+                    // these are exchange credits
+                    $type = 'other';
+                } else {
+                    // all others are cryptos
+                    $type = 'crypto';
+                }
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
-                    'type' => $this->safe_string($currency, 'coinType'),
+                    'type' => $type,
                     'name' => $this->safe_string($currency, 'name'),
                     'active' => ($isActive === 'ONLINE'),
                     'deposit' => null,
@@ -612,7 +624,7 @@ class bittrex extends Exchange {
                 $ticker = $this->parse_ticker($response[$i]);
                 $tickers[] = $ticker;
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -917,8 +929,14 @@ class bittrex extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440));
+            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $reverseId = $market['baseId'] . '-' . $market['quoteId'];
@@ -1899,8 +1917,8 @@ class bittrex extends Exchange {
                 $request['marketSymbol'] = $market['id'];
             }
             $response = Async\await($this->privateGetExecutions (array_merge($request, $params)));
-            $trades = $this->parse_trades($response, $market);
-            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+            $trades = $this->parse_trades($response, $market, $since, $limit);
+            return $trades;
         }) ();
     }
 

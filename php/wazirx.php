@@ -259,6 +259,7 @@ class wazirx extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -419,7 +420,7 @@ class wazirx extends Exchange {
             $symbol = $parsedTicker['symbol'];
             $result[$symbol] = $parsedTicker;
         }
-        return $result;
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -438,7 +439,7 @@ class wazirx extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // Default 500; max 1000.
+            $request['limit'] = min ($limit, 1000); // Default 500; max 1000.
         }
         $method = $this->safe_string($this->options, 'fetchTradesMethod', 'publicGetTrades');
         $response = $this->$method (array_merge($request, $params));
@@ -584,7 +585,7 @@ class wazirx extends Exchange {
     }
 
     public function parse_balance($response) {
-        $result = array( );
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $id = $this->safe_string($balance, 'asset');
