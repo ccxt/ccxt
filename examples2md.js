@@ -17,7 +17,7 @@ console.log ('📰 Creating Examples.md ');
 const readmePath = './examples/README.md';
 const readmeContent = fs.readFileSync(readmePath, 'utf8');
 // replace github links to docs links
-const modifiedContent = readmeContent.replaceAll('https://github.com/ccxt/ccxt/tree/master/examples', '/examples');
+const modifiedContent = readmeContent.replaceAll('https://github.com/ccxt/ccxt/tree/master/examples', '/examples').replace (/#+ See Also[\S\s]+/, '')
 fs.writeFileSync(path.join(docsDir, 'Examples.md'), modifiedContent);
 
 const languagePaths = {
@@ -68,6 +68,8 @@ languages.forEach(language => {
         let code = fs.readFileSync(path.join(languageDir, file), 'utf8');
         if (language === 'python') {
             code = code.replace (/^.*os.path.dirname.*$/mg, '').replace (/^sys.path.append.*$\n\n?/mg, '')
+        } else if (language === 'php') {
+            code = code.replace (/\n^\$root = .*$\n/mg, '').replace (/^include \$root.*$/mg, 'include \'./ccxt.php\';')
         }
         code = code.replace (/\n^#\s?-+$\n\n?/mg, '')
         const codeMd = `- [${fileTitle}](${languageDir}/)\n\n\n \`\`\`${language.replace('typescript', 'javascript')}\n ${code} \n\`\`\``;
