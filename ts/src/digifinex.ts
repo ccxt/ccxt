@@ -3882,7 +3882,7 @@ export default class digifinex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_id': market['id'],
-            'amount': amount.toString (),
+            'amount': this.numberToString (amount),
             'type': type,
             'side': side,
         };
