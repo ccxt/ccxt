@@ -3196,6 +3196,7 @@ export default class bitget extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+         * @param {float} [params.stopOrderPrice] *swap only* stop - plan/placeTPSL
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
          * @param {string} [params.loanType] *spot margin only* 'normal', 'autoLoan', 'autoRepay', or 'autoLoanAndRepay' default is 'normal'
@@ -3206,12 +3207,18 @@ export default class bitget extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopOrderPrice = this.safeValue(params, 'stopOrderPrice');
         const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue (params, 'takeProfitPrice');
         const isTriggerOrder = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
+        const isStopOrderPrice = stopOrderPrice !== undefined;
+        if (isStopOrderPrice) {
+            params.holdSide = side.split('_')[1]
+            params.triggerPrice = stopOrderPrice
+        }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['spot']) {
@@ -3227,7 +3234,9 @@ export default class bitget extends Exchange {
         } else {
             if (isTriggerOrder) {
                 response = await this.privateMixPostPlanPlacePlan (request);
-            } else if (isStopLossOrTakeProfitTrigger) {
+            }else if (isStopOrderPrice) {
+                response = await this.privateMixPostPlanPlaceTPSL(request);
+            }else if (isStopLossOrTakeProfitTrigger) {
                 response = await this.privateMixPostPlanPlacePositionsTPSL (request);
             } else {
                 response = await this.privateMixPostOrderPlaceOrder (request);
