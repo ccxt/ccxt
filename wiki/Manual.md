@@ -5953,65 +5953,7 @@ class BaseError (Exception):
 class BaseError extends \Exception {}
 ```
 
-Below is an outline of exception inheritance hierarchy:
-
-```text
-+ BaseError
-|
-+---+ ExchangeError
-|   |
-|   +---+ AuthenticationError
-|   |   |
-|   |   +---+ PermissionDenied
-|   |   |
-|   |   +---+ AccountSuspended
-|   |
-|   +---+ ArgumentsRequired
-|   |
-|   +---+ BadRequest
-|   |   |
-|   |   +---+ BadSymbol
-|   |
-|   +---+ BadResponse
-|   |   |
-|   |   +---+ NullResponse
-|   |
-|   +---+ InsufficientFunds
-|   |
-|   +---+ InvalidAddress
-|   |   |
-|   |   +---+ AddressPending
-|   |
-|   +---+ InvalidOrder
-|   |   |
-|   |   +---+ OrderNotFound
-|   |   |
-|   |   +---+ OrderNotCached
-|   |   |
-|   |   +---+ CancelPending
-|   |   |
-|   |   +---+ OrderImmediatelyFillable
-|   |   |
-|   |   +---+ OrderNotFillable
-|   |   |
-|   |   +---+ DuplicateOrderId
-|   |
-|   +---+ NotSupported
-|
-+---+ NetworkError (recoverable)
-    |
-    +---+ InvalidNonce
-    |
-    +---+ RequestTimeout
-    |
-    +---+ ExchangeNotAvailable
-    |   |
-    |   +---+ OnMaintenance
-    |
-    +---+ DDoSProtection
-        |
-        +---+ RateLimitExceeded
-```
+Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts
 
 The `BaseError` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
 
@@ -6020,33 +5962,9 @@ There's two generic families of special cases or subtrees in the error hierarchy
 - `NetworkError`
 - `ExchangeError`
 
-A `NetworkError` is a non-critical non-breaking error, not really an error in a full sense, but more like a temporary unavailability situation, that could be caused by any condition or by any factor, including maintenance, DDoS protections, and temporary bans. The reason for having a big family of `NetworkError` is to group all exceptions that can reappear or disappear upon a later retry or upon a retry from a different location, all the rest being equal (with the same user input, put simply, same order price and amount, same symbol, etc...).
-
-In contrast, the `ExchangeError` is a critical error indeed, and it differs from the `NetworkError` in a very specific way – if you get an `ExchangeError` with your input, then you should always get the same `ExchangeError` with that same input.
-
-The distinction between the two families of exceptions is such that one family is recoverable and the other family is unrecoverable. `NetworkError` means you can retry later and it can magically go away by itself, so a subsequent retry may succeed and the user may be able to recover from a `NetworkError` just by waiting. An `ExchangeError` is a fatal error, so, it means, something went bad and it will go bad every time, unless you change the input.
-
-### ExchangeError
-
-This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
-
-  - endpoint is switched off by the exchange
-  - symbol not found on the exchange
-  - required parameter is missing
-  - the format of parameters is incorrect
-  - an exchange replies with an unclear answer
-
-Other exceptions derived from `ExchangeError`:
-
-  - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
-  - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
-  - `PermissionDenied`: Raised when there's no access for specified action or insufficient permissions on the specified `apiKey`.
-  - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
-  - `InvalidAddress`: This exception is raised upon encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
-  - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
-  - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
-
 ### NetworkError
+
+A `NetworkError` is mostly a temporary unavailability situation, that could be caused by any factor, including maintenance, internet connectivitiy issues, DDoS protections, and temporary bans. This error is a root of all exceptions sub-groups, that can reappear or disappear upon a later retry or upon a retry from a different location (without need to change parameters in the request).
 
 All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
 
@@ -6085,6 +6003,28 @@ The ccxt library also throws this error if it detects any of the following keywo
   - `maintain`
   - `maintenance`
   - `maintenancing`
+
+### ExchangeError
+
+In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, it will not help, because the request is being made incorrectly (The only exclusion is its subclass type `OperationFailed` which can be retried to make the request successfull).
+
+This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
+
+  - endpoint is switched off by the exchange
+  - symbol not found on the exchange
+  - required parameter is missing
+  - the format of parameters is incorrect
+  - an exchange replies with an unclear answer
+
+Other exceptions derived from `ExchangeError`:
+
+  - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
+  - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
+  - `PermissionDenied`: Raised when there's no access for specified action or insufficient permissions on the specified `apiKey`.
+  - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
+  - `InvalidAddress`: This exception is raised upon encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
+  - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
+  - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
 
 #### InvalidNonce
 
