@@ -5078,13 +5078,13 @@ class binance extends Exchange {
              * cancel multiple orders
              * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
              * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
-             * @param {[string]} $ids order $ids
+             * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {[string]} [$params->origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-             * @param {[int]} [$params->recvWindow]
+             * @param {string[]} [$params->origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+             * @param {int[]} [$params->recvWindow]
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $this->check_required_symbol('cancelOrders', $symbol);

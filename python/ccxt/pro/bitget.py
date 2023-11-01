@@ -440,7 +440,7 @@ class bitget(ccxt.async_support.bitget):
         instType = 'sp' if market['spot'] else 'mc'
         channel = 'books'
         incrementalFeed = True
-        if (limit == 5) or (limit == 15):
+        if (limit == 1) or (limit == 5) or (limit == 15):
             channel += str(limit)
             incrementalFeed = False
         args = {

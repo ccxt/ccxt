@@ -464,7 +464,7 @@ export default class bitget extends bitgetRest {
         const instType = market['spot'] ? 'sp' : 'mc';
         let channel = 'books';
         let incrementalFeed = true;
-        if ((limit === 5) || (limit === 15)) {
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
             channel += limit.toString();
             incrementalFeed = false;
         }
