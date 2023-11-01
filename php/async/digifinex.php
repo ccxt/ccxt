@@ -33,7 +33,7 @@ class digifinex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => false,
+                'addMargin' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
@@ -85,7 +85,7 @@ class digifinex extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => false,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setMarginMode' => true,
@@ -3853,6 +3853,94 @@ class digifinex extends Exchange {
             $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
         }
         return $depositWithdrawFees;
+    }
+
+    public function add_margin(string $symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * add margin to a position
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount amount of margin to add
+             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {string} $params->side the position $side => 'long' or 'short'
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure margin structure}
+             */
+            $side = $this->safe_string($params, 'side');
+            $this->check_required_argument('addMargin', $side, 'side', array( 'long', 'short' ));
+            return Async\await($this->modify_margin_helper($symbol, $amount, 1, $params));
+        }) ();
+    }
+
+    public function reduce_margin(string $symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * remove margin from a position
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount the $amount of margin to remove
+             * @param {array} [$params] extra parameters specific to the digifinex api endpoint
+             * @param {string} $params->side the position $side => 'long' or 'short'
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure margin structure}
+             */
+            $side = $this->safe_string($params, 'side');
+            $this->check_required_argument('reduceMargin', $side, 'side', array( 'long', 'short' ));
+            return Async\await($this->modify_margin_helper($symbol, $amount, 2, $params));
+        }) ();
+    }
+
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $type, $params) {
+            Async\await($this->load_markets());
+            $side = $this->safe_string($params, 'side');
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_id' => $market['id'],
+                'amount' => $this->number_to_string($amount),
+                'type' => $type,
+                'side' => $side,
+            );
+            $response = Async\await($this->privateSwapPostAccountPositionMargin (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => {
+            //             "instrument_id" => "BTCUSDTPERP",
+            //             "side" => "long",
+            //             "type" => 1,
+            //             "amount" => "3.6834"
+            //         }
+            //     }
+            //
+            $code = $this->safe_integer($response, 'code');
+            $status = ($code === 0) ? 'ok' : 'failed';
+            $data = $this->safe_value($response, 'data', array());
+            return array_merge($this->parse_margin_modification($data, $market), array(
+                'status' => $status,
+            ));
+        }) ();
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        //
+        //     {
+        //         "instrument_id" => "BTCUSDTPERP",
+        //         "side" => "long",
+        //         "type" => 1,
+        //         "amount" => "3.6834"
+        //     }
+        //
+        $marketId = $this->safe_string($data, 'instrument_id');
+        $rawType = $this->safe_integer($data, 'type');
+        return array(
+            'info' => $data,
+            'type' => ($rawType === 1) ? 'add' : 'reduce',
+            'amount' => $this->safe_number($data, 'amount'),
+            'total' => null,
+            'code' => $market['settle'],
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'status' => null,
+        );
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

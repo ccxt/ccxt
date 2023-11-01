@@ -12,7 +12,7 @@ const errorHierarchy = {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
                 'NoChange': {},
-                'InvalidOperation': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},

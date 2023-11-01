@@ -798,7 +798,7 @@ class okx(ccxt.async_support.okx):
         request = {
             'instType': uppercaseType,
         }
-        orders = await self.subscribe('private', messageHash, channel, symbol, self.extend(request, params))
+        orders = await self.subscribe('private', messageHash, channel, None, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
