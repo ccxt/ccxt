@@ -48,7 +48,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': False,
+                'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
@@ -100,7 +100,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
                 'setMarginMode': True,
@@ -3587,6 +3587,84 @@ class digifinex(Exchange, ImplicitAPI):
             currency = self.currency(code)
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
+
+    async def add_margin(self, symbol: str, amount, params={}):
+        """
+        add margin to a position
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :param str params['side']: the position side: 'long' or 'short'
+        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-structure>`
+        """
+        side = self.safe_string(params, 'side')
+        self.check_required_argument('addMargin', side, 'side', ['long', 'short'])
+        return await self.modify_margin_helper(symbol, amount, 1, params)
+
+    async def reduce_margin(self, symbol: str, amount, params={}):
+        """
+        remove margin from a position
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :param str params['side']: the position side: 'long' or 'short'
+        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-structure>`
+        """
+        side = self.safe_string(params, 'side')
+        self.check_required_argument('reduceMargin', side, 'side', ['long', 'short'])
+        return await self.modify_margin_helper(symbol, amount, 2, params)
+
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+        await self.load_markets()
+        side = self.safe_string(params, 'side')
+        market = self.market(symbol)
+        request = {
+            'instrument_id': market['id'],
+            'amount': self.number_to_string(amount),
+            'type': type,
+            'side': side,
+        }
+        response = await self.privateSwapPostAccountPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "side": "long",
+        #             "type": 1,
+        #             "amount": "3.6834"
+        #         }
+        #     }
+        #
+        code = self.safe_integer(response, 'code')
+        status = 'ok' if (code == 0) else 'failed'
+        data = self.safe_value(response, 'data', {})
+        return self.extend(self.parse_margin_modification(data, market), {
+            'status': status,
+        })
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "side": "long",
+        #         "type": 1,
+        #         "amount": "3.6834"
+        #     }
+        #
+        marketId = self.safe_string(data, 'instrument_id')
+        rawType = self.safe_integer(data, 'type')
+        return {
+            'info': data,
+            'type': 'add' if (rawType == 1) else 'reduce',
+            'amount': self.safe_number(data, 'amount'),
+            'total': None,
+            'code': market['settle'],
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'status': None,
+        }
 
     async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """

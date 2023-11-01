@@ -30,7 +30,7 @@ export default class digifinex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -82,7 +82,7 @@ export default class digifinex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -3826,6 +3826,88 @@ export default class digifinex extends Exchange {
             depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency);
         }
         return depositWithdrawFees;
+    }
+    async addMargin(symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name digifinex#addMargin
+         * @description add margin to a position
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @param {string} params.side the position side: 'long' or 'short'
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
+         */
+        const side = this.safeString(params, 'side');
+        this.checkRequiredArgument('addMargin', side, 'side', ['long', 'short']);
+        return await this.modifyMarginHelper(symbol, amount, 1, params);
+    }
+    async reduceMargin(symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name digifinex#reduceMargin
+         * @description remove margin from a position
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @param {string} params.side the position side: 'long' or 'short'
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-structure}
+         */
+        const side = this.safeString(params, 'side');
+        this.checkRequiredArgument('reduceMargin', side, 'side', ['long', 'short']);
+        return await this.modifyMarginHelper(symbol, amount, 2, params);
+    }
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        await this.loadMarkets();
+        const side = this.safeString(params, 'side');
+        const market = this.market(symbol);
+        const request = {
+            'instrument_id': market['id'],
+            'amount': this.numberToString(amount),
+            'type': type,
+            'side': side,
+        };
+        const response = await this.privateSwapPostAccountPositionMargin(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "side": "long",
+        //             "type": 1,
+        //             "amount": "3.6834"
+        //         }
+        //     }
+        //
+        const code = this.safeInteger(response, 'code');
+        const status = (code === 0) ? 'ok' : 'failed';
+        const data = this.safeValue(response, 'data', {});
+        return this.extend(this.parseMarginModification(data, market), {
+            'status': status,
+        });
+    }
+    parseMarginModification(data, market = undefined) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "side": "long",
+        //         "type": 1,
+        //         "amount": "3.6834"
+        //     }
+        //
+        const marketId = this.safeString(data, 'instrument_id');
+        const rawType = this.safeInteger(data, 'type');
+        return {
+            'info': data,
+            'type': (rawType === 1) ? 'add' : 'reduce',
+            'amount': this.safeNumber(data, 'amount'),
+            'total': undefined,
+            'code': market['settle'],
+            'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
+            'status': undefined,
+        };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
