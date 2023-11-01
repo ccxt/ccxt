@@ -44,7 +44,7 @@ languages.forEach(language => {
     if (!fs.existsSync(docsLanguageDir)) {
         fs.mkdirSync(docsLanguageDir);
     }
-    let mdContent = `<style>ul { margin-bottom: -10px; }</style>\n\n# Examples - ${toTitleCase (language)}\n\n`;
+    let mdContent = `<style>ul { margin-bottom: -10px; }</style>\n\n# [<-](Examples?id=${language})\n\n`;
     fs.readdirSync(languageDir).forEach(file => {
         // add to glossary of examplex
         const filename = path.basename(file, path.extname(file));
@@ -65,8 +65,12 @@ languages.forEach(language => {
         // Example file: add to glossary and create markdown file
         mdContent += `- [${fileTitle}](${languageDir}/${filename}.md)\n\n`;
         // create markdown file for example code
-        const code = fs.readFileSync(path.join(languageDir, file), 'utf8');
-        const codeMd = `# ${language} Example \n ## ${fileTitle} \n\n \`\`\`${language.replace('typescript', 'javascript')}\n + ${code} \n\`\`\``;
+        let code = fs.readFileSync(path.join(languageDir, file), 'utf8');
+        if (language === 'python') {
+            code = code.replace (/^.*os.path.dirname.*$/mg, '').replace (/^sys.path.append.*$\n\n?/mg, '')
+        }
+        code = code.replace (/\n^#\s?-+$\n\n?/mg, '')
+        const codeMd = `- [${fileTitle}](${languageDir}/)\n\n\n \`\`\`${language.replace('typescript', 'javascript')}\n ${code} \n\`\`\``;
         fs.writeFileSync(path.join(docsLanguageDir, `${filename}.md`), codeMd);
     });
     fs.writeFileSync(path.join(docsLanguageDir, 'README.md'), mdContent);
