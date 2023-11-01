@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -40,7 +40,7 @@ export default class coinlist extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'deposit': false,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
@@ -250,9 +250,10 @@ export default class coinlist extends Exchange {
             'exceptions': {
                 // https://trade-docs.coinlist.co/?javascript--nodejs#message-codes
                 'exact': {
-                    '400': AuthenticationError, // {"status":400,"message":"invalid signature","message_code":"AUTH_SIG_INVALID"}
-                    '401': AuthenticationError, // Unauthorized
-                    // to do: add
+                    'AUTH_SIG_INVALID': AuthenticationError, // {"status":400,"message":"invalid signature","message_code":"AUTH_SIG_INVALID"}
+                    'DENIED_MAINTENANCE': OnMaintenance, // The system is under active maintenance.
+                    'TRANSFERS_WITHDRAWAL_REQUEST_TOO_LARGE': InsufficientFunds, // {"message":"Withdrawal request too large. 0.000000000000000000 ETH available for withdrawal.","message_code":"TRANSFERS_WITHDRAWAL_REQUEST_TOO_LARGE","message_details":{"token_code":"ETH","amount":"0.010000000000000000","withdrawable_balance":"0.000000000000000000"}}
+                    'WITHDRAWAL_REQUEST_NOT_ALLOWED': PermissionDenied, // {"message":"Withdrawal from CoinList not allowed for trader.","message_code":"WITHDRAWAL_REQUEST_NOT_ALLOWED","message_details":{"asset":"USDT","amount":"5","trader_id":"9c6f737e-a829-4843-87b1-b1ce86f2853b","destination_address":"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"}}
                 },
                 'broad': {
                     // to do: add
@@ -1393,7 +1394,7 @@ export default class coinlist extends Exchange {
             'side': side,
             'size': this.numberToString (this.amountToPrecision (symbol, amount)),
         };
-        if (type === 'limit' || type === 'stop_limit' || type === 'take_limit') {
+        if ((type === 'limit') || (type === 'stop_limit') || (type === 'take_limit')) {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
@@ -1453,13 +1454,13 @@ export default class coinlist extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'order_id': id,
             'type': type,
             'side': side,
             'size': this.numberToString (this.amountToPrecision (symbol, amount)),
         };
         if (price !== undefined) {
-            request['price'] = this.numberToString (this.priceToPrecision (price, amount));
+            request['price'] = this.numberToString (this.priceToPrecision (symbol, price));
         }
         const response = await this.privatePatchV1OrdersOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
@@ -1553,10 +1554,11 @@ export default class coinlist extends Exchange {
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price', undefined);
         const stopPrice = this.safeString (order, 'stop_price', undefined);
-        const average = this.safeString (order, 'average_fill_price');
+        const average = this.safeString (order, 'average_fill_price', undefined); // from documentation
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'size_filled');
         const feeCost = this.safeString (order, 'fill_fees');
+        const postOnly = this.safeValue (order, 'post_only', undefined);
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -1579,7 +1581,7 @@ export default class coinlist extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'average': average,
+            'average': average, // todo: check
             'amount': amount,
             'cost': undefined,
             'filled': filled,
@@ -1587,6 +1589,7 @@ export default class coinlist extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
+            'postOnly': postOnly,
         }, market);
     }
 
@@ -1637,9 +1640,9 @@ export default class coinlist extends Exchange {
         const fromAcc = this.safeString (accountsByType, fromAccount);
         const toAcc = this.safeString (accountsByType, toAccount);
         // todo: check for account names are good
-        if (fromAcc === 'funding' && toAcc === 'trading') {
+        if ((fromAcc === 'funding') && (toAcc === 'trading')) {
             method = 'privatePostV1TransfersFromWallet';
-        } else if (fromAcc === 'trading' && toAcc === 'funding') {
+        } else if ((fromAcc === 'trading') && (toAcc === 'funding')) {
             method = 'privatePostV1TransfersToWallet';
         } else {
             request['from_trader_id'] = fromAccount;
@@ -2235,7 +2238,7 @@ export default class coinlist extends Exchange {
             const timestamp = this.seconds ().toString ();
             let auth = timestamp + method + endpoint;
             const isBulk = Array.isArray (params);
-            if (method === 'POST' || method === 'PATCH' || isBulk) {
+            if ((method === 'POST') || (method === 'PATCH') || isBulk) {
                 body = this.json (request);
                 auth += body;
             } else if (query.length !== 0) {
@@ -2256,15 +2259,15 @@ export default class coinlist extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        // todo
         if (response === undefined) {
             return undefined;
         }
         const responseCode = this.safeString (response, 'status', undefined);
-        if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '202')) {
+        const messageCode = this.safeString (response, 'message_code', undefined);
+        if ((messageCode !== undefined) || ((responseCode !== undefined) && (code !== 200) && (code !== 202) && (responseCode !== '200') && (responseCode !== '202'))) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
             throw new ExchangeError (feedback);
         }
         return undefined;
