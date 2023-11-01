@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, OnMaintenance, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, InvalidAddress, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -256,7 +256,10 @@ export default class coinlist extends Exchange {
                     'WITHDRAWAL_REQUEST_NOT_ALLOWED': PermissionDenied, // {"message":"Withdrawal from CoinList not allowed for trader.","message_code":"WITHDRAWAL_REQUEST_NOT_ALLOWED","message_details":{"asset":"USDT","amount":"5","trader_id":"9c6f737e-a829-4843-87b1-b1ce86f2853b","destination_address":"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"}}
                 },
                 'broad': {
-                    // to do: add
+                    'A destinationAddress is required for non-USD withdrawals': InvalidAddress, // {"status":400,"message":"400 - {\"message\":\"A destinationAddress is required for non-USD withdrawals.\"}"}
+                    'is required': ArgumentsRequired, // {"status":400,"message":"\"asset\" is required"}
+                    'must be a string': BadRequest, // {"status":400,"message":"\"destination_address\" must be a string"}
+                    'must be a valid GUID': BadRequest, // {"status":400,"message":"\"order_id\" must be a valid GUID"}
                 },
             },
         });
@@ -2266,7 +2269,8 @@ export default class coinlist extends Exchange {
         const messageCode = this.safeString (response, 'message_code', undefined);
         if ((messageCode !== undefined) || ((responseCode !== undefined) && (code !== 200) && (code !== 202) && (responseCode !== '200') && (responseCode !== '202'))) {
             const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            const message = this.safeString (response, 'message');
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
             throw new ExchangeError (feedback);
         }
