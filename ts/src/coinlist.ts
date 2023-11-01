@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import { ArgumentsRequired, AuthenticationError } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -58,7 +58,7 @@ export default class coinlist extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': true,
+                'fetchDeposits': false, // todo: check
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -101,7 +101,7 @@ export default class coinlist extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false, // todo: check
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayMargin': false,
@@ -132,75 +132,101 @@ export default class coinlist extends Exchange {
                 'fees': 'https://coinlist.co/fees',
             },
             'api': {
-                // todo: sort in the right order
                 'public': {
                     'get': {
-                        'v1/time': 1,
                         'v1/symbols': 1,
-                        'v1/assets': 1,
                         'v1/symbols/summary': 1,
+                        'v1/symbols/{symbol}': 1, // not unified
                         'v1/symbols/{symbol}/summary': 1,
                         'v1/symbols/{symbol}/book': 1,
+                        'v1/symbols/{symbol}/quote': 1, // not unified
                         'v1/symbols/{symbol}/candles': 1,
                         'v1/symbols/{symbol}/auctions': 1,
-                        // Not unified ----------------------------------
-                        'v1/symbols/{symbol}': 1, // returns one market
-                        'v1/symbols/{symbol}/quote': 1, // returns lv1 book (last trade and the best bid and ask)
-                        'v1/symbols/{symbol}/auctions/{auction_code}': 1, // retruns one trade by trade id
-                        // ----------------------------------------------
+                        'v1/symbols/{symbol}/auctions/{auction_code}': 1, // not unified
+                        'v1/time': 1,
+                        'v1/assets': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'v1/fees': 1,
                         'v1/accounts': 1,
-                        'v1/balances': 1,
+                        'v1/accounts/{trader_id}': 1, // not unified
+                        'v1/accounts/{trader_id}/ledger': 1,
+                        'v1/accounts/{trader_id}/wallets': 1, // not unified
+                        'v1/accounts/{trader_id}/wallet-ledger': 1,
+                        'v1/accounts/{trader_id}/ledger-summary': 1, // not unified
+                        'v1/keys': 1, // not unified
                         'v1/fills': 1,
                         'v1/orders': 1,
                         'v1/orders/{order_id}': 1,
+                        'v1/reports': 1, // not unified
+                        'v1/balances': 1,
                         'v1/transfers': 1,
-                        'v1/accounts/{trader_id}/ledger': 1,
-                        'v1/accounts/{trader_id}/wallet-ledger': 1,
-                        // Not unified ----------------------------------
-                        'v1/accounts/{trader_id}': 1,
-                        'v1/accounts/{trader_id}/wallets': 1,
-                        'v1/accounts/{trader_id}/ledger-summary': 1,
-                        'v1/keys': 1,
-                        'v1/reports': 1,
-                        'v1/user': 1,
-                        'v1/credits': 1,
-                        // ----------------------------------------------
+                        'v1/user': 1, // not unified
+                        'v1/credits': 1, // not unified
                     },
                     'post': {
+                        'v1/keys': 1, // not unified
                         'v1/orders': 1,
+                        'v1/orders/cancel-all-after': 1, // not unified
+                        'v1/reports': 1, // not unified
+                        'v1/transfers/to-wallet': 1,
+                        'v1/transfers/from-wallet': 1,
                         'v1/transfers/internal-transfer': 1,
                         'v1/transfers/withdrawal-request': 1,
-                        // Not unified ----------------------------------
-                        'v1/transfers/to-wallet': 1, // todo: update transfer () method
-                        'v1/transfers/from-wallet': 1, // todo
-                        'v1/keys': 1,
-                        'v1/orders/cancel-all-after': 1,
-                        'v1/orders/bulk': 1, // todo
-                        // ----------------------------------------------
+                        'v1/orders/bulk': 1, // not unified
                     },
                     'patch': {
                         'v1/orders/{order_id}': 1,
-                        // Not unified ----------------------------------
-                        'v1/orders/bulk': 1, // todo
-                        // ----------------------------------------------
+                        'v1/orders/bulk': 1, // not unified
                     },
                     'delete': {
+                        'v1/keys/{key}': 1,  // not unified
                         'v1/orders': 1,
                         'v1/orders/{order_id}': 1,
                         'v1/orders/bulk': 1,
-                        // Not unified ----------------------------------
-                        'v1/keys/{key}': 1,
-                        // ----------------------------------------------
                     },
                 },
             },
             'fees': {
-                // todo
+                'trading': {
+                    'feeSide': 'get',
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0025'),
+                    'taker': this.parseNumber ('0.0045'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0045') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('750000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0013') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.0005') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('750000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.0000') ],
+                            [ this.parseNumber ('100000000'), this.parseNumber ('0.00') ],
+                        ],
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             // exchange-specific options
@@ -859,8 +885,105 @@ export default class coinlist extends Exchange {
         //         }
         //     }
         //
-        // todo: parse the response
-        return response;
+        // todo: check
+        const fees = this.safeValue (response, 'fees_by_symbols', {});
+        const result = {};
+        const groupsOfSymbols = Object.keys (fees);
+        for (let i = 0; i < groupsOfSymbols.length; i++) {
+            const group = groupsOfSymbols[i];
+            const feeTiers = this.safeValue (fees, group, {});
+            const tiers = this.parseFeeTiers (feeTiers);
+            const firstTier = this.safeValue (feeTiers, 'base', {});
+            const firstTierFees = this.safeValue (firstTier, 'fees', {});
+            const ids = group.split (',');
+            for (let j = 0; j < ids.length; j++) {
+                const id = ids[j];
+                const market = this.safeMarket (id);
+                const symbol = market['symbol'];
+                const info = {};
+                info[group] = feeTiers;
+                result[symbol] = {
+                    'info': info,
+                    'symbol': symbol,
+                    'maker': this.safeNumber (firstTierFees, 'maker'),
+                    'taker': this.safeNumber (firstTierFees, 'taker'),
+                    'percentage': true,
+                    'tierBased': true,
+                    'tiers': tiers,
+                };
+            }
+        }
+        return result;
+    }
+
+    parseFeeTiers (feeTiers, market = undefined) {
+        //
+        //     base: {
+        //         fees: { maker: '0', taker: '0.0045', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_1: {
+        //         fees: { maker: '0', taker: '0.003', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_2: {
+        //         fees: { maker: '0', taker: '0.0025', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_3: {
+        //         fees: { maker: '0', taker: '0.002', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_4: {
+        //         fees: { maker: '0', taker: '0.0018', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_5: {
+        //         fees: { maker: '0', taker: '0.0018', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_6: {
+        //         fees: { maker: '0', taker: '0.0016', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_7: {
+        //         fees: { maker: '0', taker: '0.0013', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_8: {
+        //         fees: { maker: '0', taker: '0.0012', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_9: {
+        //         fees: { maker: '0', taker: '0.001', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     }
+        //     volume_tier_10: {
+        //         fees: { maker: '0', taker: '0.0005', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //     volume_tier_11: {
+        //         fees: { maker: '0', taker: '0.0005', liquidation: '0' },
+        //         floors: { maker: null, taker: null }
+        //     },
+        //
+        const takerFees = [];
+        const makerFees = [];
+        const keys = Object.keys (feeTiers);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const tier = this.safeValue (feeTiers, key, {});
+            const tierFees = this.safeValue (tier, 'fees', {});
+            const volume = undefined;
+            const taker = this.safeString (tierFees, 'taker');
+            const maker = this.safeString (tierFees, 'maker');
+            makerFees.push ([ volume, this.parseNumber (maker) ]);
+            takerFees.push ([ volume, this.parseNumber (taker) ]);
+        }
+        return {
+            'maker': makerFees,
+            'taker': takerFees,
+        };
     }
 
     async fetchAccounts (params = {}) {
@@ -1081,11 +1204,6 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        // todo: check params:
-        // "stop_trigger": "last",
-        // "average_fill_price": "string",
-        // "peg_price_type": "trailing-stop",
-        // "peg_offset_value": "string",
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -1249,7 +1367,7 @@ export default class coinlist extends Exchange {
          * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        params = ids; // todo: update sign for this
+        params = ids;
         const response = await this.privateDeleteV1OrdersBulk (params);
         return response;
     }
@@ -1279,23 +1397,24 @@ export default class coinlist extends Exchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.numberToString (this.priceToPrecision (symbol, price));
+            request['price'] = this.priceToPrecision (symbol, price).toString ();
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
-            params = this.omit (params, 'postOnly');
             request['post_only'] = true;
         }
-        const stopPrice = this.safeNumber (params, 'stopPrice', undefined);
-        if (stopPrice !== undefined) {
-            params = this.omit (params, 'stopPrice');
-            request['stop_price'] = stopPrice;
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice).toString ();
             if (type === 'market') {
                 request['type'] = 'stop_market';
             } else if (type === 'limit') {
                 request['type'] = 'stop_limit';
             }
+        } else if ((type === 'stop_market') || (type === 'stop_limit') || (type === 'take_market') || (type === 'take_limit')) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
+        params = this.omit (params, 'triggerPrice', 'stopPrice', 'stop_price', 'postOnly');
         const response = await this.privatePostV1Orders (this.extend (request, params));
         //
         //     {
@@ -1438,11 +1557,14 @@ export default class coinlist extends Exchange {
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'size_filled');
         const feeCost = this.safeString (order, 'fill_fees');
-        const fee = {
-            'currency': 'USD',
-            'cost': feeCost,
-            'rate': undefined,
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': 'USD', // todo: or undefined or quote?
+                'cost': feeCost,
+                'rate': undefined,
+            };
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1534,6 +1656,11 @@ export default class coinlist extends Exchange {
         //         "amount": "string"
         //     }
         //
+        // privatePostV1TransfersFromWallet, privatePostV1TransfersToWallet
+        //     {
+        //         "transfer_id": "bb34f528-d9b0-47c6-b11f-4d4840b86ee3"
+        //     }
+        //
         const transfer = this.parseTransfer (response, currency);
         return transfer;
     }
@@ -1600,7 +1727,19 @@ export default class coinlist extends Exchange {
         //         "status": "confirmed"
         //     }
         //
-        // todo: check for transfer ()
+        // transfer - privatePostV1TransfersInternalTransfer
+        //     {
+        //         "from_trader_id": "1f494ace-b3ed-4324-b202-55526ed06381",
+        //         "to_trader_id": "d32c7a40-cc24-44b0-8597-f9edb3da989f",
+        //         "asset": "string",
+        //         "amount": "string"
+        //     }
+        //
+        // transfer - privatePostV1TransfersFromWallet, privatePostV1TransfersToWallet
+        //     {
+        //         "transfer_id": "bb34f528-d9b0-47c6-b11f-4d4840b86ee3"
+        //     }
+        //
         const currencyId = this.safeString (transfer, 'asset');
         const confirmedAt = this.safeString (transfer, 'confirmed_at');
         const timetstamp = this.parse8601 (confirmedAt);
@@ -1608,6 +1747,7 @@ export default class coinlist extends Exchange {
         let amountString = this.safeString (transfer, 'amount', undefined);
         let fromAccount = undefined;
         let toAccount = undefined;
+        let amount = undefined;
         if (amountString !== undefined) {
             const amountIsNegative = Precise.stringLt (amountString, '0');
             if (amountIsNegative) {
@@ -1619,6 +1759,7 @@ export default class coinlist extends Exchange {
                 fromAccount = 'funding';
                 toAccount = 'trading';
             }
+            amount = this.number (amountString);
         }
         return {
             'info': transfer,
@@ -1626,7 +1767,7 @@ export default class coinlist extends Exchange {
             'timestamp': timetstamp,
             'datetime': this.iso8601 (timetstamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
-            'amount': this.number (amountString),
+            'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': this.parseTransferStatus (status),
@@ -1657,10 +1798,6 @@ export default class coinlist extends Exchange {
         const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
         if (traderId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a traderId argument in the params');
-            // todo: delete these comments
-            // const accounts = await this.fetchAccounts ();
-            // const account = accounts[0];
-            // traderId = this.safeString (account, 'id');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1671,7 +1808,7 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const type = this.safeString (params, 'type');
+        // const type = this.safeString (params, 'type');
         params = this.omit (params, 'type', 'trader_id', 'traderId');
         const response = await this.privateGetV1AccountsTraderIdWalletLedger (this.extend (request, params));
         //
@@ -1718,63 +1855,63 @@ export default class coinlist extends Exchange {
         //         }
         //     ]
         //
-        // todo: change the method for it not to break the pagination of the response (make it retrun the whole response)
-        let transactions = [];
-        if (type === undefined) {
-            transactions = this.filterByArray (response, 'type', [ 'CRYPTO_DEPOSIT', 'CRYPTO_WITHDRAWAL' ], false);
-        } else {
-            transactions = this.filterBy (response, 'type', type);
-        }
-        return this.parseTransactions (transactions, currency, since, limit);
+        // todo: check
+        // let transactions = [];
+        // if (type === undefined) {
+        //     transactions = this.filterByArray (response, 'type', [ 'CRYPTO_DEPOSIT', 'CRYPTO_WITHDRAWAL' ], false);
+        // } else {
+        //     transactions = this.filterBy (response, 'type', type);
+        // }
+        return this.parseTransactions (response, currency, since, limit);
     }
-
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinlist#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
-        }
-        const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
-        if (traderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a traderId argument in the params');
-        }
-        const request = {
-            'type': 'CRYPTO_DEPOSIT',
-        };
-        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
-    }
-
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinlist#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-         */
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
-        }
-        const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
-        if (traderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a traderId argument in the params');
-        }
-        const request = {
-            'type': 'CRYPTO_WITHDRAWAL',
-        };
-        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
-    }
+    //
+    // async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    //     /**
+    //      * @method
+    //      * @name coinlist#fetchDeposits
+    //      * @description fetch all deposits made to an account
+    //      * @param {string} code unified currency code
+    //      * @param {int} [since] the earliest time in ms to fetch deposits for
+    //      * @param {int} [limit] the maximum number of deposits structures to retrieve (default 200, max 500)
+    //      * @param {object} [params] extra parameters specific to the coinlist api endpoint
+    //      * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+    //      */
+    //     if (code === undefined) {
+    //         throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+    //     }
+    //     const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
+    //     if (traderId === undefined) {
+    //         throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a traderId argument in the params');
+    //     }
+    //     const request = {
+    //         'type': 'CRYPTO_DEPOSIT',
+    //     };
+    //     return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
+    // }
+    //
+    // async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    //     /**
+    //      * @method
+    //      * @name coinlist#fetchWithdrawals
+    //      * @description fetch all withdrawals made from an account
+    //      * @param {string} code unified currency code
+    //      * @param {int} [since] the earliest time in ms to fetch withdrawals for
+    //      * @param {int} [limit] the maximum number of withdrawals structures to retrieve (default 200, max 500)
+    //      * @param {object} [params] extra parameters specific to the coinlist api endpoint
+    //      * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
+    //      */
+    //     if (code === undefined) {
+    //         throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
+    //     }
+    //     const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
+    //     if (traderId === undefined) {
+    //         throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a traderId argument in the params');
+    //     }
+    //     const request = {
+    //         'type': 'CRYPTO_WITHDRAWAL',
+    //     };
+    //     return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
+    // }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
@@ -1831,7 +1968,7 @@ export default class coinlist extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         let type = this.safeString (transaction, 'type', undefined);
         if (type === undefined) {
-            type = 'withdrawal'; // undefined only in withdraw () method
+            type = 'withdrawal'; // undefined only in withdraw() method
         } else {
             type = this.parseTransactionType (type);
         }
@@ -1867,8 +2004,6 @@ export default class coinlist extends Exchange {
 
     parseTransactionType (type) {
         const types = {
-            'deposit': 'deposit',
-            'withdrawal': 'withdrawal',
             'CRYPTO_DEPOSIT': 'deposit',
             'CRYPTO_WITHDRAWAL': 'withdrawal',
         };
@@ -2062,21 +2197,20 @@ export default class coinlist extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         return {
-            // todo: check this
             'info': item,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'direction': direction,
-            'account': 'trading',
-            'referenceId': undefined,
+            'account': 'trading', // todo: check account name is good
+            'referenceId': undefined, // todo: check
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber (amount),
             'before': undefined,
             'after': undefined,
-            'status': 'ok',
+            'status': 'ok', // todo: check
             'fee': undefined,
         };
     }
@@ -2100,7 +2234,8 @@ export default class coinlist extends Exchange {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
             let auth = timestamp + method + endpoint;
-            if (method === 'POST' || method === 'PATCH') {
+            const isBulk = Array.isArray (params);
+            if (method === 'POST' || method === 'PATCH' || isBulk) {
                 body = this.json (request);
                 auth += body;
             } else if (query.length !== 0) {
@@ -2118,5 +2253,20 @@ export default class coinlist extends Exchange {
             url += '?' + query;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        // todo
+        if (response === undefined) {
+            return undefined;
+        }
+        const responseCode = this.safeString (response, 'status', undefined);
+        if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '202')) {
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 }
