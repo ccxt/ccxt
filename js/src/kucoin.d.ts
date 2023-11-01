@@ -190,7 +190,6 @@ export default class kucoin extends Exchange {
     };
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: any): {
         currency: any;
