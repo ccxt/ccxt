@@ -1311,6 +1311,7 @@ export default class coinlist extends Exchange {
         const request = {
             'status': 'canceled',
         };
+        // todo: check for limit 1
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -1876,54 +1877,6 @@ export default class coinlist extends Exchange {
         // }
         return this.parseTransactions (response, currency, since, limit);
     }
-    //
-    // async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-    //     /**
-    //      * @method
-    //      * @name coinlist#fetchDeposits
-    //      * @description fetch all deposits made to an account
-    //      * @param {string} code unified currency code
-    //      * @param {int} [since] the earliest time in ms to fetch deposits for
-    //      * @param {int} [limit] the maximum number of deposits structures to retrieve (default 200, max 500)
-    //      * @param {object} [params] extra parameters specific to the coinlist api endpoint
-    //      * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-    //      */
-    //     if (code === undefined) {
-    //         throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
-    //     }
-    //     const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
-    //     if (traderId === undefined) {
-    //         throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a traderId argument in the params');
-    //     }
-    //     const request = {
-    //         'type': 'CRYPTO_DEPOSIT',
-    //     };
-    //     return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
-    // }
-    //
-    // async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-    //     /**
-    //      * @method
-    //      * @name coinlist#fetchWithdrawals
-    //      * @description fetch all withdrawals made from an account
-    //      * @param {string} code unified currency code
-    //      * @param {int} [since] the earliest time in ms to fetch withdrawals for
-    //      * @param {int} [limit] the maximum number of withdrawals structures to retrieve (default 200, max 500)
-    //      * @param {object} [params] extra parameters specific to the coinlist api endpoint
-    //      * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
-    //      */
-    //     if (code === undefined) {
-    //         throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
-    //     }
-    //     const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
-    //     if (traderId === undefined) {
-    //         throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a traderId argument in the params');
-    //     }
-    //     const request = {
-    //         'type': 'CRYPTO_WITHDRAWAL',
-    //     };
-    //     return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
-    // }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
         /**
