@@ -297,6 +297,7 @@ class phemex(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # not documented
+                    '401': AuthenticationError,  # {"code":"401","msg":"401 Failed to load API KEY."}
                     '412': BadRequest,  # {"code":412,"msg":"Missing parameter - resolution","data":null}
                     '6001': BadRequest,  # {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
                     # documented
@@ -1756,6 +1757,8 @@ class phemex(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         method = 'privateGetSpotWallets'
         request = {}
+        if (type != 'spot') and (type != 'swap'):
+            raise BadRequest(self.id + ' does not support ' + type + ' markets, only spot and swap')
         if type == 'swap':
             code = self.safe_string(params, 'code')
             settle = None
@@ -3396,14 +3399,15 @@ class phemex(Exchange, ImplicitAPI):
             # 'limit': 20,  # Page size default 20, max 200
             # 'offset': 0,  # Page start default 0
         }
-        if limit > 200:
-            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
         if limit is not None:
+            if limit > 200:
+                raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
             request['limit'] = limit
-        method = 'privateGetApiDataFuturesFundingFees'
+        response = None
         if market['settle'] == 'USDT':
-            method = 'privateGetApiDataGFuturesFundingFees'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetApiDataGFuturesFundingFees(self.extend(request, params))
+        else:
+            response = await self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
         #
         #     {
         #         "code": 0,

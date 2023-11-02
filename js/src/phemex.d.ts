@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import { FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class phemex
  * @extends Exchange
@@ -185,7 +185,7 @@ export default class phemex extends Exchange {
     };
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;

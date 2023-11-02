@@ -64,7 +64,7 @@ export default class krakenfutures extends Exchange {
         entryPrice: number;
         notional: any;
         leverage: number;
-        unrealizedPnl: number;
+        unrealizedPnl: any;
         contracts: number;
         contractSize: number;
         marginRatio: any;

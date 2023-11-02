@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, Int, Order, OrderSide, OrderType } from './base/types.js';
 /**
  * @class ascendex
  * @extends Exchange
@@ -148,6 +148,16 @@ export default class ascendex extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): "ok" | "failed";
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseIncome(income: any, market?: any): {
+        info: any;
+        symbol: any;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: any;
+        amount: number;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

@@ -893,6 +893,7 @@ class huobi(Exchange, ImplicitAPI):
                     '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718}
                     '1303': BadRequest,  # {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder,  # {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits(5000USDT). Please modify.","ts":1652554651234}
+                    '4007': BadRequest,  # {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest,  # {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
                     'validation-constraints-required': BadRequest,  # {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
@@ -963,41 +964,195 @@ class huobi(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     # by displaynames
-                    'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'AVALANCHE': 'AVAXCCHAIN',
-                    'AVAX': 'AVAXCCHAIN',
-                    'HRC20': 'HECO',
-                    'HECO': 'HECO',
-                    # 'HT': 'HECO',  # HT is not acceptable networkcode for unification
-                    'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
+                    'TRC20': 'TRX',  # TRON for mainnet
                     'BTC': 'BTC',
-                    'BITCOIN': 'BTC',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'SOLANA': 'SOL',
-                    'SOL': 'SOL',
-                    'SPL': 'SOL',
-                    'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
-                    'MATIC': 'PRC20',
-                },
-                'networksById': {
-                    'ALGO': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'AVAXCCHAIN': 'AVALANCHE',
-                    'HECO': 'HRC20',
-                    'TRC20': 'TRC20',
-                    'BTC': 'BTC',
-                    'ARB': 'ARBITRUM',
+                    'ERC20': 'ETH',  # ETH for mainnet
                     'SOL': 'SOLANA',
-                    'PRC20': 'POLYGON',
+                    'HRC20': 'HECO',
+                    'BEP20': 'BSC',
+                    'XMR': 'XMR',
+                    'LTC': 'LTC',
+                    'XRP': 'XRP',
+                    'XLM': 'XLM',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'GLMR': 'GLMR',
+                    'POLYGON': 'MATIC',
+                    'MATIC': 'MATIC',
+                    'BTT': 'BTT',
+                    'CUBE': 'CUBE',
+                    'IOST': 'IOST',
+                    'NEO': 'NEO',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'THETA': 'THETA',
+                    'NAS': 'NAS',
+                    'NULS': 'NULS',
+                    'QTUM': 'QTUM',
+                    'FTM': 'FTM',
+                    'CELO': 'CELO',
+                    'DOGE': 'DOGE',
+                    'DOGECHAIN': 'DOGECHAIN',
+                    'NEAR': 'NEAR',
+                    'STEP': 'STEP',
+                    'BITCI': 'BITCI',
+                    'CARDANO': 'ADA',
+                    'ADA': 'ADA',
+                    'ETC': 'ETC',
+                    'LUK': 'LUK',
+                    'MINEPLEX': 'MINEPLEX',
+                    'DASH': 'DASH',
+                    'ZEC': 'ZEC',
+                    'IOTA': 'IOTA',
+                    'NEON3': 'NEON3',
+                    'XEM': 'XEM',
+                    'HC': 'HC',
+                    'LSK': 'LSK',
+                    'DCR': 'DCR',
+                    'BTG': 'BTG',
+                    'STEEM': 'STEEM',
+                    'BTS': 'BTS',
+                    'ICX': 'ICX',
+                    'WAVES': 'WAVES',
+                    'CMT': 'CMT',
+                    'BTM': 'BTM',
+                    'VET': 'VET',
+                    'XZC': 'XZC',
+                    'ACT': 'ACT',
+                    'SMT': 'SMT',
+                    'BCD': 'BCD',
+                    'WAX': 'WAX1',
+                    'WICC': 'WICC',
+                    'ELF': 'ELF',
+                    'ZIL': 'ZIL',
+                    'ELA': 'ELA',
+                    'BCX': 'BCX',
+                    'SBTC': 'SBTC',
+                    'BIFI': 'BIFI',
+                    'CTXC': 'CTXC',
+                    'WAN': 'WAN',
+                    'POLYX': 'POLYX',
+                    'PAI': 'PAI',
+                    'WTC': 'WTC',
+                    'DGB': 'DGB',
+                    'XVG': 'XVG',
+                    'AAC': 'AAC',
+                    'AE': 'AE',
+                    'SEELE': 'SEELE',
+                    'BCV': 'BCV',
+                    'GRS': 'GRS',
+                    'ARDR': 'ARDR',
+                    'NANO': 'NANO',
+                    'ZEN': 'ZEN',
+                    'RBTC': 'RBTC',
+                    'BSV': 'BSV',
+                    'GAS': 'GAS',
+                    'XTZ': 'XTZ',
+                    'LAMB': 'LAMB',
+                    'CVNT1': 'CVNT1',
+                    'DOCK': 'DOCK',
+                    'SC': 'SC',
+                    'KMD': 'KMD',
+                    'ETN': 'ETN',
+                    'TOP': 'TOP',
+                    'IRIS': 'IRIS',
+                    'UGAS': 'UGAS',
+                    'TT': 'TT',
+                    'NEWTON': 'NEWTON',
+                    'VSYS': 'VSYS',
+                    'FSN': 'FSN',
+                    'BHD': 'BHD',
+                    'ONE': 'ONE',
+                    'EM': 'EM',
+                    'CKB': 'CKB',
+                    'EOSS': 'EOSS',
+                    'HIVE': 'HIVE',
+                    'RVN': 'RVN',
+                    'DOT': 'DOT',
+                    'KSM': 'KSM',
+                    'BAND': 'BAND',
+                    'OEP4': 'OEP4',
+                    'NBS': 'NBS',
+                    'FIS': 'FIS',
+                    'AR': 'AR',
+                    'HBAR': 'HBAR',
+                    'FIL': 'FIL',
+                    'MASS': 'MASS',
+                    'KAVA': 'KAVA',
+                    'XYM': 'XYM',
+                    'ENJ': 'ENJ',
+                    'CRUST': 'CRUST',
+                    'ICP': 'ICP',
+                    'CSPR': 'CSPR',
+                    'FLOW': 'FLOW',
+                    'IOTX': 'IOTX',
+                    'LAT': 'LAT',
+                    'APT': 'APT',
+                    'XCH': 'XCH',
+                    'MINA': 'MINA',
+                    'XEC': 'ECASH',
+                    'XPRT': 'XPRT',
+                    'CCA': 'ACA',
+                    'AOTI': 'COTI',
+                    'AKT': 'AKT',
+                    'ARS': 'ARS',
+                    'ASTR': 'ASTR',
+                    'AZERO': 'AZERO',
+                    'BLD': 'BLD',
+                    'BRISE': 'BRISE',
+                    'CORE': 'CORE',
+                    'DESO': 'DESO',
+                    'DFI': 'DFI',
+                    'EGLD': 'EGLD',
+                    'ERG': 'ERG',
+                    'ETHF': 'ETHFAIR',
+                    'ETHW': 'ETHW',
+                    'EVMOS': 'EVMOS',
+                    'FIO': 'FIO',
+                    'FLR': 'FLR',
+                    'FINSCHIA': 'FINSCHIA',
+                    'KMA': 'KMA',
+                    'KYVE': 'KYVE',
+                    'MEV': 'MEV',
+                    'MOVR': 'MOVR',
+                    'NODL': 'NODL',
+                    'OAS': 'OAS',
+                    'OSMO': 'OSMO',
+                    'PAYCOIN': 'PAYCOIN',
+                    'POKT': 'POKT',
+                    'PYG': 'PYG',
+                    'REI': 'REI',
+                    'SCRT': 'SCRT',
+                    'SDN': 'SDN',
+                    'SEI': 'SEI',
+                    'SGB': 'SGB',
+                    'SUI': 'SUI',
+                    'SXP': 'SOLAR',
+                    'SYS': 'SYS',
+                    'TENET': 'TENET',
+                    'TON': 'TON',
+                    'UNQ': 'UNQ',
+                    'UYU': 'UYU',
+                    'WEMIX': 'WEMIX',
+                    'XDC': 'XDC',
+                    'XPLA': 'XPLA',
+                    # todo: below
+                    # 'LUNC': 'LUNC',
+                    # 'TERRA': 'TERRA',  # tbd
+                    # 'LUNA': 'LUNA', tbd
+                    # 'FCT2': 'FCT2',
+                    # FIL-0X ?
+                    # 'COSMOS': 'ATOM1',
+                    # 'ATOM': 'ATOM1',
+                    # 'CRO': 'CRO',
+                    # 'OP': ['OPTIMISM', 'OPTIMISMETH']
+                    # 'ARB': ['ARB', 'ARBITRUMETH']
+                    # 'CHZ': ['CHZ', 'CZH'],
+                    # todo: AVAXCCHAIN CCHAIN AVAX
+                    # 'ALGO': ['ALGO', 'ALGOUSDT']
+                    # 'ONT': ['ONT', 'ONTOLOGY'],
+                    # 'BCC': 'BCC', BCH's somewhat chain
+                    # 'DBC1': 'DBC1',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -1069,7 +1224,6 @@ class huobi(Exchange, ImplicitAPI):
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://coinmarketcap.com/currencies/penta/markets/
@@ -2771,10 +2925,10 @@ class huobi(Exchange, ImplicitAPI):
             for j in range(0, len(chains)):
                 chainEntry = chains[j]
                 uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
-                title = self.safe_string(chainEntry, 'displayName')
+                title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
-                networkCode = self.network_id_to_code(title, code)
+                networkCode = self.network_id_to_code(uniqueChainId)
                 minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
                 maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
                 withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
@@ -2793,6 +2947,10 @@ class huobi(Exchange, ImplicitAPI):
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                         'withdraw': {
                             'min': minWithdraw,
                             'max': maxWithdraw,
@@ -2822,6 +2980,10 @@ class huobi(Exchange, ImplicitAPI):
                         'min': minWithdraw,
                         'max': maxWithdraw,
                     },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
                 'precision': self.parse_number(minPrecision),
                 'networks': networks,
@@ -2845,11 +3007,21 @@ class huobi(Exchange, ImplicitAPI):
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')
         uniqueNetworkIds = self.safe_value(self.options['networkChainIdsByNames'], currencyCode, {})
-        networkTitle = super(huobi, self).network_code_to_id(networkCode)
-        return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
+        if networkCode in uniqueNetworkIds:
+            return uniqueNetworkIds[networkCode]
+        else:
+            networkTitle = super(huobi, self).network_code_to_id(networkCode)
+            return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
 
     async def fetch_balance(self, params={}):
         """
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
@@ -2862,10 +3034,8 @@ class huobi(Exchange, ImplicitAPI):
         isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
         params = self.omit(params, ['isUnifiedAccount', 'unified'])
         request = {}
-        method = None
         spot = (type == 'spot')
         future = (type == 'future')
-        swap = (type == 'swap')
         defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
         subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
         subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
@@ -2877,30 +3047,30 @@ class huobi(Exchange, ImplicitAPI):
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
+        response = None
         if spot or margin:
             if margin:
                 if isolated:
-                    method = 'spotPrivateGetV1MarginAccountsBalance'
+                    response = await self.spotPrivateGetV1MarginAccountsBalance(self.extend(request, params))
                 else:
-                    method = 'spotPrivateGetV1CrossMarginAccountsBalance'
+                    response = await self.spotPrivateGetV1CrossMarginAccountsBalance(self.extend(request, params))
             else:
                 await self.load_accounts()
                 accountId = await self.fetch_account_id_by_type(type, None, None, params)
                 request['account-id'] = accountId
-                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+                response = await self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, params))
         elif isUnifiedAccount:
-            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo'
+            response = await self.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(self.extend(request, params))
         elif linear:
             if isolated:
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                response = await self.contractPrivatePostLinearSwapApiV1SwapAccountInfo(self.extend(request, params))
             else:
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
+                response = await self.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(self.extend(request, params))
         elif inverse:
             if future:
-                method = 'contractPrivatePostApiV1ContractAccountInfo'
-            elif swap:
-                method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
-        response = await getattr(self, method)(self.extend(request, params))
+                response = await self.contractPrivatePostApiV1ContractAccountInfo(self.extend(request, params))
+            else:
+                response = await self.contractPrivatePostSwapApiV1SwapAccountInfo(self.extend(request, params))
         #
         # spot
         #
@@ -4999,7 +5169,7 @@ class huobi(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(networkId, code),
+            'network': self.network_id_to_code(networkId),
             'note': note,
             'info': depositAddress,
         }
@@ -5253,7 +5423,7 @@ class huobi(Exchange, ImplicitAPI):
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId, code),
+            'network': self.network_id_to_code(networkId),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,

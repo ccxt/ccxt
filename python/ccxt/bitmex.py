@@ -1600,18 +1600,15 @@ class bitmex(Exchange, ImplicitAPI):
         #         "timestamp":"2021-01-02T21:38:49.246Z"
         #     }
         #
-        status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
-        timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
-        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
-        price = self.safe_string(order, 'price')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         qty = self.safe_string(order, 'orderQty')
         cost = None
         amount = None
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         isInverse = False
-        if market is None:
+        if marketId is None:
+            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
             isInverse = (defaultSubType == 'inverse')
         else:
             isInverse = self.safe_value(market, 'inverse', False)
@@ -1626,37 +1623,34 @@ class bitmex(Exchange, ImplicitAPI):
             filled = Precise.string_div(cumQty, average)
         else:
             filled = cumQty
-        id = self.safe_string(order, 'orderID')
-        type = self.safe_string_lower(order, 'ordType')
-        side = self.safe_string_lower(order, 'side')
-        clientOrderId = self.safe_string(order, 'clOrdID')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
-        stopPrice = self.safe_number(order, 'stopPx')
         execInst = self.safe_string(order, 'execInst')
         postOnly = None
         if execInst is not None:
             postOnly = (execInst == 'ParticipateDoNotInitiate')
+        timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
+        stopPrice = self.safe_number(order, 'stopPx')
+        remaining = self.safe_string(order, 'leavesQty')
         return self.safe_order({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string(order, 'orderID'),
+            'clientOrderId': self.safe_string(order, 'clOrdID'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'transactTime')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': self.safe_string_lower(order, 'ordType'),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'timeInForce')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
+            'side': self.safe_string_lower(order, 'side'),
+            'price': self.safe_string(order, 'price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': None,
-            'status': status,
+            'remaining': self.convert_from_raw_quantity(symbol, remaining),
+            'status': self.parse_order_status(self.safe_string(order, 'ordStatus')),
             'fee': None,
             'trades': None,
         }, market)

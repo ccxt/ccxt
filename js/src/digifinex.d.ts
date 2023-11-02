@@ -224,6 +224,29 @@ export default class digifinex extends Exchange {
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+    addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
+    reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
+    modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<any>;
+    parseMarginModification(data: any, market?: any): {
+        info: any;
+        type: string;
+        amount: number;
+        total: any;
+        code: any;
+        symbol: any;
+        status: any;
+    };
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
+    parseIncome(income: any, market?: any): {
+        info: any;
+        symbol: any;
+        code: any;
+        timestamp: number;
+        datetime: string;
+        id: any;
+        amount: number;
+    };
+    setMarginMode(marginMode: any, symbol?: string, params?: {}): Promise<any>;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

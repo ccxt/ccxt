@@ -179,6 +179,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'transfer-out': 1,  # v2
                         'transfer-in': 1,
                         'orders': 1.33,
+                        'orders/test': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
                         'position/risk-limit-level/change': 1,
@@ -1080,6 +1081,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.stop]: 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
         :param str [params.stopPriceType]:  TP, IP or MP, defaults to MP: Mark Price
         :param bool [params.closeOrder]: set to True to close position
+        :param bool [params.test]: set to True to use the test order endpoint(does not submit order, use to validate params)
         :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -1143,7 +1145,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
         params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
-        response = self.futuresPrivatePostOrders(self.extend(request, params))
+        response = None
+        testOrder = self.safe_value(params, 'test', False)
+        params = self.omit(params, 'test')
+        if testOrder:
+            response = self.futuresPrivatePostOrdersTest(self.extend(request, params))
+        else:
+            response = self.futuresPrivatePostOrders(self.extend(request, params))
         #
         #    {
         #        code: "200000",

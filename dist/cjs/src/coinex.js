@@ -1751,7 +1751,8 @@ class coinex extends coinex$1 {
         const remainingString = this.safeString(order, 'left');
         const marketId = this.safeString(order, 'market');
         const defaultType = this.safeString(this.options, 'defaultType');
-        market = this.safeMarket(marketId, market, undefined, defaultType);
+        const orderType = ('source' in order) ? 'swap' : defaultType;
+        market = this.safeMarket(marketId, market, undefined, orderType);
         const feeCurrencyId = this.safeString(order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode(feeCurrencyId);
         if (feeCurrency === undefined) {

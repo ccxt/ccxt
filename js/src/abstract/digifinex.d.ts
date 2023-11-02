@@ -65,15 +65,29 @@ interface Exchange {
     privateSwapGetAccountFinanceRecord(params?: {}): Promise<implicitReturnType>;
     privateSwapGetAccountTradingFeeRate(params?: {}): Promise<implicitReturnType>;
     privateSwapGetAccountTransferRecord(params?: {}): Promise<implicitReturnType>;
+    privateSwapGetAccountFundingFee(params?: {}): Promise<implicitReturnType>;
     privateSwapGetTradeHistoryOrders(params?: {}): Promise<implicitReturnType>;
     privateSwapGetTradeHistoryTrades(params?: {}): Promise<implicitReturnType>;
     privateSwapGetTradeOpenOrders(params?: {}): Promise<implicitReturnType>;
     privateSwapGetTradeOrderInfo(params?: {}): Promise<implicitReturnType>;
     privateSwapPostAccountLeverage(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostAccountPositionMode(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostAccountPositionMargin(params?: {}): Promise<implicitReturnType>;
     privateSwapPostTradeBatchCancelOrder(params?: {}): Promise<implicitReturnType>;
     privateSwapPostTradeBatchOrder(params?: {}): Promise<implicitReturnType>;
     privateSwapPostTradeCancelOrder(params?: {}): Promise<implicitReturnType>;
     privateSwapPostTradeOrderPlace(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowSponsorOrder(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowCloseOrder(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowCancelOrder(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowUserCenterCurrent(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowUserCenterHistory(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowExpertCurrentOpenOrder(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowAddAlgo(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowCancelAlgo(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowAccountAvailable(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowPlanTask(params?: {}): Promise<implicitReturnType>;
+    privateSwapPostFollowInstrumentList(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

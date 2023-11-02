@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory } from './base/types.js';
 /**
  * @class bitget
  * @extends Exchange
@@ -224,7 +224,7 @@ export default class bitget extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
-    fetchFundingHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseFundingHistory(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -234,7 +234,7 @@ export default class bitget extends Exchange {
         amount: number;
         id: string;
     };
-    parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): any;
+    parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<any>;
     parseMarginModification(data: any, market?: any): {
         info: any;
@@ -327,6 +327,34 @@ export default class bitget extends Exchange {
         quoteValue: number;
         timestamp: number;
         datetime: string;
+    };
+    fetchBorrowRate(code: string, params?: {}): Promise<{
+        currency: any;
+        rate: any;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    }>;
+    parseBorrowRate(info: any, currency?: any): {
+        currency: any;
+        rate: any;
+        period: number;
+        timestamp: number;
+        datetime: string;
+        info: any;
+    };
+    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseBorrowInterest(info: any, market?: any): {
+        symbol: string;
+        marginMode: string;
+        currency: any;
+        interest: number;
+        interestRate: number;
+        amountBorrowed: any;
+        timestamp: number;
+        datetime: string;
+        info: any;
     };
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {

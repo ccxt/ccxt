@@ -120,7 +120,10 @@ class woo extends Exchange {
                 'fees' => array(
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ),
-                'referral' => 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral' => array(
+                    'url' => 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount' => 0.35,
+                ),
             ),
             'api' => array(
                 'v1' => array(
@@ -237,6 +240,7 @@ class woo extends Exchange {
                 ),
             ),
             'options' => array(
+                'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens' => array(
@@ -928,26 +932,24 @@ class woo extends Exchange {
         if ($stopPrice !== null) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ));
         $isStop = ($stopPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
-        $method = null;
+        $response = null;
         if ($isByClientOrder) {
+            $request['client_order_id'] = $clientOrderIdExchangeSpecific;
             if ($isStop) {
-                $method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                $request['oid'] = $id;
+                $response = $this->v3PrivatePutAlgoOrderClientClientOrderId (array_merge($request, $params));
             } else {
-                $method = 'v3PrivatePutOrderClientClientOrderId';
-                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                $response = $this->v3PrivatePutOrderClientClientOrderId (array_merge($request, $params));
             }
         } else {
-            if ($isStop) {
-                $method = 'v3PrivatePutAlgoOrderOid';
-            } else {
-                $method = 'v3PrivatePutOrderOid';
-            }
             $request['oid'] = $id;
+            if ($isStop) {
+                $response = $this->v3PrivatePutAlgoOrderOid (array_merge($request, $params));
+            } else {
+                $response = $this->v3PrivatePutOrderOid (array_merge($request, $params));
+            }
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ));
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -982,30 +984,29 @@ class woo extends Exchange {
             $this->check_required_symbol('cancelOrder', $symbol);
         }
         $this->load_markets();
-        $request = array();
-        $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
-        $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
-        $method = null;
-        if ($stop) {
-            $method = 'v3PrivateDeleteAlgoOrderOrderId';
-            $request['order_id'] = $id;
-        } elseif ($isByClientOrder) {
-            $method = 'v1PrivateDeleteClientOrder';
-            $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
-        } else {
-            $method = 'v1PrivateDeleteOrder';
-            $request['order_id'] = $id;
-        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if (!$stop) {
+        $request = array();
+        $clientOrderIdUnified = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
+        $clientOrderIdExchangeSpecific = $this->safe_string($params, 'client_order_id', $clientOrderIdUnified);
+        $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
+        $response = null;
+        if ($stop) {
+            $request['order_id'] = $id;
+            $response = $this->v3PrivateDeleteAlgoOrderOrderId (array_merge($request, $params));
+        } else {
             $request['symbol'] = $market['id'];
+            if ($isByClientOrder) {
+                $request['client_order_id'] = $clientOrderIdExchangeSpecific;
+                $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
+                $response = $this->v1PrivateDeleteClientOrder (array_merge($request, $params));
+            } else {
+                $request['order_id'] = $id;
+                $response = $this->v1PrivateDeleteOrder (array_merge($request, $params));
+            }
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // array( success => true, status => 'CANCEL_SENT' )
         //
@@ -1066,18 +1067,17 @@ class woo extends Exchange {
         $params = $this->omit($params, 'stop');
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
-        $method = null;
+        $response = null;
         if ($stop) {
-            $method = 'v3PrivateGetAlgoOrderOid';
             $request['oid'] = $id;
+            $response = $this->v3PrivateGetAlgoOrderOid (array_merge($request, $params));
         } elseif ($clientOrderId) {
-            $method = 'v1PrivateGetClientOrderClientOrderId';
             $request['client_order_id'] = $clientOrderId;
+            $response = $this->v1PrivateGetClientOrderClientOrderId (array_merge($request, $params));
         } else {
-            $method = 'v1PrivateGetOrderOid';
             $request['oid'] = $id;
+            $response = $this->v1PrivateGetOrderOid (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // {
         //     success => true,
@@ -2119,13 +2119,16 @@ class woo extends Exchange {
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'algo/order' || $path === 'order')) {
-                $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
-                $isStop = mb_strpos($path, 'algo') > -1;
-                if ($isStop) {
-                    $params['brokerId'] = $brokerId;
-                } else {
-                    $params['broker_id'] = $brokerId;
+                $isSandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+                if (!$isSandboxMode) {
+                    $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
+                    $isStop = mb_strpos($path, 'algo') > -1;
+                    if ($isStop) {
+                        $params['brokerId'] = $brokerId;
+                    } else {
+                        $params['broker_id'] = $brokerId;
+                    }
                 }
                 $params = $this->keysort($params);
             }
@@ -2587,5 +2590,10 @@ class woo extends Exchange {
         }
         // if it was not returned according to above options, then return the first $network of currency
         return $this->safe_value($networkKeys, 0);
+    }
+
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
     }
 }

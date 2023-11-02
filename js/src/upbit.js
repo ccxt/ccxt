@@ -976,17 +976,19 @@ export default class upbit extends Exchange {
             'timeframe': timeframeValue,
             'count': limit,
         };
-        let method = 'publicGetCandlesTimeframe';
-        if (timeframeValue === 'minutes') {
-            const numMinutes = Math.round(timeframePeriod / 60);
-            request['unit'] = numMinutes;
-            method += 'Unit';
-        }
+        let response = undefined;
         if (since !== undefined) {
             // convert `since` to `to` value
             request['to'] = this.iso8601(this.sum(since, timeframePeriod * limit * 1000));
         }
-        const response = await this[method](this.extend(request, params));
+        if (timeframeValue === 'minutes') {
+            const numMinutes = Math.round(timeframePeriod / 60);
+            request['unit'] = numMinutes;
+            response = await this.publicGetCandlesTimeframeUnit(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetCandlesTimeframe(this.extend(request, params));
+        }
         //
         //     [
         //         {

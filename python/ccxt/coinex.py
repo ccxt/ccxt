@@ -1711,7 +1711,8 @@ class coinex(Exchange, ImplicitAPI):
         remainingString = self.safe_string(order, 'left')
         marketId = self.safe_string(order, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, market, None, defaultType)
+        orderType = 'swap' if ('source' in order) else defaultType
+        market = self.safe_market(marketId, market, None, orderType)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:

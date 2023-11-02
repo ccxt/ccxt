@@ -48,7 +48,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': False,
+                'addMargin': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
@@ -68,7 +68,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -100,10 +100,10 @@ class digifinex(Exchange, ImplicitAPI):
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -215,6 +215,7 @@ class digifinex(Exchange, ImplicitAPI):
                             'account/finance_record',
                             'account/trading_fee_rate',
                             'account/transfer_record',
+                            'account/funding_fee',
                             'trade/history_orders',
                             'trade/history_trades',
                             'trade/open_orders',
@@ -222,10 +223,23 @@ class digifinex(Exchange, ImplicitAPI):
                         ],
                         'post': [
                             'account/leverage',
+                            'account/position_mode',
+                            'account/position_margin',
                             'trade/batch_cancel_order',
                             'trade/batch_order',
                             'trade/cancel_order',
                             'trade/order_place',
+                            'follow/sponsor_order',
+                            'follow/close_order',
+                            'follow/cancel_order',
+                            'follow/user_center_current',
+                            'follow/user_center_history',
+                            'follow/expert_current_open_order',
+                            'follow/add_algo',
+                            'follow/cancel_algo',
+                            'follow/account_available',
+                            'follow/plan_task',
+                            'follow/instrument_list',
                         ],
                     },
                 },
@@ -3573,6 +3587,166 @@ class digifinex(Exchange, ImplicitAPI):
             currency = self.currency(code)
             depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
         return depositWithdrawFees
+
+    async def add_margin(self, symbol: str, amount, params={}):
+        """
+        add margin to a position
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :param str params['side']: the position side: 'long' or 'short'
+        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-structure>`
+        """
+        side = self.safe_string(params, 'side')
+        self.check_required_argument('addMargin', side, 'side', ['long', 'short'])
+        return await self.modify_margin_helper(symbol, amount, 1, params)
+
+    async def reduce_margin(self, symbol: str, amount, params={}):
+        """
+        remove margin from a position
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :param str params['side']: the position side: 'long' or 'short'
+        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-structure>`
+        """
+        side = self.safe_string(params, 'side')
+        self.check_required_argument('reduceMargin', side, 'side', ['long', 'short'])
+        return await self.modify_margin_helper(symbol, amount, 2, params)
+
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}):
+        await self.load_markets()
+        side = self.safe_string(params, 'side')
+        market = self.market(symbol)
+        request = {
+            'instrument_id': market['id'],
+            'amount': self.number_to_string(amount),
+            'type': type,
+            'side': side,
+        }
+        response = await self.privateSwapPostAccountPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "side": "long",
+        #             "type": 1,
+        #             "amount": "3.6834"
+        #         }
+        #     }
+        #
+        code = self.safe_integer(response, 'code')
+        status = 'ok' if (code == 0) else 'failed'
+        data = self.safe_value(response, 'data', {})
+        return self.extend(self.parse_margin_modification(data, market), {
+            'status': status,
+        })
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "side": "long",
+        #         "type": 1,
+        #         "amount": "3.6834"
+        #     }
+        #
+        marketId = self.safe_string(data, 'instrument_id')
+        rawType = self.safe_integer(data, 'type')
+        return {
+            'info': data,
+            'type': 'add' if (rawType == 1) else 'reduce',
+            'amount': self.safe_number(data, 'amount'),
+            'total': None,
+            'code': market['settle'],
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'status': None,
+        }
+
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#funding-fee
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding payment
+        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        request, params = self.handle_until_option('end_timestamp', request, params)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['instrument_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_timestamp'] = since
+        response = await self.privateSwapGetAccountFundingFee(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "currency": "USDT",
+        #                 "amount": "-0.000342814",
+        #                 "timestamp": 1698768009440
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_incomes(data, market, since, limit)
+
+    def parse_income(self, income, market=None):
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "currency": "USDT",
+        #         "amount": "-0.000342814",
+        #         "timestamp": 1698768009440
+        #     }
+        #
+        marketId = self.safe_string(income, 'instrument_id')
+        currencyId = self.safe_string(income, 'currency')
+        timestamp = self.safe_integer(income, 'timestamp')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(income, 'amount'),
+        }
+
+    async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the digifinex api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setMarginMode', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        marginMode = marginMode.lower()
+        if marginMode == 'cross':
+            marginMode = 'crossed'
+        request = {
+            'instrument_id': market['id'],
+            'margin_mode': marginMode,
+        }
+        return await self.privateSwapPostAccountPositionMode(self.extend(request, params))
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'

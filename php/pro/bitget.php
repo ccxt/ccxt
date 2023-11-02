@@ -468,7 +468,7 @@ class bitget extends \ccxt\async\bitget {
             $instType = $market['spot'] ? 'sp' : 'mc';
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }

@@ -398,6 +398,7 @@ class okx(Exchange, ImplicitAPI):
                         'sprd/order': 1,
                         'sprd/cancel-order': 1,
                         'sprd/mass-cancel': 1,
+                        'sprd/amend-order': 1,
                         # trade
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
@@ -2917,6 +2918,7 @@ class okx(Exchange, ImplicitAPI):
     def parse_order_status(self, status):
         statuses = {
             'canceled': 'canceled',
+            'order_failed': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',

@@ -745,6 +745,7 @@ class binance(Exchange, ImplicitAPI):
                         'topLongShortPositionRatio': 1,
                         'globalLongShortAccountRatio': 1,
                         'takerlongshortRatio': 1,
+                        'basis': 1,
                     },
                 },
                 'fapiPrivate': {
@@ -4815,13 +4816,13 @@ class binance(Exchange, ImplicitAPI):
         cancel multiple orders
         :see: https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
         :see: https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
-        :param [str] ids: order ids
+        :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-        :param [str] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-        :param [int] [params.recvWindow]:
+        :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+        :param int[] [params.recvWindow]:
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_symbol('cancelOrders', symbol)

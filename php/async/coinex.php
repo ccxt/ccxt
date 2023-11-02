@@ -1786,7 +1786,8 @@ class coinex extends Exchange {
         $remainingString = $this->safe_string($order, 'left');
         $marketId = $this->safe_string($order, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $orderType = (is_array($order) && array_key_exists('source', $order)) ? 'swap' : $defaultType;
+        $market = $this->safe_market($marketId, $market, null, $orderType);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($feeCurrency === null) {

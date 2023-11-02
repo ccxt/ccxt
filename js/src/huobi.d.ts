@@ -237,7 +237,7 @@ export default class huobi extends Exchange {
         headers: any;
     };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseIncome(income: any, market?: any): {
         info: any;

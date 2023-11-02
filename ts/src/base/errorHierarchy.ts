@@ -12,10 +12,12 @@ const errorHierarchy = {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
                 'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
             },
+            'OperationFailed': {},
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
