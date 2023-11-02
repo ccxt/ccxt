@@ -14,8 +14,7 @@ export default class coinlist extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinlist',
             'name': 'Coinlist',
-            // todo: find out countries
-            'countries': [ 'CO' ], // Columbia
+            'countries': [ 'US' ], // United States
             'version': 'v1',
             'rateLimit': 300, // 1000 per 5 minutes
             'certified': false,
@@ -58,7 +57,7 @@ export default class coinlist extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false, // todo: check
+                'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
@@ -101,7 +100,7 @@ export default class coinlist extends Exchange {
                 'fetchTransactions': true,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false, // todo: check
+                'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
                 'repayMargin': false,
@@ -232,7 +231,6 @@ export default class coinlist extends Exchange {
             // exchange-specific options
             'options': {
                 'accountsByType': {
-                    // todo: check
                     'CoinList Pro': 'trading',
                     'CoinList Pro trading account': 'trading',
                     'Pro': 'trading',
@@ -283,6 +281,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -302,6 +301,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -340,7 +340,7 @@ export default class coinlist extends Exchange {
             const active = isTransferable;
             const decimalPlaces = this.safeString (currency, 'decimal_places');
             const precision = this.parseNumber (this.parsePrecision (decimalPlaces));
-            const minWithdrawal = this.safeString (currency, 'min_withdrawal', undefined);
+            const minWithdrawal = this.safeString (currency, 'min_withdrawal');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -366,6 +366,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchMarkets
          * @description retrieves data on all markets for coinlist
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -395,7 +396,7 @@ export default class coinlist extends Exchange {
         //         ]
         //     }
         //
-        const markets = this.safeValue (response, 'symbols');
+        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -431,7 +432,7 @@ export default class coinlist extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': {
+                'precision': { // todo: check
                     'amount': this.parseNumber (amountPrecision),
                     'price': this.parseNumber (pricePrecision),
                 },
@@ -457,7 +458,6 @@ export default class coinlist extends Exchange {
                 'info': market,
             });
         }
-        this.setMarkets (result);
         return result;
     }
 
@@ -466,7 +466,8 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
+         * @param {string[]|} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
@@ -503,6 +504,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -557,7 +559,7 @@ export default class coinlist extends Exchange {
         //         "lowest_price_24h":"0.55500000"
         //     }
         //
-        const lastTrade = this.safeValue (ticker, 'last_trade');
+        const lastTrade = this.safeValue (ticker, 'last_trade', {});
         const timestamp = this.parse8601 (this.safeString (lastTrade, 'logicalTime'));
         const bid = this.safeString (ticker, 'highest_bid');
         const ask = this.safeString (ticker, 'lowest_ask');
@@ -595,6 +597,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
@@ -624,9 +627,8 @@ export default class coinlist extends Exchange {
         //     }
         //
         const logical_time = this.parse8601 (this.safeString (response, 'logical_time'));
-        const call_time = this.parse8601 (this.safeString (response, 'call_time'));
         const orderbook = this.parseOrderBook (response, symbol, logical_time);
-        orderbook['nonce'] = call_time;
+        orderbook['nonce'] = undefined;
         return orderbook;
     }
 
@@ -635,11 +637,13 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -657,6 +661,11 @@ export default class coinlist extends Exchange {
             } else {
                 request['end_time'] = this.iso8601 (this.milliseconds ());
             }
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['end_time'] = this.iso8601 (until);
         }
         const response = await this.publicGetV1SymbolsSymbolCandles (this.extend (request, params));
         //
@@ -714,10 +723,12 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-auctions
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
@@ -730,6 +741,11 @@ export default class coinlist extends Exchange {
         }
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['end_time'] = this.iso8601 (until);
         }
         const response = await this.publicGetV1SymbolsSymbolAuctions (this.extend (request, params));
         //
@@ -793,10 +809,10 @@ export default class coinlist extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'logical_time'));
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'volume', 'quantity');
-        const order = this.safeString (trade, 'order_id', undefined);
+        const order = this.safeString (trade, 'order_id');
         let fee = undefined;
         let side = undefined;
-        const feeCost = this.safeString (trade, 'fee', undefined);
+        const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
             // only in fetchMyTrades
             const amountIsNegative = Precise.stringLt (amountString, '0');
@@ -808,7 +824,7 @@ export default class coinlist extends Exchange {
             }
             fee = {
                 'cost': feeCost,
-                'currency': this.safeString (trade, 'fee_currency', undefined),
+                'currency': this.safeString (trade, 'fee_currency'),
             };
         } else {
             const imbalance = this.safeString (trade, 'imbalance');
@@ -818,7 +834,7 @@ export default class coinlist extends Exchange {
                 side = 'sell';
             }
         }
-        const takerOrMaker = this.safeString (trade, 'fee_type', undefined);
+        const takerOrMaker = this.safeString (trade, 'fee_type');
         return this.safeTrade ({
             'id': id,
             'order': order,
@@ -841,6 +857,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
@@ -902,7 +919,6 @@ export default class coinlist extends Exchange {
         //         }
         //     }
         //
-        // todo: check
         const fees = this.safeValue (response, 'fees_by_symbols', {});
         const result = {};
         const groupsOfSymbols = Object.keys (fees);
@@ -984,18 +1000,31 @@ export default class coinlist extends Exchange {
         //         floors: { maker: null, taker: null }
         //     },
         //
-        const takerFees = [];
-        const makerFees = [];
+        let takerFees = [];
+        let makerFees = [];
         const keys = Object.keys (feeTiers);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const tier = this.safeValue (feeTiers, key, {});
-            const tierFees = this.safeValue (tier, 'fees', {});
-            const volume = undefined;
-            const taker = this.safeString (tierFees, 'taker');
-            const maker = this.safeString (tierFees, 'maker');
-            makerFees.push ([ volume, this.parseNumber (maker) ]);
-            takerFees.push ([ volume, this.parseNumber (taker) ]);
+        const keysLength = keys.length;
+        if (keysLength > 0) {
+            for (let i = 0; i < keysLength; i++) {
+                const key = keys[i];
+                const tier = this.safeValue (feeTiers, key, {});
+                const tierFees = this.safeValue (tier, 'fees', {});
+                const taker = this.safeString (tierFees, 'taker');
+                const maker = this.safeString (tierFees, 'maker');
+                makerFees.push ([ undefined, this.parseNumber (maker) ]);
+                takerFees.push ([ undefined, this.parseNumber (taker) ]);
+            }
+            takerFees = this.sortBy (takerFees, 1, true);
+            makerFees = this.sortBy (makerFees, 1, true);
+            const firstTier = this.safeValue (takerFees, 0, []);
+            const exchangeFeesTradingTiersTaker = this['fees']['trading']['tiers']['taker'];
+            const exchangeFeesTradingTiersMaker = this['fees']['trading']['tiers']['maker'];
+            if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
+                for (let i = 0; i < keysLength; i++) {
+                    takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
+                    makerFees[i][0] = exchangeFeesTradingTiersMaker[i][0];
+                }
+            }
         }
         return {
             'maker': makerFees,
@@ -1008,6 +1037,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchAccounts
          * @description fetch all the accounts associated with a profile
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
@@ -1036,7 +1066,7 @@ export default class coinlist extends Exchange {
         //
         return {
             'id': this.safeString (account, 'trader_id'),
-            'type': undefined,
+            'type': 'trading',
             'code': undefined,
             'info': account,
         };
@@ -1047,6 +1077,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
@@ -1094,10 +1125,12 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
@@ -1112,6 +1145,11 @@ export default class coinlist extends Exchange {
         }
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['end_time'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1Fills (this.extend (request, params));
         //
@@ -1151,6 +1189,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1169,14 +1208,16 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let status = this.safeString (params, 'status', undefined) as any;
+        let status = this.safeString (params, 'status') as any;
         if (status === undefined) {
             status = [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ];
         }
@@ -1192,8 +1233,12 @@ export default class coinlist extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            // todo: check for limit <= 22
             request['count'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['end_time'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1Orders (this.extend (request, params));
         //
@@ -1231,6 +1276,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-id
          * @param {int|string} id order id
          * @param {string} symbol not used by coinlist fetchOrder ()
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
@@ -1273,10 +1319,12 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1291,10 +1339,12 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of closed order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1309,17 +1359,18 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchCanceledOrders
          * @description fetches information on multiple canceled orders made by the user
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {
             'status': 'canceled',
         };
-        // todo: check for limit 1
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -1328,6 +1379,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#cancelAllOrders
          * @description cancel open orders of market
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -1355,6 +1407,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#cancelOrder
          * @description cancels an open order
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-id
          * @param {string} id order id
          * @param {string} symbol not used by coinlist cancelOrder ()
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
@@ -1380,6 +1433,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#cancelOrders
          * @description cancel multiple orders
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
          * @param {string[]} ids order ids
          * @param {string} symbol not used by coinlist cancelOrders ()
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
@@ -1396,12 +1450,16 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#createOrder
          * @description create a trade order
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {float} [params.triggerPrice] The price at which a 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit' order is triggered at
+         * @param {string} [params.clientOrderId] client order id
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1410,7 +1468,7 @@ export default class coinlist extends Exchange {
             'symbol': market['id'],
             'type': type,
             'side': side,
-            'size': this.numberToString (this.amountToPrecision (symbol, amount)),
+            'size': this.amountToPrecision (symbol, amount),
         };
         if ((type === 'limit') || (type === 'stop_limit') || (type === 'take_limit')) {
             if (price === undefined) {
@@ -1422,7 +1480,7 @@ export default class coinlist extends Exchange {
         if (postOnly) {
             request['post_only'] = true;
         }
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'trigger_price', 'stopPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice).toString ();
             if (type === 'market') {
@@ -1433,7 +1491,12 @@ export default class coinlist extends Exchange {
         } else if ((type === 'stop_market') || (type === 'stop_limit') || (type === 'take_market') || (type === 'take_limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
-        params = this.omit (params, 'triggerPrice', 'stopPrice', 'stop_price', 'postOnly');
+        const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'client_order_id', 'clientId' ]);
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId', 'client_order_id', 'clientId');
+        }
+        params = this.omit (params, 'triggerPrice', 'trigger_price', 'stopPrice', 'stop_price', 'postOnly');
         const response = await this.privatePostV1Orders (this.extend (request, params));
         //
         //     {
@@ -1458,6 +1521,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#editOrder
          * @description create a trade order
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
          * @param {string} side 'buy' or 'sell'
@@ -1475,7 +1539,7 @@ export default class coinlist extends Exchange {
             'order_id': id,
             'type': type,
             'side': side,
-            'size': this.numberToString (this.amountToPrecision (symbol, amount)),
+            'size': this.amountToPrecision (symbol, amount),
         };
         if (price !== undefined) {
             request['price'] = this.numberToString (this.priceToPrecision (symbol, price));
@@ -1561,26 +1625,26 @@ export default class coinlist extends Exchange {
         const id = this.safeString (order, 'order_id');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const clientOrderId = this.safeString (order, 'client_id', undefined);
-        let timestampString = this.safeString2 (order, 'created_at', 'epoch_timestamp', undefined);
+        const clientOrderId = this.safeString (order, 'client_id');
+        let timestampString = this.safeString2 (order, 'created_at', 'epoch_timestamp');
         if (timestampString === undefined) {
-            timestampString = this.safeString (order, 'timestamp', undefined);
+            timestampString = this.safeString (order, 'timestamp');
         }
         const timestamp = this.parse8601 (timestampString);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.parseOrderType (this.safeString (order, 'type'));
         const side = this.safeString (order, 'side');
-        const price = this.safeString (order, 'price', undefined);
-        const stopPrice = this.safeString (order, 'stop_price', undefined);
-        const average = this.safeString (order, 'average_fill_price', undefined); // from documentation
+        const price = this.safeString (order, 'price');
+        const stopPrice = this.safeString (order, 'stop_price');
+        const average = this.safeString (order, 'average_fill_price'); // from documentation
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'size_filled');
         const feeCost = this.safeString (order, 'fill_fees');
-        const postOnly = this.safeValue (order, 'post_only', undefined);
+        const postOnly = this.safeValue (order, 'post_only');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
-                'currency': 'USD', // todo: or undefined or quote?
+                'currency': market['quote'],
                 'cost': feeCost,
                 'rate': undefined,
             };
@@ -1639,6 +1703,9 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-from-wallet-to-pro
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-from-pro-to-wallet
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1653,23 +1720,21 @@ export default class coinlist extends Exchange {
             'asset': currency['id'],
             'amount': amount,
         };
-        let method = 'privatePostV1TransfersInternalTransfer';
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const fromAcc = this.safeString (accountsByType, fromAccount);
-        const toAcc = this.safeString (accountsByType, toAccount);
-        // todo: check for account names are good
+        const fromAcc = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toAcc = this.safeString (accountsByType, toAccount, toAccount);
+        let response = undefined;
         if ((fromAcc === 'funding') && (toAcc === 'trading')) {
-            method = 'privatePostV1TransfersFromWallet';
+            response = await this.privatePostV1TransfersFromWallet (this.extend (request, params));
         } else if ((fromAcc === 'trading') && (toAcc === 'funding')) {
-            method = 'privatePostV1TransfersToWallet';
+            response = await this.privatePostV1TransfersToWallet (this.extend (request, params));
         } else {
-            request['from_trader_id'] = fromAccount;
-            request['to_trader_id'] = toAccount;
+            request['from_trader_id'] = fromAcc;
+            request['to_trader_id'] = toAcc;
+            response = await this.privatePostV1TransfersInternalTransfer (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // privatePostV1TransfersInternalTransfer
-        // todo: find out how to create additional account and check
         //     {
         //         "from_trader_id": "1f494ace-b3ed-4324-b202-55526ed06381",
         //         "to_trader_id": "d32c7a40-cc24-44b0-8597-f9edb3da989f",
@@ -1691,10 +1756,12 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchTransfers
          * @description fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfer structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
@@ -1708,6 +1775,11 @@ export default class coinlist extends Exchange {
         }
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['end_time'] = this.iso8601 (until);
         }
         const response = await this.privateGetV1Transfers (this.extend (request, params));
         //
@@ -1765,14 +1837,13 @@ export default class coinlist extends Exchange {
         const confirmedAt = this.safeString (transfer, 'confirmed_at');
         const timetstamp = this.parse8601 (confirmedAt);
         const status = this.safeString (transfer, 'status');
-        let amountString = this.safeString (transfer, 'amount', undefined);
+        let amountString = this.safeString (transfer, 'amount');
         let fromAccount = undefined;
         let toAccount = undefined;
         let amount = undefined;
         if (amountString !== undefined) {
             const amountIsNegative = Precise.stringLt (amountString, '0');
             if (amountIsNegative) {
-                // todo: check for account names are good
                 fromAccount = 'trading';
                 toAccount = 'funding';
                 amountString = Precise.stringNeg (amountString);
@@ -1780,7 +1851,7 @@ export default class coinlist extends Exchange {
                 fromAccount = 'funding';
                 toAccount = 'trading';
             }
-            amount = this.number (amountString);
+            amount = this.parseNumber (amountString);
         }
         return {
             'info': transfer,
@@ -1807,6 +1878,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
          * @param {string} [code] unified currency code for the currency of the deposit/withdrawals
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal
          * @param {int} [limit] max number of deposit/withdrawals to return (default 200, max 500)
@@ -1816,7 +1888,7 @@ export default class coinlist extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a code argument');
         }
-        const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
+        const traderId = this.safeString2 (params, 'trader_id', 'traderId');
         if (traderId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositsWithdrawals() requires a traderId argument in the params');
         }
@@ -1829,8 +1901,7 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        // const type = this.safeString (params, 'type');
-        params = this.omit (params, 'type', 'trader_id', 'traderId');
+        params = this.omit (params, 'trader_id', 'traderId');
         const response = await this.privateGetV1AccountsTraderIdWalletLedger (this.extend (request, params));
         //
         //     [
@@ -1876,13 +1947,7 @@ export default class coinlist extends Exchange {
         //         }
         //     ]
         //
-        // todo: check
-        // let transactions = [];
-        // if (type === undefined) {
-        //     transactions = this.filterByArray (response, 'type', [ 'CRYPTO_DEPOSIT', 'CRYPTO_WITHDRAWAL' ], false);
-        // } else {
-        //     transactions = this.filterBy (response, 'type', type);
-        // }
+        // coinlist returns both internal transfers and blockchain transactions
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1891,6 +1956,7 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#withdraw
          * @description request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -1946,7 +2012,7 @@ export default class coinlist extends Exchange {
             type = this.parseTransactionType (type);
         }
         let fee = undefined;
-        const feeCost = this.safeValue (transaction, 'withdrawal_fee_amount');
+        const feeCost = this.safeString (transaction, 'withdrawal_fee_amount');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -1979,6 +2045,7 @@ export default class coinlist extends Exchange {
         const types = {
             'CRYPTO_DEPOSIT': 'deposit',
             'CRYPTO_WITHDRAWAL': 'withdrawal',
+            'PRO_TRANSFER': 'transfer',
         };
         return this.safeString (types, type, type);
     }
@@ -1988,15 +2055,17 @@ export default class coinlist extends Exchange {
          * @method
          * @name coinlist#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
-        const traderId = this.safeString2 (params, 'trader_id', 'traderId', undefined);
+        const traderId = this.safeString2 (params, 'trader_id', 'traderId');
         if (traderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a traderId argument in the params');
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a traderId argument in the params');
         }
         await this.loadMarkets ();
         const request = {
@@ -2011,6 +2080,11 @@ export default class coinlist extends Exchange {
         }
         if (limit !== undefined) {
             request['count'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'till', 'until' ]);
+            request['end_time'] = this.iso8601 (until);
         }
         params = this.omit (params, 'trader_id', 'traderId');
         const response = await this.privateGetV1AccountsTraderIdLedger (this.extend (request, params));
@@ -2175,15 +2249,15 @@ export default class coinlist extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'direction': direction,
-            'account': 'trading', // todo: check account name is good
-            'referenceId': undefined, // todo: check
+            'account': 'trading',
+            'referenceId': undefined,
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
             'amount': this.parseNumber (amount),
             'before': undefined,
             'after': undefined,
-            'status': 'ok', // todo: check
+            'status': 'ok',
             'fee': undefined,
         };
     }
@@ -2232,8 +2306,8 @@ export default class coinlist extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const responseCode = this.safeString (response, 'status', undefined);
-        const messageCode = this.safeString (response, 'message_code', undefined);
+        const responseCode = this.safeString (response, 'status');
+        const messageCode = this.safeString (response, 'message_code');
         if ((messageCode !== undefined) || ((responseCode !== undefined) && (code !== 200) && (code !== 202) && (responseCode !== '200') && (responseCode !== '202'))) {
             const feedback = this.id + ' ' + body;
             const message = this.safeString (response, 'message');
