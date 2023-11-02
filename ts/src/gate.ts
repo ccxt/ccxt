@@ -6691,7 +6691,7 @@ export default class gate extends Exchange {
         if (quoteValueString === undefined) {
             quoteValueString = Precise.stringMul (baseValueString, priceString);
         }
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.parseNumber (contractsString),
@@ -6701,7 +6701,7 @@ export default class gate extends Exchange {
             'quoteValue': this.parseNumber (Precise.stringAbs (quoteValueString)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
