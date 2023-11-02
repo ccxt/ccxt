@@ -1,5 +1,4 @@
 <?php
-namespace ccxt;
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
@@ -9,6 +8,13 @@ define('rootDir', __DIR__ . '/../../');
 include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
+
+use ccxt\AuthenticationError;
+use ccxt\RateLimitExceeded;
+use ccxt\NetworkError;
+use ccxt\DDoSProtection;
+use ccxt\RequestTimeout;
+use ccxt\OnMaintenance;
 
 assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
     $args = func_get_args();
