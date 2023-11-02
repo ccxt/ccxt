@@ -872,7 +872,7 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'instType' => $uppercaseType,
             );
-            $orders = Async\await($this->subscribe('private', $messageHash, $channel, $symbol, array_merge($request, $params)));
+            $orders = Async\await($this->subscribe('private', $messageHash, $channel, null, array_merge($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }

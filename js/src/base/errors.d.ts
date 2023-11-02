@@ -4,6 +4,9 @@ declare class BaseError extends Error {
 declare class ExchangeError extends Error {
     constructor(message: any);
 }
+declare class OperationFailed extends ExchangeError {
+    constructor(message: any);
+}
 declare class AuthenticationError extends ExchangeError {
     constructor(message: any);
 }
@@ -20,6 +23,9 @@ declare class ArgumentsRequired extends ExchangeError {
     constructor(message: any);
 }
 declare class BadRequest extends ExchangeError {
+    constructor(message: any);
+}
+declare class OperationRejected extends BadRequest {
     constructor(message: any);
 }
 declare class BadSymbol extends BadRequest {
@@ -127,6 +133,8 @@ declare const errors: {
     AddressPending: typeof AddressPending;
     ContractUnavailable: typeof ContractUnavailable;
     NoChange: typeof NoChange;
+    OperationRejected: typeof OperationRejected;
+    OperationFailed: typeof OperationFailed;
 };
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange };
+export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed };
 export default errors;

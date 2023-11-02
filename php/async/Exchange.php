@@ -26,6 +26,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\pro\ClientTrait;
 use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
@@ -33,25 +34,24 @@ use ccxt\InvalidOrder;
 use ccxt\BadResponse;
 use ccxt\BadRequest;
 use React\Promise;
+
 use React;
 use React\Async;
 use React\EventLoop\Loop;
 
 use Exception;
 
-include 'Throttle.php';
-
-$version = '4.1.19';
+$version = '4.1.35';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.19';
+    const VERSION = '4.1.35';
 
     public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
     public $tokenBucket;
-    public $throttler;
+    public Throttler $throttler;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -62,7 +62,7 @@ class Exchange extends \ccxt\Exchange {
 
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
 
-    use \ccxt\pro\ClientTrait;
+    use ClientTrait;
 
     public function __construct($options = array()) {
         parent::__construct($options);
@@ -77,14 +77,11 @@ class Exchange extends \ccxt\Exchange {
         $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
 
-    public static function execute_and_run($closure) {
-        $promise = Async\coroutine($closure);
-        Async\await($promise);
-    }
-
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         // wrap this in as a promise so it executes asynchronously
         return React\Async\async(function () use ($url, $method, $headers, $body) {
+
+            $this->last_request_headers = $headers;
 
             // ##### PROXY & HEADERS #####
             $headers = array_merge($this->headers, $headers ? $headers : array());
@@ -138,7 +135,7 @@ class Exchange extends \ccxt\Exchange {
                 } else if (strpos($message, 'DNS query') !== false) {
                     throw new ccxt\NetworkError($message);
                 } else {
-                    throw new ccxt\ExchangeError($message);
+                    throw new ccxt\NetworkError($message);
                 }
             }
 
@@ -850,7 +847,7 @@ class Exchange extends \ccxt\Exchange {
         $this->markets_by_id = array();
         // handle marketId conflicts
         // we insert spot $markets first
-        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true, true);
         for ($i = 0; $i < count($marketValues); $i++) {
             $value = $marketValues[$i];
             if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
@@ -898,8 +895,8 @@ class Exchange extends \ccxt\Exchange {
                     $quoteCurrencies[] = $currency;
                 }
             }
-            $baseCurrencies = $this->sort_by($baseCurrencies, 'code');
-            $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code');
+            $baseCurrencies = $this->sort_by($baseCurrencies, 'code', false, '');
+            $quoteCurrencies = $this->sort_by($quoteCurrencies, 'code', false, '');
             $this->baseCurrencies = $this->index_by($baseCurrencies, 'code');
             $this->quoteCurrencies = $this->index_by($quoteCurrencies, 'code');
             $allCurrencies = $this->array_concat($baseCurrencies, $quoteCurrencies);
@@ -2082,6 +2079,9 @@ class Exchange extends \ccxt\Exchange {
             }
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
+            $this->last_request_headers = $request['headers'];
+            $this->last_request_body = $request['body'];
+            $this->last_request_url = $request['url'];
             return Async\await($this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']));
         }) ();
     }
@@ -2662,6 +2662,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        throw new NotSupported($this->id . ' createOrders() is not supported yet');
+    }
+
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         throw new NotSupported($this->id . ' createOrderWs() is not supported yet');
     }
@@ -2764,6 +2768,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
     }
 
     public function parse_last_price($price, $market = null) {

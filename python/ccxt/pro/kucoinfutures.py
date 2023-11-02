@@ -134,7 +134,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
+        :see: https://docs.kucoin.com/futures/#get-real-time-symbol-ticker-v2
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -180,7 +180,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.kucoin.com/futures/#execution-data
+        :see: https://docs.kucoin.com/futures/#execution-data
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -268,7 +268,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
          *   4. Apply the new Level 2 data flow to the local snapshot to ensure that the sequence of the new Level 2 update lines up with the sequence of the previous Level 2 data. Discard all the message prior to that sequence, and then playback the change to snapshot.
          *   5. Update the level2 full data based on sequence according to the size. If the price is 0, ignore the messages and update the sequence. If the size=0, update the sequence and remove the price of which the size is 0 out of level 2. For other cases, please update the price.
          *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
-        see https://docs.kucoin.com/futures/#level-2-market-data
+        :see: https://docs.kucoin.com/futures/#level-2-market-data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
@@ -450,7 +450,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
+        :see: https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -566,7 +566,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.kucoin.com/futures/#account-balance-events
+        :see: https://docs.kucoin.com/futures/#account-balance-events
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """

@@ -117,7 +117,7 @@ class zonda(Exchange, ImplicitAPI):
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zonda.exchange',
+            'hostname': 'zondacrypto.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -129,7 +129,7 @@ class zonda(Exchange, ImplicitAPI):
                     'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
-                    'https://docs.zonda.exchange/',
+                    'https://docs.zondacrypto.exchange/',
                     'https://github.com/BitBayNet/API',
                 ],
                 'support': 'https://zondaglobal.com/en/helpdesk/zonda-exchange',
@@ -190,6 +190,8 @@ class zonda(Exchange, ImplicitAPI):
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -298,6 +300,10 @@ class zonda(Exchange, ImplicitAPI):
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
                 'INVALID_STOP_RATE': InvalidOrder,
+                'TIMEOUT': ExchangeError,
+                'RESPONSE_TIMEOUT': ExchangeError,
+                'ACTION_BLOCKED': PermissionDenied,
+                'INVALID_HASH_SIGNATURE': AuthenticationError,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -306,7 +312,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        see https://docs.zonda.exchange/reference/ticker-1
+        :see: https://docs.zondacrypto.exchange/reference/ticker-1
         retrieves data on all markets for zonda
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
@@ -405,7 +411,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/active-orders
+        :see: https://docs.zondacrypto.exchange/reference/active-orders
         fetch all unfilled currently open orders
         :param str symbol: not used by zonda fetchOpenOrders
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -471,7 +477,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/transactions-history
+        :see: https://docs.zondacrypto.exchange/reference/transactions-history
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -530,7 +536,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}):
         """
-        see https://docs.zonda.exchange/reference/list-of-wallets
+        :see: https://docs.zondacrypto.exchange/reference/list-of-wallets
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the zonda api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -541,7 +547,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/orderbook-2
+        :see: https://docs.zondacrypto.exchange/reference/orderbook-2
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -652,7 +658,7 @@ class zonda(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol, params={}):
         """
         v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-        see https://docs.zonda.exchange/reference/market-statistics
+        :see: https://docs.zondacrypto.exchange/reference/market-statistics
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the zonda api endpoint
         :param str [params.method]: v1_01PublicGetTradingTickerSymbol(default) or v1_01PublicGetTradingStatsSymbol
@@ -720,7 +726,7 @@ class zonda(Exchange, ImplicitAPI):
         """
          * @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-        see https://docs.zonda.exchange/reference/market-statistics
+        :see: https://docs.zondacrypto.exchange/reference/market-statistics
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the zonda api endpoint
         :param str [params.method]: v1_01PublicGetTradingTicker(default) or v1_01PublicGetTradingStats
@@ -788,7 +794,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/operations-history
+        :see: https://docs.zondacrypto.exchange/reference/operations-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -1156,7 +1162,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/candles-chart
+        :see: https://docs.zondacrypto.exchange/reference/candles-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1274,7 +1280,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/last-transactions
+        :see: https://docs.zondacrypto.exchange/reference/last-transactions
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1323,7 +1329,6 @@ class zonda(Exchange, ImplicitAPI):
         isStopLimit = (type == 'stop-limit') or (isLimitOrder and isStopLossPrice)
         isStopMarket = type == 'stop-market' or (isMarketOrder and isStopLossPrice)
         isStopOrder = isStopLimit or isStopMarket
-        method = 'v1_01PrivatePostTradingStopOfferSymbol' if isStopOrder else 'v1_01PrivatePostTradingOfferSymbol'
         if isLimitOrder or isStopLimit:
             request['rate'] = self.price_to_precision(symbol, price)
             request['mode'] = 'stop-limit' if isStopLimit else 'limit'
@@ -1331,12 +1336,15 @@ class zonda(Exchange, ImplicitAPI):
             request['mode'] = 'stop-market' if isStopMarket else 'market'
         else:
             raise ExchangeError(self.id + ' createOrder() invalid type')
+        params = self.omit(params, ['stopPrice', 'stopLossPrice'])
+        response = None
         if isStopOrder:
             if not isStopLossPrice:
                 raise ExchangeError(self.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders')
             request['stopRate'] = self.price_to_precision(symbol, stopLossPrice)
-        params = self.omit(params, ['stopPrice', 'stopLossPrice'])
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.v1_01PrivatePostTradingStopOfferSymbol(self.extend(request, params))
+        else:
+            response = self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
         #
         # unfilled(open order)
         #
@@ -1418,7 +1426,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.zonda.exchange/reference/cancel-order
+        :see: https://docs.zondacrypto.exchange/reference/cancel-order
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1475,7 +1483,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
-        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+        :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the zonda api endpoint
@@ -1507,7 +1515,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def fetch_deposit_addresses(self, codes=None, params={}):
         """
-        see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+        :see: https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: zonda does not support filtering filtering by multiple codes and will ignore self parameter.
         :param dict [params]: extra parameters specific to the zonda api endpoint
@@ -1533,7 +1541,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
-        see https://docs.zonda.exchange/reference/internal-transfer
+        :see: https://docs.zondacrypto.exchange/reference/internal-transfer
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -1642,7 +1650,7 @@ class zonda(Exchange, ImplicitAPI):
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
-        see https://docs.zonda.exchange/reference/crypto-withdrawal-1
+        :see: https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -1654,23 +1662,21 @@ class zonda(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
-        method = None
+        response = None
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
-            'quantity': amount,
+            'amount': amount,
+            'address': address,
+            # request['balanceId'] = params['balanceId']  # Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
         }
         if self.is_fiat(code):
-            method = 'privatePostWithdraw'
-            # request['account'] = params['account']  # they demand an account number
-            # request['express'] = params['express']  # whatever it means, they don't explain
-            # request['bic'] = ''
+            # request['swift'] = params['swift']  # Bank identifier, if required.
+            response = self.v1_01PrivatePostApiPaymentsWithdrawalsFiat(self.extend(request, params))
         else:
-            method = 'privatePostTransfer'
             if tag is not None:
-                address += '?dt=' + str(tag)
-            request['address'] = address
-        response = getattr(self, method)(self.extend(request, params))
+                request['tag'] = tag
+            response = self.v1_01PrivatePostApiPaymentsWithdrawalsCrypto(self.extend(request, params))
         #
         #     {
         #         "status": "Ok",

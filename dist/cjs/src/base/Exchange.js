@@ -8,6 +8,7 @@ var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
+var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
@@ -78,6 +79,7 @@ class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
         this.id = undefined;
         this.markets = undefined;
         this.status = undefined;
@@ -207,7 +209,6 @@ class Exchange {
         this.urlencodeNested = urlencodeNested;
         this.parseDate = parseDate;
         this.ymd = ymd;
-        this.isArray = generic.inArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
         Object.assign(this, functions);
@@ -272,6 +273,7 @@ class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -343,6 +345,7 @@ class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': undefined,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
@@ -1078,6 +1081,9 @@ class Exchange {
     getProperty(obj, property, defaultValue = undefined) {
         return (property in obj ? obj[property] : defaultValue);
     }
+    axolotl(payload, hexKey, ed25519) {
+        return crypto.axolotl(payload, hexKey, ed25519);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1615,7 +1621,7 @@ class Exchange {
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy(this.toArray(markets), 'spot', true);
+        const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -1665,8 +1671,8 @@ class Exchange {
                     quoteCurrencies.push(currency);
                 }
             }
-            baseCurrencies = this.sortBy(baseCurrencies, 'code');
-            quoteCurrencies = this.sortBy(quoteCurrencies, 'code');
+            baseCurrencies = this.sortBy(baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy(quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.indexBy(baseCurrencies, 'code');
             this.quoteCurrencies = this.indexBy(quoteCurrencies, 'code');
             const allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
@@ -2829,6 +2835,7 @@ class Exchange {
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
+        this.last_request_headers = request['headers'];
         return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
@@ -3328,6 +3335,9 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
+    }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
     }
@@ -3409,6 +3419,9 @@ class Exchange {
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
+    }
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');

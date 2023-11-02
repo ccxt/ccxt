@@ -574,7 +574,6 @@ class bitfinex2 extends bitfinex2$1 {
         const messageHash = channel + ':' + marketId;
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
-        const id = this.safeString(message, 0);
         // if it is an initial snapshot
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -613,6 +612,7 @@ class bitfinex2 extends bitfinex2$1 {
                     bookside.store(price, size, counter);
                 }
             }
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
@@ -625,7 +625,8 @@ class bitfinex2 extends bitfinex2$1 {
                 const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise["default"].stringGt(price, '0') ? size : '0';
-                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
+                const idString = this.safeString(deltas, 0);
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
             }
             else {
                 const amount = this.safeString(deltas, 2);
@@ -655,16 +656,19 @@ class bitfinex2 extends bitfinex2$1 {
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
+        const prec = this.safeString(subscription, 'prec', 'P0');
+        const isRaw = (prec === 'R0');
+        const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
             const bid = this.safeValue(bids, i);
             const ask = this.safeValue(asks, i);
             if (bid !== undefined) {
-                stringArray.push(this.numberToString(bids[i][0]));
+                stringArray.push(this.numberToString(bids[i][idToCheck]));
                 stringArray.push(this.numberToString(bids[i][1]));
             }
             if (ask !== undefined) {
-                stringArray.push(this.numberToString(asks[i][0]));
+                stringArray.push(this.numberToString(asks[i][idToCheck]));
                 stringArray.push(this.numberToString(-asks[i][1]));
             }
         }

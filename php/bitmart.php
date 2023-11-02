@@ -2074,7 +2074,7 @@ class bitmart extends Exchange {
                 '7' => 'canceling', // Canceling
                 '8' => 'canceled', // Canceled
                 'new' => 'open',
-                'partially_filled' => 'filled',
+                'partially_filled' => 'open',
                 'filled' => 'filled',
                 'partially_canceled' => 'canceled',
             ),

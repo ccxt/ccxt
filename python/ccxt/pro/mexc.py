@@ -193,7 +193,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -333,7 +333,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -484,7 +484,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -564,7 +564,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -681,8 +681,8 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -923,7 +923,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_balance(self, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`

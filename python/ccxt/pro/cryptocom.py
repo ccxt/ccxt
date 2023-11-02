@@ -68,7 +68,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
@@ -83,7 +83,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
@@ -144,7 +144,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -163,7 +163,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -234,7 +234,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -256,7 +256,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -303,7 +303,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -354,7 +354,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -424,7 +424,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -496,7 +496,7 @@ class cryptocom(ccxt.async_support.cryptocom):
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         """
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -535,7 +535,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
         :param str id: the order id of the order to cancel
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
@@ -555,7 +555,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
-        see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
         :param str symbol: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the cryptocom api endpoint
         :returns dict} Returns exchange raw message {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure:

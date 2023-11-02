@@ -351,6 +351,7 @@ class bingx extends Exchange {
                     'SFUTURES' => 'future',
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec
+                'broker' => 'CCXT',
             ),
         ));
     }
@@ -643,7 +644,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market data
+             * @return {array[]} an array of objects representing market data
              */
             $requests = array( $this->fetch_spot_markets($params), $this->fetch_swap_markets($params) );
             $promises = Async\await(Promise\all($requests));
@@ -667,7 +668,7 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -774,7 +775,7 @@ class bingx extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1107,7 +1108,7 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
@@ -1273,7 +1274,7 @@ class bingx extends Exchange {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
@@ -1510,10 +1511,10 @@ class bingx extends Exchange {
              * fetch all open $positions
              * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
              * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {boolean} [$params->standard] whether to fetch $standard contract $positions
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -2030,7 +2031,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
              * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('cancelAllOrders', $symbol);
             Async\await($this->load_markets());
@@ -2081,7 +2082,7 @@ class bingx extends Exchange {
              * cancel multiple orders
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
              * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-             * @param {[string]} $ids order $ids
+             * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -2230,7 +2231,7 @@ class bingx extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
@@ -2319,7 +2320,7 @@ class bingx extends Exchange {
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $orders for
              * @param {boolean} [$params->standard] whether to fetch $standard contract $orders
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             $this->check_required_symbol('fetchClosedOrders', $symbol);
             Async\await($this->load_markets());
@@ -2450,7 +2451,7 @@ class bingx extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2599,7 +2600,7 @@ class bingx extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2646,7 +2647,7 @@ class bingx extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2927,7 +2928,7 @@ class bingx extends Exchange {
              * @param {int} [$limit] the maximum number of trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {string} $params->trandingUnit COIN (directly represent assets such and ETH) or CONT (represents the number of contract sheets)
-             * @return {[array]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             $this->check_required_argument('fetchMyTrades', $symbol, 'symbol');
             $this->check_required_argument('fetchMyTrades', $since, 'since');
@@ -3039,7 +3040,7 @@ class bingx extends Exchange {
             /**
              * fetch deposit and withdraw fees
              * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
-             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
@@ -3152,7 +3153,7 @@ class bingx extends Exchange {
             $query .= 'signature=' . $signature;
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
-                'X-SOURCE-KEY' => 'CCXT',
+                'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             $url .= $query;
         }

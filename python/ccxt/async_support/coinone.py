@@ -478,8 +478,8 @@ class coinone(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'

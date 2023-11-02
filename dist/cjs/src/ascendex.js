@@ -29,7 +29,7 @@ class ascendex extends ascendex$1 {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -51,7 +51,7 @@ class ascendex extends ascendex$1 {
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
@@ -220,6 +220,7 @@ class ascendex extends ascendex$1 {
                                 'futures/position': 1,
                                 'futures/free-margin': 1,
                                 'futures/order/hist/current': 1,
+                                'futures/funding-payments': 1,
                                 'futures/order/open': 1,
                                 'futures/order/status': 1,
                             },
@@ -264,7 +265,6 @@ class ascendex extends ascendex$1 {
                 'accountsByType': {
                     'spot': 'cash',
                     'swap': 'futures',
-                    'future': 'futures',
                     'margin': 'margin',
                 },
                 'transfer': {
@@ -2762,22 +2762,21 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#setLeverage
          * @description set the level of leverage for a market
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setLeverage', symbol);
         if ((leverage < 1) || (leverage > 100)) {
             throw new errors.BadRequest(this.id + ' leverage should be between 1 and 100');
         }
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
-        if (market['type'] !== 'future') {
-            throw new errors.BadSymbol(this.id + ' setLeverage() supports futures contracts only');
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
         const account = this.safeValue(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
@@ -2793,11 +2792,13 @@ class ascendex extends ascendex$1 {
          * @method
          * @name ascendex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @returns {object} response from the exchange
          */
+        this.checkRequiredSymbol('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase();
         if (marginMode === 'cross') {
             marginMode = 'crossed';
@@ -2813,10 +2814,10 @@ class ascendex extends ascendex$1 {
         const request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginMode': marginMode,
+            'marginType': marginMode,
         };
-        if (market['type'] !== 'future') {
-            throw new errors.BadSymbol(this.id + ' setMarginMode() supports futures contracts only');
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
         }
         return await this.v2PrivateAccountGroupPostFuturesMarginType(this.extend(request, params));
     }
@@ -2997,7 +2998,7 @@ class ascendex extends ascendex$1 {
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         if (fromId !== 'cash' && toId !== 'cash') {
-            throw new errors.ExchangeError(this.id + ' transfer() only supports direct balance transfer between spot and future, spot and margin');
+            throw new errors.ExchangeError(this.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin');
         }
         const request = {
             'account-group': accountGroup,
@@ -3045,6 +3046,83 @@ class ascendex extends ascendex$1 {
             return 'ok';
         }
         return 'failed';
+    }
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
+         * @param {object} [params] extra parameters specific to the ascendex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
+         */
+        await this.loadMarkets();
+        await this.loadAccounts();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 25);
+        }
+        const account = this.safeValue(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.v2PrivateAccountGroupGetFuturesFundingPayments(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "data": [
+        //                 {
+        //                     "timestamp": 1640476800000,
+        //                     "symbol": "BTC-PERP",
+        //                     "paymentInUSDT": "-0.013991178",
+        //                     "fundingRate": "0.000173497"
+        //                 },
+        //             ],
+        //             "page": 1,
+        //             "pageSize": 3,
+        //             "hasNext": true
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const rows = this.safeValue(data, 'data', []);
+        return this.parseIncomes(rows, market, since, limit);
+    }
+    parseIncome(income, market = undefined) {
+        //
+        //     {
+        //         "timestamp": 1640476800000,
+        //         "symbol": "BTC-PERP",
+        //         "paymentInUSDT": "-0.013991178",
+        //         "fundingRate": "0.000173497"
+        //     }
+        //
+        const marketId = this.safeString(income, 'symbol');
+        const timestamp = this.safeInteger(income, 'timestamp');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
+            'code': 'USDT',
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'id': undefined,
+            'amount': this.safeNumber(income, 'paymentInUSDT'),
+        };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];

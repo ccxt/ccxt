@@ -810,6 +810,16 @@ export default class bitrue extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        //
         // fetchTicker
         //
         //     {
@@ -833,10 +843,10 @@ export default class bitrue extends Exchange {
             'datetime': undefined,
             'high': this.safeString (ticker, 'high24hr'),
             'low': this.safeString (ticker, 'low24hr'),
-            'bid': this.safeString (ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'lowestAsk'),
-            'askVolume': undefined,
+            'bid': this.safeString2 (ticker, 'highestBid', 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString2 (ticker, 'lowestAsk', 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -968,24 +978,31 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = undefined;
-        if (type === 'future') {
-            method = 'fapiPublicGetTickerBookTicker';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetTickerBookTicker';
-        } else {
-            method = 'publicGetTickerBookTicker';
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        const request = {};
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+            request['symbol'] = market['id'];
         }
-        const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
+        const response = await this.v1PublicGetTickerBookTicker (this.extend (request, params));
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        const data = {};
+        data[market['id']] = response;
+        return this.parseTickers (data, symbols);
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {

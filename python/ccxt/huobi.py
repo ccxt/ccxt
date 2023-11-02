@@ -892,6 +892,7 @@ class huobi(Exchange, ImplicitAPI):
                     '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718}
                     '1303': BadRequest,  # {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder,  # {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits(5000USDT). Please modify.","ts":1652554651234}
+                    '4007': BadRequest,  # {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest,  # {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
                     'validation-constraints-required': BadRequest,  # {"status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing: client-order-id.","data":null}
@@ -962,41 +963,195 @@ class huobi(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     # by displaynames
-                    'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'AVALANCHE': 'AVAXCCHAIN',
-                    'AVAX': 'AVAXCCHAIN',
-                    'HRC20': 'HECO',
-                    'HECO': 'HECO',
-                    # 'HT': 'HECO',  # HT is not acceptable networkcode for unification
-                    'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
+                    'TRC20': 'TRX',  # TRON for mainnet
                     'BTC': 'BTC',
-                    'BITCOIN': 'BTC',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'SOLANA': 'SOL',
-                    'SOL': 'SOL',
-                    'SPL': 'SOL',
-                    'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
-                    'MATIC': 'PRC20',
-                },
-                'networksById': {
-                    'ALGO': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'AVAXCCHAIN': 'AVALANCHE',
-                    'HECO': 'HRC20',
-                    'TRC20': 'TRC20',
-                    'BTC': 'BTC',
-                    'ARB': 'ARBITRUM',
+                    'ERC20': 'ETH',  # ETH for mainnet
                     'SOL': 'SOLANA',
-                    'PRC20': 'POLYGON',
+                    'HRC20': 'HECO',
+                    'BEP20': 'BSC',
+                    'XMR': 'XMR',
+                    'LTC': 'LTC',
+                    'XRP': 'XRP',
+                    'XLM': 'XLM',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'GLMR': 'GLMR',
+                    'POLYGON': 'MATIC',
+                    'MATIC': 'MATIC',
+                    'BTT': 'BTT',
+                    'CUBE': 'CUBE',
+                    'IOST': 'IOST',
+                    'NEO': 'NEO',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'THETA': 'THETA',
+                    'NAS': 'NAS',
+                    'NULS': 'NULS',
+                    'QTUM': 'QTUM',
+                    'FTM': 'FTM',
+                    'CELO': 'CELO',
+                    'DOGE': 'DOGE',
+                    'DOGECHAIN': 'DOGECHAIN',
+                    'NEAR': 'NEAR',
+                    'STEP': 'STEP',
+                    'BITCI': 'BITCI',
+                    'CARDANO': 'ADA',
+                    'ADA': 'ADA',
+                    'ETC': 'ETC',
+                    'LUK': 'LUK',
+                    'MINEPLEX': 'MINEPLEX',
+                    'DASH': 'DASH',
+                    'ZEC': 'ZEC',
+                    'IOTA': 'IOTA',
+                    'NEON3': 'NEON3',
+                    'XEM': 'XEM',
+                    'HC': 'HC',
+                    'LSK': 'LSK',
+                    'DCR': 'DCR',
+                    'BTG': 'BTG',
+                    'STEEM': 'STEEM',
+                    'BTS': 'BTS',
+                    'ICX': 'ICX',
+                    'WAVES': 'WAVES',
+                    'CMT': 'CMT',
+                    'BTM': 'BTM',
+                    'VET': 'VET',
+                    'XZC': 'XZC',
+                    'ACT': 'ACT',
+                    'SMT': 'SMT',
+                    'BCD': 'BCD',
+                    'WAX': 'WAX1',
+                    'WICC': 'WICC',
+                    'ELF': 'ELF',
+                    'ZIL': 'ZIL',
+                    'ELA': 'ELA',
+                    'BCX': 'BCX',
+                    'SBTC': 'SBTC',
+                    'BIFI': 'BIFI',
+                    'CTXC': 'CTXC',
+                    'WAN': 'WAN',
+                    'POLYX': 'POLYX',
+                    'PAI': 'PAI',
+                    'WTC': 'WTC',
+                    'DGB': 'DGB',
+                    'XVG': 'XVG',
+                    'AAC': 'AAC',
+                    'AE': 'AE',
+                    'SEELE': 'SEELE',
+                    'BCV': 'BCV',
+                    'GRS': 'GRS',
+                    'ARDR': 'ARDR',
+                    'NANO': 'NANO',
+                    'ZEN': 'ZEN',
+                    'RBTC': 'RBTC',
+                    'BSV': 'BSV',
+                    'GAS': 'GAS',
+                    'XTZ': 'XTZ',
+                    'LAMB': 'LAMB',
+                    'CVNT1': 'CVNT1',
+                    'DOCK': 'DOCK',
+                    'SC': 'SC',
+                    'KMD': 'KMD',
+                    'ETN': 'ETN',
+                    'TOP': 'TOP',
+                    'IRIS': 'IRIS',
+                    'UGAS': 'UGAS',
+                    'TT': 'TT',
+                    'NEWTON': 'NEWTON',
+                    'VSYS': 'VSYS',
+                    'FSN': 'FSN',
+                    'BHD': 'BHD',
+                    'ONE': 'ONE',
+                    'EM': 'EM',
+                    'CKB': 'CKB',
+                    'EOSS': 'EOSS',
+                    'HIVE': 'HIVE',
+                    'RVN': 'RVN',
+                    'DOT': 'DOT',
+                    'KSM': 'KSM',
+                    'BAND': 'BAND',
+                    'OEP4': 'OEP4',
+                    'NBS': 'NBS',
+                    'FIS': 'FIS',
+                    'AR': 'AR',
+                    'HBAR': 'HBAR',
+                    'FIL': 'FIL',
+                    'MASS': 'MASS',
+                    'KAVA': 'KAVA',
+                    'XYM': 'XYM',
+                    'ENJ': 'ENJ',
+                    'CRUST': 'CRUST',
+                    'ICP': 'ICP',
+                    'CSPR': 'CSPR',
+                    'FLOW': 'FLOW',
+                    'IOTX': 'IOTX',
+                    'LAT': 'LAT',
+                    'APT': 'APT',
+                    'XCH': 'XCH',
+                    'MINA': 'MINA',
+                    'XEC': 'ECASH',
+                    'XPRT': 'XPRT',
+                    'CCA': 'ACA',
+                    'AOTI': 'COTI',
+                    'AKT': 'AKT',
+                    'ARS': 'ARS',
+                    'ASTR': 'ASTR',
+                    'AZERO': 'AZERO',
+                    'BLD': 'BLD',
+                    'BRISE': 'BRISE',
+                    'CORE': 'CORE',
+                    'DESO': 'DESO',
+                    'DFI': 'DFI',
+                    'EGLD': 'EGLD',
+                    'ERG': 'ERG',
+                    'ETHF': 'ETHFAIR',
+                    'ETHW': 'ETHW',
+                    'EVMOS': 'EVMOS',
+                    'FIO': 'FIO',
+                    'FLR': 'FLR',
+                    'FINSCHIA': 'FINSCHIA',
+                    'KMA': 'KMA',
+                    'KYVE': 'KYVE',
+                    'MEV': 'MEV',
+                    'MOVR': 'MOVR',
+                    'NODL': 'NODL',
+                    'OAS': 'OAS',
+                    'OSMO': 'OSMO',
+                    'PAYCOIN': 'PAYCOIN',
+                    'POKT': 'POKT',
+                    'PYG': 'PYG',
+                    'REI': 'REI',
+                    'SCRT': 'SCRT',
+                    'SDN': 'SDN',
+                    'SEI': 'SEI',
+                    'SGB': 'SGB',
+                    'SUI': 'SUI',
+                    'SXP': 'SOLAR',
+                    'SYS': 'SYS',
+                    'TENET': 'TENET',
+                    'TON': 'TON',
+                    'UNQ': 'UNQ',
+                    'UYU': 'UYU',
+                    'WEMIX': 'WEMIX',
+                    'XDC': 'XDC',
+                    'XPLA': 'XPLA',
+                    # todo: below
+                    # 'LUNC': 'LUNC',
+                    # 'TERRA': 'TERRA',  # tbd
+                    # 'LUNA': 'LUNA', tbd
+                    # 'FCT2': 'FCT2',
+                    # FIL-0X ?
+                    # 'COSMOS': 'ATOM1',
+                    # 'ATOM': 'ATOM1',
+                    # 'CRO': 'CRO',
+                    # 'OP': ['OPTIMISM', 'OPTIMISMETH']
+                    # 'ARB': ['ARB', 'ARBITRUMETH']
+                    # 'CHZ': ['CHZ', 'CZH'],
+                    # todo: AVAXCCHAIN CCHAIN AVAX
+                    # 'ALGO': ['ALGO', 'ALGOUSDT']
+                    # 'ONT': ['ONT', 'ONTOLOGY'],
+                    # 'BCC': 'BCC', BCH's somewhat chain
+                    # 'DBC1': 'DBC1',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -1068,7 +1223,6 @@ class huobi(Exchange, ImplicitAPI):
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://coinmarketcap.com/currencies/penta/markets/
@@ -1907,10 +2061,10 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
-        see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -2283,9 +2437,9 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2436,10 +2590,10 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-trade-records-of-a-contract
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -2530,10 +2684,10 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
-        see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-kline-data
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -2770,10 +2924,10 @@ class huobi(Exchange, ImplicitAPI):
             for j in range(0, len(chains)):
                 chainEntry = chains[j]
                 uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
-                title = self.safe_string(chainEntry, 'displayName')
+                title = self.safe_string_2(chainEntry, 'baseChain', 'displayName')  # baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
-                networkCode = self.network_id_to_code(title, code)
+                networkCode = self.network_id_to_code(uniqueChainId)
                 minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
                 maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
                 withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
@@ -2792,6 +2946,10 @@ class huobi(Exchange, ImplicitAPI):
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                         'withdraw': {
                             'min': minWithdraw,
                             'max': maxWithdraw,
@@ -2821,6 +2979,10 @@ class huobi(Exchange, ImplicitAPI):
                         'min': minWithdraw,
                         'max': maxWithdraw,
                     },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
                 'precision': self.parse_number(minPrecision),
                 'networks': networks,
@@ -2844,11 +3006,21 @@ class huobi(Exchange, ImplicitAPI):
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')
         uniqueNetworkIds = self.safe_value(self.options['networkChainIdsByNames'], currencyCode, {})
-        networkTitle = super(huobi, self).network_code_to_id(networkCode)
-        return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
+        if networkCode in uniqueNetworkIds:
+            return uniqueNetworkIds[networkCode]
+        else:
+            networkTitle = super(huobi, self).network_code_to_id(networkCode)
+            return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
 
     def fetch_balance(self, params={}):
         """
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
@@ -2861,10 +3033,8 @@ class huobi(Exchange, ImplicitAPI):
         isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
         params = self.omit(params, ['isUnifiedAccount', 'unified'])
         request = {}
-        method = None
         spot = (type == 'spot')
         future = (type == 'future')
-        swap = (type == 'swap')
         defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
         subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
         subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
@@ -2876,30 +3046,30 @@ class huobi(Exchange, ImplicitAPI):
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
+        response = None
         if spot or margin:
             if margin:
                 if isolated:
-                    method = 'spotPrivateGetV1MarginAccountsBalance'
+                    response = self.spotPrivateGetV1MarginAccountsBalance(self.extend(request, params))
                 else:
-                    method = 'spotPrivateGetV1CrossMarginAccountsBalance'
+                    response = self.spotPrivateGetV1CrossMarginAccountsBalance(self.extend(request, params))
             else:
                 self.load_accounts()
                 accountId = self.fetch_account_id_by_type(type, None, None, params)
                 request['account-id'] = accountId
-                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
+                response = self.spotPrivateGetV1AccountAccountsAccountIdBalance(self.extend(request, params))
         elif isUnifiedAccount:
-            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo'
+            response = self.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(self.extend(request, params))
         elif linear:
             if isolated:
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
+                response = self.contractPrivatePostLinearSwapApiV1SwapAccountInfo(self.extend(request, params))
             else:
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo'
+                response = self.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(self.extend(request, params))
         elif inverse:
             if future:
-                method = 'contractPrivatePostApiV1ContractAccountInfo'
-            elif swap:
-                method = 'contractPrivatePostSwapApiV1SwapAccountInfo'
-        response = getattr(self, method)(self.extend(request, params))
+                response = self.contractPrivatePostApiV1ContractAccountInfo(self.extend(request, params))
+            else:
+                response = self.contractPrivatePostSwapApiV1SwapAccountInfo(self.extend(request, params))
         #
         # spot
         #
@@ -3636,12 +3806,12 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3668,12 +3838,12 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
-        see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3700,9 +3870,9 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -4328,15 +4498,15 @@ class huobi(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
-        see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
-        see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -4365,7 +4535,7 @@ class huobi(Exchange, ImplicitAPI):
         """
          * @ignore
         create a spot trade order
-        see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -4481,10 +4651,10 @@ class huobi(Exchange, ImplicitAPI):
         """
          * @ignore
         create a contract trade order
-        see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -4998,7 +5168,7 @@ class huobi(Exchange, ImplicitAPI):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(networkId, code),
+            'network': self.network_id_to_code(networkId),
             'note': note,
             'info': depositAddress,
         }
@@ -5252,7 +5422,7 @@ class huobi(Exchange, ImplicitAPI):
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(networkId, code),
+            'network': self.network_id_to_code(networkId),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
@@ -5373,13 +5543,13 @@ class huobi(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
-        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from 'spot', 'future', 'swap'
@@ -5572,8 +5742,8 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by huobi, but filtered internally by ccxt
@@ -6016,9 +6186,9 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   # linear swaps
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          # coin-m futures
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          # coin-m swaps
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -6704,7 +6874,7 @@ class huobi(Exchange, ImplicitAPI):
 
     def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -6896,9 +7066,9 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         Retrieves the open interest history of a currency
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '1h', '4h', '12h', or '1d'
         :param int [since]: Not used by huobi api, but response parsed by CCXT
@@ -7006,9 +7176,9 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
-        see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
@@ -7171,8 +7341,8 @@ class huobi(Exchange, ImplicitAPI):
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
-        see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol, required for isolated margin
@@ -7220,7 +7390,7 @@ class huobi(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol
@@ -7393,7 +7563,7 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -7594,9 +7764,9 @@ class huobi(Exchange, ImplicitAPI):
     def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves the public liquidations of a trading pair
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
-        see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve

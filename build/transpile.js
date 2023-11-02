@@ -915,6 +915,9 @@ class Transpiler {
         if (bodyAsString.match (/: OrderSide/)) {
             libraries.push ('from ccxt.base.types import OrderSide')
         }
+        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
+            libraries.push ('from ccxt.base.types import OrderRequest')
+        }
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
         }
@@ -2157,6 +2160,9 @@ class Transpiler {
 
 
         // ########### PHP ###########
+        php = php.replace('use Exception; // a common import', '')
+        phpAsync = phpAsync.replace('use Exception; // a common import', '')
+
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines of test_async.php
         phpAsync = phpAsync.replace ('(this,','($this,');
@@ -2442,13 +2448,20 @@ class Transpiler {
                 "",
                 "",
             ],
+            pyPro: [
+                "import asyncio",
+                "import ccxt.pro as ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+            ],
             phpAsync: [
                 "",
                 "error_reporting(E_ALL | E_STRICT);",
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",
+                "use React\\Async;",    
                 "use React\\Promise;",
                 "",
                 "",
@@ -2466,6 +2479,7 @@ class Transpiler {
             const tsFile = examplesFolders.ts + filenameWithExtenstion
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
@@ -2480,30 +2494,37 @@ class Transpiler {
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
                 let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
-                const fixPython = (body, isAsync)=> {
+                const fixPython = (body)=> {
                     return this.regexAll (body, [
                         [ /console\.log/g, 'print' ],
+                        // in python import ccxt.pro as ccxt
+                        [ /ccxt.pro/g, 'ccxt' ],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
                         [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        // cases like: exchange = new ccxt.pro['name' or name] ()
+                        [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                     ]);
                 };
-                const fixPhp = (body, isAsync)=> {
-                    let asyncSub = isAsync ? 'async\\' : '';
+                const fixPhp = (body)=> {
                     const regexes = [
                         [ /\$console\->log/g, 'var_dump' ],
+                        // cases like: exchange = new ccxt.pro.huobi ()
+                        [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
                         // cases like: exchange = new ccxt.huobi ()
-                        [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
+                        [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new (\'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        // cases like: exchange = new ccxt.pro['huobi' or varname] ()
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
 
                 const finalBodies = {};
-                finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
-                finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
+                finalBodies.pyAsync = fixPython (pythonAsyncBody);
+                finalBodies.phpAsync = fixPhp (phpAsyncBody);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
                 for (const funcName of allDetectedFunctionNames) {
@@ -2531,7 +2552,7 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
@@ -2581,7 +2602,7 @@ class Transpiler {
         let jsFiles = [];
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
-        jsFiles.filter(f => !f.includes(".d.ts")).map (jsFilePath => {
+        jsFiles.filter(f => !f.includes(".d.ts") && !f.includes(".tsbuildinfo")).map (jsFilePath => {
             const content = fs.readFileSync (jsFilePath, 'utf8');
             if (content.indexOf (this.getJsPreamble()) === -1) {
                 let contents = [
@@ -2610,7 +2631,8 @@ class Transpiler {
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
-        if (!child) {
+        const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (!transpilingSingleExchange && !child) {
             createFolderRecursively (python2Folder)
             createFolderRecursively (python3Folder)
             createFolderRecursively (phpFolder)
@@ -2628,19 +2650,21 @@ class Transpiler {
             return
         }
 
-        this.transpileBaseMethods ()
+        if (!transpilingSingleExchange) {
+            this.transpileBaseMethods ()
 
-        //*/
+            //*/
 
-        this.transpileErrorHierarchy ()
+            this.transpileErrorHierarchy ()
 
-        this.transpileTests ()
+            this.transpileTests ()
 
-        // this.transpilePhpBaseClassMethods ()
+            // this.transpilePhpBaseClassMethods ()
 
-        this.transpileExamples ()
+            this.transpileExamples ()
 
-        this.addGeneratedHeaderToJs ('./js/')
+            this.addGeneratedHeaderToJs ('./js/')
+        }
 
         log.bright.green ('Transpiled successfully.')
     }

@@ -25,6 +25,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 class Argv(object):
+    staticTests = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -45,6 +46,7 @@ parser.add_argument('--privateOnly', action='store_true', help='run private test
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
+parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -80,6 +82,8 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 class baseMainTestClass():
+    lang = 'PY'
+    staticTestsFailed = False
     skippedMethods = {}
     checkedPublicTests = {}
     testFiles = {}
@@ -98,6 +102,14 @@ ext = 'py'
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
+
+def json_parse(elem):
+    return json.loads(elem)
+
+
+def json_stringify(elem):
+    return json.dumps(elem)
 
 
 def get_cli_arg_value(arg):
@@ -129,8 +141,16 @@ def io_file_read(path, decode=True):
         return content
 
 
+def io_dir_read(path):
+    return os.listdir(path)
+
+
 async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
+
+
+async def call_exchange_method_dynamically(exchange, methodName, args):
+    return await getattr(exchange, methodName)(*args)
 
 
 def exception_message(exc):
@@ -192,6 +212,7 @@ async def close(exchange):
 
 
 import asyncio
+from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
@@ -203,6 +224,7 @@ from ccxt.base.errors import AuthenticationError
 class testMainClass(baseMainTestClass):
 
     def parse_cli_args(self):
+        self.staticTests = get_cli_arg_value('--static')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -212,6 +234,8 @@ class testMainClass(baseMainTestClass):
 
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
+        if self.staticTests:
+            return await self.run_static_tests()
         symbolStr = symbol is not symbol if None else 'all'
         dump('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
         exchangeArgs = {
@@ -729,6 +753,154 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             await close(exchange)
             raise e
+
+    def assert_static_error(self, cond: bool, message: str, calculatedOutput, storedOutput):
+        #  -----------------------------------------------------------------------------
+        #  --- Init of static tests functions------------------------------------------
+        #  -----------------------------------------------------------------------------
+        calculatedString = json_stringify(calculatedOutput)
+        outputString = json_stringify(storedOutput)
+        errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString
+        assert cond, errorMessage
+
+    def load_markets_from_file(self, id: str):
+        # load markets from file
+        # to make self test
+        # and basically independent from the exchange
+        # so we can run it offline
+        filename = './ts/src/test/static/markets/' + id + '.json'
+        content = io_file_read(filename)
+        return content
+
+    def load_static_data(self):
+        folder = './ts/src/test/static/data/'
+        files = io_dir_read(folder)
+        result = {}
+        for i in range(0, len(files)):
+            file = files[i]
+            exchangeName = file.replace('.json', '')
+            content = io_file_read(folder + file)
+            result[exchangeName] = content
+        return result
+
+    def remove_hostnamefrom_url(self, url: str):
+        if url is None:
+            return None
+        urlParts = url.split('/')
+        res = ''
+        for i in range(0, len(urlParts)):
+            if i > 2:
+                res += '/'
+                res += urlParts[i]
+        return res
+
+    def urlencoded_to_dict(self, url: str):
+        result = {}
+        parts = url.split('&')
+        for i in range(0, len(parts)):
+            part = parts[i]
+            keyValue = part.split('=')
+            key = keyValue[0]
+            value = keyValue[1]
+            result[key] = value
+        return result
+
+    def assert_static_output(self, exchange, type: str, skipKeys: List[str], storedUrl: str, requestUrl: str, storedOutput, newOutput):
+        if storedUrl != requestUrl:
+            # remove the host part from the url
+            firstPath = self.remove_hostnamefrom_url(storedUrl)
+            secondPath = self.remove_hostnamefrom_url(requestUrl)
+            self.assert_static_error(firstPath == secondPath, 'url mismatch', firstPath, secondPath)
+        if type == 'json':
+            if isinstance(storedOutput, str):
+                storedOutput = json_parse(storedOutput)
+            if isinstance(newOutput, str):
+                newOutput = json_parse(newOutput)
+        elif type == 'urlencoded':
+            storedOutput = self.urlencoded_to_dict(storedOutput)
+            newOutput = self.urlencoded_to_dict(newOutput)
+        storedOutputKeys = list(storedOutput.keys())
+        newOutputKeys = list(newOutput.keys())
+        storedLenght = len(storedOutputKeys)
+        newLength = len(newOutputKeys)
+        self.assert_static_error(storedLenght == newLength, 'output length mismatch', storedOutput, newOutput)
+        for i in range(0, len(storedOutputKeys)):
+            key = storedOutputKeys[i]
+            if exchange.in_array(key, skipKeys):
+                continue
+            if not (exchange.in_array(key, newOutputKeys)):
+                self.assert_static_error(False, 'output key missing: ' + key, storedOutput, newOutput)
+            storedValue = storedOutput[key]
+            newValue = newOutput[key]
+            messageError = 'output value mismatch for: ' + key + ' : ' + str(storedValue) + ' != ' + str(newValue)
+            self.assert_static_error(storedValue == newValue, messageError, storedOutput, newOutput)
+
+    async def test_method_statically(self, exchange, method: str, data: object, type: str, skipKeys: List[str]):
+        output = None
+        requestUrl = None
+        try:
+            inputArgs = list(data['input'].values())
+            await call_exchange_method_dynamically(exchange, method, inputArgs)
+        except Exception as e:
+            if not (isinstance(e, NetworkError)):
+                # if it's not a network error, it means our request was not created succesfully
+                # so we might have an error in the request creation
+                raise e
+            output = exchange.last_request_body
+            requestUrl = exchange.last_request_url
+        try:
+            self.assert_static_output(exchange, type, skipKeys, data['url'], requestUrl, data['output'], output)
+        except Exception as e:
+            self.staticTestsFailed = True
+            errorMessage = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e
+            dump(errorMessage)
+
+    async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
+        markets = self.load_markets_from_file(exchangeName)
+        # instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        exchange = init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+        methods = exchange.safe_value(exchangeData, 'methods', {})
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                type = exchange.safe_string(exchangeData, 'outputType')
+                skipKeys = exchange.safe_value(exchangeData, 'skipKeys', [])
+                await self.test_method_statically(exchange, method, result, type, skipKeys)
+        await close(exchange)
+
+    def get_number_of_tests_from_exchange(self, exchange, exchangeData: object):
+        sum = 0
+        methods = exchangeData['methods']
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            resultsLength = len(results)
+            sum = exchange.sum(sum, resultsLength)
+        return sum
+
+    async def run_static_tests(self):
+        staticData = self.load_static_data()
+        exchanges = list(staticData.keys())
+        exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling self code
+        promises = []
+        sum = 0
+        for i in range(0, len(exchanges)):
+            exchangeName = exchanges[i]
+            exchangeData = staticData[exchangeName]
+            numberOfTests = self.get_number_of_tests_from_exchange(exchange, exchangeData)
+            sum = exchange.sum(sum, numberOfTests)
+            promises.append(self.test_exchange_statically(exchangeName, exchangeData))
+        await asyncio.gather(*promises)
+        if self.staticTestsFailed:
+            exit_script(1)
+        else:
+            successMessage = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static tests passed.'
+            dump(successMessage)
+            exit_script(0)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

@@ -33,6 +33,7 @@ class hitbtc extends hitbtc$1 {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -2047,14 +2048,24 @@ class hitbtc extends hitbtc$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both
          * @param {bool} [params.margin] true for creating a margin order
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
         const isLimit = (type === 'limit');
+        const reduceOnly = this.safeValue(params, 'reduceOnly');
+        const timeInForce = this.safeString(params, 'timeInForce');
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const isPostOnly = this.isPostOnly(type === 'market', undefined, params);
         const request = {
             'type': type,
             'side': side,
@@ -2072,7 +2083,6 @@ class hitbtc extends hitbtc$1 {
             // 'take_rate': 0.001, // Optional
             // 'make_rate': 0.001, // Optional
         };
-        const reduceOnly = this.safeValue(params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
@@ -2081,8 +2091,12 @@ class hitbtc extends hitbtc$1 {
         if (reduceOnly === true) {
             request['reduce_only'] = reduceOnly;
         }
-        const timeInForce = this.safeString2(params, 'timeInForce', 'time_in_force');
-        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
+        if (isPostOnly) {
+            request['post_only'] = true;
+        }
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
         if (isLimit || (type === 'stopLimit') || (type === 'takeProfitLimit')) {
             if (price === undefined) {
                 throw new errors.ExchangeError(this.id + ' createOrder() requires a price argument for limit orders');
@@ -2107,19 +2121,20 @@ class hitbtc extends hitbtc$1 {
         else if ((type === 'stopLimit') || (type === 'stopMarket') || (type === 'takeProfitLimit') || (type === 'takeProfitMarket')) {
             throw new errors.ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
-        let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privatePostSpotOrder',
-            'swap': 'privatePostFuturesOrder',
-            'margin': 'privatePostMarginOrder',
-        });
-        const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
-        if (marginMode !== undefined) {
-            method = 'privatePostMarginOrder';
+        params = this.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly']);
+        if ((marketType === 'swap') && (marginMode !== undefined)) {
+            request['margin_mode'] = marginMode;
         }
-        params = this.omit(params, ['triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly']);
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.privatePostFuturesOrder(this.extend(request, params));
+        }
+        else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            response = await this.privatePostMarginOrder(this.extend(request, params));
+        }
+        else {
+            response = await this.privatePostSpotOrder(this.extend(request, params));
+        }
         return this.parseOrder(response, market);
     }
     parseOrderStatus(status) {
@@ -3042,12 +3057,7 @@ class hitbtc extends hitbtc$1 {
         const isMargin = this.safeValue(params, 'margin', false);
         let marginMode = undefined;
         [marginMode, params] = super.handleMarginModeAndParams(methodName, params, defaultValue);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new errors.NotSupported(this.id + ' only isolated margin is supported');
-            }
-        }
-        else {
+        if (marginMode === undefined) {
             if ((defaultType === 'margin') || (isMargin === true)) {
                 marginMode = 'isolated';
             }

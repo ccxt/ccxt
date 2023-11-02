@@ -46,6 +46,12 @@ class ExchangeError extends Error {
         this.name = 'ExchangeError';
     }
 }
+class OperationFailed extends ExchangeError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationFailed';
+    }
+}
 class AuthenticationError extends ExchangeError {
     constructor(message) {
         super(message);
@@ -80,6 +86,12 @@ class BadRequest extends ExchangeError {
     constructor(message) {
         super(message);
         this.name = 'BadRequest';
+    }
+}
+class OperationRejected extends BadRequest {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationRejected';
     }
 }
 class BadSymbol extends BadRequest {
@@ -234,7 +246,7 @@ class RequestTimeout extends NetworkError {
 //     // Derived class hierarchy
 //     errorHierarchy
 // )
-const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange };
+const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -261,6 +273,8 @@ exports.NoChange = NoChange;
 exports.NotSupported = NotSupported;
 exports.NullResponse = NullResponse;
 exports.OnMaintenance = OnMaintenance;
+exports.OperationFailed = OperationFailed;
+exports.OperationRejected = OperationRejected;
 exports.OrderImmediatelyFillable = OrderImmediatelyFillable;
 exports.OrderNotCached = OrderNotCached;
 exports.OrderNotFillable = OrderNotFillable;

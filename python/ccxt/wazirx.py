@@ -167,7 +167,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}):
         """
-        see https://docs.wazirx.com/#exchange-info
+        :see: https://docs.wazirx.com/#exchange-info
         retrieves data on all markets for wazirx
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
@@ -277,7 +277,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.wazirx.com/#kline-candlestick-data
+        :see: https://docs.wazirx.com/#kline-candlestick-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
@@ -325,7 +325,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://docs.wazirx.com/#order-book
+        :see: https://docs.wazirx.com/#order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -358,7 +358,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}):
         """
-        see https://docs.wazirx.com/#24hr-ticker-price-change-statistics
+        :see: https://docs.wazirx.com/#24hr-ticker-price-change-statistics
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the wazirx api endpoint
@@ -389,7 +389,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://docs.wazirx.com/#24hr-tickers-price-change-statistics
+        :see: https://docs.wazirx.com/#24hr-tickers-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the wazirx api endpoint
@@ -424,7 +424,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.wazirx.com/#recent-trades-list
+        :see: https://docs.wazirx.com/#recent-trades-list
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -491,7 +491,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_status(self, params={}):
         """
-        see https://docs.wazirx.com/#system-status
+        :see: https://docs.wazirx.com/#system-status
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `status structure <https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure>`
@@ -514,7 +514,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_time(self, params={}):
         """
-        see https://docs.wazirx.com/#check-server-time
+        :see: https://docs.wazirx.com/#check-server-time
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -591,7 +591,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}):
         """
-        see https://docs.wazirx.com/#fund-details-user_data
+        :see: https://docs.wazirx.com/#fund-details-user_data
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the wazirx api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -611,7 +611,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.wazirx.com/#all-orders-user_data
+        :see: https://docs.wazirx.com/#all-orders-user_data
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -666,7 +666,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.wazirx.com/#current-open-orders-user_data
+        :see: https://docs.wazirx.com/#current-open-orders-user_data
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -713,7 +713,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
+        :see: https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the wazirx api endpoint
@@ -730,7 +730,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.wazirx.com/#cancel-order-trade
+        :see: https://docs.wazirx.com/#cancel-order-trade
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -750,7 +750,7 @@ class wazirx(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs.wazirx.com/#new-order-trade
+        :see: https://docs.wazirx.com/#new-order-trade
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'

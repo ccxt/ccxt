@@ -571,6 +571,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_post_sprd_mass_cancel($params = array()) {
         return $this->request('sprd/mass-cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_sprd_amend_order($params = array()) {
+        return $this->request('sprd/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
     }
@@ -1365,6 +1368,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostSprdMassCancel($params = array()) {
         return $this->request('sprd/mass-cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostSprdAmendOrder($params = array()) {
+        return $this->request('sprd/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));

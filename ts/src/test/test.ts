@@ -1,18 +1,22 @@
 // ----------------------------------------------------------------------------
-
-import fs from 'fs';
+/* eslint-disable max-classes-per-file */
+import fs, { readFile } from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
-import ccxt from '../../ccxt.js';
+import assert from 'assert';
+import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 
 
 // js specific codes //
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
 process.on ('uncaughtException', (e) => {
-    exceptionMessage (e); process.exit (1);
+    throw new Error (exceptionMessage (e));
+    // process.exit (1);
 });
 process.on ('unhandledRejection', (e: any) => {
-    exceptionMessage (e); process.exit (1);
+    exceptionMessage (e);
+    throw new Error (exceptionMessage (e));
+    // process.exit (1);
 });
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
@@ -24,6 +28,9 @@ const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
+    lang = 'JS';
+    staticTestsFailed = false;
+    staticTests = false;
     info = false;
     verbose = false;
     debug = false;
@@ -45,6 +52,14 @@ function dump (...args) {
     console.log (...args);
 }
 
+function jsonParse (elem) {
+    return JSON.parse (elem);
+}
+
+function jsonStringify (elem) {
+    return JSON.stringify (elem);
+}
+
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
@@ -62,8 +77,19 @@ function ioFileRead (path, decode = true) {
     return decode ? JSON.parse (content) : content;
 }
 
+function ioDirRead (path) {
+    const files = fs.readdirSync (path);
+    return files;
+}
+
 async function callMethod (testFiles, methodName, exchange, skippedProperties, args) {
+    // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
+}
+
+async function callExchangeMethodDynamically (exchange: Exchange, methodName: string, args) {
+    // used for calling actual exchange methods
+    return await exchange[methodName] (...args);
 }
 
 function exceptionMessage (exc) {
@@ -90,7 +116,7 @@ function setExchangeProp (exchange, prop, value) {
     exchange[prop] = value;
 }
 
-function initExchange (exchangeId, args) {
+function initExchange (exchangeId, args): Exchange {
     return new (ccxt)[exchangeId] (args);
 }
 
@@ -130,6 +156,7 @@ async function close (exchange) {
 
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
+        this.staticTests = getCliArgValue ('--static');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
         this.debug = getCliArgValue ('--debug');
@@ -140,6 +167,9 @@ export default class testMainClass extends baseMainTestClass {
 
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
+        if (this.staticTests) {
+            return await this.runStaticTests ();
+        }
         const symbolStr = symbol !== undefined ? symbol : 'all';
         dump ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
@@ -747,6 +777,227 @@ export default class testMainClass extends baseMainTestClass {
         } catch (e) {
             await close (exchange);
             throw e;
+        }
+    }
+
+    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput) {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        const calculatedString = jsonStringify (calculatedOutput);
+        const outputString = jsonStringify (storedOutput);
+        const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        assert (cond, errorMessage);
+    }
+
+    loadMarketsFromFile (id: string) {
+        // load markets from file
+        // to make this test as fast as possible
+        // and basically independent from the exchange
+        // so we can run it offline
+        const filename = './ts/src/test/static/markets/' + id + '.json';
+        const content = ioFileRead (filename);
+        return content;
+    }
+
+    loadStaticData () {
+        const folder = './ts/src/test/static/data/';
+        const files = ioDirRead (folder);
+        const result = {};
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const exchangeName = file.replace ('.json', '');
+            const content = ioFileRead (folder + file);
+            result[exchangeName] = content;
+        }
+        return result;
+    }
+
+    removeHostnamefromUrl (url: string) {
+        if (url === undefined) {
+            return undefined;
+        }
+        const urlParts = url.split ('/');
+        let res = '';
+        for (let i = 0; i < urlParts.length; i++) {
+            if (i > 2) {
+                const current = urlParts[i];
+                if (current.indexOf ('?') > -1) {
+                    // handle urls like this: /v1/account/accounts?AccessK
+                    const currentParts = current.split ('?');
+                    res += '/';
+                    res += currentParts[0];
+                    break;
+                }
+                res += '/';
+                res += current;
+            }
+        }
+        return res;
+    }
+
+    urlencodedToDict (url: string) {
+        const result = {};
+        const parts = url.split ('&');
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const keyValue = part.split ('=');
+            const key = keyValue[0];
+            const value = keyValue[1];
+            result[key] = value;
+        }
+        return result;
+    }
+
+    assertNewAndStoredOutput (exchange, skipKeys: string[], newOutput: object, storedOutput: object) {
+        const storedOutputKeys = Object.keys (storedOutput);
+        const newOutputKeys = Object.keys (newOutput);
+        const storedLenght = storedOutputKeys.length;
+        const newLength = newOutputKeys.length;
+        this.assertStaticError (storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
+        for (let i = 0; i < storedOutputKeys.length; i++) {
+            const key = storedOutputKeys[i];
+            if (exchange.inArray (key, skipKeys)) {
+                continue;
+            }
+            if (!(exchange.inArray (key, newOutputKeys))) {
+                this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
+            }
+            const storedValue = storedOutput[key];
+            const newValue = newOutput[key];
+            if (typeof storedValue === 'object') {
+                if (typeof newValue === 'object') {
+                    // recursive objects
+                    return this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
+                }
+            }
+            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
+            this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
+        }
+    }
+
+    assertStaticOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+        if (storedUrl !== requestUrl) {
+            // remove the host part from the url
+            const firstPath = this.removeHostnamefromUrl (storedUrl);
+            const secondPath = this.removeHostnamefromUrl (requestUrl);
+            this.assertStaticError (firstPath === secondPath, 'url mismatch', firstPath, secondPath);
+        }
+        // body (aka storedOutput and newOutput) is not defined and information is in the url
+        // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if ((storedOutput === undefined) && (newOutput === undefined)) {
+            if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
+                const storedUrlParts = storedUrl.split ('?');
+                const newUrlParts = requestUrl.split ('?');
+                const storedUrlParams = this.urlencodedToDict (storedUrlParts[1]);
+                const newUrlParams = this.urlencodedToDict (newUrlParts[1]);
+                this.assertNewAndStoredOutput (exchange, skipKeys, newUrlParams, storedUrlParams);
+                return;
+            }
+        // body is defined
+        }
+        if (type === 'json') {
+            if (typeof storedOutput === 'string') {
+                storedOutput = jsonParse (storedOutput);
+            }
+            if (typeof newOutput === 'string') {
+                newOutput = jsonParse (newOutput);
+            }
+        } else if (type === 'urlencoded') {
+            storedOutput = this.urlencodedToDict (storedOutput);
+            newOutput = this.urlencodedToDict (newOutput);
+        }
+        if (Array.isArray (storedOutput)) {
+            if (!Array.isArray (newOutput)) {
+                this.assertStaticError (false, 'output type mismatch', storedOutput, newOutput);
+            }
+            for (let i = 0; i < storedOutput.length; i++) {
+                const storedItem = storedOutput[i];
+                const newItem = newOutput[i];
+                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
+            }
+        } else {
+            this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
+        }
+    }
+
+    async testMethodStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
+        let output = undefined;
+        let requestUrl = undefined;
+        try {
+            await callExchangeMethodDynamically (exchange, method, data['input']);
+        } catch (e) {
+            if (!(e instanceof NetworkError)) {
+                // if it's not a network error, it means our request was not created succesfully
+                // so we might have an error in the request creation
+                throw e;
+            }
+            output = exchange.last_request_body;
+            requestUrl = exchange.last_request_url;
+        }
+        try {
+            const callOutput = exchange.safeValue (data, 'output');
+            this.assertStaticOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
+        }
+        catch (e) {
+            this.staticTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            dump (errorMessage);
+        }
+    }
+
+    async testExchangeStatically (exchangeName: string, exchangeData: object) {
+        const markets = this.loadMarketsFromFile (exchangeName);
+        // instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        const exchange = initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
+        const methods = exchange.safeValue (exchangeData, 'methods', {});
+        const methodsNames = Object.keys (methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const type = exchange.safeString (exchangeData, 'outputType');
+                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                await this.testMethodStatically (exchange, method, result, type, skipKeys);
+            }
+        }
+        await close (exchange);
+    }
+
+    getNumberOfTestsFromExchange (exchange, exchangeData: object) {
+        let sum = 0;
+        const methods = exchangeData['methods'];
+        const methodsNames = Object.keys (methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            const resultsLength = results.length;
+            sum = exchange.sum (sum, resultsLength);
+        }
+        return sum;
+    }
+
+    async runStaticTests () {
+        const staticData = this.loadStaticData ();
+        const exchanges = Object.keys (staticData);
+        const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
+        const promises = [];
+        let sum = 0;
+        for (let i = 0; i < exchanges.length; i++) {
+            const exchangeName = exchanges[i];
+            const exchangeData = staticData[exchangeName];
+            const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData);
+            sum = exchange.sum (sum, numberOfTests);
+            promises.push (this.testExchangeStatically (exchangeName, exchangeData));
+        }
+        await Promise.all (promises);
+        if (this.staticTestsFailed) {
+            exitScript (1);
+        } else {
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static tests passed.';
+            dump (successMessage);
+            exitScript (0);
         }
     }
 }

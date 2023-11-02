@@ -793,6 +793,16 @@ class bitrue extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "bidPrice" => "4.00000000",
+        //         "bidQty" => "431.00000000",
+        //         "askPrice" => "4.00000200",
+        //         "askQty" => "9.00000000"
+        //     }
+        //
         // fetchTicker
         //
         //     {
@@ -816,10 +826,10 @@ class bitrue extends Exchange {
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high24hr'),
             'low' => $this->safe_string($ticker, 'low24hr'),
-            'bid' => $this->safe_string($ticker, 'highestBid'),
-            'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'lowestAsk'),
-            'askVolume' => null,
+            'bid' => $this->safe_string_2($ticker, 'highestBid', 'bidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bidQty'),
+            'ask' => $this->safe_string_2($ticker, 'lowestAsk', 'askPrice'),
+            'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -945,24 +955,31 @@ class bitrue extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the bitrue api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $method = null;
-        if ($type === 'future') {
-            $method = 'fapiPublicGetTickerBookTicker';
-        } elseif ($type === 'delivery') {
-            $method = 'dapiPublicGetTickerBookTicker';
-        } else {
-            $method = 'publicGetTickerBookTicker';
+        $symbols = $this->market_symbols($symbols);
+        $market = null;
+        $request = array();
+        if ($symbols !== null) {
+            $first = $this->safe_string($symbols, 0);
+            $market = $this->market($first);
+            $request['symbol'] = $market['id'];
         }
-        $response = $this->$method ($query);
-        return $this->parse_tickers($response, $symbols);
+        $response = $this->v1PublicGetTickerBookTicker (array_merge($request, $params));
+        //     {
+        //         "symbol" => "LTCBTC",
+        //         "bidPrice" => "4.00000000",
+        //         "bidQty" => "431.00000000",
+        //         "askPrice" => "4.00000200",
+        //         "askQty" => "9.00000000"
+        //     }
+        $data = array();
+        $data[$market['id']] = $response;
+        return $this->parse_tickers($data, $symbols);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {

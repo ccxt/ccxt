@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.19'
+__version__ = '4.1.35'
 
 # -----------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress, RateLimitExceeded
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -125,7 +125,7 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-
+        self.last_request_headers = request_headers
         # ##### PROXY & HEADERS #####
         final_proxy = None  # set default
         final_session = None
@@ -298,14 +298,6 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
         try:
             await method(*args)
         except Exception:
@@ -946,7 +938,7 @@ class Exchange(BaseExchange):
         self.markets_by_id = {}
         # handle marketId conflicts
         # we insert spot markets first
-        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
@@ -989,8 +981,8 @@ class Exchange(BaseExchange):
                         'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     })
                     quoteCurrencies.append(currency)
-            baseCurrencies = self.sort_by(baseCurrencies, 'code')
-            quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
+            baseCurrencies = self.sort_by(baseCurrencies, 'code', False, '')
+            quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
             self.baseCurrencies = self.index_by(baseCurrencies, 'code')
             self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
@@ -1957,6 +1949,9 @@ class Exchange(BaseExchange):
             await self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
+        self.last_request_headers = request['headers']
+        self.last_request_body = request['body']
+        self.last_request_url = request['url']
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
@@ -2392,6 +2387,9 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
+
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
 
@@ -2471,6 +2469,9 @@ class Exchange(BaseExchange):
 
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported yet')
+
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')

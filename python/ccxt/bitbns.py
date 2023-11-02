@@ -568,8 +568,8 @@ class bitbns(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  # market orders
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  # market orders
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -624,8 +624,8 @@ class bitbns(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitbns api endpoint
@@ -653,7 +653,7 @@ class bitbns(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitbns api endpoint
@@ -703,8 +703,8 @@ class bitbns(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all unfilled currently open orders
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
-        see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
+        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
