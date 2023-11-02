@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinlist.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, OnMaintenance, PermissionDenied } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidAddress, InvalidOrder, NotSupported, OnMaintenance, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -250,6 +250,23 @@ export default class coinlist extends Exchange {
                 'exact': {
                     'AUTH_SIG_INVALID': AuthenticationError, // {"status":400,"message":"invalid signature","message_code":"AUTH_SIG_INVALID"}
                     'DENIED_MAINTENANCE': OnMaintenance, // The system is under active maintenance.
+                    'ORDER_REJECT_BAD_STATUS': InvalidOrder, // The order has a status that makes it not cancelable or modifyable.
+                    'ORDER_REJECT_INVALID_POST_ONLY': InvalidOrder,
+                    'ORDER_REJECT_INVALID_CLOSE_ONLY': InvalidOrder,
+                    'ORDER_REJECT_POST_ONLY_REQUIRED': InvalidOrder, // The market currently allows only post-only orders.
+                    'ORDER_REJECT_FROZEN_ORDER': InvalidOrder, // This operation is currently not allowed on this order at this time.
+                    'ORDER_REJECT_LIMIT_PRICE_PROTECTION_VIOLATION': InvalidOrder, // The limit price violates the price protection range for this symbol.
+                    'ORDER_REJECT_CLOSED': NotSupported, // The market is closed for order operations.
+                    'ORDER_REJECT_MAX_ORDERS': BadRequest, // You have violated the 25 orders per symbol limit.
+                    'ORDER_REJECT_NOT_FOUND': OrderNotFound, // The order to modify or cancel was not found.
+                    'ORDER_REJECT_PARSE_ERROR': BadRequest, // The request failed to parse. Check data types. (strings vs. numbers)
+                    'ORDER_REJECT_PRICE_INVALID': InvalidOrder, // Prices must be positive and aligned with the tick size defined for the symbol.
+                    'ORDER_REJECT_QUANTITY_ZERO': InvalidOrder, // Quantity may not be zero.
+                    'ORDER_REJECT_TOKEN_LIMIT': InsufficientFunds, // Your current token balance is not enough to back this order.
+                    'ORDER_REJECT_TOKEN_LIMIT_OTHER': InvalidOrder,
+                    'ORDER_REJECT_SELF_TRADE': InvalidOrder, // This order would have been involved in a self-trade.
+                    'ORDER_VALIDATE_BAD_SIZE_ALIGNMENT': InvalidOrder, // {"message":"size is not aligned to 0.0001 minimum increment","message_code":"ORDER_VALIDATE_BAD_SIZE_ALIGNMENT","message_details":{"minimum_size_increment":"0.0001"}}
+                    'ORDER_VALIDATE_BAD_TICK_ALIGNMENT': InvalidOrder, // {"message":"price is not aligned to 0.01 tick size","message_code":"ORDER_VALIDATE_BAD_TICK_ALIGNMENT","message_details":{"minimum_price_increment":{"s":1,"e":-2,"c":[1000000000000]}}}
                     'TRANSFERS_WITHDRAWAL_REQUEST_TOO_LARGE': InsufficientFunds, // {"message":"Withdrawal request too large. 0.000000000000000000 ETH available for withdrawal.","message_code":"TRANSFERS_WITHDRAWAL_REQUEST_TOO_LARGE","message_details":{"token_code":"ETH","amount":"0.010000000000000000","withdrawable_balance":"0.000000000000000000"}}
                     'WITHDRAWAL_REQUEST_NOT_ALLOWED': PermissionDenied, // {"message":"Withdrawal from CoinList not allowed for trader.","message_code":"WITHDRAWAL_REQUEST_NOT_ALLOWED","message_details":{"asset":"USDT","amount":"5","trader_id":"9c6f737e-a829-4843-87b1-b1ce86f2853b","destination_address":"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"}}
                 },
@@ -433,7 +450,6 @@ export default class coinlist extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    // todo: check
                     'amount': this.parseNumber (amountPrecision),
                     'price': this.parseNumber (pricePrecision),
                 },
@@ -1478,7 +1494,7 @@ export default class coinlist extends Exchange {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision (symbol, price).toString ();
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
@@ -1486,7 +1502,7 @@ export default class coinlist extends Exchange {
         }
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'trigger_price', 'stopPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice).toString ();
+            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'market') {
                 request['type'] = 'stop_market';
             } else if (type === 'limit') {
@@ -1546,7 +1562,7 @@ export default class coinlist extends Exchange {
             'size': this.amountToPrecision (symbol, amount),
         };
         if (price !== undefined) {
-            request['price'] = this.numberToString (this.priceToPrecision (symbol, price));
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePatchV1OrdersOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
@@ -1667,7 +1683,7 @@ export default class coinlist extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'average': average, // todo: check
+            'average': average, // todo: doesn't calculated in this.safeOrder()
             'amount': amount,
             'cost': undefined,
             'filled': filled,
@@ -1675,7 +1691,7 @@ export default class coinlist extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-            'postOnly': postOnly, // todo: check
+            'postOnly': postOnly, // todo: sets in false if not true
         }, market);
     }
 
