@@ -5962,17 +5962,17 @@ From `BaseError` there are derived two different families of the error hierarchy
 - `NetworkError`
 - `ExchangeError`
 
-Which collect multiple different specific exception subclasses, as explained below.
+They also have more specific sub-type exceptions, as explained below.
 
 ### NetworkError
 
 A `NetworkError` is mostly a temporary unavailability situation, that could be caused by any unexpected factor, including maintenance, internet connectivitiy issues, DDoS protections, and temporary bans. This error is a root of all exceptions sub-groups, that can reappear or disappear upon a later retry or upon a retry from a different location (without need to change parameters in the request). Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
-It has the following subclasses: 
+`NetworkError` has the following sub-types: `DDoSProtection`, `RequestTimeout`, `ExchangeNotAvailable`, `InvalidNonce`.
 
 #### DDoSProtection
 
-This exception is thrown in cases when cloud/hosting services (Cloudflare, Incapsula or etc..) limits reqeusts from user/region/location or when the exchange API restricts user because of making too frequent requests.
+This exception is thrown in cases when cloud/hosting services (Cloudflare, Incapsula or etc..) limits reqeusts from user/region/location or when the exchange API restricts user because of making abnormal requests. This exception also contains specific sub-type exception `RateLimitExceeded`, which directly means that user makes much frequent requests than tolerated by exchange API engine.
 
 #### RequestTimeout
 
@@ -6001,28 +6001,6 @@ This type of exception is thrown when the underlying exchange is unreachable. Th
   - `maintenance`
   - `maintenancing`
 
-### ExchangeError
-
-In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, it will not help, because the request is being made incorrectly (The only exclusion is its subclass type `OperationFailed` which can be retried to make the request successfull).
-
-This exception is thrown when an exchange server replies with an error in JSON. Possible reasons:
-
-  - endpoint is switched off by the exchange
-  - symbol not found on the exchange
-  - required parameter is missing
-  - the format of parameters is incorrect
-  - an exchange replies with an unclear answer
-
-Other exceptions derived from `ExchangeError`:
-
-  - `NotSupported`: This exception is raised if the endpoint is not offered/not supported by the exchange API.
-  - `AuthenticationError`: Raised when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password`.
-  - `PermissionDenied`: Raised when there's no access for specified action or insufficient permissions on the specified `apiKey`.
-  - `InsufficientFunds`: This exception is raised when you don't have enough currency on your account balance to place an order.
-  - `InvalidAddress`: This exception is raised upon encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
-  - `InvalidOrder`: This exception is the base class for all exceptions related to the unified order API.
-  - `OrderNotFound`: Raised when you are trying to fetch or cancel a non-existent order.
-
 #### InvalidNonce
 
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
@@ -6031,6 +6009,30 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
   - Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
   - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
+
+
+### ExchangeError
+
+In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly (The only exclusion is its sub-type `OperationFailed`, which can be retried to make the request successfull).
+
+Possible reasons for this exception:
+
+  - endpoint is switched off by the exchange
+  - symbol not found on the exchange
+  - required parameter is missing
+  - the format of parameters is incorrect
+  - some problem happening on user-side that needs to be fixed
+
+`ExchangeError` has the following sub-type exceptions:
+
+  - `NotSupported`: when the endpoint/operation is not offered or supported by the exchange API.
+  - `BadRequest`: when user sends parameter(s) that is not compatible to the endpoint (i.e. invalid number, invalid parameter name, bad symbol, etc...). However, it also includes sub-type exception `OperationRejected` which means that request is technically correctly sent, but in your account (or on exchange) there might be happening something another issue that interferes your request to get succeeded. So, at first you might need to make another action or solve the mentioned, after that, your request might succeed.
+  - `AuthenticationError`: when an exchange requires one of the API credentials that you've missed to specify, or when there's a mistake in the keypair or an outdated nonce. Most of the time you need `apiKey` and `secret`, sometimes you also need `uid` and/or `password` if exchange API requires it.
+  - `PermissionDenied`: when there's no access for specified action or insufficient permissions on the specified `apiKey`.
+  - `InsufficientFunds`: when you don't have enough currency on your account balance to place an order.
+  - `InvalidAddress`: when encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
+  - `InvalidOrder`: the base class for all exceptions related to the unified order API.
+  - `OrderNotFound`: when you are trying to fetch or cancel a non-existent order.
 
 # Troubleshooting
 
@@ -6047,14 +6049,15 @@ In case you experience any difficulty connecting to a particular exchange, do th
   ```php
   echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
   ```
-- Check the [Issues](https://github.com/ccxt/ccxt/issues) for recent updates.
-- Make sure you have [rate-limiter enabled with `enableRateLimit: true`](#rate-limit) (either the built-in rate-limiter or your own custom rate-limiter).
+- Check the [Issues](https://github.com/ccxt/ccxt/issues) or [Announcements](https://discord.com/channels/690203284119617602/1057748769690619984) for recent updates.
+- Make sure you have not turned off [rate-limiter with `enableRateLimit: false`](#rate-limit) (If anyone has custom rate-limit solution built, ensure it does not misbehave).
+- If you use ccxt's proxy functionality, ensure it does not misbehave.
 - Turn `verbose = true` to get more detail about it!
-  ```python
-  import ccxt
+  ```
   exchange = ccxt.binance()
   exchange.load_markets()
-  exchange.verbose = True  # enable verbose mode after loading the markets
+  exchange.verbose = True  # for less noise, you can set that after `load_markets`, but if the error happens during `load_markets` then place this line before it
+  # ... your codes here ...
   ```
   Your [code to reproduce the issue + verbose output is required](https://github.com/ccxt/ccxt/wiki/FAQ#what-is-required-to-get-help) in order to get help.
 - Python people can turn on DEBUG logging level with a standard pythonic logger, by adding these two lines to the beginning of their code:
@@ -6075,7 +6078,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
 - Check if there were any news from the exchange recently regarding downtime for maintenance. Some exchanges go offline for updates regularly (like once a week).
 - Make sure that your system time in sync with the rest of the world's clocks since otherwise you may get invalid nonce errors.
 
-## Notes
+Further notes: 
 
 - Use the `verbose = true` option or instantiate your troublesome exchange with `new ccxt.exchange ({ 'verbose': true })` to see the HTTP requests and responses in details. The verbose output will also be of use for us to debug it if you submit an issue on GitHub.
 - Use DEBUG logging in Python!
