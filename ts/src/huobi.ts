@@ -8364,7 +8364,7 @@ export default class huobi extends Exchange {
         //
         const marketId = this.safeString (liquidation, 'contract_code');
         const timestamp = this.safeInteger (liquidation, 'created_at');
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.safeNumber (liquidation, 'volume'),
@@ -8374,6 +8374,6 @@ export default class huobi extends Exchange {
             'quoteValue': this.safeNumber (liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 }
