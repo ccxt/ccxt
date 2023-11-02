@@ -281,7 +281,6 @@ export default class phemex extends Exchange {
             'exceptions': {
                 'exact': {
                     // not documented
-                    '401': AuthenticationError, // {"code":"401","msg":"401 Failed to load API KEY."}
                     '412': BadRequest,
                     '6001': BadRequest,
                     // documented
