@@ -784,8 +784,15 @@ class testMainClass(baseMainTestClass):
         res = ''
         for i in range(0, len(urlParts)):
             if i > 2:
+                current = urlParts[i]
+                if current.find('?') > -1:
+                    # handle urls like self: /v1/account/accounts?AccessK
+                    currentParts = current.split('?')
+                    res += '/'
+                    res += currentParts[0]
+                    break
                 res += '/'
-                res += urlParts[i]
+                res += current
         return res
 
     def urlencoded_to_dict(self, url: str):
@@ -799,20 +806,7 @@ class testMainClass(baseMainTestClass):
             result[key] = value
         return result
 
-    def assert_static_output(self, exchange, type: str, skipKeys: List[str], storedUrl: str, requestUrl: str, storedOutput, newOutput):
-        if storedUrl != requestUrl:
-            # remove the host part from the url
-            firstPath = self.remove_hostnamefrom_url(storedUrl)
-            secondPath = self.remove_hostnamefrom_url(requestUrl)
-            self.assert_static_error(firstPath == secondPath, 'url mismatch', firstPath, secondPath)
-        if type == 'json':
-            if isinstance(storedOutput, str):
-                storedOutput = json_parse(storedOutput)
-            if isinstance(newOutput, str):
-                newOutput = json_parse(newOutput)
-        elif type == 'urlencoded':
-            storedOutput = self.urlencoded_to_dict(storedOutput)
-            newOutput = self.urlencoded_to_dict(newOutput)
+    def assert_new_and_stored_output(self, exchange, skipKeys: List[str], newOutput: object, storedOutput: object):
         storedOutputKeys = list(storedOutput.keys())
         newOutputKeys = list(newOutput.keys())
         storedLenght = len(storedOutputKeys)
@@ -826,15 +820,53 @@ class testMainClass(baseMainTestClass):
                 self.assert_static_error(False, 'output key missing: ' + key, storedOutput, newOutput)
             storedValue = storedOutput[key]
             newValue = newOutput[key]
+            if isinstance(storedValue, dict):
+                if isinstance(newValue, dict):
+                    # recursive objects
+                    return self.assert_new_and_stored_output(exchange, skipKeys, newValue, storedValue)
             messageError = 'output value mismatch for: ' + key + ' : ' + str(storedValue) + ' != ' + str(newValue)
             self.assert_static_error(storedValue == newValue, messageError, storedOutput, newOutput)
+
+    def assert_static_output(self, exchange, type: str, skipKeys: List[str], storedUrl: str, requestUrl: str, storedOutput, newOutput):
+        if storedUrl != requestUrl:
+            # remove the host part from the url
+            firstPath = self.remove_hostnamefrom_url(storedUrl)
+            secondPath = self.remove_hostnamefrom_url(requestUrl)
+            self.assert_static_error(firstPath == secondPath, 'url mismatch', firstPath, secondPath)
+        # body(aka storedOutput and newOutput) is not defined and information is in the url
+        # example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if (storedOutput is None) and (newOutput is None):
+            if (storedUrl is not None) and (requestUrl is not None):
+                storedUrlParts = storedUrl.split('?')
+                newUrlParts = requestUrl.split('?')
+                storedUrlParams = self.urlencoded_to_dict(storedUrlParts[1])
+                newUrlParams = self.urlencoded_to_dict(newUrlParts[1])
+                self.assert_new_and_stored_output(exchange, skipKeys, newUrlParams, storedUrlParams)
+                return
+        # body is defined
+        if type == 'json':
+            if isinstance(storedOutput, str):
+                storedOutput = json_parse(storedOutput)
+            if isinstance(newOutput, str):
+                newOutput = json_parse(newOutput)
+        elif type == 'urlencoded':
+            storedOutput = self.urlencoded_to_dict(storedOutput)
+            newOutput = self.urlencoded_to_dict(newOutput)
+        if isinstance(storedOutput, list):
+            if not isinstance(newOutput, list):
+                self.assert_static_error(False, 'output type mismatch', storedOutput, newOutput)
+            for i in range(0, len(storedOutput)):
+                storedItem = storedOutput[i]
+                newItem = newOutput[i]
+                self.assert_new_and_stored_output(exchange, skipKeys, newItem, storedItem)
+        else:
+            self.assert_new_and_stored_output(exchange, skipKeys, newOutput, storedOutput)
 
     async def test_method_statically(self, exchange, method: str, data: object, type: str, skipKeys: List[str]):
         output = None
         requestUrl = None
         try:
-            inputArgs = list(data['input'].values())
-            await call_exchange_method_dynamically(exchange, method, inputArgs)
+            await call_exchange_method_dynamically(exchange, method, data['input'])
         except Exception as e:
             if not (isinstance(e, NetworkError)):
                 # if it's not a network error, it means our request was not created succesfully
@@ -843,16 +875,17 @@ class testMainClass(baseMainTestClass):
             output = exchange.last_request_body
             requestUrl = exchange.last_request_url
         try:
-            self.assert_static_output(exchange, type, skipKeys, data['url'], requestUrl, data['output'], output)
+            callOutput = exchange.safe_value(data, 'output')
+            self.assert_static_output(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output)
         except Exception as e:
             self.staticTestsFailed = True
-            errorMessage = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e
+            errorMessage = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump(errorMessage)
 
     async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
         markets = self.load_markets_from_file(exchangeName)
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
-        exchange = init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+        exchange = init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
         methods = exchange.safe_value(exchangeData, 'methods', {})
         methodsNames = list(methods.keys())
         for i in range(0, len(methodsNames)):

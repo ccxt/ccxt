@@ -278,6 +278,7 @@ class phemex extends phemex$1 {
             'exceptions': {
                 'exact': {
                     // not documented
+                    '401': errors.AuthenticationError,
                     '412': errors.BadRequest,
                     '6001': errors.BadRequest,
                     // documented

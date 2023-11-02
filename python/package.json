@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.1.35",
+  "version": "4.1.36",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -36,7 +36,7 @@
     "pre-transpile-pr": "npm run export-exchanges && npm run tsBuild && npm run emitAPI && npm run check-js-syntax",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test-ws": "npm run build && node run-tests-ws",
-    "test": "npm run build && npm run commonjs-test && node run-tests",
+    "test": "npm run build && npm run commonjs-test && npm run static-tests && node run-tests",
     "fast-test": "npm run commonjs-test && node run-tests --js",
     "commonjs-test": "node test-commonjs.cjs",
     "fast-test-ws": "node run-tests-ws --js",
@@ -99,7 +99,11 @@
     "copy-python-keys": "node build/copy keys.json python/keys.json",
     "copy-python-readme": "node build/copy README.md python/README.md",
     "postinstall": "node postinstall.js",
-    "validate-types": "node --loader ts-node/esm build/validate-return-type.ts"
+    "validate-types": "node --loader ts-node/esm build/validate-return-type.ts",
+    "static-js": "node js/src/test/test.js --static",
+    "static-py": "python python/ccxt/test/test_async.py --static",
+    "static-php": "php php/test/test_async.php --static",
+    "static-tests": "npm run static-js && npm run static-py && npm run static-php"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {

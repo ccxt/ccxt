@@ -825,6 +825,7 @@ export default class bitget extends Exchange {
                     '40017': ExchangeError,
                     '40018': PermissionDenied,
                     '40019': BadRequest,
+                    '40037': AuthenticationError,
                     '40102': BadRequest,
                     '40103': BadRequest,
                     '40104': ExchangeError,
