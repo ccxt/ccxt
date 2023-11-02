@@ -1027,7 +1027,9 @@ export default class kuna extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseOrder (data, market);
+        const order = this.parseOrder (data, market);
+        order['id'] = id;
+        return order;
     }
 
     async cancelOrders (ids: string[], symbol: string = undefined, params = {}) {
@@ -1061,8 +1063,10 @@ export default class kuna extends Exchange {
     }
 
     parseOrderStatus (status) {
-        // TODO
         const statuses = {
+            'Closed': 'filled',
+            'Pending': 'open',
+            'Open': 'open',
             'done': 'closed',
             'wait': 'open',
             'cancel': 'canceled',
