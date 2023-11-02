@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.34'
+__version__ = '4.1.36'
 
 # -----------------------------------------------------------------------------
 
@@ -298,14 +298,6 @@ class Exchange(BaseExchange):
         return await asyncio.sleep(milliseconds / 1000)
 
     async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
         try:
             await method(*args)
         except Exception:
@@ -1958,6 +1950,8 @@ class Exchange(BaseExchange):
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
+        self.last_request_body = request['body']
+        self.last_request_url = request['url']
         return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     async def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
@@ -2691,6 +2685,10 @@ class Exchange(BaseExchange):
 
     def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
+
+    def filter_by_symbols_since_limit(self, array, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        result = self.filter_by_array(array, 'symbol', symbols, False)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #

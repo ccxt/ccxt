@@ -339,7 +339,8 @@ class bingx extends bingx$1 {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
-                'recvWindow': 5 * 1000, // 5 sec
+                'recvWindow': 5 * 1000,
+                'broker': 'CCXT',
             },
         });
     }
@@ -3113,7 +3114,7 @@ class bingx extends bingx$1 {
             query += 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
-                'X-SOURCE-KEY': 'CCXT',
+                'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),
             };
             url += query;
         }

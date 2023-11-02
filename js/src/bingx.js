@@ -342,7 +342,8 @@ export default class bingx extends Exchange {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
-                'recvWindow': 5 * 1000, // 5 sec
+                'recvWindow': 5 * 1000,
+                'broker': 'CCXT',
             },
         });
     }
@@ -3116,7 +3117,7 @@ export default class bingx extends Exchange {
             query += 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
-                'X-SOURCE-KEY': 'CCXT',
+                'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),
             };
             url += query;
         }

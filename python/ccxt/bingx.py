@@ -359,6 +359,7 @@ class bingx(Exchange, ImplicitAPI):
                     'SFUTURES': 'future',
                 },
                 'recvWindow': 5 * 1000,  # 5 sec
+                'broker': 'CCXT',
             },
         })
 
@@ -2951,7 +2952,7 @@ class bingx(Exchange, ImplicitAPI):
             query += 'signature=' + signature
             headers = {
                 'X-BX-APIKEY': self.apiKey,
-                'X-SOURCE-KEY': 'CCXT',
+                'X-SOURCE-KEY': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             url += query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

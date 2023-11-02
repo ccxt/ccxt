@@ -26,6 +26,7 @@ use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
+use ccxt\pro\ClientTrait;
 use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
@@ -33,25 +34,24 @@ use ccxt\InvalidOrder;
 use ccxt\BadResponse;
 use ccxt\BadRequest;
 use React\Promise;
+
 use React;
 use React\Async;
 use React\EventLoop\Loop;
 
 use Exception;
 
-include 'Throttle.php';
-
-$version = '4.1.34';
+$version = '4.1.36';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.34';
+    const VERSION = '4.1.36';
 
     public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
     public $tokenBucket;
-    public $throttler;
+    public Throttler $throttler;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -62,7 +62,7 @@ class Exchange extends \ccxt\Exchange {
 
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
 
-    use \ccxt\pro\ClientTrait;
+    use ClientTrait;
 
     public function __construct($options = array()) {
         parent::__construct($options);
@@ -75,11 +75,6 @@ class Exchange extends \ccxt\Exchange {
             'timeout' => $this->timeout,
         ), $connector_options), Loop::get());
         $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
-    }
-
-    public static function execute_and_run($closure) {
-        $promise = Async\coroutine($closure);
-        Async\await($promise);
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -140,7 +135,7 @@ class Exchange extends \ccxt\Exchange {
                 } else if (strpos($message, 'DNS query') !== false) {
                     throw new ccxt\NetworkError($message);
                 } else {
-                    throw new ccxt\ExchangeError($message);
+                    throw new ccxt\NetworkError($message);
                 }
             }
 
@@ -2085,6 +2080,8 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
             $this->last_request_headers = $request['headers'];
+            $this->last_request_body = $request['body'];
+            $this->last_request_url = $request['url'];
             return Async\await($this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']));
         }) ();
     }
@@ -3082,6 +3079,11 @@ class Exchange extends \ccxt\Exchange {
 
     public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    }
+
+    public function filter_by_symbols_since_limit($array, ?array $symbols = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        $result = $this->filter_by_array($array, 'symbol', $symbols, false);
+        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp', $tail);
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {

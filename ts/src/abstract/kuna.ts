@@ -44,9 +44,11 @@ interface Exchange {
     v4PublicGetTimestamp (params?: {}): Promise<implicitReturnType>;
     v4PublicGetFees (params?: {}): Promise<implicitReturnType>;
     v4PublicGetCurrenciesTypeType (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetCurrencies (params?: {}): Promise<implicitReturnType>;
     v4PublicGetMarketsGetAll (params?: {}): Promise<implicitReturnType>;
     v4PublicGetMarketsTickersPairsPairs (params?: {}): Promise<implicitReturnType>;
     v4PublicGetOrderBookPairs (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetTradeBookPairs (params?: {}): Promise<implicitReturnType>;
     v3PublicGetTimestamp (params?: {}): Promise<implicitReturnType>;
     v3PublicGetCurrencies (params?: {}): Promise<implicitReturnType>;
     v3PublicGetMarkets (params?: {}): Promise<implicitReturnType>;

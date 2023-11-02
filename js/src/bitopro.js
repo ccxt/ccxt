@@ -123,6 +123,7 @@ export default class bitopro extends Exchange {
                         'provisioning/trading-pairs': 1,
                         'provisioning/limitations-and-fees': 1,
                         'trading-history/{pair}': 1,
+                        'price/otc/{currency}': 1,
                     },
                 },
                 'private': {

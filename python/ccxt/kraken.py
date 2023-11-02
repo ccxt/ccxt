@@ -1186,27 +1186,34 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(balances, currencyId, {})
             account = self.account()
-            account['total'] = self.safe_string(balances, currencyId)
+            account['used'] = self.safe_string(balance, 'hold_trade')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getAccountBalance
+        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
-        response = self.privatePostBalance(params)
+        response = self.privatePostBalanceEx(params)
         #
         #     {
-        #         "error":[],
-        #         "result":{
-        #             "ZUSD":"58.8649",
-        #             "KFEE":"4399.43",
-        #             "XXBT":"0.0000034506",
+        #         "error": [],
+        #         "result": {
+        #             "ZUSD": {
+        #                 "balance": 25435.21,
+        #                 "hold_trade": 8249.76
+        #             },
+        #             "XXBT": {
+        #                 "balance": 1.2435,
+        #                 "hold_trade": 0.8423
+        #             }
         #         }
         #     }
         #

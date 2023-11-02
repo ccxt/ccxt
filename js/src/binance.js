@@ -724,6 +724,7 @@ export default class binance extends Exchange {
                         'topLongShortPositionRatio': 1,
                         'globalLongShortAccountRatio': 1,
                         'takerlongshortRatio': 1,
+                        'basis': 1,
                     },
                 },
                 'fapiPrivate': {

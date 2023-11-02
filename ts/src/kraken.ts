@@ -1242,8 +1242,10 @@ export default class kraken extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['total'] = this.safeString (balances, currencyId);
+            account['used'] = this.safeString (balance, 'hold_trade');
+            account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1254,19 +1256,24 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getAccountBalance
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await this.privatePostBalanceEx (params);
         //
         //     {
-        //         "error":[],
-        //         "result":{
-        //             "ZUSD":"58.8649",
-        //             "KFEE":"4399.43",
-        //             "XXBT":"0.0000034506",
+        //         "error": [],
+        //         "result": {
+        //             "ZUSD": {
+        //                 "balance": 25435.21,
+        //                 "hold_trade": 8249.76
+        //             },
+        //             "XXBT": {
+        //                 "balance": 1.2435,
+        //                 "hold_trade": 0.8423
+        //             }
         //         }
         //     }
         //

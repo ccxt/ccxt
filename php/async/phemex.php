@@ -284,6 +284,7 @@ class phemex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // not documented
+                    '401' => '\\ccxt\\AuthenticationError', // array("code":"401","msg":"401 Failed to load API KEY.")
                     '412' => '\\ccxt\\BadRequest', // array("code":412,"msg":"Missing parameter - resolution","data":null)
                     '6001' => '\\ccxt\\BadRequest', // array("error":array("code":6001,"message":"invalid argument"),"id":null,"result":null)
                     // documented
