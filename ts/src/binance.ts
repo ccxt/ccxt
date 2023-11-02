@@ -1608,7 +1608,7 @@ export default class binance extends Exchange {
                         '-4004': BadRequest, // QTY_LESS_THAN_MIN_QTY
                         '-4005': BadRequest, // QTY_GREATER_THAN_MAX_QTY
                         '-4013': BadRequest, // PRICE_LESS_THAN_MIN_PRICE
-                        '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                        '-4029': BadRequest, // INVALID TICK SIZE PRECISION
                         '-4030': BadRequest, // INVALID_QTY_PRECISION
                         '-4055': BadRequest, // AMOUNT_MUST_BE_POSITIVE
                     },
@@ -1815,7 +1815,7 @@ export default class binance extends Exchange {
                         '-4026': BadRequest, // COMMISSION_INVALID
                         '-4027': BadRequest, // INVALID_ACCOUNT_TYPE
                         '-4028': BadRequest, // INVALID_LEVERAGE
-                        '-4029': BadRequest, // INVALID_TICK_SIZE_PRECISION
+                        '-4029': BadRequest, // INVALID TICK SIZE PRECISION
                         '-4030': BadRequest, // INVALID_STEP_SIZE_PRECISION
                         '-4031': BadRequest, // INVALID_WORKING_TYPE
                         '-4032': OperationRejected, // Exceed maximum cancel order size. | Invalid parameter working type: %s
