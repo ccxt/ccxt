@@ -334,6 +334,8 @@ class Exchange {
     public $last_json_response = null;
     public $last_response_headers = null;
     public $last_request_headers = null;
+    public $last_request_body = null;
+    public $last_request_url = null;
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
@@ -3914,6 +3916,8 @@ class Exchange {
         $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
         $this->last_request_headers = $request['headers'];
+        $this->last_request_body = $request['body'];
+        $this->last_request_url = $request['url'];
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 

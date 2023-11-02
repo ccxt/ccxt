@@ -392,6 +392,8 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+    last_request_body = None
+    last_request_url = None
 
     requiresEddsa = False
     base58_encoder = None
@@ -3157,6 +3159,8 @@ class Exchange(object):
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
+        self.last_request_body = request['body']
+        self.last_request_url = request['url']
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):

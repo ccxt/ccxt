@@ -25,6 +25,7 @@ import ccxt  # noqa: E402
 
 
 class Argv(object):
+    staticTests = False
 
     sandbox = False
     privateOnly = False
@@ -45,6 +46,7 @@ parser.add_argument('--privateOnly', action='store_true', help='run private test
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
+parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -129,8 +131,16 @@ def io_file_read(path, decode=True):
         return content
 
 
+def io_dir_read(path):
+    return os.listdir(path)
+
+
 def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
+
+
+def call_exchange_method_dynamically(exchange, methodName, args):
+    return getattr(exchange, methodName)(*args)
 
 
 def exception_message(exc):
@@ -184,6 +194,8 @@ def close(exchange):
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
+import json
+from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
@@ -196,6 +208,7 @@ from ccxt.base.errors import AuthenticationError
 class testMainClass(baseMainTestClass):
 
     def parse_cli_args(self):
+        self.staticTests = get_cli_arg_value('--static')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -205,6 +218,8 @@ class testMainClass(baseMainTestClass):
 
     def init(self, exchangeId, symbol):
         self.parse_cli_args()
+        if self.staticTests:
+            return self.run_static_tests()
         symbolStr = symbol is not symbol if None else 'all'
         dump('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
         exchangeArgs = {
@@ -722,6 +737,111 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             close(exchange)
             raise e
+    #----------------------------------------------------------------------------------------------------
+    # --- Init of static tests functions-----------------------------------------------------------------
+
+    def assert_static_error(self, cond: bool, message: str, calculatedOutput, storedOutput):
+        calculatedString = json.dumps(calculatedOutput)
+        outputString = json.dumps(storedOutput)
+        errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString
+        assert cond, errorMessage
+
+    def load_markets_from_file(self, id: str):
+        # load markets from file
+        # to make self test
+        # and basically independent from the exchange
+        # so we can run it offline
+        filename = './ts/src/test/static/markets/' + id + '.json'
+        content = io_file_read(filename)
+        return content
+
+    def load_static_data(self):
+        folder = './ts/src/test/static/data/'
+        files = io_dir_read(folder)
+        result = {}
+        for i in range(0, len(files)):
+            file = files[i]
+            exchangeName = file.replace('.json', '')
+            content = io_file_read(folder + file)
+            result[exchangeName] = content
+        return result
+
+    def remove_hostnamefrom_url(self, url: str):
+        urlParts = url.split('/')
+        return '/'.join(urlParts[3:])
+
+    def assert_static_output(self, type: str, skipKeys: List[str], storedUrl: str, requestUrl: str, storedOutput, newOutput):
+        if storedUrl != requestUrl:
+            # remove the host part from the url
+            firstPath = self.remove_hostnamefrom_url(storedUrl)
+            secondPath = self.remove_hostnamefrom_url(requestUrl)
+            self.assert_static_error(firstPath == secondPath, 'url mismatch', firstPath, secondPath)
+        if type == 'json':
+            if isinstance(storedOutput, str):
+                storedOutput = json.loads(storedOutput)
+            if isinstance(newOutput, str):
+                newOutput = json.loads(newOutput)
+            storedOutputKeys = list(storedOutput.keys())
+            newOutputKeys = list(newOutput.keys())
+            self.assert_static_error(len(storedOutputKeys) == len(newOutputKeys), 'output length mismatch', storedOutput, newOutput)
+            for i in range(0, len(storedOutputKeys)):
+                key = storedOutputKeys[i]
+                if skipKeys.includes(key):
+                    continue
+                if not newOutputKeys.includes(key):
+                    self.assert_static_error(False, 'output key mismatch', storedOutput, newOutput)
+                storedValue = storedOutput[key]
+                newValue = newOutput[key]
+                self.assert_static_error(storedValue == newValue, 'output value mismatch', storedOutput, newOutput)
+
+    def test_method_statically(self, exchange, method: str, data: object, type: str, skipKeys: List[str]):
+        output = None
+        requestUrl = None
+        try:
+            inputArgs = list(data['input'].values())
+            _res = call_exchange_method_dynamically(exchange, method, inputArgs)
+        except Exception as e:
+            output = exchange.last_request_body
+            requestUrl = exchange.last_request_url
+        self.assert_static_output(type, skipKeys, data['url'], requestUrl, data['output'], output)
+
+    def test_exchange_statically(self, exchangeName: str, exchangeData: object):
+        markets = self.load_markets_from_file(exchangeName)
+        # instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        exchange = init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secret', 'password': 'password', 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+        methods = exchange.safe_value(exchangeData, 'methods')
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                type = exchange.safe_string(exchangeData, 'outputType')
+                skipKeys = exchange.safe_value(exchangeData, 'skipKeys', [])
+                self.test_method_statically(exchange, method, result, type, skipKeys)
+
+    def get_number_of_tests_from_exchange(self, exchangeData: object):
+        count = 0
+        methods = exchangeData['methods']
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            count += len(results)
+        return count
+
+    def run_static_tests(self):
+        staticData = self.load_static_data()
+        exchanges = list(staticData.keys())
+        promises = []
+        count = 0
+        for i in range(0, len(exchanges)):
+            exchangeName = exchanges[i]
+            exchangeData = staticData[exchangeName]
+            count += self.get_number_of_tests_from_exchange(exchangeData)
+            promises.append(self.test_exchange_statically(exchangeName, exchangeData))
+        (promises)
+        dump('[TEST_SUCCESS]', str(count), 'static tests passed')
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

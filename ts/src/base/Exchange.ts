@@ -257,6 +257,9 @@ export default class Exchange {
     last_json_response    = undefined
     last_response_headers = undefined
     last_request_headers  = undefined
+    last_request_body     = undefined
+    last_request_url      = undefined
+    last_request_path     = undefined
 
     id: string = undefined
 
@@ -706,6 +709,9 @@ export default class Exchange {
         this.last_json_response    = undefined
         this.last_response_headers = undefined
         this.last_request_headers  = undefined
+        this.last_request_body     = undefined
+        this.last_request_url      = undefined
+        this.last_request_path     = undefined
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -877,7 +883,6 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-
 
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
@@ -3167,6 +3172,8 @@ export default class Exchange {
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
 

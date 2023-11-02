@@ -29,6 +29,7 @@ $exchangeSymbol = null; // todo: this should be different than JS
 // non-transpiled part, but shared names among langs
 
 class baseMainTestClass {
+    public $lang = 'PHP';
     public $testFiles = [];
     public $skippedMethods = [];
     public $checkedPublicTests = [];
@@ -39,6 +40,8 @@ class baseMainTestClass {
     public $privateTest = false;
     public $privateTestOnly = false;
     public $sandbox = false;
+    public $staticTests = false;
+    public $staticTestsFailed = false;
 }
 
 define ('is_synchronous', stripos(__FILE__, '_async') === false);
@@ -57,6 +60,14 @@ function dump(...$s) {
         }
     }, func_get_args());
     echo implode(' ', $args) . "\n";
+}
+
+function json_parse($s) {
+    return json_decode($s, true);
+}
+
+function json_stringify($s) {
+    return json_encode($s);
 }
 
 function get_cli_arg_value ($arg) {
@@ -78,8 +89,25 @@ function io_file_read($path, $decode = true) {
     return $decode ? json_decode($content, true) : $content;
 }
 
+function io_dir_read($path) {
+    $files = scandir($path);
+    $cleanFiles = array();
+
+    foreach ($files as $file) {
+        if ($file !== '.' && $file !== '..') {
+            $cleanFiles[] = $file;
+        }
+    }
+
+    return $cleanFiles;
+}
+
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
     return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
+}
+
+function call_exchange_method_dynamically($exchange, $methodName, $args) {
+    return $exchange->{$methodName}(... $args);
 }
 
 function exception_message($exc) {
@@ -108,8 +136,8 @@ function exception_message($exc) {
 }
 
 
-function exit_script() {
-    exit(0);
+function exit_script($code = 0) {
+    exit($code);
 }
 
 function get_exchange_prop ($exchange, $prop, $defaultValue = null) {
@@ -171,6 +199,7 @@ use ccxt\AuthenticationError;
 class testMainClass extends baseMainTestClass {
 
     public function parse_cli_args() {
+        $this->staticTests = get_cli_arg_value ('--static');
         $this->info = get_cli_arg_value ('--info');
         $this->verbose = get_cli_arg_value ('--verbose');
         $this->debug = get_cli_arg_value ('--debug');
@@ -182,6 +211,9 @@ class testMainClass extends baseMainTestClass {
     public function init($exchangeId, $symbol) {
         return Async\async(function () use ($exchangeId, $symbol) {
             $this->parse_cli_args();
+            if ($this->staticTests) {
+                return Async\await($this->run_static_tests());
+            }
             $symbolStr = $symbol !== null ? $symbol : 'all';
             dump ('\nTESTING ', ext, array( 'exchange' => $exchangeId, 'symbol' => $symbolStr ), '\n');
             $exchangeArgs = array(
@@ -805,6 +837,190 @@ class testMainClass extends baseMainTestClass {
             } catch (Exception $e) {
                 Async\await(close ($exchange));
                 throw $e;
+            }
+        }) ();
+    }
+
+    public function assert_static_error(bool $cond, string $message, $calculatedOutput, $storedOutput) {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        $calculatedString = json_stringify ($calculatedOutput);
+        $outputString = json_stringify ($storedOutput);
+        $errorMessage = $message . ' expected ' . $outputString . ' received => ' . $calculatedString;
+        assert ($cond, $errorMessage);
+    }
+
+    public function load_markets_from_file(string $id) {
+        // load markets from file
+        // to make this test
+        // and basically independent from the exchange
+        // so we can run it offline
+        $filename = './ts/src/test/static/markets/' . $id . '.json';
+        $content = io_file_read ($filename);
+        return $content;
+    }
+
+    public function load_static_data() {
+        $folder = './ts/src/test/static/data/';
+        $files = io_dir_read ($folder);
+        $result = array();
+        for ($i = 0; $i < count($files); $i++) {
+            $file = $files[$i];
+            $exchangeName = str_replace('.json', '', $file);
+            $content = io_file_read ($folder . $file);
+            $result[$exchangeName] = $content;
+        }
+        return $result;
+    }
+
+    public function remove_hostnamefrom_url(string $url) {
+        if ($url === null) {
+            return null;
+        }
+        $urlParts = explode('/', $url);
+        $res = '';
+        for ($i = 0; $i < count($urlParts); $i++) {
+            if ($i > 2) {
+                $res .= '/';
+                $res .= $urlParts[$i];
+            }
+        }
+        return $res;
+    }
+
+    public function urlencoded_to_dict(string $url) {
+        $result = array();
+        $parts = explode('&', $url);
+        for ($i = 0; $i < count($parts); $i++) {
+            $part = $parts[$i];
+            $keyValue = explode('=', $part);
+            $key = $keyValue[0];
+            $value = $keyValue[1];
+            $result[$key] = $value;
+        }
+        return $result;
+    }
+
+    public function assert_static_output($exchange, string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
+        if ($storedUrl !== $requestUrl) {
+            // remove the host part from the url
+            $firstPath = $this->remove_hostnamefrom_url($storedUrl);
+            $secondPath = $this->remove_hostnamefrom_url($requestUrl);
+            $this->assert_static_error($firstPath === $secondPath, 'url mismatch', $firstPath, $secondPath);
+        }
+        if ($type === 'json') {
+            if (gettype($storedOutput) === 'string') {
+                $storedOutput = json_parse ($storedOutput);
+            }
+            if (gettype($newOutput) === 'string') {
+                $newOutput = json_parse ($newOutput);
+            }
+        } elseif ($type === 'urlencoded') {
+            $storedOutput = $this->urlencoded_to_dict($storedOutput);
+            $newOutput = $this->urlencoded_to_dict($newOutput);
+        }
+        $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
+        $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
+        $storedLenght = count($storedOutputKeys);
+        $newLength = count($newOutputKeys);
+        $this->assert_static_error($storedLenght === $newLength, 'output length mismatch', $storedOutput, $newOutput);
+        for ($i = 0; $i < count($storedOutputKeys); $i++) {
+            $key = $storedOutputKeys[$i];
+            if ($exchange->in_array($key, $skipKeys)) {
+                continue;
+            }
+            if (!($exchange->in_array($key, $newOutputKeys))) {
+                $this->assert_static_error(false, 'output $key missing => ' . $key, $storedOutput, $newOutput);
+            }
+            $storedValue = $storedOutput[$key];
+            $newValue = $newOutput[$key];
+            $messageError = 'output value mismatch for => ' . $key . ' : ' . (string) $storedValue . ' != ' . (string) $newValue;
+            $this->assert_static_error($storedValue === $newValue, $messageError, $storedOutput, $newOutput);
+        }
+    }
+
+    public function test_method_statically($exchange, string $method, array $data, string $type, array $skipKeys) {
+        return Async\async(function () use ($exchange, $method, $data, $type, $skipKeys) {
+            $output = null;
+            $requestUrl = null;
+            try {
+                $inputArgs = is_array($data['input']) ? array_values($data['input']) : array();
+                Async\await(call_exchange_method_dynamically ($exchange, $method, $inputArgs));
+            } catch (Exception $e) {
+                if (!($e instanceof NetworkError)) {
+                    // if it's not a network error, it means our request was not created succesfully
+                    // so we might have an error in the request creation
+                    throw $e;
+                }
+                $output = $exchange->last_request_body;
+                $requestUrl = $exchange->last_request_url;
+            }
+            try {
+                $this->assert_static_output($exchange, $type, $skipKeys, $data['url'], $requestUrl, $data['output'], $output);
+            } catch (Exception $e) {
+                $this->staticTestsFailed = true;
+                $errorMessage = '[' . $this->lang . '][STATIC_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . $e;
+                dump ($errorMessage);
+            }
+        }) ();
+    }
+
+    public function test_exchange_statically(string $exchangeName, array $exchangeData) {
+        return Async\async(function () use ($exchangeName, $exchangeData) {
+            $markets = $this->load_markets_from_file($exchangeName);
+            // instantiate the $exchange and make sure that we sink the requests to avoid an actual request
+            $exchange = init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secret', 'password' => 'password', 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
+            $methods = $exchange->safe_value($exchangeData, 'methods', array());
+            $methodsNames = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($methodsNames); $i++) {
+                $method = $methodsNames[$i];
+                $results = $methods[$method];
+                for ($j = 0; $j < count($results); $j++) {
+                    $result = $results[$j];
+                    $type = $exchange->safe_string($exchangeData, 'outputType');
+                    $skipKeys = $exchange->safe_value($exchangeData, 'skipKeys', array());
+                    Async\await($this->test_method_statically($exchange, $method, $result, $type, $skipKeys));
+                }
+            }
+            Async\await(close ($exchange));
+        }) ();
+    }
+
+    public function get_number_of_tests_from_exchange($exchange, array $exchangeData) {
+        $sum = 0;
+        $methods = $exchangeData['methods'];
+        $methodsNames = is_array($methods) ? array_keys($methods) : array();
+        for ($i = 0; $i < count($methodsNames); $i++) {
+            $method = $methodsNames[$i];
+            $results = $methods[$method];
+            $resultsLength = count($results);
+            $sum = $exchange->sum ($sum, $resultsLength);
+        }
+        return $sum;
+    }
+
+    public function run_static_tests() {
+        return Async\async(function ()  {
+            $staticData = $this->load_static_data();
+            $exchanges = is_array($staticData) ? array_keys($staticData) : array();
+            $exchange = init_exchange ('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
+            $promises = array();
+            $sum = 0;
+            for ($i = 0; $i < count($exchanges); $i++) {
+                $exchangeName = $exchanges[$i];
+                $exchangeData = $staticData[$exchangeName];
+                $numberOfTests = $this->get_number_of_tests_from_exchange($exchange, $exchangeData);
+                $sum = $exchange->sum ($sum, $numberOfTests);
+                $promises[] = $this->test_exchange_statically($exchangeName, $exchangeData);
+            }
+            Async\await(Promise\all($promises));
+            if ($this->staticTestsFailed) {
+                exit_script (1);
+            } else {
+                $successMessage = '[' . $this->lang . '][TEST_SUCCESS] ' . (string) $sum . ' static tests passed.';
+                dump ($successMessage);
+                exit_script (0);
             }
         }) ();
     }

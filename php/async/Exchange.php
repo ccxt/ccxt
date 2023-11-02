@@ -135,7 +135,7 @@ class Exchange extends \ccxt\Exchange {
                 } else if (strpos($message, 'DNS query') !== false) {
                     throw new ccxt\NetworkError($message);
                 } else {
-                    throw new ccxt\ExchangeError($message);
+                    throw new ccxt\NetworkError($message);
                 }
             }
 
@@ -2080,6 +2080,8 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
             $this->last_request_headers = $request['headers'];
+            $this->last_request_body = $request['body'];
+            $this->last_request_url = $request['url'];
             return Async\await($this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']));
         }) ();
     }
