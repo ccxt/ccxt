@@ -5955,6 +5955,68 @@ class BaseError extends \Exception {}
 
 Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts
 
+```text
++ BaseError
+|
++---+ ExchangeError
+|   |
+|   +---+ AuthenticationError
+|   |   |
+|   |   +---+ PermissionDenied
+|   |   |
+|   |   +---+ AccountSuspended
+|   |
+|   +---+ ArgumentsRequired
+|   |
+|   +---+ BadRequest
+|   |   |
+|   |   +---+ BadSymbol
+|   |   |
+|   |   +---+ OperationRejected
+|   |
+|   +---+ OperationFailed
+|   |
+|   +---+ BadResponse
+|   |   |
+|   |   +---+ NullResponse
+|   |
+|   +---+ InsufficientFunds
+|   |
+|   +---+ InvalidAddress
+|   |   |
+|   |   +---+ AddressPending
+|   |
+|   +---+ InvalidOrder
+|   |   |
+|   |   +---+ OrderNotFound
+|   |   |
+|   |   +---+ OrderNotCached
+|   |   |
+|   |   +---+ CancelPending
+|   |   |
+|   |   +---+ OrderImmediatelyFillable
+|   |   |
+|   |   +---+ OrderNotFillable
+|   |   |
+|   |   +---+ DuplicateOrderId
+|   |
+|   +---+ NotSupported
+|
++---+ NetworkError (recoverable)
+    |
+    +---+ InvalidNonce
+    |
+    +---+ RequestTimeout
+    |
+    +---+ ExchangeNotAvailable
+    |   |
+    |   +---+ OnMaintenance
+    |
+    +---+ DDoSProtection
+        |
+        +---+ RateLimitExceeded
+```
+
 The `BaseError` class is a generic root error class for all sorts of errors, including accessibility and request/response mismatch. If you don't need to catch any specific subclass of exceptions, you can just use `BaseError`, where all exception types are being caught.
 
 From `BaseError` there are derived two different families of the error hierarchy:
