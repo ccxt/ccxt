@@ -177,6 +177,10 @@ async def main():
             args.append(json.loads(arg))
         elif arg == 'None':
             args.append(None)
+        elif re.match(r'^\'(.)+\'$', arg):
+            args.append(str(arg.replace('\'', '')))
+        elif re.match(r'^"(.)+"$', arg):
+            args.append(str(arg.replace('"', '')))
         elif re.match(r'^[0-9+-]+$', arg):
             args.append(int(arg))
         elif re.match(r'^[.eE0-9+-]+$', arg):
