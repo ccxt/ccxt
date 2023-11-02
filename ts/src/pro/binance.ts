@@ -2060,24 +2060,22 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        let messageHash = 'orders';
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
-            params = this.extend (params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
-        }
-        await this.authenticate (params);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
+        let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', undefined, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+            params = this.extend (params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
+        }
+        await this.authenticate (params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
