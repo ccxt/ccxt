@@ -537,7 +537,7 @@ export default class btcturk extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
         //        'timestamp': 1661990400,
