@@ -254,8 +254,8 @@ class ascendex(ccxt.async_support.ascendex):
         # unroll the accumulated deltas
         messages = orderbook.cache
         for i in range(0, len(messages)):
-            message = messages[i]
-            self.handle_order_book_message(client, message, orderbook)
+            messageItem = messages[i]
+            self.handle_order_book_message(client, messageItem, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
@@ -445,7 +445,7 @@ class ascendex(ccxt.async_support.ascendex):
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
+        :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for

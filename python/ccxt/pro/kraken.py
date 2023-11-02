@@ -125,7 +125,7 @@ class kraken(ccxt.async_support.kraken):
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         """
-        see https://docs.kraken.com/websockets/#message-addOrder
+        :see: https://docs.kraken.com/websockets/#message-addOrder
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -180,7 +180,7 @@ class kraken(ccxt.async_support.kraken):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         """
         edit a trade order
-        see https://docs.kraken.com/websockets/#message-editOrder
+        :see: https://docs.kraken.com/websockets/#message-editOrder
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -209,7 +209,7 @@ class kraken(ccxt.async_support.kraken):
 
     async def cancel_orders_ws(self, ids: List[str], symbol: Optional[str] = None, params={}):
         """
-        see https://docs.kraken.com/websockets/#message-cancelOrder
+        :see: https://docs.kraken.com/websockets/#message-cancelOrder
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
@@ -231,7 +231,7 @@ class kraken(ccxt.async_support.kraken):
 
     async def cancel_order_ws(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.kraken.com/websockets/#message-cancelOrder
+        :see: https://docs.kraken.com/websockets/#message-cancelOrder
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -267,7 +267,7 @@ class kraken(ccxt.async_support.kraken):
 
     async def cancel_all_orders_ws(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.kraken.com/websockets/#message-cancelAll
+        :see: https://docs.kraken.com/websockets/#message-cancelAll
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the kraken api endpoint
@@ -938,7 +938,7 @@ class kraken(ccxt.async_support.kraken):
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.kraken.com/websockets/#message-openOrders
+        :see: https://docs.kraken.com/websockets/#message-openOrders
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for

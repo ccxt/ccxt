@@ -225,6 +225,7 @@ class coinone extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $ticker,
             );
         }
@@ -306,7 +307,7 @@ class coinone extends Exchange {
             $result[$symbol] = $this->parse_ticker($ticker, $market);
             $result[$symbol]['timestamp'] = $timestamp;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
@@ -614,10 +615,19 @@ class coinone extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $baseId = $this->safe_string($order, 'baseCurrency');
         $quoteId = $this->safe_string($order, 'targetCurrency');
-        $base = $this->safe_currency_code($baseId, $market['base']);
-        $quote = $this->safe_currency_code($quoteId, $market['quote']);
-        $symbol = $base . '/' . $quote;
-        $market = $this->safe_market($symbol, $market, '/');
+        $base = null;
+        $quote = null;
+        if ($baseId !== null) {
+            $base = $this->safe_currency_code($baseId, $this->safe_string($market, 'base'));
+        }
+        if ($quoteId !== null) {
+            $quote = $this->safe_currency_code($quoteId, $this->safe_string($market, 'quote'));
+        }
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+            $market = $this->safe_market($symbol, $market, '/');
+        }
         $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'updatedAt');
         $side = $this->safe_string_2($order, 'type', 'side');
         if ($side === 'ask') {
@@ -872,7 +882,7 @@ class coinone extends Exchange {
             $payload = base64_encode($json);
             $body = $payload;
             $secret = strtoupper($this->secret);
-            $signature = $this->hmac($payload, $this->encode($secret), 'sha512');
+            $signature = $this->hmac($this->encode($payload), $this->encode($secret), 'sha512');
             $headers = array(
                 'Content-Type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,

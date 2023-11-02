@@ -530,6 +530,7 @@ class coinex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -627,6 +628,7 @@ class coinex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $entry,
             );
         }
@@ -866,7 +868,7 @@ class coinex extends Exchange {
             $ticker['symbol'] = $symbol;
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_time($params = array ()) {
@@ -883,7 +885,7 @@ class coinex extends Exchange {
         //         message => 'OK'
         //     }
         //
-        return $this->safe_number($response, 'data');
+        return $this->safe_integer($response, 'data');
     }
 
     public function fetch_order_book(string $symbol, $limit = 20, $params = array ()) {
@@ -1741,7 +1743,8 @@ class coinex extends Exchange {
         $remainingString = $this->safe_string($order, 'left');
         $marketId = $this->safe_string($order, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $orderType = (is_array($order) && array_key_exists('source', $order)) ? 'swap' : $defaultType;
+        $market = $this->safe_market($marketId, $market, null, $orderType);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($feeCurrency === null) {
@@ -3164,7 +3167,7 @@ class coinex extends Exchange {
         $liquidationPrice = $this->safe_string($position, 'liq_price');
         $entryPrice = $this->safe_string($position, 'open_price');
         $unrealizedPnl = $this->safe_string($position, 'profit_unreal');
-        $contractSize = $this->safe_string($position, 'amount');
+        $contracts = $this->safe_number($position, 'amount');
         $sideInteger = $this->safe_integer($position, 'side');
         $side = ($sideInteger === 1) ? 'short' : 'long';
         $timestamp = $this->safe_timestamp($position, 'update_time');
@@ -3182,8 +3185,8 @@ class coinex extends Exchange {
             'entryPrice' => $entryPrice,
             'unrealizedPnl' => $unrealizedPnl,
             'percentage' => null,
-            'contracts' => null,
-            'contractSize' => $contractSize,
+            'contracts' => $contracts,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
             'markPrice' => null,
             'lastPrice' => null,
             'side' => $side,
@@ -3793,19 +3796,30 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 1000);
+        }
+        if ($limit === null) {
+            $limit = 100;
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -3816,6 +3830,7 @@ class coinex extends Exchange {
         if ($since !== null) {
             $request['start_time'] = $since;
         }
+        list($request, $params) = $this->handle_until_option('end_time', $request, $params);
         $response = $this->perpetualPublicGetMarketFundingHistory (array_merge($request, $params));
         //
         //     {

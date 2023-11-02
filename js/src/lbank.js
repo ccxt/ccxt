@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/lbank.js';
-import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
+import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
@@ -232,6 +232,7 @@ export default class lbank extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': id,
             });
         }
@@ -333,7 +334,7 @@ export default class lbank extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = 60, params = {}) {
         /**
@@ -409,7 +410,7 @@ export default class lbank extends Exchange {
             request['time'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 600);
         }
         const response = await this.publicGetTrades(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
@@ -667,7 +668,7 @@ export default class lbank extends Exchange {
             return orders[0];
         }
         else {
-            return orders;
+            throw new BadRequest(this.id + ' fetchOrder() can only return one order at a time. Found ' + numOrders + ' orders.');
         }
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -41,6 +41,7 @@ class bybit extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -251,6 +252,7 @@ class bybit extends Exchange {
                         'v5/market/insurance' => 2.5,
                         'v5/market/risk-limit' => 2.5,
                         'v5/market/delivery-price' => 2.5,
+                        'v5/market/account-ratio' => 2.5,
                         // spot leverage token
                         'v5/spot-lever-token/info' => 2.5,
                         'v5/spot-lever-token/reference' => 2.5,
@@ -620,6 +622,7 @@ class bybit extends Exchange {
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin' => 2.5,
                         'v5/position/add-margin' => 2.5,
+                        'v5/position/confirm-pending-mmr' => 2.5,
                         // account
                         'v5/account/upgrade-to-uta' => 2.5,
                         'v5/account/set-margin-mode' => 2.5,
@@ -652,6 +655,7 @@ class bybit extends Exchange {
                         // c2c lending
                         'v5/lending/purchase' => 2.5,
                         'v5/lending/redeem' => 2.5,
+                        'v5/lending/redeem-cancel' => 2.5,
                     ),
                     'delete' => array(
                         // spot
@@ -705,10 +709,11 @@ class bybit extends Exchange {
                     '10027' => '\\ccxt\\PermissionDenied', // Trading Banned
                     '10028' => '\\ccxt\\PermissionDenied', // The API can only be accessed by unified account users.
                     '10029' => '\\ccxt\\PermissionDenied', // The requested symbol is invalid, please check symbol whitelist
+                    '12137' => '\\ccxt\\InvalidOrder', // array("retCode":12137,"retMsg":"Order quantity has too many decimals.","result":array(),"retExtInfo":array(),"time":1695900943033)
                     '12201' => '\\ccxt\\BadRequest', // array("retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":array(),"retExtInfo":null,"time":1666699391220)
                     '12141' => '\\ccxt\\BadRequest', // "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":array(),"retExtInfo":array(),"time":1686134298989}
                     '100028' => '\\ccxt\\PermissionDenied', // The API cannot be accessed by unified account users.
-                    '110001' => '\\ccxt\\InvalidOrder', // Order does not exist
+                    '110001' => '\\ccxt\\OrderNotFound', // Order does not exist
                     '110003' => '\\ccxt\\InvalidOrder', // Order price is out of permissible range
                     '110004' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '110005' => '\\ccxt\\InvalidOrder', // position status
@@ -730,12 +735,12 @@ class bybit extends Exchange {
                     '110021' => '\\ccxt\\InvalidOrder', // Open Interest exceeded
                     '110022' => '\\ccxt\\InvalidOrder', // qty has been limited, cannot modify the order to add qty
                     '110023' => '\\ccxt\\InvalidOrder', // This contract only supports position reduction operation, please contact customer service for details
-                    '110024' => '\\ccxt\\InvalidOrder', // You have an existing position, so position mode cannot be switched
-                    '110025' => '\\ccxt\\InvalidOrder', // Position mode is not modified
-                    '110026' => '\\ccxt\\InvalidOrder', // Cross/isolated margin mode is not modified
-                    '110027' => '\\ccxt\\InvalidOrder', // Margin is not modified
-                    '110028' => '\\ccxt\\InvalidOrder', // Open orders exist, so you cannot change position mode
-                    '110029' => '\\ccxt\\InvalidOrder', // Hedge mode is not available for this symbol
+                    '110024' => '\\ccxt\\BadRequest', // You have an existing position, so position mode cannot be switched
+                    '110025' => '\\ccxt\\NoChange', // Position mode is not modified
+                    '110026' => '\\ccxt\\MarginModeAlreadySet', // Cross/isolated margin mode is not modified
+                    '110027' => '\\ccxt\\NoChange', // Margin is not modified
+                    '110028' => '\\ccxt\\BadRequest', // Open orders exist, so you cannot change position mode
+                    '110029' => '\\ccxt\\BadRequest', // Hedge mode is not available for this symbol
                     '110030' => '\\ccxt\\InvalidOrder', // Duplicate orderId
                     '110031' => '\\ccxt\\InvalidOrder', // risk limit info does not exists
                     '110032' => '\\ccxt\\InvalidOrder', // Illegal order
@@ -1199,9 +1204,6 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
-            'commonCurrencies' => array(
-                'GAS' => 'GASDAO',
-            ),
         ));
     }
 
@@ -1454,7 +1456,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type($method, $market, $params) {
+    public function get_bybit_type($method, $market, $params = array ()) {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -1759,6 +1761,7 @@ class bybit extends Exchange {
                             'max' => $this->safe_number($lotSizeFilter, 'maxOrderAmt'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1934,6 +1937,7 @@ class bybit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->safe_integer($market, 'launchTime'),
                     'info' => $market,
                 );
             }
@@ -2069,6 +2073,7 @@ class bybit extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'launchTime'),
                         'info' => $market,
                     );
                 }
@@ -2359,7 +2364,7 @@ class bybit extends Exchange {
                     $tickers[$symbol] = $ticker;
                 }
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -2399,10 +2404,16 @@ class bybit extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $this->check_required_symbol('fetchOHLCV', $symbol);
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -2417,19 +2428,13 @@ class bybit extends Exchange {
                 $request['limit'] = $limit; // max 1000, default 1000
             }
             $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $method = null;
+            $response = null;
             if ($market['spot']) {
                 $request['category'] = 'spot';
-                $method = 'publicGetV5MarketKline';
+                $response = Async\await($this->publicGetV5MarketKline (array_merge($request, $params)));
             } else {
                 $price = $this->safe_string($params, 'price');
                 $params = $this->omit($params, 'price');
-                $methods = array(
-                    'mark' => 'publicGetV5MarketMarkPriceKline',
-                    'index' => 'publicGetV5MarketIndexPriceKline',
-                    'premiumIndex' => 'publicGetV5MarketPremiumIndexPriceKline',
-                );
-                $method = $this->safe_value($methods, $price, 'publicGetV5MarketKline');
                 if ($market['linear']) {
                     $request['category'] = 'linear';
                 } elseif ($market['inverse']) {
@@ -2437,8 +2442,16 @@ class bybit extends Exchange {
                 } else {
                     throw new NotSupported($this->id . ' fetchOHLCV() is not supported for option markets');
                 }
+                if ($price === 'mark') {
+                    $response = Async\await($this->publicGetV5MarketMarkPriceKline (array_merge($request, $params)));
+                } elseif ($price === 'index') {
+                    $response = Async\await($this->publicGetV5MarketIndexPriceKline (array_merge($request, $params)));
+                } elseif ($price === 'premiumIndex') {
+                    $response = Async\await($this->publicGetV5MarketPremiumIndexPriceKline (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicGetV5MarketKline (array_merge($request, $params)));
+                }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -2631,12 +2644,18 @@ class bybit extends Exchange {
              * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
             if ($limit === null) {
                 $limit = 200;
+            }
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 200));
             }
             $request = array(
                 // 'category' => '', // Product $type-> linear,inverse
@@ -3178,8 +3197,11 @@ class bybit extends Exchange {
         //         "time" => 1672125441042
         //     }
         //
+        $timestamp = $this->safe_integer($response, 'time');
         $result = array(
             'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
         $responseResult = $this->safe_value($response, 'result', array());
         $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
@@ -3270,9 +3292,10 @@ class bybit extends Exchange {
                 // because it requires transfer permission
                 $request['accountType'] = $unifiedType;
                 $response = Async\await($this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params)));
+            } else {
+                $request['accountType'] = $unifiedType;
+                $response = Async\await($this->privateGetV5AccountWalletBalance (array_merge($request, $params)));
             }
-            $request['accountType'] = $unifiedType;
-            $response = Async\await($this->privateGetV5AccountWalletBalance (array_merge($request, $params)));
             //
             // cross
             //     {
@@ -3501,11 +3524,38 @@ class bybit extends Exchange {
         //         "createdTime" => "1684476068369",
         //         "updatedTime" => "1684476068372"
         //     }
+        // createOrders failed $order
+        //    {
+        //        $category => 'linear',
+        //        $symbol => 'LTCUSDT',
+        //        orderId => '',
+        //        orderLinkId => '',
+        //        createAt => '',
+        //        $code => '10001',
+        //        msg => 'The number of contracts exceeds maximum limit allowed => too large'
+        //    }
         //
+        $code = $this->safe_string($order, 'code');
+        if ($code !== null) {
+            if ($code !== '0') {
+                $category = $this->safe_string($order, 'category');
+                $inferedMarketType = ($category === 'spot') ? 'spot' : 'contract';
+                return $this->safe_order(array(
+                    'info' => $order,
+                    'status' => 'rejected',
+                    'id' => $this->safe_string($order, 'orderId'),
+                    'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
+                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferedMarketType),
+                ));
+            }
+        }
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = 'contract';
+        $isContract = (is_array($order) && array_key_exists('tpslMode', $order));
+        $marketType = null;
         if ($market !== null) {
             $marketType = $market['type'];
+        } else {
+            $marketType = $isContract ? 'contract' : 'spot';
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
@@ -3524,20 +3574,53 @@ class bybit extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'cumExecFee');
         if ($feeCostString !== null) {
+            $feeCurrency = null;
+            if ($market['spot']) {
+                $feeCurrency = ($side === 'buy') ? $market['quote'] : $market['base'];
+            } else {
+                $feeCurrency = $market['settle'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $market['settle'],
+                'currency' => $feeCurrency,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null;
         }
+        $avgPrice = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         $rawTimeInForce = $this->safe_string($order, 'timeInForce');
         $timeInForce = $this->parse_time_in_force($rawTimeInForce);
         $stopPrice = $this->omit_zero($this->safe_string($order, 'triggerPrice'));
+        $reduceOnly = $this->safe_value($order, 'reduceOnly');
         $takeProfitPrice = $this->omit_zero($this->safe_string($order, 'takeProfit'));
         $stopLossPrice = $this->omit_zero($this->safe_string($order, 'stopLoss'));
+        $triggerDirection = $this->safe_string($order, 'triggerDirection');
+        $isAscending = ($triggerDirection === '1');
+        $isStopOrderType2 = ($stopPrice !== null) && $reduceOnly;
+        if (($stopLossPrice === null) && $isStopOrderType2) {
+            // check if $order is stop $order $type 2 - $stopLossPrice
+            if ($isAscending && ($side === 'buy')) {
+                // stopLoss $order against short position
+                $stopLossPrice = $stopPrice;
+            }
+            if (!$isAscending && ($side === 'sell')) {
+                // stopLoss $order against a long position
+                $stopLossPrice = $stopPrice;
+            }
+        }
+        if (($takeProfitPrice === null) && $isStopOrderType2) {
+            // check if $order is stop $order $type 2 - $takeProfitPrice
+            if ($isAscending && ($side === 'sell')) {
+                // takeprofit $order against a long position
+                $takeProfitPrice = $stopPrice;
+            }
+            if (!$isAscending && ($side === 'buy')) {
+                // takeprofit $order against a short position
+                $takeProfitPrice = $stopPrice;
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -3559,7 +3642,7 @@ class bybit extends Exchange {
             'stopLossPrice' => $stopLossPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => null,
+            'average' => $avgPrice,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -3585,7 +3668,7 @@ class bybit extends Exchange {
             $result = Async\await($this->fetch_orders($symbol, null, null, array_merge($request, $params)));
             $length = count($result);
             if ($length === 0) {
-                throw new OrderNotFound('Order ' . $id . ' does not exist.');
+                throw new OrderNotFound('Order ' . (string) $id . ' does not exist.');
             }
             if ($length > 1) {
                 throw new InvalidOrder($this->id . ' returned more than one order');
@@ -3612,138 +3695,26 @@ class bybit extends Exchange {
              * @param {boolean} [$params->isLeverage] *unified spot only* false then spot trading true then margin trading
              * @param {string} [$params->tpslMode] *contract only* 'full' or 'partial'
              * @param {string} [$params->mmp] *option only* $market maker protection
+             * @param {string} [$params->triggerDirection] *contract only* the direction for trigger orders, 'up' or 'down'
+             * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
+             * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
+             * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
+             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
+             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $isUsdcSettled = $market['settle'] === 'USDC';
             if ($isUsdcSettled && !$isUnifiedAccount) {
                 return Async\await($this->create_usdc_order($symbol, $type, $side, $amount, $price, $params));
             }
-            $lowerCaseType = strtolower($type);
-            if (($price === null) && ($lowerCaseType === 'limit')) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $this->capitalize($side),
-                'orderType' => $this->capitalize($lowerCaseType), // limit or $market
-                // 'timeInForce' => 'GTC', // IOC, FOK, PostOnly
-                // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
-                // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
-                // 'reduceOnly' => false, // reduce only, required for linear orders
-                // when creating a closing $order, bybit recommends a True value for
-                //  closeOnTrigger to avoid failing due to insufficient available margin
-                // 'closeOnTrigger' => false, required for linear orders
-                // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
-                // 'triggerPrice' => 123.46, // trigger $price, required for conditional orders
-                // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'mmp' => false // $market maker protection
-                // 'positionIdx' => 0, // Position mode. Unified account has one-way mode only (0)
-                // 'triggerDirection' => 1, // Conditional $order param. Used to identify the expected direction of the conditional $order-> 1 => triggered when $market $price rises to $triggerPrice 2 => triggered when $market $price falls to $triggerPrice
-                // Valid for spot only.
-                // 'isLeverage' => 0, // Whether to borrow. 0(default) => false, 1 => true
-                // 'orderFilter' => 'Order' // Order,tpslOrder. If not passed, Order by default
-                // Valid for option only.
-                // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
-            );
-            if ($market['spot']) {
-                $request['category'] = 'spot';
-            } elseif ($market['linear']) {
-                $request['category'] = 'linear';
-            } elseif ($market['inverse']) {
-                $request['category'] = 'inverse';
-            } elseif ($market['option']) {
-                $request['category'] = 'option';
-            }
-            if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
-                // for $market buy it requires the $amount of quote currency to spend
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
-                    if ($price === null && $cost === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
-                        $request['qty'] = $this->cost_to_precision($symbol, $amount);
-                    }
-                } else {
-                    $request['qty'] = $this->cost_to_precision($symbol, $amount);
-                }
-            } else {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
-            }
-            $isMarket = $lowerCaseType === 'market';
-            $isLimit = $lowerCaseType === 'limit';
-            if ($isLimit) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
-            if ($postOnly) {
-                $request['timeInForce'] = 'PostOnly';
-            } elseif ($timeInForce === 'gtc') {
-                $request['timeInForce'] = 'GTC';
-            } elseif ($timeInForce === 'fok') {
-                $request['timeInForce'] = 'FOK';
-            } elseif ($timeInForce === 'ioc') {
-                $request['timeInForce'] = 'IOC';
-            }
-            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_value($params, 'stopLoss');
-            $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
-            $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
-            $isBuy = $side === 'buy';
-            $ascending = $stopLossTriggerPrice ? !$isBuy : $isBuy;
-            if ($triggerPrice !== null) {
-                $request['triggerDirection'] = $ascending ? 2 : 1;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                $request['triggerDirection'] = $ascending ? 2 : 1;
-                $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['reduceOnly'] = true;
-            } elseif ($isStopLoss || $isTakeProfit) {
-                if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                }
-                if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                }
-            }
-            if ($market['spot']) {
-                // only works for spot $market
-                if ($triggerPrice !== null) {
-                    $request['orderFilter'] = 'StopOrder';
-                } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
-                    $request['orderFilter'] = 'tpslOrder';
-                }
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['orderLinkId'] = $clientOrderId;
-            } elseif ($market['option']) {
-                // mandatory field for options
-                $request['orderLinkId'] = $this->uuid16();
-            }
-            $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
-            $response = Async\await($this->privatePostV5OrderCreate (array_merge($request, $params)));
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->privatePostV5OrderCreate ($orderRequest)); // already extended inside createOrderRequest
             //
             //     {
             //         "retCode" => 0,
@@ -3758,6 +3729,228 @@ class bybit extends Exchange {
             //
             $order = $this->safe_value($response, 'result', array());
             return $this->parse_order($order, $market);
+        }) ();
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $lowerCaseType = strtolower($type);
+        if (($price === null) && ($lowerCaseType === 'limit')) {
+            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $this->capitalize($side),
+            'orderType' => $this->capitalize($lowerCaseType), // limit or $market
+            // 'timeInForce' => 'GTC', // IOC, FOK, PostOnly
+            // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
+            // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
+            // 'reduceOnly' => false, // reduce only, required for linear orders
+            // when creating a closing order, bybit recommends a True value for
+            //  closeOnTrigger to avoid failing due to insufficient available margin
+            // 'closeOnTrigger' => false, required for linear orders
+            // 'orderLinkId' => 'string', // unique client order id, max 36 characters
+            // 'triggerPrice' => 123.46, // trigger $price, required for conditional orders
+            // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'mmp' => false // $market maker protection
+            // 'positionIdx' => 0, // Position mode. Unified account has one-way mode only (0)
+            // 'triggerDirection' => 1, // Conditional order param. Used to identify the expected direction of the conditional order. 1 => triggered when $market $price rises to $triggerPrice 2 => triggered when $market $price falls to $triggerPrice
+            // Valid for spot only.
+            // 'isLeverage' => 0, // Whether to borrow. 0(default) => false, 1 => true
+            // 'orderFilter' => 'Order' // Order,tpslOrder. If not passed, Order by default
+            // Valid for option only.
+            // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
+        );
+        if ($market['spot']) {
+            $request['category'] = 'spot';
+        } elseif ($market['linear']) {
+            $request['category'] = 'linear';
+        } elseif ($market['inverse']) {
+            $request['category'] = 'inverse';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
+        }
+        if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($price === null && $cost === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
+                    $request['qty'] = $this->cost_to_precision($symbol, $amount);
+                }
+            } else {
+                $request['qty'] = $this->cost_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $isMarket = $lowerCaseType === 'market';
+        $isLimit = $lowerCaseType === 'limit';
+        if ($isLimit) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
+        if ($postOnly) {
+            $request['timeInForce'] = 'PostOnly';
+        } elseif ($timeInForce === 'gtc') {
+            $request['timeInForce'] = 'GTC';
+        } elseif ($timeInForce === 'fok') {
+            $request['timeInForce'] = 'FOK';
+        } elseif ($timeInForce === 'ioc') {
+            $request['timeInForce'] = 'IOC';
+        }
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        $isBuy = $side === 'buy';
+        $setTriggerDirection = ($stopLossTriggerPrice || $triggerPrice) ? !$isBuy : $isBuy;
+        $defaultTriggerDirection = $setTriggerDirection ? 2 : 1;
+        $triggerDirection = $this->safe_string($params, 'triggerDirection');
+        $params = $this->omit($params, 'triggerDirection');
+        $selectedDirection = $defaultTriggerDirection;
+        if ($triggerDirection !== null) {
+            $isAsending = (($triggerDirection === 'up') || ($triggerDirection === '1'));
+            $selectedDirection = $isAsending ? 1 : 2;
+        }
+        if ($triggerPrice !== null) {
+            $request['triggerDirection'] = $selectedDirection;
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $request['triggerDirection'] = $selectedDirection;
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['reduceOnly'] = true;
+        } elseif ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
+            }
+            if ($isTakeProfit) {
+                $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+            }
+        }
+        if ($market['spot']) {
+            // only works for spot $market
+            if ($triggerPrice !== null) {
+                $request['orderFilter'] = 'StopOrder';
+            } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
+                $request['orderFilter'] = 'tpslOrder';
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        } elseif ($market['option']) {
+            // mandatory field for options
+            $request['orderLinkId'] = $this->uuid16();
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
+        return array_merge($request, $params);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $orderSymbols[] = $marketId;
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $market = $this->market($symbols[0]);
+            $category = null;
+            list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
+            if (($category === 'spot') || ($category === 'inverse')) {
+                throw new NotSupported($this->id . ' createOrders does not allow spot or inverse orders');
+            }
+            $request = array(
+                'category' => $category,
+                'request' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostV5OrderCreateBatch (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $retInfo = $this->safe_value($response, 'retExtInfo', array());
+            $codes = $this->safe_value($retInfo, 'list', array());
+            // extend the error with the unsuccessful $orders
+            for ($i = 0; $i < count($codes); $i++) {
+                $code = $codes[$i];
+                $retCode = $this->safe_integer($code, 'code');
+                if ($retCode !== 0) {
+                    $data[$i] = array_merge($data[$i], $code);
+                }
+            }
+            //
+            // {
+            //     "retCode":0,
+            //     "retMsg":"OK",
+            //     "result":{
+            //        "list":array(
+            //           array(
+            //              "category":"linear",
+            //              "symbol":"LTCUSDT",
+            //              "orderId":"",
+            //              "orderLinkId":"",
+            //              "createAt":""
+            //           ),
+            //           array(
+            //              "category":"linear",
+            //              "symbol":"LTCUSDT",
+            //              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+            //              "orderLinkId":"",
+            //              "createAt":"1698075516029"
+            //           }
+            //        )
+            //     ),
+            //     "retExtInfo":{
+            //        "list":array(
+            //           array(
+            //              "code":10001,
+            //              "msg":"The number of contracts exceeds maximum limit allowed => too large"
+            //           ),
+            //           array(
+            //              "code":0,
+            //              "msg":"OK"
+            //           }
+            //        )
+            //     ),
+            //     "time":1698075516029
+            // }
+            //
+            return $this->parse_orders($data);
         }) ();
     }
 
@@ -3830,12 +4023,12 @@ class bybit extends Exchange {
                     $request['basePrice'] = $isStopLossTriggerOrder ? Precise::string_sub($preciseStopPrice, $delta) : Precise::string_add($preciseStopPrice, $delta);
                 } elseif ($isStopLoss || $isTakeProfit) {
                     if ($isStopLoss) {
-                        $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                        $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                        $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                        $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
                     }
                     if ($isTakeProfit) {
-                        $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                        $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                        $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                        $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
                     }
                 } else {
                     $request['orderFilter'] = 'Order';
@@ -3849,8 +4042,12 @@ class bybit extends Exchange {
                 $request['orderLinkId'] = $this->uuid16();
             }
             $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ));
-            $method = $market['option'] ? 'privatePostOptionUsdcOpenapiPrivateV1PlaceOrder' : 'privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder';
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($market['option']) {
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (array_merge($request, $params)));
+            }
             //
             //     {
             //         "retCode":0,
@@ -3895,11 +4092,10 @@ class bybit extends Exchange {
             if ($price !== null) {
                 $request['orderPrice'] = $this->price_to_precision($symbol, $price);
             }
-            $method = null;
+            $response = null;
             if ($market['option']) {
-                $method = 'privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder';
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (array_merge($request, $params)));
             } else {
-                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder';
                 $isStop = $this->safe_value($params, 'stop', false);
                 $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
                 $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
@@ -3920,8 +4116,8 @@ class bybit extends Exchange {
                     }
                 }
                 $params = $this->omit($params, array( 'stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //    {
             //        "retCode" => 0,
@@ -3954,6 +4150,16 @@ class bybit extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
+             * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
+             * @param {float} [$params->takeProfitPrice] The $price that a take profit order is triggered at
+             * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice that the attached take profit order will be triggered
+             * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+             * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice that the attached stop loss order will be triggered
+             * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+             * @param {string} [$params->triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for $triggerPrice
+             * @param {string} [$params->slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for $stopLoss
+             * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for $takeProfit
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             $this->check_required_symbol('editOrder', $symbol);
@@ -3994,9 +4200,9 @@ class bybit extends Exchange {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+            $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
+            $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
@@ -4007,16 +4213,25 @@ class bybit extends Exchange {
                 $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             }
             if ($triggerPrice !== null) {
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                $triggerPriceRequest = ($triggerPrice === '0') ? $triggerPrice : $this->price_to_precision($symbol, $triggerPrice);
+                $request['triggerPrice'] = $triggerPriceRequest;
+                $triggerBy = $this->safe_string($params, 'triggerBy', 'LastPrice');
+                $request['triggerBy'] = $triggerBy;
             }
             if ($isStopLoss || $isTakeProfit) {
                 if ($isStopLoss) {
-                    $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
+                    $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                    $stopLossRequest = ($slTriggerPrice === '0') ? $slTriggerPrice : $this->price_to_precision($symbol, $slTriggerPrice);
+                    $request['stopLoss'] = $stopLossRequest;
+                    $slTriggerBy = $this->safe_string($params, 'slTriggerBy', 'LastPrice');
+                    $request['slTriggerBy'] = $slTriggerBy;
                 }
                 if ($isTakeProfit) {
-                    $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                    $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                    $takeProfitRequest = ($tpTriggerPrice === '0') ? $tpTriggerPrice : $this->price_to_precision($symbol, $tpTriggerPrice);
+                    $request['takeProfit'] = $takeProfitRequest;
+                    $tpTriggerBy = $this->safe_string($params, 'tpTriggerBy', 'LastPrice');
+                    $request['tpTriggerBy'] = $tpTriggerBy;
                 }
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -4057,17 +4272,16 @@ class bybit extends Exchange {
             );
             $isStop = $this->safe_value($params, 'stop', false);
             $params = $this->omit($params, array( 'stop' ));
-            $method = null;
             if ($id !== null) { // The user can also use argument $params["order_link_id"]
                 $request['orderId'] = $id;
             }
+            $response = null;
             if ($market['option']) {
-                $method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
+                $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1CancelOrder (array_merge($request, $params)));
             } else {
-                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
                 $request['orderFilter'] = $isStop ? 'StopOrder' : 'Order';
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "retCode" => 0,
@@ -4381,9 +4595,16 @@ class bybit extends Exchange {
              * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
              * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
              * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+            }
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $request = array();
@@ -4761,9 +4982,15 @@ class bybit extends Exchange {
              * @param {boolean} [$params->stop] true if stop order
              * @param {string} [$params->type] $market $type, ['swap', 'option', 'spot']
              * @param {string} [$params->subType] $market subType, ['linear', 'inverse']
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 100));
+            }
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $request = array();
@@ -4979,10 +5206,16 @@ class bybit extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch deposits for, default = 30 days after $since
              *
              * EXCHANGE SPECIFIC PARAMETERS
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->cursor] used for pagination
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
             */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+            }
             $request = array(
                 // 'coin' => $currency['id'],
                 // 'limit' => 20, // max 50
@@ -4999,6 +5232,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $response = Async\await($this->privateGetV5AssetDepositQueryRecord (array_merge($request, $params)));
             //
             //     {
@@ -5041,9 +5275,16 @@ class bybit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+            }
             $request = array(
                 // 'coin' => $currency['id'],
                 // 'limit' => 20, // max 50
@@ -5060,6 +5301,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $response = Async\await($this->privateGetV5AssetWithdrawQueryRecord (array_merge($request, $params)));
             //
             //     {
@@ -5254,7 +5496,6 @@ class bybit extends Exchange {
                     $request['start_date'] = $this->yyyymmdd($since);
                 }
             }
-            $method = ($enableUnified[1]) ? 'privateGetV5AccountTransactionLog' : 'privateGetV2PrivateWalletFundRecords';
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request[$currencyKey] = $currency['id'];
@@ -5262,7 +5503,12 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($enableUnified[1]) {
+                $response = Async\await($this->privateGetV5AccountTransactionLog (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateGetV2PrivateWalletFundRecords (array_merge($request, $params)));
+            }
             //
             //     {
             //         "ret_code" => 0,
@@ -5432,7 +5678,7 @@ class bybit extends Exchange {
             'referenceAccount' => null,
             'referenceId' => $referenceId,
             'status' => null,
-            'amount' => $this->parse_number($amount),
+            'amount' => $this->parse_number(Precise::string_abs($amount)),
             'before' => $this->parse_number($before),
             'after' => $this->parse_number($after),
             'fee' => $this->parse_number($this->safe_string($item, 'fee')),
@@ -5590,10 +5836,9 @@ class bybit extends Exchange {
             $timestamp = $this->safe_integer($response, 'time');
             $first = $this->safe_value($positions, 0, array());
             $position = $this->parse_position($first, $market);
-            return array_merge($position, array(
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            ));
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            return $position;
         }) ();
     }
 
@@ -5670,7 +5915,7 @@ class bybit extends Exchange {
                 }
                 $results[] = $this->parse_position($rawPosition, $market);
             }
-            return $this->filter_by_array($results, 'symbol', $symbols, false);
+            return $this->filter_by_array_positions($results, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -5987,20 +6232,95 @@ class bybit extends Exchange {
 
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode (account) or trade mode ($symbol)
+             * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+             * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+             * @param {string} $marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {string} [$params->leverage] the rate of $leverage, is required if setting trade mode ($symbol)
+             * @return {array} $response from the exchange
+             */
             Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
-            if ($marginMode === 'ISOLATED_MARGIN') {
-                if (!$isUnifiedAccount) {
-                    throw new NotSupported($this->id . ' setMarginMode() Normal Account not support ISOLATED_MARGIN');
+            $market = null;
+            $response = null;
+            if ($isUnifiedAccount) {
+                if ($marginMode === 'isolated') {
+                    $marginMode = 'ISOLATED_MARGIN';
+                } elseif ($marginMode === 'cross') {
+                    $marginMode = 'REGULAR_MARGIN';
+                } elseif ($marginMode === 'portfolio') {
+                    $marginMode = 'PORTFOLIO_MARGIN';
+                } else {
+                    throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either [isolated, cross, portfolio]');
                 }
-            } elseif (($marginMode !== 'REGULAR_MARGIN') && ($marginMode !== 'PORTFOLIO_MARGIN')) {
-                throw new NotSupported($this->id . ' setMarginMode() $marginMode must be either ISOLATED_MARGIN or REGULAR_MARGIN or PORTFOLIO_MARGIN');
+                $request = array(
+                    'setMarginMode' => $marginMode,
+                );
+                $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
+            } else {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol parameter for non unified account');
+                }
+                $market = $this->market($symbol);
+                $isUsdcSettled = $market['settle'] === 'USDC';
+                if ($isUsdcSettled) {
+                    if ($marginMode === 'cross') {
+                        $marginMode = 'REGULAR_MARGIN';
+                    } elseif ($marginMode === 'portfolio') {
+                        $marginMode = 'PORTFOLIO_MARGIN';
+                    } else {
+                        throw new NotSupported($this->id . ' setMarginMode() for usdc $market $marginMode must be either [cross, portfolio]');
+                    }
+                    $request = array(
+                        'setMarginMode' => $marginMode,
+                    );
+                    $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
+                } else {
+                    $type = null;
+                    list($type, $params) = $this->get_bybit_type('setPositionMode', $market, $params);
+                    $tradeMode = null;
+                    if ($marginMode === 'cross') {
+                        $tradeMode = 0;
+                    } elseif ($marginMode === 'isolated') {
+                        $tradeMode = 1;
+                    } else {
+                        throw new NotSupported($this->id . ' setMarginMode() with $symbol $marginMode must be either [isolated, cross]');
+                    }
+                    $sellLeverage = null;
+                    $buyLeverage = null;
+                    $leverage = $this->safe_string($params, 'leverage');
+                    if ($leverage === null) {
+                        $sellLeverage = $this->safe_string_2($params, 'sell_leverage', 'sellLeverage');
+                        $buyLeverage = $this->safe_string_2($params, 'buy_leverage', 'buyLeverage');
+                        if ($sellLeverage === null && $buyLeverage === null) {
+                            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter or sell_leverage and buy_leverage parameters');
+                        }
+                        if ($buyLeverage === null) {
+                            $buyLeverage = $sellLeverage;
+                        }
+                        if ($sellLeverage === null) {
+                            $sellLeverage = $buyLeverage;
+                        }
+                        $params = $this->omit($params, array( 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ));
+                    } else {
+                        $sellLeverage = $leverage;
+                        $buyLeverage = $leverage;
+                        $params = $this->omit($params, 'leverage');
+                    }
+                    $request = array(
+                        'category' => $type,
+                        'symbol' => $market['id'],
+                        'tradeMode' => $tradeMode,
+                        'buyLeverage' => $buyLeverage,
+                        'sellLeverage' => $sellLeverage,
+                    );
+                    $response = Async\await($this->privatePostV5PositionSwitchIsolated (array_merge($request, $params)));
+                }
             }
-            $request = array(
-                'setMarginMode' => $marginMode,
-            );
-            $response = Async\await($this->privatePostV5AccountSetMarginMode (array_merge($request, $params)));
             return $response;
         }) ();
     }
@@ -6015,7 +6335,7 @@ class bybit extends Exchange {
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @param {string} [$params->buyLeverage] $leverage for buy side
              * @param {string} [$params->sellLeverage] $leverage for sell side
-             * @return {array} response from the exchange
+             * @return {array} $response from the exchange
              */
             $this->check_required_symbol('setLeverage', $symbol);
             Async\await($this->load_markets());
@@ -6033,14 +6353,13 @@ class bybit extends Exchange {
                 'buyLeverage' => $leverage,
                 'sellLeverage' => $leverage,
             );
-            $method = null;
+            $response = null;
             if ($isUsdcSettled && !$isUnifiedAccount) {
                 $request['leverage'] = $leverage;
-                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+                $response = Async\await($this->privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (array_merge($request, $params)));
             } else {
                 $request['buyLeverage'] = $leverage;
                 $request['sellLeverage'] = $leverage;
-                $method = 'privatePostV5PositionSetLeverage';
                 if ($market['linear']) {
                     $request['category'] = 'linear';
                 } elseif ($market['inverse']) {
@@ -6048,8 +6367,9 @@ class bybit extends Exchange {
                 } else {
                     throw new NotSupported($this->id . ' setLeverage() only support linear and inverse market');
                 }
+                $response = Async\await($this->privatePostV5PositionSetLeverage (array_merge($request, $params)));
             }
-            return Async\await($this->$method (array_merge($request, $params)));
+            return $response;
         }) ();
     }
 
@@ -6240,6 +6560,11 @@ class bybit extends Exchange {
                 throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
+            $paginate = $this->safe_value($params, 'paginate');
+            if ($paginate) {
+                $params = $this->omit($params, 'paginate');
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOpenInterestHistory', $symbol, $since, $limit, $timeframe, $params, 500));
+            }
             $market = $this->market($symbol);
             if ($market['spot'] || $market['option']) {
                 throw new BadRequest($this->id . ' fetchOpenInterestHistory() $symbol does not support $market ' . $symbol);
@@ -6263,14 +6588,14 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $market['symbol'],
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {
@@ -6456,15 +6781,22 @@ class bybit extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch a history of internal $transfers made on an account
+             * fetch a history of internal transfers made on an account
              * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
              * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch $transfers for
-             * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
+             * @param {int} [$since] the earliest time in ms to fetch transfers for
+             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'nextPageCursor', 'nextPageCursor', null, 50));
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -6477,6 +6809,7 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             $response = Async\await($this->privateGetV5AssetTransferQueryInterTransferList (array_merge($request, $params)));
             //
             //     {
@@ -6500,9 +6833,8 @@ class bybit extends Exchange {
             //         "time" => 1670988271677
             //     }
             //
-            $data = $this->safe_value($response, 'result', array());
-            $transfers = $this->safe_value($data, 'list', array());
-            return $this->parse_transfers($transfers, $currency, $since, $limit);
+            $data = $this->add_pagination_cursor_to_result($response);
+            return $this->parse_transfers($data, $currency, $since, $limit);
         }) ();
     }
 

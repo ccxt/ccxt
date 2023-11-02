@@ -620,8 +620,8 @@ class poloniex extends poloniex$1 {
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = previousOrder['trades'];
-                    for (let i = 0; i < previousOrderTrades.length; i++) {
-                        const previousOrderTrade = previousOrderTrades[i];
+                    for (let j = 0; j < previousOrderTrades.length; j++) {
+                        const previousOrderTrade = previousOrderTrades[j];
                         const cost = this.numberToString(previousOrderTrade['cost']);
                         const amount = this.numberToString(previousOrderTrade['amount']);
                         totalCost = Precise["default"].stringAdd(totalCost, cost);
@@ -861,16 +861,16 @@ class poloniex extends poloniex$1 {
                 }
                 const orderbook = this.orderbooks[symbol];
                 if (bids !== undefined) {
-                    for (let i = 0; i < bids.length; i++) {
-                        const bid = this.safeValue(bids, i);
+                    for (let j = 0; j < bids.length; j++) {
+                        const bid = this.safeValue(bids, j);
                         const price = this.safeNumber(bid, 0);
                         const amount = this.safeNumber(bid, 1);
                         orderbook['bids'].store(price, amount);
                     }
                 }
                 if (asks !== undefined) {
-                    for (let i = 0; i < asks.length; i++) {
-                        const ask = this.safeValue(asks, i);
+                    for (let j = 0; j < asks.length; j++) {
+                        const ask = this.safeValue(asks, j);
                         const price = this.safeNumber(ask, 0);
                         const amount = this.safeNumber(ask, 1);
                         orderbook['asks'].store(price, amount);

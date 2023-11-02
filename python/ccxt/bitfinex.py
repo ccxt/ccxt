@@ -415,7 +415,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :see: https://docs.bitfinex.com/v1/reference/rest-auth-fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitfinex api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -447,7 +447,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :see: https://docs.bitfinex.com/v1/reference/rest-auth-fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitfinex api endpoint
         :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -654,6 +654,7 @@ class bitfinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -840,7 +841,7 @@ class bitfinex(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}):
         """
@@ -897,14 +898,6 @@ class bitfinex(Exchange, ImplicitAPI):
         #          "amount":"261.38",
         #          "exchange":"bitfinex",
         #          "type":"sell"
-        #     }
-        #
-        #     {   "timestamp":1637258238,
-        #          "tid":894452800,
-        #          "price":"0.99958",
-        #          "amount":"261.90514",
-        #          "exchange":"bitfinex",
-        #          "type":"buy"
         #     }
         #
         # fetchMyTrades(private) v1
@@ -981,6 +974,18 @@ class bitfinex(Exchange, ImplicitAPI):
         if since is not None:
             request['timestamp'] = self.parse_to_int(since / 1000)
         response = self.publicGetTradesSymbol(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "timestamp": "1694284565",
+        #            "tid": "1415415034",
+        #            "price": "25862.0",
+        #            "amount": "0.00020685",
+        #            "exchange": "bitfinex",
+        #            "type": "buy"
+        #        },
+        #    ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

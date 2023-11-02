@@ -21,7 +21,7 @@ function test_order_book($exchange, $skipped_properties, $method, $entry, $symbo
     );
     $empty_allowed_for = ['symbol', 'nonce', 'datetime', 'timestamp']; // todo: make timestamp required
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
-    assert_timestamp($exchange, $skipped_properties, $method, $entry);
+    assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
     $log_text = log_template($exchange, $method, $entry);
     //

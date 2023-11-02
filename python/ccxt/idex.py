@@ -319,6 +319,7 @@ class idex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
@@ -504,7 +505,7 @@ class idex(Exchange, ImplicitAPI):
         if since is not None:
             request['start'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         # [
         #   {
         #     fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
@@ -1431,7 +1432,7 @@ class idex(Exchange, ImplicitAPI):
         #
         #    {serverTime: '1655258263236'}
         #
-        return self.safe_number(response, 'serverTime')
+        return self.safe_integer(response, 'serverTime')
 
     def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """

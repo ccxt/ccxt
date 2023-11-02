@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position } from './src/base/types.js'
-import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending }  from './src/base/errors.js'
+import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory } from './src/base/types.js'
+import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.0.97';
+const version = '4.1.34';
 
 (Exchange as any).ccxtVersion = version
 
@@ -77,7 +77,6 @@ import bitstamp from  './src/bitstamp.js'
 import bitstamp1 from  './src/bitstamp1.js'
 import bittrex from  './src/bittrex.js'
 import bitvavo from  './src/bitvavo.js'
-import bkex from  './src/bkex.js'
 import bl3p from  './src/bl3p.js'
 import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
@@ -162,6 +161,7 @@ import binancePro from  './src/pro/binance.js'
 import binancecoinmPro from  './src/pro/binancecoinm.js'
 import binanceusPro from  './src/pro/binanceus.js'
 import binanceusdmPro from  './src/pro/binanceusdm.js'
+import bingxPro from  './src/pro/bingx.js'
 import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex2Pro from  './src/pro/bitfinex2.js'
@@ -247,7 +247,6 @@ const exchanges = {
     'bitstamp1':              bitstamp1,
     'bittrex':                bittrex,
     'bitvavo':                bitvavo,
-    'bkex':                   bkex,
     'bl3p':                   bl3p,
     'blockchaincom':          blockchaincom,
     'btcalpha':               btcalpha,
@@ -332,6 +331,7 @@ const pro = {
     'binancecoinm':           binancecoinmPro,
     'binanceus':              binanceusPro,
     'binanceusdm':            binanceusdmPro,
+    'bingx':                  bingxPro,
     'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
     'bitfinex2':              bitfinex2Pro,
@@ -439,6 +439,7 @@ export {
     RequestTimeout,
     AuthenticationError,
     AddressPending,
+    NoChange,
     Market,
     Trade,
     Fee,
@@ -458,6 +459,9 @@ export {
     Dictionary,
     MinMax,
     Position,
+    FundingRateHistory,
+    Liquidation,
+    FundingHistory,
     ace,
     alpaca,
     ascendex,
@@ -489,7 +493,6 @@ export {
     bitstamp1,
     bittrex,
     bitvavo,
-    bkex,
     bl3p,
     blockchaincom,
     btcalpha,

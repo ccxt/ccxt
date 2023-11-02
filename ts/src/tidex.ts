@@ -3,7 +3,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
 
 /**
  * @class tidex
@@ -335,6 +335,7 @@ export default class tidex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -466,7 +467,7 @@ export default class tidex extends Exchange {
             const symbol = this.safeSymbol (id);
             result[symbol] = this.parseOrderBook (response[id], symbol);
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -546,7 +547,7 @@ export default class tidex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -559,7 +560,7 @@ export default class tidex extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
+        return tickers[symbol] as Ticker;
     }
 
     parseTrade (trade, market = undefined) {

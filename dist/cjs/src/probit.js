@@ -334,6 +334,7 @@ class probit extends probit$1 {
                         'max': this.safeNumber(market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -419,8 +420,8 @@ class probit extends probit$1 {
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
-                const id = this.safeString(network, 'id');
-                const networkCode = this.networkIdToCode(id);
+                const networkId = this.safeString(network, 'id');
+                const networkCode = this.networkIdToCode(networkId);
                 const currentDepositSuspended = this.safeValue(network, 'deposit_suspended');
                 const currentWithdrawalSuspended = this.safeValue(network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
@@ -431,14 +432,14 @@ class probit extends probit$1 {
                 }
                 const precision = this.parsePrecision(this.safeString(network, 'precision'));
                 const withdrawFee = this.safeValue(network, 'withdrawal_fee', []);
-                const fee = this.safeValue(withdrawFee, 0, {});
+                const networkfee = this.safeValue(withdrawFee, 0, {});
                 networkList[networkCode] = {
-                    'id': id,
+                    'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': this.safeNumber(fee, 'amount'),
+                    'fee': this.safeNumber(networkfee, 'amount'),
                     'precision': this.parseNumber(precision),
                     'limits': {
                         'withdraw': {
@@ -1495,6 +1496,9 @@ class probit extends probit$1 {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTransferPayment(this.extend(request, params));
         //

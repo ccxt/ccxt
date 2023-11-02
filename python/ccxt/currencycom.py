@@ -566,6 +566,7 @@ class currencycom(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -1054,7 +1055,7 @@ class currencycom(Exchange, ImplicitAPI):
             # 'limit': 500,  # default 500, max 1000
         }
         if limit is not None:
-            request['limit'] = limit  # default 500, max 1000
+            request['limit'] = min(limit, 1000)  # default 500, max 1000
         if since is not None:
             request['startTime'] = since
         response = self.publicGetV2AggTrades(self.extend(request, params))
@@ -1308,7 +1309,7 @@ class currencycom(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+        :see: https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the currencycom api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`

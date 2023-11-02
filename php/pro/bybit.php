@@ -26,7 +26,7 @@ class bybit extends \ccxt\async\bybit {
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchPosition' => null,
@@ -189,6 +189,37 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * n watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-$ticker
+             * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
+             * @param {array} [$params] extra parameters specific to the bybit api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $messageHash = 'tickers::' . implode(',', $symbols);
+            $url = $this->get_url_by_market_type($symbols[0], false, $params);
+            $params = $this->clean_params($params);
+            $options = $this->safe_value($this->options, 'watchTickers', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            $marketIds = $this->market_ids($symbols);
+            $topics = [ ];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $topics[] = $topic . '.' . $marketId;
+            }
+            $ticker = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                return $ticker;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
         // linear
@@ -293,7 +324,7 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic', '');
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_value($message, 'data', array());
-        $isSpot = $this->safe_string($data, 'openInterestValue') === null;
+        $isSpot = $this->safe_string($data, 'fundingRate') === null;
         $type = $isSpot ? 'spot' : 'contract';
         $symbol = null;
         $parsed = null;
@@ -318,6 +349,17 @@ class bybit extends \ccxt\async\bybit {
         $this->tickers[$symbol] = $parsed;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($this->tickers[$symbol], $messageHash);
+        // watchTickers part
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHashTicker = $messageHashes[$i];
+            $parts = explode('::', $messageHashTicker);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($parsed['symbol'], $symbols)) {
+                $client->resolve ($parsed, $messageHashTicker);
+            }
+        }
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -368,17 +410,17 @@ class bybit extends \ccxt\async\bybit {
             $firstSymbol = null;
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
-                $symbol = $this->safe_string($data, 0);
-                $timeframe = $this->safe_string($data, 1);
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+                $symbolString = $this->safe_string($data, 0);
+                $timeframeString = $this->safe_string($data, 1);
+                $market = $this->market($symbolString);
+                $symbolString = $market['symbol'];
                 if ($i === 0) {
                     $firstSymbol = $market['symbol'];
                 }
-                $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+                $timeframeId = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
                 $topic = 'kline.' . $timeframeId . '.' . $market['id'];
                 $topics[] = $topic;
-                $hashes[] = $symbol . '#' . $timeframe;
+                $hashes[] = $symbolString . '#' . $timeframeString;
             }
             $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
             $url = $this->get_url_by_market_type($firstSymbol, false, $params);
@@ -538,8 +580,8 @@ class bybit extends \ccxt\async\bybit {
             $topics = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $topic = 'orderbook.' . (string) $limit . '.' . $market['id'];
+                $currentMarket = $this->market($symbol);
+                $topic = 'orderbook.' . (string) $limit . '.' . $currentMarket['id'];
                 $topics[] = $topic;
             }
             $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
@@ -933,8 +975,8 @@ class bybit extends \ccxt\async\bybit {
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $messageHash = 'myTrades:' . $keys[$i];
-            $client->resolve ($trades, $messageHash);
+            $currentMessageHash = 'myTrades:' . $keys[$i];
+            $client->resolve ($trades, $currentMessageHash);
         }
         // non-$symbol specific
         $messageHash = 'myTrades';
@@ -1068,24 +1110,25 @@ class bybit extends \ccxt\async\bybit {
         $first = $this->safe_value($rawOrders, 0, array());
         $category = $this->safe_string($first, 'category');
         $isSpot = $category === 'spot';
-        $parser = null;
-        if ($isSpot) {
-            $parser = 'parseWsSpotOrder';
-        } else {
-            $parser = 'parseContractOrder';
+        if (!$isSpot) {
             $rawOrders = $this->safe_value($rawOrders, 'result', $rawOrders);
         }
         $symbols = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $parsed = $this->$parser ($rawOrders[$i]);
+            $parsed = null;
+            if ($isSpot) {
+                $parsed = $this->parse_ws_spot_order($rawOrders[$i]);
+            } else {
+                $parsed = $this->parse_order($rawOrders[$i]);
+            }
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
             $orders->append ($parsed);
         }
         $symbolsArray = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($symbolsArray); $i++) {
-            $messageHash = 'orders:' . $symbolsArray[$i];
-            $client->resolve ($orders, $messageHash);
+            $currentMessageHash = 'orders:' . $symbolsArray[$i];
+            $client->resolve ($orders, $currentMessageHash);
         }
         $messageHash = 'orders';
         $client->resolve ($orders, $messageHash);

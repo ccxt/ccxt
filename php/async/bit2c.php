@@ -120,10 +120,10 @@ class bit2c extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/NIS' => array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
-                'ETH/NIS' => array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
-                'LTC/NIS' => array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS', 'baseId' => 'Ltc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
-                'USDC/NIS' => array( 'id' => 'UsdcNis', 'symbol' => 'USDC/NIS', 'base' => 'USDC', 'quote' => 'NIS', 'baseId' => 'Usdc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true ),
+                'BTC/NIS' => $this->safe_market_structure(array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS', 'baseId' => 'Btc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
+                'ETH/NIS' => $this->safe_market_structure(array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS', 'baseId' => 'Eth', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
+                'LTC/NIS' => $this->safe_market_structure(array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS', 'baseId' => 'Ltc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
+                'USDC/NIS' => $this->safe_market_structure(array( 'id' => 'UsdcNis', 'symbol' => 'USDC/NIS', 'base' => 'USDC', 'quote' => 'NIS', 'baseId' => 'Usdc', 'quoteId' => 'Nis', 'type' => 'spot', 'spot' => true )),
             ),
             'fees' => array(
                 'trading' => array(

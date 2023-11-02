@@ -99,8 +99,8 @@ class cryptocom extends \ccxt\async\cryptocom {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = 'book' . '.' . $market['id'];
-                $topics[] = $messageHash;
+                $currentMessageHash = 'book' . '.' . $market['id'];
+                $topics[] = $currentMessageHash;
             }
             $messageHash = 'multipleOrderbooks::' . implode(',', $symbols);
             $orderbook = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
@@ -190,8 +190,8 @@ class cryptocom extends \ccxt\async\cryptocom {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = 'trade' . '.' . $market['id'];
-                $topics[] = $messageHash;
+                $currentMessageHash = 'trade' . '.' . $market['id'];
+                $topics[] = $currentMessageHash;
             }
             $messageHash = 'multipleTrades::' . implode(',', $symbols);
             $trades = Async\await($this->watch_public_multiple($messageHash, $topics, $params));

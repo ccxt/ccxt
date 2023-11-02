@@ -114,9 +114,8 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
-             * @param {[string]} [$symbols] unified CCXT symbol(s)
+             * @param {string[]} [$symbols] unified CCXT symbol(s)
              * @param {array} [$params] extra parameters specific to the hitbtc api
-             * @return
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws']['public'];
@@ -141,7 +140,6 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $name websocket endpoint $name
              * @param {string} [$symbol] unified CCXT $symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api
-             * @return
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -545,8 +543,8 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $this->trades[$symbol] = $stored;
             }
             $trades = $this->parse_ws_trades($data[$marketId], $market);
-            for ($i = 0; $i < count($trades); $i++) {
-                $stored->append ($trades[$i]);
+            for ($j = 0; $j < count($trades); $j++) {
+                $stored->append ($trades[$j]);
             }
             $messageHash = 'trades::' . $symbol;
             $client->resolve ($stored, $messageHash);
@@ -604,7 +602,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int} [$since] not used by hitbtc watchOHLCV
              * @param {int} [$limit] 0 – 1000, default value = 0 (no history returned)
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candles/' . $period;
@@ -677,8 +675,8 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
             $ohlcvs = $this->parse_ws_ohlcvs($data[$marketId], $market);
-            for ($i = 0; $i < count($ohlcvs); $i++) {
-                $stored->append ($ohlcvs[$i]);
+            for ($j = 0; $j < count($ohlcvs); $j++) {
+                $stored->append ($ohlcvs[$j]);
             }
             $messageHash = $channel . '::' . $symbol;
             $client->resolve ($stored, $messageHash);
@@ -719,7 +717,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum amount of $orders to fetch
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
             $marketType = null;
@@ -955,7 +953,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
              */
             Async\await($this->load_markets());
             $type = null;
