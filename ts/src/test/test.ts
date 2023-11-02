@@ -320,7 +320,7 @@ export default class testMainClass extends baseMainTestClass {
                 const isNetworkError = compareExceptionType (e, NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable"
                 const isExchangeNotAvailable = compareExceptionType (e, ExchangeNotAvailable);
                 const isOnMaintenance = compareExceptionType (e, OnMaintenance);
-                const tempFailure = (isNetworkError || isOperationFailed) && (!isExchangeNotAvailable ||  isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
+                const tempFailure = (isNetworkError || isOperationFailed) && (!isExchangeNotAvailable || isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
