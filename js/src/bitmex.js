@@ -935,7 +935,7 @@ export default class bitmex extends Exchange {
          */
         // Bitmex barfs if you set 'open': false in the filter...
         const orders = await this.fetchOrders(symbol, since, limit, params);
-        return this.filterBy(orders, 'status', 'closed');
+        return this.filterByArray(orders, 'status', ['closed', 'canceled'], false);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

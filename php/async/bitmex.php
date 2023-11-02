@@ -948,7 +948,7 @@ class bitmex extends Exchange {
              */
             // Bitmex barfs if you set 'open' => false in the filter...
             $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
-            return $this->filter_by($orders, 'status', 'closed');
+            return $this->filter_by_array($orders, 'status', array( 'closed', 'canceled' ), false);
         }) ();
     }
 
