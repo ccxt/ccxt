@@ -18,6 +18,8 @@ export default class binance extends binanceRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchLiquidations': true,
+                'watchAllLiquidations': true,
+                'watchAllMyLiquidations': true,
                 'watchMyLiquidations': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -76,6 +78,7 @@ export default class binance extends binanceRest {
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
                 'liquidationsLimit': 1000,
+                'myLiquidationsLimit': 1000,
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -190,24 +193,22 @@ export default class binance extends binanceRest {
          * @description watch the public liquidations of a trading pair
          * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
-         * @see
          * @param {string} symbol unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @param {int} [params.until] timestamp in ms of the latest liquidation
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         * @returns {object} an object of symbols each containing their array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
         const subscriptionHash = '!forceOrder@arr';
         let messageHash = 'liquidations';
-        symbols = this.symbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         if (symbols !== undefined) {
             messageHash += '::' + symbols.join (',');
         }
-        const markets = this.marketSymbols (symbols, undefined, true, true);
-        const firstMarket = this.safeValue (markets, 0);
+        const firstMarket = this.getMarketFromSymbols (symbols);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchAllLiquidations', firstMarket, params);
         let subType = undefined;
@@ -227,11 +228,11 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const liquidations = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscribe);
+        const newLiquidations = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscribe);
         if (this.newUpdates) {
-            limit = liquidations.getLimit (liquidations, limit);
+            return newLiquidations;
         }
-        return this.filterBySince (liquidations, symbols, since, limit, 'timestamp', true);
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
     }
 
     handleLiquidation (client: Client, message) {
@@ -286,7 +287,7 @@ export default class binance extends binanceRest {
         }
         liquidations.append (liquidation);
         this.liquidations[symbol] = liquidations;
-        client.resolve (liquidations, 'liquidations');
+        client.resolve (this.liquidations, 'liquidations');
         this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, liquidations);
     }
 
@@ -336,6 +337,84 @@ export default class binance extends binanceRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMyLiquidations
+         * @description watch the private liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        return this.watchAllLiquidations ([ symbol ], since, limit, params);
+    }
+
+    async watchAllMyLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchAllMyLiquidations
+         * @description watch the private liquidations of a trading pair
+         * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let messageHash = 'myLiquidations';
+        if (this.isEmpty (symbols)) {
+            messageHash += '::' + symbols.join (',');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchAllMyLiquidations', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchAllMyLiquidations', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        await this.authenticate (params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const message = undefined;
+        const liquidations = await this.watch (url, messageHash, message, type);
+        if (this.newUpdates) {
+            limit = liquidations.getLimit (liquidations, limit);
+        }
+        return this.filterBySinceLimit (liquidations, since, limit, 'timestamp', true);
+    }
+
+    handleMyLiquidation (client: Client, message) {
+        //
+        //
+        const rawLiquidation = this.safeValue (message, 'o', {});
+        const marketId = this.safeString (rawLiquidation, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId);
+        const liquidation = this.parseWsLiquidation (rawLiquidation, market);
+        let myLiquidations = this.safeValue (this.myLiquidations, symbol);
+        if (myLiquidations === undefined) {
+            const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
+            myLiquidations = new ArrayCache (limit);
+        }
+        myLiquidations.append (liquidation);
+        this.myLiquidations[symbol] = myLiquidations;
+        client.resolve (this.myLiquidations, 'myLiquidations');
+        this.resolvePromiseIfMessagehashMatches (client, 'myLiquidations::', symbol, myLiquidations);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -2720,6 +2799,9 @@ export default class binance extends binanceRest {
             client.resolve (this.myTrades, messageHash);
             const messageHashSymbol = messageHash + ':' + symbol;
             client.resolve (this.myTrades, messageHashSymbol);
+        }
+        if (executionType === 'CALCULATED') {
+            this.handleLiquidation (client, message);
         }
     }
 

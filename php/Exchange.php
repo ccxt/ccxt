@@ -140,6 +140,7 @@ class Exchange {
     public $liquidations = array();
     public $orders = null;
     public $triggerOrders = null;
+    public $myLiquidations = array();
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();

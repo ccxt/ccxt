@@ -239,6 +239,7 @@ class Exchange(object):
     orderbooks = None
     orders = None
     triggerOrders = None
+    myLiquidations = None
     myTrades = None
     trades = None
     transactions = None
