@@ -5955,25 +5955,24 @@ class BaseError extends \Exception {}
 
 Here is an outline of exception inheritance hierarchy: https://github.com/ccxt/ccxt/blob/master/ts/src/base/errorHierarchy.ts
 
-The `BaseError` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
+The `BaseError` class is a generic root error class for all sorts of errors, including accessibility and request/response mismatch. If you don't need to catch any specific subclass of exceptions, you can just use `BaseError`, where all exception types are being caught.
 
-There's two generic families of special cases or subtrees in the error hierarchy, both derived from `BaseError`:
+From `BaseError` there are derived two different families of the error hierarchy:
 
 - `NetworkError`
 - `ExchangeError`
 
+Which collect multiple different specific exception subclasses, as explained below.
+
 ### NetworkError
 
-A `NetworkError` is mostly a temporary unavailability situation, that could be caused by any factor, including maintenance, internet connectivitiy issues, DDoS protections, and temporary bans. This error is a root of all exceptions sub-groups, that can reappear or disappear upon a later retry or upon a retry from a different location (without need to change parameters in the request).
+A `NetworkError` is mostly a temporary unavailability situation, that could be caused by any unexpected factor, including maintenance, internet connectivitiy issues, DDoS protections, and temporary bans. This error is a root of all exceptions sub-groups, that can reappear or disappear upon a later retry or upon a retry from a different location (without need to change parameters in the request). Such network-related exceptions are time-dependent and re-trying the request later might be enough, but if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
-All errors related to networking are usually recoverable, meaning that networking problems, traffic congestion, unavailability is usually time-dependent. Making a retry later is usually enough to recover from a NetworkError, but if it doesn't go away, then it may indicate some persistent problem with the exchange or with your connection.
+It has the following subclasses: 
 
 #### DDoSProtection
 
-This exception is thrown in either of two cases:
-
-- when Cloudflare or Incapsula rate limiter restrictions are enforced per user or region/location
-- when the exchange restricts user access for requesting the endpoints in question too frequently
+This exception is thrown in cases when cloud/hosting services (Cloudflare, Incapsula or etc..) limits reqeusts from user/region/location or when the exchange API restricts user because of making too frequent requests.
 
 #### RequestTimeout
 
@@ -5991,9 +5990,7 @@ Thus it's advised to handle this type of exception in the following manner:
 
 #### ExchangeNotAvailable
 
-This type of exception is thrown when the underlying exchange is unreachable.
-
-The ccxt library also throws this error if it detects any of the following keywords in response:
+This type of exception is thrown when the underlying exchange is unreachable. The ccxt library also throws this error if it detects any of the following keywords in response:
 
   - `offline`
   - `unavailable`
