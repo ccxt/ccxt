@@ -2332,7 +2332,7 @@ class bybit(Exchange):
         #         "executionTime": "1666702226335"
         #     }
         #
-        timestamp = self.safe_integer_n(trade, ['time', 'creatTime'])
+        timestamp = self.safe_integer_n(trade, ['execTime', 'time', 'creatTime'])
         takerOrMaker = None
         isMaker = self.safe_integer(trade, 'isMaker')
         side = self.safe_string(trade, 'side')
@@ -2361,8 +2361,8 @@ class bybit(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_string_2(trade, 'price', 'orderPrice'),
-            'amount': self.safe_string_2(trade, 'qty', 'orderQty'),
+            'price': self.safe_string_n(trade, ['execPrice', 'price', 'orderPrice']),
+            'amount': self.safe_string_n(trade, ['execQty', 'qty', 'orderQty']),
             'cost': None,
             'fee': fee,
         }, market)
