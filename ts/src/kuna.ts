@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kuna.js';
-import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError } from './base/errors.js';
+import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
@@ -384,6 +384,12 @@ export default class kuna extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
+                'ARGUMENT_VALIDATION_ERROR': BadRequest,
+                'PAYMENT_METHOD_NOT_SUPPORTED': BadRequest,
+                'NOT_FOUND': OrderNotFound,
+                'INVALID:ORDER_SIZE': InvalidOrder,
+                'WrongRequestException': BadRequest,
+                'INSUFFICIENT_FUNDS': InsufficientFunds,
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
             },
@@ -878,7 +884,7 @@ export default class kuna extends Exchange {
             'datetime': datetime,
             'type': undefined,
             'side': side,
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'takerOrMaker': isTaker ? 'taker' : 'maker',
             'price': this.safeString2 (trade, 'matchPrice', 'price'),
             'amount': this.safeString2 (trade, 'matchQuantity', 'quantity'),
