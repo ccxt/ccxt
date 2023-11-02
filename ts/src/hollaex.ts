@@ -6,7 +6,7 @@ import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, Order
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Dictionary, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OHLCV, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -807,7 +807,7 @@ export default class hollaex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (response, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -820,12 +820,12 @@ export default class hollaex extends Exchange {
         //     }
         //
         return [
-            this.parse8601 (this.safeString (response, 'time')),
-            this.safeNumber (response, 'open'),
-            this.safeNumber (response, 'high'),
-            this.safeNumber (response, 'low'),
-            this.safeNumber (response, 'close'),
-            this.safeNumber (response, 'volume'),
+            this.parse8601 (this.safeString (ohlcv, 'time')),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 

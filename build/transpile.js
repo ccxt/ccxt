@@ -1545,6 +1545,7 @@ class Transpiler {
                 'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
+                'OHLCV': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1582,6 +1583,7 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
+                'OHLCV': 'List[int]'
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -2461,7 +2463,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",    
+                "use React\\Async;",
                 "use React\\Promise;",
                 "",
                 "",
