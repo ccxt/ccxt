@@ -1064,6 +1064,7 @@ export default class kuna extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'Canceled': 'canceled',
             'Closed': 'filled',
             'Pending': 'open',
             'Open': 'open',
