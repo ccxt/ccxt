@@ -2083,9 +2083,6 @@ export default class bitrue extends Exchange {
                 url += '?' + query;
             } else {
                 body = isContract ? this.json (params) : query;
-                if (!isContract) {
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
-                }
             }
             if (isContract) {
                 headers = {
@@ -2097,6 +2094,7 @@ export default class bitrue extends Exchange {
             } else {
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
         } else {
