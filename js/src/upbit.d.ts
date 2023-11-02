@@ -1,5 +1,5 @@
 import Exchange from './abstract/upbit.js';
-import { Dictionary, Int, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Dictionary, Int, OHLCV, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
 /**
  * @class upbit
  * @extends Exchange
@@ -154,8 +154,8 @@ export default class upbit extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

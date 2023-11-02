@@ -53,7 +53,7 @@ export default class bitfinex2 extends Exchange {
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: number, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     parseOrderStatus(status: any): any;
     parseOrderFlags(flags: any): any;
     parseTimeInForce(orderType: any): string;

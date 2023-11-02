@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import { FundingHistory, FundingRateHistory, Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OHLCV, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class phemex
  * @extends Exchange
@@ -127,8 +127,8 @@ export default class phemex extends Exchange {
     fromEp(ep: any, market?: any): any;
     fromEv(ev: any, market?: any): any;
     fromEr(er: any, market?: any): any;
-    parseOHLCV(ohlcv: any, market?: any): any[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;

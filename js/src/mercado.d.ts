@@ -1,5 +1,5 @@
 import Exchange from './abstract/mercado.js';
-import { Int, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Trade } from './base/types.js';
 /**
  * @class mercado
  * @extends Exchange
@@ -61,8 +61,8 @@ export default class mercado extends Exchange {
         fee: any;
         info: any;
     };
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

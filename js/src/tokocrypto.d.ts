@@ -1,5 +1,5 @@
 import Exchange from './abstract/tokocrypto.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class tokocrypto
  * @extends Exchange
@@ -17,8 +17,8 @@ export default class tokocrypto extends Exchange {
     getMarketIdByType(market: any): any;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     parseBalance(response: any, type?: any, marginMode?: any): import("./base/types.js").Balances;
     parseOrderStatus(status: any): string;
