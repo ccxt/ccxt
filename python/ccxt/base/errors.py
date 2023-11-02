@@ -17,7 +17,6 @@ error_hierarchy = {
             'BadResponse': {
                 'NullResponse': {},
             },
-            'OperationFailed': {},
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
@@ -42,6 +41,7 @@ error_hierarchy = {
             },
             'InvalidNonce': {},
             'RequestTimeout': {},
+            'OperationFailed': {},
         },
     },
 }
@@ -100,10 +100,6 @@ class BadResponse(ExchangeError):
 
 
 class NullResponse(BadResponse):
-    pass
-
-
-class OperationFailed(ExchangeError):
     pass
 
 
@@ -183,6 +179,10 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class OperationFailed(NetworkError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -199,7 +199,6 @@ __all__ = [
     'OperationRejected',
     'BadResponse',
     'NullResponse',
-    'OperationFailed',
     'InsufficientFunds',
     'InvalidAddress',
     'AddressPending',
@@ -218,5 +217,6 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'OperationFailed'
 ]
