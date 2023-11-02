@@ -2057,7 +2057,8 @@ export default class bitrue extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (api, 0);
         const access = this.safeString (api, 1);
-        let url = this.urls['api'][version] + '/' + this.implodeParams (path, params);
+        const requestPath = this.implodeParams (path, params);
+        let url = this.urls['api'][version] + '/' + requestPath;
         params = this.omit (params, this.extractParams (path));
         if (access === 'private') {
             this.checkRequiredCredentials ();
@@ -2067,11 +2068,16 @@ export default class bitrue extends Exchange {
             if (!isContract) {
                 params = this.extend ({
                     'timestamp': timestamp,
-                    'recvWindow': recvWindow,
                 }, params);
             }
+            params = this.extend ({ 'recvWindow': recvWindow }, params);
+            let signature = undefined;
             let query = this.urlencode (params);
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            if (isContract) {
+                signature = this.hmac (this.encode (timestamp + method + requestPath + this.json (params)), this.encode (this.secret), sha256);
+            } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            }
             query += '&' + 'signature=' + signature;
             if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + query;
