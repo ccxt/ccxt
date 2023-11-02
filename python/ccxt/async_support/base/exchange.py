@@ -304,14 +304,6 @@ class Exchange(BaseExchange):
             # todo: handle spawned errors
             pass
 
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
     def spawn(self, method, *args):
         def callback(asyncio_future):
             exception = asyncio_future.exception()
