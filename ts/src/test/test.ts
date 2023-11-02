@@ -23,7 +23,7 @@ const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const NetworkError = ccxt.NetworkError;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
-const InvalidNonce = ccxt.InvalidNonce;
+const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
@@ -104,8 +104,8 @@ function compareExceptionType (exc, exceptionType) {
     return exc instanceof exceptionType;
 }
 
-function exitScript () {
-    process.exit (0);
+function exitScript (code) {
+    process.exit (code);
 }
 
 function getExchangeProp (exchange, prop, defaultValue = undefined) {
@@ -315,12 +315,12 @@ export default class testMainClass extends baseMainTestClass {
                 return true;
             } catch (e) {
                 const isAuthError = compareExceptionType (e, AuthenticationError);
-                const isNetworkError = compareExceptionType (e, NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable"
                 const isNotSupported = compareExceptionType (e, NotSupported);
+                const isOperationFailed = compareExceptionType (e, OperationFailed);
+                const isNetworkError = compareExceptionType (e, NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable"
                 const isExchangeNotAvailable = compareExceptionType (e, ExchangeNotAvailable);
-                const isInvalidNonce = compareExceptionType (e, InvalidNonce);
                 const isOnMaintenance = compareExceptionType (e, OnMaintenance);
-                const tempFailure = !isOnMaintenance && !isExchangeNotAvailable && !isInvalidNonce && isNetworkError;
+                const tempFailure = (isNetworkError || isOperationFailed) && (!isExchangeNotAvailable ||  isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {

@@ -168,8 +168,8 @@ def compare_exception_type(exc, exceptionType):
     return isinstance(exc, exceptionType)
 
 
-def exit_script():
-    exit(0)
+def exit_script(code):
+    exit(code)
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
@@ -216,7 +216,7 @@ from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import OperationFailed
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import AuthenticationError
 

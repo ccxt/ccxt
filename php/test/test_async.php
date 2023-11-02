@@ -198,7 +198,7 @@ function close($exchange) {
 use ccxt\NotSupported;
 use ccxt\NetworkError;
 use ccxt\ExchangeNotAvailable;
-use ccxt\InvalidNonce;
+use ccxt\OperationFailed;
 use ccxt\OnMaintenance;
 use ccxt\AuthenticationError;
 
