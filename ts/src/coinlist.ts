@@ -432,7 +432,8 @@ export default class coinlist extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': { // todo: check
+                'precision': {
+                    // todo: check
                     'amount': this.parseNumber (amountPrecision),
                     'price': this.parseNumber (pricePrecision),
                 },
@@ -1017,8 +1018,11 @@ export default class coinlist extends Exchange {
             takerFees = this.sortBy (takerFees, 1, true);
             makerFees = this.sortBy (makerFees, 1, true);
             const firstTier = this.safeValue (takerFees, 0, []);
-            const exchangeFeesTradingTiersTaker = this['fees']['trading']['tiers']['taker'];
-            const exchangeFeesTradingTiersMaker = this['fees']['trading']['tiers']['maker'];
+            const exchangeFees = this.safeValue (this, 'fees', {});
+            const exchangeFeesTrading = this.safeValue (exchangeFees, 'trading', {});
+            const exchangeFeesTradingTiers = this.safeValue (exchangeFeesTrading, 'tiers', {});
+            const exchangeFeesTradingTiersTaker = this.safeValue (exchangeFeesTradingTiers, 'taker', []);
+            const exchangeFeesTradingTiersMaker = this.safeValue (exchangeFeesTradingTiers, 'maker', []);
             if ((keysLength === exchangeFeesTradingTiersTaker.length) && (firstTier.length > 0)) {
                 for (let i = 0; i < keysLength; i++) {
                     takerFees[i][0] = exchangeFeesTradingTiersTaker[i][0];
