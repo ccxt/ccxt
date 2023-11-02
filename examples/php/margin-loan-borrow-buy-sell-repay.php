@@ -57,7 +57,7 @@ function example() {
                 $balance_spot = Async\await($exchange->fetch_balance(array(
                     'type' => 'spot',
                 )));
-                if ($balance_spot[$collateral_coin]['free'] < $needed_collateral_amount) {
+                if ($exchange->parse_number($balance_spot[$collateral_coin]['free']) < $needed_collateral_amount) {
                     var_dump('hmm, I neither do have enough balance on spot - only ', $balance_spot[$collateral_coin]['free'], '. Script can not continue...');
                     return;
                 } else {
