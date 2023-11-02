@@ -6277,7 +6277,7 @@ class gate(Exchange, ImplicitAPI):
         quoteValueString = self.safe_string(liquidation, 'pnl')
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
@@ -6287,7 +6287,7 @@ class gate(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

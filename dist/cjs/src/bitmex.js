@@ -2703,7 +2703,7 @@ class bitmex extends bitmex$1 {
         //     }
         //
         const marketId = this.safeString(liquidation, 'symbol');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': undefined,
@@ -2713,7 +2713,7 @@ class bitmex extends bitmex$1 {
             'quoteValue': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        });
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

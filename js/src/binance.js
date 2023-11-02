@@ -9524,7 +9524,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString(liquidation, 'symbol');
         const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'updateTime');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(liquidation, 'executedQty'),
@@ -9534,6 +9534,6 @@ export default class binance extends Exchange {
             'quoteValue': this.safeNumber(liquidation, 'cumQuote'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
 }

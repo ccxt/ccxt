@@ -8393,7 +8393,7 @@ class huobi extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'contract_code');
         $timestamp = $this->safe_integer($liquidation, 'created_at');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'volume'),
@@ -8403,6 +8403,6 @@ class huobi extends Exchange {
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 }

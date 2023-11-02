@@ -299,15 +299,5 @@ export default class huobi extends Exchange {
         datetime: string;
     };
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: any): {
-        info: any;
-        symbol: any;
-        contracts: number;
-        contractSize: number;
-        price: number;
-        baseValue: number;
-        quoteValue: number;
-        timestamp: number;
-        datetime: string;
-    };
+    parseLiquidation(liquidation: any, market?: any): import("./base/types.js").Liquidation;
 }

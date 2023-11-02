@@ -499,15 +499,5 @@ export default class binance extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: any): OpenInterest;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: any): {
-        info: any;
-        symbol: any;
-        contracts: number;
-        contractSize: number;
-        price: number;
-        baseValue: number;
-        quoteValue: number;
-        timestamp: number;
-        datetime: string;
-    };
+    parseLiquidation(liquidation: any, market?: any): Liquidation;
 }

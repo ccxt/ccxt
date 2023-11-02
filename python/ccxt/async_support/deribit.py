@@ -2913,7 +2913,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(None, market),
             'contracts': None,
@@ -2923,7 +2923,7 @@ class deribit(Exchange, ImplicitAPI):
             'quoteValue': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def nonce(self):
         return self.milliseconds()

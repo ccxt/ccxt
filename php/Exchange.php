@@ -3154,6 +3154,26 @@ class Exchange {
         );
     }
 
+    public function safe_liquidation(array $liquidation, ?array $market = null) {
+        $contracts = $this->safe_string($liquidation, 'contracts');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $price = $this->safe_string($liquidation, 'price');
+        $baseValue = $this->safe_string($liquidation, 'baseValue');
+        $quoteValue = $this->safe_string($liquidation, 'quoteValue');
+        if (($baseValue === null) && ($contracts !== null) && ($contractSize !== null) && ($price !== null)) {
+            $baseValue = Precise::string_mul($contracts, $contractSize);
+        }
+        if (($quoteValue === null) && ($baseValue !== null) && ($price !== null)) {
+            $quoteValue = Precise::string_mul($baseValue, $price);
+        }
+        $liquidation['contracts'] = $this->parse_number($contracts);
+        $liquidation['contractSize'] = $this->parse_number($contractSize);
+        $liquidation['price'] = $this->parse_number($price);
+        $liquidation['baseValue'] = $this->parse_number($baseValue);
+        $liquidation['quoteValue'] = $this->parse_number($quoteValue);
+        return $liquidation;
+    }
+
     public function safe_trade(array $trade, ?array $market = null) {
         $amount = $this->safe_string($trade, 'amount');
         $price = $this->safe_string($trade, 'price');

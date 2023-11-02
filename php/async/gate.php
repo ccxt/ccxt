@@ -6708,7 +6708,7 @@ class gate extends Exchange {
         if ($quoteValueString === null) {
             $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         }
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->parse_number($contractsString),
@@ -6718,7 +6718,7 @@ class gate extends Exchange {
             'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

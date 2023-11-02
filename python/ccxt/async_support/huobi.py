@@ -7842,7 +7842,7 @@ class huobi(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(liquidation, 'contract_code')
         timestamp = self.safe_integer(liquidation, 'created_at')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.safe_number(liquidation, 'volume'),
@@ -7852,4 +7852,4 @@ class huobi(Exchange, ImplicitAPI):
             'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })

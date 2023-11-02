@@ -2744,7 +2744,7 @@ class bitmex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($liquidation, 'symbol');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => null,
@@ -2754,7 +2754,7 @@ class bitmex extends Exchange {
             'quoteValue' => null,
             'timestamp' => null,
             'datetime' => null,
-        );
+        ));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

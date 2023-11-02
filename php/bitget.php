@@ -6183,7 +6183,7 @@ class bitget extends Exchange {
         $liquidationFee = $this->safe_string($liquidation, 'LiqFee');
         $totalDebt = $this->safe_string($liquidation, 'totalDebt');
         $quoteValueString = Precise::string_add($liquidationFee, $totalDebt);
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => null,
@@ -6193,7 +6193,7 @@ class bitget extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {

@@ -8756,7 +8756,7 @@ class binance(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(liquidation, 'symbol')
         timestamp = self.safe_integer_2(liquidation, 'updatedTime', 'updateTime')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.safe_number(liquidation, 'executedQty'),
@@ -8766,4 +8766,4 @@ class binance(Exchange, ImplicitAPI):
             'quoteValue': self.safe_number(liquidation, 'cumQuote'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })

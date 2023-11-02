@@ -2537,6 +2537,23 @@ class Exchange(object):
             'cost': self.parse_number(cost),
         }
 
+    def safe_liquidation(self, liquidation: object, market: Optional[object] = None):
+        contracts = self.safe_string(liquidation, 'contracts')
+        contractSize = self.safe_string(market, 'contractSize')
+        price = self.safe_string(liquidation, 'price')
+        baseValue = self.safe_string(liquidation, 'baseValue')
+        quoteValue = self.safe_string(liquidation, 'quoteValue')
+        if (baseValue is None) and (contracts is not None) and (contractSize is not None) and (price is not None):
+            baseValue = Precise.string_mul(contracts, contractSize)
+        if (quoteValue is None) and (baseValue is not None) and (price is not None):
+            quoteValue = Precise.string_mul(baseValue, price)
+        liquidation['contracts'] = self.parse_number(contracts)
+        liquidation['contractSize'] = self.parse_number(contractSize)
+        liquidation['price'] = self.parse_number(price)
+        liquidation['baseValue'] = self.parse_number(baseValue)
+        liquidation['quoteValue'] = self.parse_number(quoteValue)
+        return liquidation
+
     def safe_trade(self, trade: object, market: Optional[object] = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')

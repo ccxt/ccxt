@@ -2545,7 +2545,7 @@ class bitmex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(liquidation, 'symbol')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': None,
@@ -2555,7 +2555,7 @@ class bitmex(Exchange, ImplicitAPI):
             'quoteValue': None,
             'timestamp': None,
             'datetime': None,
-        }
+        })
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

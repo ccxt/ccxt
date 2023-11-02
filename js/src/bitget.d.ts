@@ -317,17 +317,7 @@ export default class bitget extends Exchange {
         info: any;
     };
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: any): {
-        info: any;
-        symbol: any;
-        contracts: any;
-        contractSize: any;
-        price: any;
-        baseValue: any;
-        quoteValue: number;
-        timestamp: number;
-        datetime: string;
-    };
+    parseLiquidation(liquidation: any, market?: any): import("./base/types.js").Liquidation;
     fetchBorrowRate(code: string, params?: {}): Promise<{
         currency: any;
         rate: any;

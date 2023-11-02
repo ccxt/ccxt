@@ -414,16 +414,6 @@ export default class gate extends Exchange {
     fetchUnderlyingAssets(params?: {}): Promise<any[]>;
     fetchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: any): {
-        info: any;
-        symbol: any;
-        contracts: number;
-        contractSize: number;
-        price: number;
-        baseValue: number;
-        quoteValue: number;
-        timestamp: number;
-        datetime: string;
-    };
+    parseLiquidation(liquidation: any, market?: any): import("./base/types.js").Liquidation;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

@@ -257,17 +257,7 @@ export default class bitmart extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: any): {
-        info: any;
-        symbol: any;
-        contracts: number;
-        contractSize: number;
-        price: number;
-        baseValue: number;
-        quoteValue: number;
-        timestamp: number;
-        datetime: string;
-    };
+    parseLiquidation(liquidation: any, market?: any): import("./base/types.js").Liquidation;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

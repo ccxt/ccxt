@@ -2099,6 +2099,25 @@ export default class Exchange {
             'cost': this.parseNumber(cost),
         };
     }
+    safeLiquidation(liquidation, market = undefined) {
+        const contracts = this.safeString(liquidation, 'contracts');
+        const contractSize = this.safeString(market, 'contractSize');
+        const price = this.safeString(liquidation, 'price');
+        let baseValue = this.safeString(liquidation, 'baseValue');
+        let quoteValue = this.safeString(liquidation, 'quoteValue');
+        if ((baseValue === undefined) && (contracts !== undefined) && (contractSize !== undefined) && (price !== undefined)) {
+            baseValue = Precise.stringMul(contracts, contractSize);
+        }
+        if ((quoteValue === undefined) && (baseValue !== undefined) && (price !== undefined)) {
+            quoteValue = Precise.stringMul(baseValue, price);
+        }
+        liquidation['contracts'] = this.parseNumber(contracts);
+        liquidation['contractSize'] = this.parseNumber(contractSize);
+        liquidation['price'] = this.parseNumber(price);
+        liquidation['baseValue'] = this.parseNumber(baseValue);
+        liquidation['quoteValue'] = this.parseNumber(quoteValue);
+        return liquidation;
+    }
     safeTrade(trade, market = undefined) {
         const amount = this.safeString(trade, 'amount');
         const price = this.safeString(trade, 'price');

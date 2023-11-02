@@ -3804,7 +3804,7 @@ class bitmart(Exchange, ImplicitAPI):
         priceString = self.safe_string(liquidation, 'deal_avg_price')
         baseValueString = Precise.string_mul(contractsString, contractSizeString)
         quoteValueString = Precise.string_mul(baseValueString, priceString)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
@@ -3814,7 +3814,7 @@ class bitmart(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(quoteValueString),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def nonce(self):
         return self.milliseconds()

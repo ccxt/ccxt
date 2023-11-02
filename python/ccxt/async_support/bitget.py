@@ -5880,7 +5880,7 @@ class bitget(Exchange, ImplicitAPI):
         liquidationFee = self.safe_string(liquidation, 'LiqFee')
         totalDebt = self.safe_string(liquidation, 'totalDebt')
         quoteValueString = Precise.string_add(liquidationFee, totalDebt)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': None,
@@ -5890,7 +5890,7 @@ class bitget(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(quoteValueString),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     async def fetch_borrow_rate(self, code: str, params={}):
         """

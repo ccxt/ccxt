@@ -620,6 +620,7 @@ export default class Exchange {
         rate: number;
         cost: number;
     };
+    safeLiquidation(liquidation: object, market?: object): Liquidation;
     safeTrade(trade: object, market?: object): Trade;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];

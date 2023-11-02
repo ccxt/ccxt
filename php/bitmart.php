@@ -3970,7 +3970,7 @@ class bitmart extends Exchange {
         $priceString = $this->safe_string($liquidation, 'deal_avg_price');
         $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
         $quoteValueString = Precise::string_mul($baseValueString, $priceString);
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->parse_number($contractsString),
@@ -3980,7 +3980,7 @@ class bitmart extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function nonce() {

@@ -3024,7 +3024,7 @@ class deribit extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol(null, $market),
             'contracts' => null,
@@ -3034,7 +3034,7 @@ class deribit extends Exchange {
             'quoteValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function nonce() {

@@ -2706,7 +2706,7 @@ export default class bitmex extends Exchange {
         //     }
         //
         const marketId = this.safeString(liquidation, 'symbol');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': undefined,
@@ -2716,7 +2716,7 @@ export default class bitmex extends Exchange {
             'quoteValue': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        });
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

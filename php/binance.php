@@ -9289,7 +9289,7 @@ class binance extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'symbol');
         $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'updateTime');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'executedQty'),
@@ -9299,6 +9299,6 @@ class binance extends Exchange {
             'quoteValue' => $this->safe_number($liquidation, 'cumQuote'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 }
