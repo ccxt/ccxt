@@ -2733,20 +2733,30 @@ export default class bybit extends Exchange {
         //
         //   private:
         //     {
-        //         "orderPrice": "82.5",
-        //         "creatTime": "1666702226326",
-        //         "orderQty": "0.016",
-        //         "isBuyer": "0",
-        //         "isMaker": "0",
-        //         "symbol": "AAVEUSDT",
-        //         "id": "1274785101965716992",
-        //         "orderId": "1274784252359089664",
-        //         "tradeId": "2270000000031365639",
-        //         "execFee": "0",
-        //         "feeTokenId": "AAVE",
-        //         "matchOrderId": "1274785101865076224",
-        //         "makerRebate": "0",
-        //         "executionTime": "1666702226335"
+        //         "symbol": "QNTUSDT",
+        //         "orderId": "1538686353240339712",
+        //         "orderLinkId": "",
+        //         "side": "Sell",
+        //         "orderPrice": "",
+        //         "orderQty": "",
+        //         "leavesQty": "",
+        //         "orderType": "Limit",
+        //         "stopOrderType": "",
+        //         "execFee": "0.040919",
+        //         "execId": "2210000000097330907",
+        //         "execPrice": "98.6",
+        //         "execQty": "0.415",
+        //         "execType": "",
+        //         "execValue": "",
+        //         "execTime": "1698161716634",
+        //         "isMaker": true,
+        //         "feeRate": "",
+        //         "tradeIv": "",
+        //         "markIv": "",
+        //         "markPrice": "",
+        //         "indexPrice": "",
+        //         "underlyingPrice": "",
+        //         "blockTradeId": ""
         //     }
         //
         const timestamp = this.safeIntegerN (trade, [ 'time', 'creatTime' ]);
@@ -2765,11 +2775,25 @@ export default class bybit extends Exchange {
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'spot');
+        const symbol = market['symbol'];
         let fee = undefined;
         const feeCost = this.safeString (trade, 'execFee');
         if (feeCost !== undefined) {
-            const feeToken = this.safeString (trade, 'feeTokenId');
-            const feeCurrency = this.safeCurrencyCode (feeToken);
+            let feeCurrency = undefined;
+            const [ base, quote ] = symbol.split ('/');
+            if (Precise.stringGt (feeCost, '0')) {
+                if (side === 'buy') {
+                    feeCurrency = base;
+                } else {
+                    feeCurrency = quote;
+                }
+            } else {
+                if (side === 'buy') {
+                    feeCurrency = quote;
+                } else {
+                    feeCurrency = base;
+                }
+            }
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -2780,7 +2804,7 @@ export default class bybit extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
