@@ -91,6 +91,8 @@ export default class bitrue extends Exchange {
                 'api': {
                     'v1': 'https://www.bitrue.com/api/v1',
                     'v2': 'https://www.bitrue.com/api/v2',
+                    'fapi': 'https://fapi.bitrue.com/fapi',
+                    'dapi': 'https://dapi.bitrue.com/dapi',
                     'kline': 'https://www.bitrue.com/kline-api',
                 },
                 'www': 'https://www.bitrue.com',
@@ -149,6 +151,70 @@ export default class bitrue extends Exchange {
                     'private': {
                         'get': {
                             'myTrades': 5,
+                        },
+                    },
+                },
+                'fapi': {
+                    'public': {
+                        'get': {
+                            'v1/ping': 1,
+                            'v1/time': 1,
+                            'v1/contracts': 1,
+                            'v1/depth': 1,
+                            'v1/ticker': 1,
+                            'v1/klines': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'v2/myTrades': 1,
+                            'v2/openOrders': 1,
+                            'v2/order': 1,
+                            'v2/account': 1,
+                            'v2/leverageBracket': 1,
+                            'v2/commissionRate': 1,
+                            'v2/futures_transfer_history': 1,
+                            'v2/forceOrdersHistory': 1,
+                        },
+                        'post': {
+                            'v2/positionMargin': 1,
+                            'v2/level_edit': 1,
+                            'v2/cancel': 1,
+                            'v2/order': 1,
+                            'v2/allOpenOrders': 1,
+                            'v2/futures_transfer': 1,
+                        },
+                    },
+                },
+                'dapi': {
+                    'public': {
+                        'get': {
+                            'v1/ping': 1,
+                            'v1/time': 1,
+                            'v1/contracts': 1,
+                            'v1/depth': 1,
+                            'v1/ticker': 1,
+                            'v1/klines': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'v2/myTrades': 1,
+                            'v2/openOrders': 1,
+                            'v2/order': 1,
+                            'v2/account': 1,
+                            'v2/leverageBracket': 1,
+                            'v2/commissionRate': 1,
+                            'v2/futures_transfer_history': 1,
+                            'v2/forceOrdersHistory': 1,
+                        },
+                        'post': {
+                            'v2/positionMargin': 1,
+                            'v2/level_edit': 1,
+                            'v2/cancel': 1,
+                            'v2/order': 1,
+                            'v2/allOpenOrders': 1,
+                            'v2/futures_transfer': 1,
                         },
                     },
                 },
@@ -1996,20 +2062,36 @@ export default class bitrue extends Exchange {
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            let query = this.urlencode (this.extend ({
-                'timestamp': this.nonce (),
-                'recvWindow': recvWindow,
-            }, params));
+            const timestamp = this.nonce ();
+            const isContract = (version === 'fapi') || (version === 'dapi');
+            if (!isContract) {
+                params = this.extend ({
+                    'timestamp': timestamp,
+                    'recvWindow': recvWindow,
+                }, params);
+            }
+            let query = this.urlencode (params);
             const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
             query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
             if ((method === 'GET') || (method === 'DELETE')) {
                 url += '?' + query;
             } else {
                 body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                if (!isContract) {
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
+            }
+            if (isContract) {
+                headers = {
+                    'X-CH-APIKEY': this.apiKey,
+                    'X-CH-SIGN': signature,
+                    'X-CH-TS': timestamp,
+                    'Content-Type': 'application/json',
+                };
+            } else {
+                headers = {
+                    'X-MBX-APIKEY': this.apiKey,
+                };
             }
         } else {
             if (Object.keys (params).length) {
