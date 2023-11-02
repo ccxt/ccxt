@@ -810,6 +810,13 @@ export default class coinlist extends Exchange {
                 'cost': feeCost,
                 'currency': this.safeString (trade, 'fee_currency', undefined),
             };
+        } else {
+            const imbalance = this.safeString (trade, 'imbalance');
+            if (Precise.stringLt (imbalance, '0')) {
+                side = 'buy';
+            } else {
+                side = 'sell';
+            }
         }
         const takerOrMaker = this.safeString (trade, 'fee_type', undefined);
         return this.safeTrade ({
