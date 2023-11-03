@@ -284,6 +284,7 @@ class phemex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // not documented
+                    '401' => '\\ccxt\\AuthenticationError', // array("code":"401","msg":"401 Failed to load API KEY.")
                     '412' => '\\ccxt\\BadRequest', // array("code":412,"msg":"Missing parameter - resolution","data":null)
                     '6001' => '\\ccxt\\BadRequest', // array("error":array("code":6001,"message":"invalid argument"),"id":null,"result":null)
                     // documented
@@ -1087,7 +1088,7 @@ class phemex extends Exchange {
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -2315,7 +2316,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $isSwap = $this->safe_value($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {

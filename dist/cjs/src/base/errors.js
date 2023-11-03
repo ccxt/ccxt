@@ -46,12 +46,6 @@ class ExchangeError extends Error {
         this.name = 'ExchangeError';
     }
 }
-class OperationFailed extends ExchangeError {
-    constructor(message) {
-        super(message);
-        this.name = 'OperationFailed';
-    }
-}
 class AuthenticationError extends ExchangeError {
     constructor(message) {
         super(message);
@@ -237,6 +231,12 @@ class RequestTimeout extends NetworkError {
     constructor(message) {
         super(message);
         this.name = 'RequestTimeout';
+    }
+}
+class OperationFailed extends NetworkError {
+    constructor(message) {
+        super(message);
+        this.name = 'OperationFailed';
     }
 }
 /*  ------------------------------------------------------------------------ */

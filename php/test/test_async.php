@@ -888,8 +888,16 @@ class testMainClass extends baseMainTestClass {
         $res = '';
         for ($i = 0; $i < count($urlParts); $i++) {
             if ($i > 2) {
+                $current = $urlParts[$i];
+                if (mb_strpos($current, '?') > -1) {
+                    // handle urls like this => /v1/account/accounts?AccessK
+                    $currentParts = explode('?', $current);
+                    $res .= '/';
+                    $res .= $currentParts[0];
+                    break;
+                }
                 $res .= '/';
-                $res .= $urlParts[$i];
+                $res .= $current;
             }
         }
         return $res;
@@ -908,24 +916,7 @@ class testMainClass extends baseMainTestClass {
         return $result;
     }
 
-    public function assert_static_output($exchange, string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
-        if ($storedUrl !== $requestUrl) {
-            // remove the host part from the url
-            $firstPath = $this->remove_hostnamefrom_url($storedUrl);
-            $secondPath = $this->remove_hostnamefrom_url($requestUrl);
-            $this->assert_static_error($firstPath === $secondPath, 'url mismatch', $firstPath, $secondPath);
-        }
-        if ($type === 'json') {
-            if (gettype($storedOutput) === 'string') {
-                $storedOutput = json_parse ($storedOutput);
-            }
-            if (gettype($newOutput) === 'string') {
-                $newOutput = json_parse ($newOutput);
-            }
-        } elseif ($type === 'urlencoded') {
-            $storedOutput = $this->urlencoded_to_dict($storedOutput);
-            $newOutput = $this->urlencoded_to_dict($newOutput);
-        }
+    public function assert_new_and_stored_output($exchange, array $skipKeys, array $newOutput, array $storedOutput) {
         $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
         $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
         $storedLenght = count($storedOutputKeys);
@@ -941,8 +932,59 @@ class testMainClass extends baseMainTestClass {
             }
             $storedValue = $storedOutput[$key];
             $newValue = $newOutput[$key];
+            if (gettype($storedValue) === 'array') {
+                if (gettype($newValue) === 'array') {
+                    // recursive objects
+                    return $this->assert_new_and_stored_output($exchange, $skipKeys, $newValue, $storedValue);
+                }
+            }
             $messageError = 'output value mismatch for => ' . $key . ' : ' . (string) $storedValue . ' != ' . (string) $newValue;
             $this->assert_static_error($storedValue === $newValue, $messageError, $storedOutput, $newOutput);
+        }
+    }
+
+    public function assert_static_output($exchange, string $type, array $skipKeys, string $storedUrl, string $requestUrl, $storedOutput, $newOutput) {
+        if ($storedUrl !== $requestUrl) {
+            // remove the host part from the url
+            $firstPath = $this->remove_hostnamefrom_url($storedUrl);
+            $secondPath = $this->remove_hostnamefrom_url($requestUrl);
+            $this->assert_static_error($firstPath === $secondPath, 'url mismatch', $firstPath, $secondPath);
+        }
+        // body (aka $storedOutput and $newOutput) is not defined and information is in the url
+        // example => "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&$type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if (($storedOutput === null) && ($newOutput === null)) {
+            if (($storedUrl !== null) && ($requestUrl !== null)) {
+                $storedUrlParts = explode('?', $storedUrl);
+                $newUrlParts = explode('?', $requestUrl);
+                $storedUrlParams = $this->urlencoded_to_dict($storedUrlParts[1]);
+                $newUrlParams = $this->urlencoded_to_dict($newUrlParts[1]);
+                $this->assert_new_and_stored_output($exchange, $skipKeys, $newUrlParams, $storedUrlParams);
+                return;
+            }
+        // body is defined
+        }
+        if ($type === 'json') {
+            if (gettype($storedOutput) === 'string') {
+                $storedOutput = json_parse ($storedOutput);
+            }
+            if (gettype($newOutput) === 'string') {
+                $newOutput = json_parse ($newOutput);
+            }
+        } elseif ($type === 'urlencoded') {
+            $storedOutput = $this->urlencoded_to_dict($storedOutput);
+            $newOutput = $this->urlencoded_to_dict($newOutput);
+        }
+        if (gettype($storedOutput) === 'array' && array_keys($storedOutput) === array_keys(array_keys($storedOutput))) {
+            if (gettype($newOutput) !== 'array' || array_keys($newOutput) !== array_keys(array_keys($newOutput))) {
+                $this->assert_static_error(false, 'output $type mismatch', $storedOutput, $newOutput);
+            }
+            for ($i = 0; $i < count($storedOutput); $i++) {
+                $storedItem = $storedOutput[$i];
+                $newItem = $newOutput[$i];
+                $this->assert_new_and_stored_output($exchange, $skipKeys, $newItem, $storedItem);
+            }
+        } else {
+            $this->assert_new_and_stored_output($exchange, $skipKeys, $newOutput, $storedOutput);
         }
     }
 
@@ -951,8 +993,7 @@ class testMainClass extends baseMainTestClass {
             $output = null;
             $requestUrl = null;
             try {
-                $inputArgs = is_array($data['input']) ? array_values($data['input']) : array();
-                Async\await(call_exchange_method_dynamically ($exchange, $method, $inputArgs));
+                Async\await(call_exchange_method_dynamically ($exchange, $method, $data['input']));
             } catch (Exception $e) {
                 if (!($e instanceof NetworkError)) {
                     // if it's not a network error, it means our request was not created succesfully
@@ -963,10 +1004,11 @@ class testMainClass extends baseMainTestClass {
                 $requestUrl = $exchange->last_request_url;
             }
             try {
-                $this->assert_static_output($exchange, $type, $skipKeys, $data['url'], $requestUrl, $data['output'], $output);
+                $callOutput = $exchange->safe_value($data, 'output');
+                $this->assert_static_output($exchange, $type, $skipKeys, $data['url'], $requestUrl, $callOutput, $output);
             } catch (Exception $e) {
                 $this->staticTestsFailed = true;
-                $errorMessage = '[' . $this->lang . '][STATIC_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . $e;
+                $errorMessage = '[' . $this->lang . '][STATIC_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . (string) $e;
                 dump ($errorMessage);
             }
         }) ();
@@ -976,7 +1018,7 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () use ($exchangeName, $exchangeData) {
             $markets = $this->load_markets_from_file($exchangeName);
             // instantiate the $exchange and make sure that we sink the requests to avoid an actual request
-            $exchange = init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secret', 'password' => 'password', 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
+            $exchange = init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
             $methods = $exchange->safe_value($exchangeData, 'methods', array());
             $methodsNames = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($methodsNames); $i++) {

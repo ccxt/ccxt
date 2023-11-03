@@ -405,7 +405,7 @@ class bitget(ccxt.async_support.bitget):
         client.resolve(stored, messageHash)
         self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #   [
         #      "1595779200000",  # timestamp

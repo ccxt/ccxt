@@ -7,9 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1629,13 +1627,13 @@ class binance(Exchange, ImplicitAPI):
             },
         })
 
-    def is_inverse(self, type, subType=None):
+    def is_inverse(self, type, subType=None) -> bool:
         if subType is None:
             return type == 'delivery'
         else:
             return subType == 'inverse'
 
-    def is_linear(self, type, subType=None):
+    def is_linear(self, type, subType=None) -> bool:
         if subType is None:
             return(type == 'future') or (type == 'swap')
         else:
@@ -2381,7 +2379,7 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance(self, response, type=None, marginMode=None):
+    def parse_balance(self, response, type=None, marginMode=None) -> Balances:
         result = {
             'info': response,
         }
@@ -3130,7 +3128,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -3904,7 +3902,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #
@@ -8756,7 +8754,7 @@ class binance(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(liquidation, 'symbol')
         timestamp = self.safe_integer_2(liquidation, 'updatedTime', 'updateTime')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.safe_number(liquidation, 'executedQty'),
@@ -8766,4 +8764,4 @@ class binance(Exchange, ImplicitAPI):
             'quoteValue': self.safe_number(liquidation, 'cumQuote'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })

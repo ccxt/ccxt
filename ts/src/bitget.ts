@@ -2623,7 +2623,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         // spot
         //
@@ -2999,7 +2999,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // spot
         //     {
@@ -6282,7 +6282,7 @@ export default class bitget extends Exchange {
         const liquidationFee = this.safeString (liquidation, 'LiqFee');
         const totalDebt = this.safeString (liquidation, 'totalDebt');
         const quoteValueString = Precise.stringAdd (liquidationFee, totalDebt);
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': undefined,
@@ -6292,7 +6292,7 @@ export default class bitget extends Exchange {
             'quoteValue': this.parseNumber (quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     async fetchBorrowRate (code: string, params = {}) {

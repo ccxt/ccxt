@@ -17,7 +17,6 @@ const errorHierarchy = {
             'BadResponse': {
                 'NullResponse': {},
             },
-            'OperationFailed': {},
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
@@ -42,6 +41,7 @@ const errorHierarchy = {
             },
             'InvalidNonce': {},
             'RequestTimeout': {},
+            'OperationFailed': {},
         },
     },
 };

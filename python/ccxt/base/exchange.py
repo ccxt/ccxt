@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.35'
+__version__ = '4.1.37'
 
 # -----------------------------------------------------------------------------
 
@@ -2537,6 +2537,23 @@ class Exchange(object):
             'cost': self.parse_number(cost),
         }
 
+    def safe_liquidation(self, liquidation: object, market: Optional[object] = None):
+        contracts = self.safe_string(liquidation, 'contracts')
+        contractSize = self.safe_string(market, 'contractSize')
+        price = self.safe_string(liquidation, 'price')
+        baseValue = self.safe_string(liquidation, 'baseValue')
+        quoteValue = self.safe_string(liquidation, 'quoteValue')
+        if (baseValue is None) and (contracts is not None) and (contractSize is not None) and (price is not None):
+            baseValue = Precise.string_mul(contracts, contractSize)
+        if (quoteValue is None) and (baseValue is not None) and (price is not None):
+            quoteValue = Precise.string_mul(baseValue, price)
+        liquidation['contracts'] = self.parse_number(contracts)
+        liquidation['contractSize'] = self.parse_number(contractSize)
+        liquidation['price'] = self.parse_number(price)
+        liquidation['baseValue'] = self.parse_number(baseValue)
+        liquidation['quoteValue'] = self.parse_number(quoteValue)
+        return liquidation
+
     def safe_trade(self, trade: object, market: Optional[object] = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')
@@ -2873,7 +2890,7 @@ class Exchange(object):
                 result.append(objects[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         if isinstance(ohlcv, list):
             return [
                 self.safe_integer(ohlcv, 0),  # timestamp
@@ -3894,6 +3911,10 @@ class Exchange(object):
 
     def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
+
+    def filter_by_symbols_since_limit(self, array, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        result = self.filter_by_array(array, 'symbol', symbols, False)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #

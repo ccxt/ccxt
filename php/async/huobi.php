@@ -2772,7 +2772,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -4377,7 +4377,7 @@ class huobi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //
@@ -8393,7 +8393,7 @@ class huobi extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'contract_code');
         $timestamp = $this->safe_integer($liquidation, 'created_at');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'volume'),
@@ -8403,6 +8403,6 @@ class huobi extends Exchange {
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 }

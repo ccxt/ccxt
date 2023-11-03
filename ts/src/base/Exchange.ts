@@ -1243,7 +1243,7 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { 
+                            }).catch ((e) => {
                                 delete client.subscriptions[subscribeHash];
                                 future.reject (e);
                             });
@@ -1728,7 +1728,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -2406,6 +2406,26 @@ export default class Exchange {
         };
     }
 
+    safeLiquidation (liquidation: object, market: object = undefined): Liquidation {
+        const contracts = this.safeString (liquidation, 'contracts');
+        const contractSize = this.safeString (market, 'contractSize');
+        const price = this.safeString (liquidation, 'price');
+        let baseValue = this.safeString (liquidation, 'baseValue');
+        let quoteValue = this.safeString (liquidation, 'quoteValue');
+        if ((baseValue === undefined) && (contracts !== undefined) && (contractSize !== undefined) && (price !== undefined)) {
+            baseValue = Precise.stringMul (contracts, contractSize);
+        }
+        if ((quoteValue === undefined) && (baseValue !== undefined) && (price !== undefined)) {
+            quoteValue = Precise.stringMul (baseValue, price);
+        }
+        liquidation['contracts'] = this.parseNumber (contracts);
+        liquidation['contractSize'] = this.parseNumber (contractSize);
+        liquidation['price'] = this.parseNumber (price);
+        liquidation['baseValue'] = this.parseNumber (baseValue);
+        liquidation['quoteValue'] = this.parseNumber (quoteValue);
+        return liquidation as Liquidation;
+    }
+
     safeTrade (trade: object, market: object = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
@@ -2818,7 +2838,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp

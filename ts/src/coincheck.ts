@@ -224,7 +224,7 @@ export default class coincheck extends Exchange {
         return result as Order[];
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOpenOrders
         //

@@ -2238,7 +2238,7 @@ class gate extends Exchange {
         return $this->parse_funding_histories($response, $symbol, $since, $limit);
     }
 
-    public function parse_funding_histories($response, $symbol, $since, $limit) {
+    public function parse_funding_histories($response, $symbol, $since, $limit): array {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -2935,7 +2935,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // Spot $market candles
         //
@@ -4122,7 +4122,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder
@@ -6588,7 +6588,7 @@ class gate extends Exchange {
         if ($quoteValueString === null) {
             $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         }
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->parse_number($contractsString),
@@ -6598,7 +6598,7 @@ class gate extends Exchange {
             'quoteValue' => $this->parse_number(Precise::string_abs($quoteValueString)),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

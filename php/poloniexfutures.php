@@ -1430,7 +1430,7 @@ class poloniexfutures extends Exchange {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

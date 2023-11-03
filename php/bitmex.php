@@ -924,7 +924,7 @@ class bitmex extends Exchange {
          */
         // Bitmex barfs if you set 'open' => false in the filter...
         $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_array($orders, 'status', array( 'closed', 'canceled' ), false);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1376,7 +1376,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1626,7 +1626,7 @@ class bitmex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -2677,7 +2677,7 @@ class bitmex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($liquidation, 'symbol');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => null,
@@ -2687,7 +2687,7 @@ class bitmex extends Exchange {
             'quoteValue' => null,
             'timestamp' => null,
             'datetime' => null,
-        );
+        ));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
