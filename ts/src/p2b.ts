@@ -2,10 +2,9 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/p2b.js';
-import { InsufficientFunds, NotSupported, AuthenticationError, BadRequest, ExchangeNotAvailable } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha256.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,48 +17,16 @@ export default class p2b extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'p2b',
             'name': 'p2b',
-            'countries': [ 'UA' ],
+            'countries': [ 'LT' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
-                'cancelOrder': true,
-                'createOrder': true,
-                'fetchBalance': true,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
-                'fetchL3OrderBook': true,
-                'fetchLeverage': false,
-                'fetchMarginMode': false,
-                'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
-                'fetchMyTrades': true,
-                'fetchOHLCV': 'emulated',
-                'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrderBook': true,
-                'fetchPositionMode': false,
-                'fetchPositions': false,
-                'fetchPositionsRisk': false,
-                'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTime': true,
-                'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
-                'reduceMargin': false,
-                'setLeverage': false,
-                'setPositionMode': false,
             },
             'timeframes': undefined,
             'urls': {
@@ -129,12 +96,6 @@ export default class p2b extends Exchange {
                         [ this.parseNumber ('500'), this.parseNumber ('0.01') ],
                     ],
                 },
-                'funding': {
-                    'withdraw': {
-                    },
-                    'deposit': {
-                    },
-                },
             },
             'commonCurrencies': {
             },
@@ -183,88 +144,29 @@ export default class p2b extends Exchange {
                 '6010': InsufficientFunds,      // Balance not enough. Insufficient balance.
             },
             'options': {
-                // 'account': 'pro'      // Only for pro accounts
             },
         });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // TODO
-        let url = undefined;
-        if (Array.isArray (api)) {
-            const [ version, access ] = api;
-            if (version === 'v3') {
-                url = this.urls['api'][version] + '/' + version + '/' + this.implodeParams (path, params);
-                if (access === 'public') {
-                    if (method === 'GET') {
-                        if (Object.keys (params).length) {
-                            url += '?' + this.urlencode (params);
-                        }
-                    } else if ((method === 'POST') || (method === 'PUT')) {
-                        headers = { 'Content-Type': 'application/json' };
-                        body = this.json (params);
-                    }
-                } else if (access === 'private') {
-                    throw new NotSupported (this.id + ' private v3 API is not supported yet');
-                }
-            } else if (version === 'v4') {
-                const splitPath = path.split ('/');
-                const splitPathLength = splitPath.length;
-                let urlPath = '';
-                if ((splitPathLength > 1) && (splitPath[0] !== 'p2b-code')) {
-                    let pathTail = '';
-                    for (let i = 1; i < splitPathLength; i++) {
-                        pathTail += splitPath[i];
-                    }
-                    urlPath = '/' + version + '/' + splitPath[0] + '/' + access + '/' + this.implodeParams (pathTail, params);
-                } else {
-                    urlPath = '/' + version + '/' + access + '/' + this.implodeParams (path, params);
-                }
-                url = this.urls['api'][version] + urlPath;
-                if (access === 'private') {
-                    const nonce = this.nonce ();
-                    const auth = urlPath + nonce + this.json (params);
-                    headers = {
-                        'content-type': 'application/json',
-                        'accept': 'application/json',
-                        'nonce': nonce,
-                        'public-key': this.apiKey,
-                        'signature': this.hmac (this.encode (auth), this.encode (this.secret), sha384, 'hex'),
-                    };
-                    const account = this.safeString (this.options, 'account');
-                    if (account === 'pro') {
-                        headers['account'] = 'pro';
-                    }
-                }
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
-        } else {
-            let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-            if ('extension' in this.urls) {
-                request += this.urls['extension'];
-            }
-            const query = this.omit (params, this.extractParams (path));
-            url = this.urls['api'][api] + request;
-            if (api === 'public') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else {
-                this.checkRequiredCredentials ();
-                const nonce = this.nonce ().toString ();
-                const queryInner = this.encodeParams (this.extend ({
-                    'access_key': this.apiKey,
-                    'tonce': nonce,
-                }, params));
-                const auth = method + '|' + request + '|' + queryInner;
-                const signed = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-                const suffix = query + '&signature=' + signed;
-                if (method === 'GET') {
-                    url += '?' + suffix;
-                } else {
-                    body = suffix;
-                    headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-                }
-            }
+        }
+        if (api === 'private') {
+            const nonce = this.nonce ();
+            params['nonce'] = nonce;
+            params['request'] = '/api/v2/' + path;
+            const payload = this.encode (params);  // Body json encoded in base64
+            headers = {
+                'Content-Type': 'application/json',
+                'X-TXC-APIKEY': this.apiKey,
+                'X-TXC-PAYLOAD': payload,
+                'X-TXC-SIGNATURE': this.hmac (payload, this.encode (this.secret), sha512, 'base64'),
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
