@@ -77,12 +77,14 @@ async function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcv
         }
         // we do compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
         if (!('compareDuration' in skippedProperties)) {
-            const previousBarTs = ohlcvs[i - 1][0];
-            const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
-            assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
-            // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
-            const isInteger = Number.isInteger (diffBetweenCurrentAndPrevious / durationMs);
-            assert (isInteger, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
+            if (i > 0) {
+                const previousBarTs = ohlcvs[i - 1][0];
+                const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
+                assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
+                // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+                const isInteger = Number.isInteger (diffBetweenCurrentAndPrevious / durationMs);
+                assert (isInteger, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
+            }
         }
     }
 }
