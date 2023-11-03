@@ -1565,8 +1565,8 @@ export default class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const marginResult = this.handleMarginModeAndParams ('createOrder', params);
+        const marginMode = marginResult[0];
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['swap']) {
