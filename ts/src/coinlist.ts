@@ -267,6 +267,7 @@ export default class coinlist extends Exchange {
                     'ORDER_REJECT_SELF_TRADE': InvalidOrder, // This order would have been involved in a self-trade.
                     'ORDER_VALIDATE_BAD_SIZE_ALIGNMENT': InvalidOrder, // {"message":"size is not aligned to 0.0001 minimum increment","message_code":"ORDER_VALIDATE_BAD_SIZE_ALIGNMENT","message_details":{"minimum_size_increment":"0.0001"}}
                     'ORDER_VALIDATE_BAD_TICK_ALIGNMENT': InvalidOrder, // {"message":"price is not aligned to 0.01 tick size","message_code":"ORDER_VALIDATE_BAD_TICK_ALIGNMENT","message_details":{"minimum_price_increment":{"s":1,"e":-2,"c":[1000000000000]}}}
+                    'ORDER_VALIDATE_SYMBOL_NOT_FOUND': BadSymbol, // {"message":"symbol asdfsdfs not found","message_code":"ORDER_VALIDATE_SYMBOL_NOT_FOUND"}
                     'TRANSFERS_WITHDRAWAL_REQUEST_TOO_LARGE': InsufficientFunds, // {"message":"Withdrawal request too large. 0.000000000000000000 ETH available for withdrawal.","message_code":"TRANSFERS_WITHDRAWAL_REQUEST_TOO_LARGE","message_details":{"token_code":"ETH","amount":"0.010000000000000000","withdrawable_balance":"0.000000000000000000"}}
                     'WITHDRAWAL_REQUEST_NOT_ALLOWED': PermissionDenied, // {"message":"Withdrawal from CoinList not allowed for trader.","message_code":"WITHDRAWAL_REQUEST_NOT_ALLOWED","message_details":{"asset":"USDT","amount":"5","trader_id":"9c6f737e-a829-4843-87b1-b1ce86f2853b","destination_address":"0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee"}}
                 },
@@ -1234,6 +1235,7 @@ export default class coinlist extends Exchange {
          * @param {int} [limit] the maximum number of  orde structures to retrieve (default 200, max 500)
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {string|string[]} [params.status] the status of the order - 'accepted', 'done', 'canceled', 'rejected', 'pending' (default [ 'accepted', 'done', 'canceled', 'rejected', 'pending' ])
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1477,9 +1479,9 @@ export default class coinlist extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the coinlist api endpoint
-         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-         * @param {float} [params.triggerPrice] The price at which a 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit' order is triggered at
-         * @param {string} [params.clientOrderId] client order id
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default false)
+         * @param {float} [params.triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the price at which an order is triggered)
+         * @param {string} [params.clientOrderId] client order id (default undefined)
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
@@ -1498,10 +1500,12 @@ export default class coinlist extends Exchange {
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
+            params = this.omit (params, 'postOnly');
             request['post_only'] = true;
         }
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'trigger_price', 'stopPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
+            params = this.omit (params, 'triggerPrice', 'trigger_price', 'stopPrice');
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'market') {
                 request['type'] = 'stop_market';
@@ -1516,7 +1520,6 @@ export default class coinlist extends Exchange {
             request['client_id'] = clientOrderId;
             params = this.omit (params, 'clientOrderId', 'client_order_id', 'clientId');
         }
-        params = this.omit (params, 'triggerPrice', 'trigger_price', 'stopPrice', 'stop_price', 'postOnly');
         const response = await this.privatePostV1Orders (this.extend (request, params));
         //
         //     {
