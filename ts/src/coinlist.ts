@@ -1686,7 +1686,7 @@ export default class coinlist extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'average': average, // todo: doesn't calculated in this.safeOrder()
+            'average': average,
             'amount': amount,
             'cost': undefined,
             'filled': filled,
@@ -1694,7 +1694,7 @@ export default class coinlist extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-            'postOnly': postOnly, // todo: sets in false if not true
+            'postOnly': postOnly,
         }, market);
     }
 
