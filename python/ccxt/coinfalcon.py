@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinfalcon import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -218,6 +217,7 @@ class coinfalcon(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -311,7 +311,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -575,7 +575,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -889,9 +889,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         amountString = self.safe_string(transaction, 'amount')
         amount = self.parse_number(amountString)
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCost = 0
+        feeCost = '0'
         if feeCostString is not None:
-            feeCost = self.parse_number(feeCostString)
+            feeCost = feeCostString
         return {
             'info': transaction,
             'id': id,
@@ -912,7 +912,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             'updated': None,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
             },
         }
 

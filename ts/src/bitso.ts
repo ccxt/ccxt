@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadReq
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -471,6 +471,7 @@ export default class bitso extends Exchange {
                         'max': this.safeNumber (market, 'maximum_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             }, fee));
         }
@@ -691,7 +692,7 @@ export default class bitso extends Exchange {
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "bucket_start_time":1648219140000,
@@ -1076,7 +1077,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //
         // canceledOrder

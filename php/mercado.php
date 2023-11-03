@@ -233,6 +233,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $coin,
             );
         }
@@ -512,7 +513,7 @@ class mercado extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "order_id" => 4,
@@ -709,7 +710,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),

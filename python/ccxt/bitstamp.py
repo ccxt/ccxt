@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -138,9 +137,16 @@ class bitstamp(Exchange, ImplicitAPI):
                         'trading-pairs-info/': 1,
                         'currencies/': 1,
                         'eur_usd/': 1,
+                        'travel_rule/vasps/': 1,
                     },
                 },
                 'private': {
+                    'get': {
+                        'travel_rule/contacts/': 1,
+                        'contacts/{contact_uuid}/': 1,
+                        'earn/subscriptions/': 1,
+                        'earn/transactions/': 1,
+                    },
                     'post': {
                         'account_balances/': 1,
                         'account_balances/{currency}/': 1,
@@ -167,6 +173,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'transfer-from-main/': 1,
                         'my_trading_pairs/': 1,
                         'fees/trading/': 1,
+                        'fees/trading/{pair}': 1,
                         'fees/withdrawal/': 1,
                         'fees/withdrawal/{currency}/': 1,
                         'withdrawal-requests/': 1,
@@ -340,6 +347,10 @@ class bitstamp(Exchange, ImplicitAPI):
                         'dgld_address/': 1,
                         'ldo_withdrawal/': 1,
                         'ldo_address/': 1,
+                        'travel_rule/contacts/': 1,
+                        'earn/subscribe/': 1,
+                        'earn/subscriptions/setting/': 1,
+                        'earn/unsubscribe': 1,
                     },
                 },
             },
@@ -518,6 +529,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -734,7 +746,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://www.bitstamp.net/api/#all-tickers
+        :see: https://www.bitstamp.net/api/#all-tickers
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -970,7 +982,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "high": "9064.77",
@@ -1136,7 +1148,7 @@ class bitstamp(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://www.bitstamp.net/api/#balance
+        :see: https://www.bitstamp.net/api/#balance
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1190,7 +1202,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://www.bitstamp.net/api/#balance
+        :see: https://www.bitstamp.net/api/#balance
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitstamp api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1283,9 +1295,8 @@ class bitstamp(Exchange, ImplicitAPI):
             params = self.omit(params, ['client_order_id', 'clientOrderId'])
         response = getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response, market)
-        return self.extend(order, {
-            'type': type,
-        })
+        order['type'] = type
+        return order
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
@@ -1616,7 +1627,7 @@ class bitstamp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #   from fetch order:
         #     {status: 'Finished',

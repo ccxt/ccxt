@@ -603,7 +603,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {int|null} $limit the maximum amount of candles to fetch
              * @param {array} $params extra parameters specific to the coinex api endpoint
              * @param {int|null} $params->end the end time for spot markets, $this->seconds() is set
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

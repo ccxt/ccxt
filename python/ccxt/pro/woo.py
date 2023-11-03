@@ -593,7 +593,7 @@ class woo(ccxt.async_support.woo):
 
     async def watch_balance(self, params={}):
         """
-        see https://docs.woo.org/#balance
+        :see: https://docs.woo.org/#balance
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the woo api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -649,8 +649,11 @@ class woo(ccxt.async_support.woo):
             value = balances[key]
             code = self.safe_currency_code(key)
             account = self.balance[code] if (code in self.balance) else self.account()
-            account['total'] = self.safe_string(value, 'holding')
-            account['used'] = self.safe_string(value, 'frozen')
+            total = self.safe_string(value, 'holding')
+            used = self.safe_string(value, 'frozen')
+            account['total'] = total
+            account['used'] = used
+            account['free'] = Precise.string_sub(total, used)
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')

@@ -320,7 +320,6 @@ class huobijp extends Exchange {
                 'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HIT' => 'HitChain',
-                'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
@@ -527,6 +526,7 @@ class huobijp extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -736,7 +736,7 @@ class huobijp extends Exchange {
                 $ticker['datetime'] = $this->iso8601($timestamp);
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -929,7 +929,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -1314,7 +1314,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {                  $id =>  13997833014,
         //                    symbol => "ethbtc",
@@ -1457,7 +1457,7 @@ class huobijp extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $params)));
             $timestamp = $this->milliseconds();
             $id = $this->safe_string($response, 'data');
-            return array(
+            return $this->safe_order(array(
                 'info' => $response,
                 'id' => $id,
                 'timestamp' => $timestamp,
@@ -1476,7 +1476,7 @@ class huobijp extends Exchange {
                 'fee' => null,
                 'clientOrderId' => null,
                 'average' => null,
-            );
+            ), $market);
         }) ();
     }
 

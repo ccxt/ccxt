@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -319,13 +319,13 @@ export default class btcmarkets extends Exchange {
         const tagTo = tag;
         const addressFrom = undefined;
         const tagFrom = undefined;
-        const fee = this.safeNumber (transaction, 'fee');
+        const fee = this.safeString (transaction, 'fee');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
-        let amount = this.safeNumber (transaction, 'amount');
+        let amount = this.safeString (transaction, 'amount');
         if (fee) {
-            amount -= fee;
+            amount = Precise.stringSub (amount, fee);
         }
         return {
             'id': this.safeString (transaction, 'id'),
@@ -340,14 +340,14 @@ export default class btcmarkets extends Exchange {
             'tagTo': tagTo,
             'tagFrom': tagFrom,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': lastUpdate,
             'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': this.parseNumber (fee),
                 'rate': undefined,
             },
             'info': transaction,
@@ -441,6 +441,7 @@ export default class btcmarkets extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -491,7 +492,7 @@ export default class btcmarkets extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         "2020-09-12T18:30:00.000000Z",
@@ -949,7 +950,7 @@ export default class btcmarkets extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -1090,7 +1091,7 @@ export default class btcmarkets extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

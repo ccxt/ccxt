@@ -87,9 +87,9 @@ class bitget extends \ccxt\async\bitget {
             return $market['info']['symbolName'];
         } else {
             if (!$sandboxMode) {
-                return str_replace('_UMCBL', '', $market['id']);
+                return str_replace('_CMCBL', '', $market['id'].replace ('_UMCBL', '').replace ('_DMCBL', ''));
             } else {
-                return str_replace('_SUMCBL', '', $market['id']);
+                return str_replace('_SCMCBL', '', $market['id'].replace ('_SUMCBL', '').replace ('_SDMCBL', ''));
             }
         }
     }
@@ -102,13 +102,21 @@ class bitget extends \ccxt\async\bitget {
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
-            $marketId .= '_SPBL';
+            $marketId = $marketId . '_SPBL';
         } else {
-            if (!$sandboxMode) {
-                $marketId .= '_UMCBL';
+            $extension = $sandboxMode ? '_S' : '_';
+            $splitByUSDT = explode('USDT', $marketId);
+            $splitByPERP = explode('PERP', $marketId);
+            $splitByUSDTLength = count($splitByUSDT);
+            $splitByPERPLength = count($splitByPERP);
+            if ($splitByUSDTLength > 1) {
+                $extension .= 'UMCBL';
+            } elseif ($splitByPERPLength > 1) {
+                $extension .= 'CMCBL';
             } else {
-                $marketId .= '_SUMCBL';
+                $extension .= 'DMCBL';
             }
+            $marketId = $marketId . $extension;
         }
         return $marketId;
     }
@@ -423,7 +431,7 @@ class bitget extends \ccxt\async\bitget {
         $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //      "1595779200000", // timestamp
@@ -460,7 +468,7 @@ class bitget extends \ccxt\async\bitget {
             $instType = $market['spot'] ? 'sp' : 'mc';
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }
@@ -621,6 +629,8 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#$trades-channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#$trades-channel
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch

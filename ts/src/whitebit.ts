@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -59,6 +59,7 @@ export default class whitebit extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -285,13 +286,14 @@ export default class whitebit extends Exchange {
         //          "stockPrec": "3",          // Stock currency precision
         //          "moneyPrec": "2",          // Precision of money currency
         //          "feePrec": "4",            // Fee precision
-        //          "makerFee": "0.001",       // Default maker fee ratio
-        //          "takerFee": "0.001",       // Default taker fee ratio
+        //          "makerFee": "0.1",         // Default maker fee ratio
+        //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
-        //          "type": "spot"             // Market type. Possible values: "spot", "futures"
+        //          "type": "spot",            // Market type. Possible values: "spot", "futures"
+        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
         //        },
         //        {
         //          ...
@@ -332,6 +334,10 @@ export default class whitebit extends Exchange {
             } else {
                 type = 'spot';
             }
+            const takerFeeRate = this.safeString (market, 'takerFee');
+            const taker = Precise.stringDiv (takerFeeRate, '100');
+            const makerFeeRate = this.safeString (market, 'makerFee');
+            const maker = Precise.stringDiv (makerFeeRate, '100');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -351,8 +357,8 @@ export default class whitebit extends Exchange {
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': this.safeNumber (market, 'makerFee'),
-                'maker': this.safeNumber (market, 'takerFee'),
+                'taker': this.parseNumber (taker),
+                'maker': this.parseNumber (maker),
                 'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -377,9 +383,10 @@ export default class whitebit extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minTotal'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);
@@ -822,13 +829,14 @@ export default class whitebit extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderBook
+         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -841,7 +849,7 @@ export default class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit; // default = 50, maximum = 100
+            request['limit'] = limit; // default = 100, maximum = 100
         }
         const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
@@ -863,7 +871,7 @@ export default class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.parseNumber (Precise.stringMul (this.safeString (response, 'timestamp'), '1000'));
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
@@ -968,7 +976,7 @@ export default class whitebit extends Exchange {
                 results = this.arrayConcat (results, parsed);
             }
             results = this.sortBy2 (results, 'timestamp', 'id');
-            return this.filterBySinceLimit (results, since, limit, 'timestamp') as any;
+            return this.filterBySinceLimit (results, since, limit, 'timestamp') as Trade[];
         }
     }
 
@@ -1078,10 +1086,7 @@ export default class whitebit extends Exchange {
             }
             limit = Math.min (limit, maxLimit);
             const start = this.parseToInt (since / 1000);
-            const duration = this.parseTimeframe (timeframe);
-            const end = this.sum (start, duration * limit);
             request['start'] = start;
-            request['end'] = end;
         }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1440);
@@ -1102,7 +1107,7 @@ export default class whitebit extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1591488000,
@@ -1437,7 +1442,7 @@ export default class whitebit extends Exchange {
         }
         results = this.sortBy (results, 'timestamp');
         results = this.filterBySymbolSinceLimit (results, symbol, since, limit);
-        return results;
+        return results as Order[];
     }
 
     parseOrderType (type) {
@@ -1453,7 +1458,7 @@ export default class whitebit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder, fetchOpenOrders
         //

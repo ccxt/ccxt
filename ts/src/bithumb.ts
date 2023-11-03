@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -263,6 +263,7 @@ export default class bithumb extends Exchange {
                         },
                         'cost': {}, // set via options
                     },
+                    'created': undefined,
                     'info': market,
                 }, extension);
                 result.push (entry);
@@ -453,7 +454,7 @@ export default class bithumb extends Exchange {
                 result[symbol] = this.parseTicker (ticker, market);
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -495,7 +496,7 @@ export default class bithumb extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1576823400000, // 기준 시간
@@ -782,7 +783,7 @@ export default class bithumb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //
         // fetchOrder

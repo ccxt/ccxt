@@ -374,7 +374,7 @@ class hollaex(ccxt.async_support.hollaex):
         messageHash = self.safe_string(message, 'topic')
         data = self.safe_value(message, 'data')
         keys = list(data.keys())
-        timestamp = self.safe_integer_product(message, 'time', 1000)
+        timestamp = self.safe_timestamp(message, 'time')
         self.balance['info'] = data
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)

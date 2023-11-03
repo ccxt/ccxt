@@ -331,6 +331,7 @@ class probit extends Exchange {
                         'max' => $this->safe_number($market, 'max_cost'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -978,7 +979,7 @@ class probit extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1095,7 +1096,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         $id,
@@ -1472,6 +1473,8 @@ class probit extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        } else {
+            $request['limit'] = 100;
         }
         $response = $this->privateGetTransferPayment (array_merge($request, $params));
         //

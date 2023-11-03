@@ -209,6 +209,7 @@ class coinfalcon extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -307,7 +308,7 @@ class coinfalcon extends Exchange {
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -589,7 +590,7 @@ class coinfalcon extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -922,9 +923,9 @@ class coinfalcon extends Exchange {
         $amountString = $this->safe_string($transaction, 'amount');
         $amount = $this->parse_number($amountString);
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCost = 0;
+        $feeCost = '0';
         if ($feeCostString !== null) {
-            $feeCost = $this->parse_number($feeCostString);
+            $feeCost = $feeCostString;
         }
         return array(
             'info' => $transaction,
@@ -946,7 +947,7 @@ class coinfalcon extends Exchange {
             'updated' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
             ),
         );
     }

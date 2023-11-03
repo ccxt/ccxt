@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
 use ccxt\NotSupported;
+use ccxt\RateLimitExceeded;
 use ccxt\Precise;
 use React\Async;
 
@@ -344,6 +345,7 @@ class bitfinex2 extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
+                    '11010' => '\\ccxt\\RateLimitExceeded',
                     '10001' => '\\ccxt\\PermissionDenied', // api_key => permission invalid (#10001)
                     '10020' => '\\ccxt\\BadRequest',
                     '10100' => '\\ccxt\\AuthenticationError',
@@ -582,6 +584,7 @@ class bitfinex2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null, // todo => the api needs revision for extra $params & endpoints for possibility of returning a timestamp for this
                     'info' => $market,
                 );
             }
@@ -1173,7 +1176,7 @@ class bitfinex2 extends Exchange {
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1283,14 +1286,21 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
-             * @see https://docs.bitfinex.com/reference/rest-public-tickers-history
+             * @see https://docs.bitfinex.com/reference/rest-public-$trades
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchTrades', $symbol, $since, $limit, $params, 10000));
+            }
             $market = $this->market($symbol);
             $sort = '-1';
             $request = array(
@@ -1304,6 +1314,7 @@ class bitfinex2 extends Exchange {
                 $request['limit'] = min ($limit, 10000); // default 120, max 10000
             }
             $request['sort'] = $sort;
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->publicGetTradesSymbolHist (array_merge($request, $params)));
             //
             //     array(
@@ -1331,15 +1342,18 @@ class bitfinex2 extends Exchange {
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 10000));
+            }
             $market = $this->market($symbol);
             if ($limit === null) {
-                $limit = 100; // default 100, max 5000
-            }
-            if ($since === null) {
-                $duration = $this->parse_timeframe($timeframe);
-                $since = $this->milliseconds() - $duration * $limit * 1000;
+                $limit = 10000; // default 100, max 5000
             }
             $request = array(
                 'symbol' => $market['id'],
@@ -1348,6 +1362,7 @@ class bitfinex2 extends Exchange {
                 'start' => $since,
                 'limit' => $limit,
             );
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->publicGetCandlesTradeTimeframeSymbolHist (array_merge($request, $params)));
             //
             //     [
@@ -1360,7 +1375,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1426,7 +1441,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($orderTypes, $orderType, 'GTC');
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
         $symbol = $this->safe_symbol($marketId);
@@ -1829,10 +1844,17 @@ class bitfinex2 extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch entries for
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             // returns the most recent closed or canceled orders up to circa two weeks ago
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchClosedOrders', $symbol, $since, $limit, $params));
+            }
             $request = array();
             if ($since !== null) {
                 $request['start'] = $since;
@@ -1840,6 +1862,7 @@ class bitfinex2 extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 25, max 2500
             }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $market = null;
             $response = null;
             if ($symbol === null) {
@@ -2607,6 +2630,7 @@ class bitfinex2 extends Exchange {
     }
 
     public function handle_errors($statusCode, $statusText, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        // ['error', 11010, 'ratelimit => error']
         if ($response !== null) {
             if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
                 $message = $this->safe_string_2($response, 'message', 'error');
@@ -2617,6 +2641,9 @@ class bitfinex2 extends Exchange {
             }
         } elseif ($response === '') {
             throw new ExchangeError($this->id . ' returned empty response');
+        }
+        if ($statusCode === 429) {
+            throw new RateLimitExceeded($this->id . ' ' . $body);
         }
         if ($statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
@@ -2636,8 +2663,6 @@ class bitfinex2 extends Exchange {
             return null;
         } elseif (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
             return 'fee';
-        } elseif (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
-            return 'trade';
         } elseif (mb_strpos($type, 'rebate') !== false) {
             return 'rebate';
         } elseif (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
@@ -2646,6 +2671,8 @@ class bitfinex2 extends Exchange {
             return 'transfer';
         } elseif (mb_strpos($type, 'payment') !== false) {
             return 'payout';
+        } elseif (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
+            return 'trade';
         } else {
             return $type;
         }
@@ -2708,10 +2735,17 @@ class bitfinex2 extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure ledger structure}
              */
             Async\await($this->load_markets());
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params, 2500));
+            }
             $currency = null;
             $request = array();
             if ($since !== null) {
@@ -2720,6 +2754,7 @@ class bitfinex2 extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // max 2500
             }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -2817,14 +2852,25 @@ class bitfinex2 extends Exchange {
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest funding $rate
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-structure funding $rate structure}
              */
             Async\await($this->load_markets());
             $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 5000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
             );
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->publicGetStatusDerivSymbolHist (array_merge($request, $params)));
             //
             //   array(

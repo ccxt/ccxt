@@ -240,6 +240,7 @@ class ace extends Exchange {
                     'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
                 ),
                 'active' => null,
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -333,7 +334,7 @@ class ace extends Exchange {
             $ticker = $this->parse_ticker($rawTicker, $market);
             $tickers[] = $ticker;
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -396,7 +397,7 @@ class ace extends Exchange {
         return $this->parse_order_book($orderBook, $market['symbol'], null, 'bids', 'asks');
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "changeRate" => 0,
@@ -484,7 +485,7 @@ class ace extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -870,10 +871,7 @@ class ace extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'attachment');
-        $trades = $this->safe_value($data, 'trades');
-        if ($trades === null) {
-            return $trades;
-        }
+        $trades = $this->safe_value($data, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -1009,7 +1007,7 @@ class ace extends Exchange {
                 'timeStamp' => $nonce,
             ), $params);
             $dataKeys = is_array($data) ? array_keys($data) : array();
-            $sortedDataKeys = $this->sort_by($dataKeys, 0);
+            $sortedDataKeys = $this->sort_by($dataKeys, 0, false, '');
             for ($i = 0; $i < count($sortedDataKeys); $i++) {
                 $key = $sortedDataKeys[$i];
                 $auth .= $this->safe_string($data, $key);

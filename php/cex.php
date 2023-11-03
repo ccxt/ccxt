@@ -432,6 +432,7 @@ class cex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -488,7 +489,7 @@ class cex extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1591403940,
@@ -608,7 +609,7 @@ class cex extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array ()) {
@@ -818,7 +819,7 @@ class cex extends Exchange {
         return array_merge($this->parse_order(array()), array( 'info' => $response, 'type' => null, 'id' => $id, 'status' => 'canceled' ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $this->safe_value($order, 'time');

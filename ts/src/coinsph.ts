@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 /**
  * @class coinsph
@@ -540,7 +540,6 @@ export default class coinsph extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const isActive = this.safeString (market, 'status') === 'TRADING';
             const limits = this.indexBy (this.safeValue (market, 'filters'), 'filterType');
             const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
@@ -560,7 +559,7 @@ export default class coinsph extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isActive,
+                'active': this.safeStringLower (market, 'status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -593,6 +592,7 @@ export default class coinsph extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -819,7 +819,7 @@ export default class coinsph extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1286,7 +1286,7 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder POST /openapi/v1/order
         //     {

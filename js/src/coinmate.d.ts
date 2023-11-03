@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinmate.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinmate
  * @extends Exchange
@@ -10,28 +10,7 @@ export default class coinmate extends Exchange {
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTicker(symbol: string, params?: {}): Promise<{
-        symbol: any;
-        timestamp: number;
-        datetime: string;
-        high: number;
-        low: number;
-        bid: number;
-        bidVolume: any;
-        ask: number;
-        vwap: any;
-        askVolume: any;
-        open: any;
-        close: number;
-        last: number;
-        previousClose: any;
-        change: any;
-        percentage: any;
-        average: any;
-        baseVolume: number;
-        quoteVolume: any;
-        info: any;
-    }>;
+    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): {
@@ -95,13 +74,13 @@ export default class coinmate extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    parseOrder(order: any, market?: any): Order;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
     }>;

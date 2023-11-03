@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -266,6 +265,7 @@ class bithumb(Exchange, ImplicitAPI):
                         },
                         'cost': {},  # set via options
                     },
+                    'created': None,
                     'info': market,
                 }, extension)
                 result.append(entry)
@@ -439,7 +439,7 @@ class bithumb(Exchange, ImplicitAPI):
                 market = self.safe_market(symbol)
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
@@ -477,7 +477,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1576823400000,  # 기준 시간
@@ -740,7 +740,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #
         # fetchOrder

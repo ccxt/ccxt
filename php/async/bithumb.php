@@ -262,6 +262,7 @@ class bithumb extends Exchange {
                             ),
                             'cost' => array(), // set via options
                         ),
+                        'created' => null,
                         'info' => $market,
                     ), $extension);
                     $result[] = $entry;
@@ -452,7 +453,7 @@ class bithumb extends Exchange {
                     $result[$symbol] = $this->parse_ticker($ticker, $market);
                 }
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -495,7 +496,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1576823400000, // 기준 시간
@@ -782,7 +783,7 @@ class bithumb extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //
         // fetchOrder

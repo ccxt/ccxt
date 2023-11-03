@@ -501,6 +501,7 @@ class gemini extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $row,
                 );
             }
@@ -571,11 +572,10 @@ class gemini extends Exchange {
             }
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $method = 'publicGetV1SymbolsDetailsSymbol';
                 $request = array(
                     'symbol' => $marketId,
                 );
-                $promises[] = $this->$method (array_merge($request, $params));
+                $promises[] = $this->publicGetV1SymbolsDetailsSymbol (array_merge($request, $params));
                 //
                 //     {
                 //         "symbol" => "BTCUSD",
@@ -659,6 +659,7 @@ class gemini extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $response,
         );
     }
@@ -761,7 +762,13 @@ class gemini extends Exchange {
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
-            return Async\await($this->$method ($symbol, $params));
+            if ($method === 'fetchTickerV1') {
+                return Async\await($this->fetch_ticker_v1($symbol, $params));
+            }
+            if ($method === 'fetchTickerV2') {
+                return Async\await($this->fetch_ticker_v2($symbol, $params));
+            }
+            return Async\await($this->fetch_ticker_v1_and_v2($symbol, $params));
         }) ();
     }
 
@@ -1077,7 +1084,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder (private)
         //

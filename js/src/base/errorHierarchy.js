@@ -18,6 +18,7 @@ const errorHierarchy = {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
                 'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -46,6 +47,7 @@ const errorHierarchy = {
             },
             'InvalidNonce': {},
             'RequestTimeout': {},
+            'OperationFailed': {},
         },
     },
 };

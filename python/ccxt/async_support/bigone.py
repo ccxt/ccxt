@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -571,6 +570,7 @@ class bigone(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -713,7 +713,7 @@ class bigone(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_time(self, params={}):
         """
@@ -931,7 +931,7 @@ class bigone(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         close: '0.021562',
@@ -1054,7 +1054,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #    {
         #        "id": '42154072251',
@@ -1128,7 +1128,7 @@ class bigone(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://open.big.one/docs/spot_orders.html#create-order
+        :see: https://open.big.one/docs/spot_orders.html#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1686,7 +1686,7 @@ class bigone(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://open.big.one/docs/spot_transfer.html#transfer-of-user
+        :see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'

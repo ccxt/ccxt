@@ -25,7 +25,7 @@ class wazirx extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -264,6 +264,7 @@ class wazirx extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -312,7 +313,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -432,7 +433,7 @@ class wazirx extends Exchange {
                 $symbol = $parsedTicker['symbol'];
                 $result[$symbol] = $parsedTicker;
             }
-            return $result;
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -604,7 +605,7 @@ class wazirx extends Exchange {
     }
 
     public function parse_balance($response) {
-        $result = array( );
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $id = $this->safe_string($balance, 'asset');
@@ -848,7 +849,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         // array(
         //     "id":1949417813,
         //     "symbol":"ltcusdt",

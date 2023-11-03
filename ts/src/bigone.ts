@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFund
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -572,6 +572,7 @@ export default class bigone extends Exchange {
                         'max': this.safeNumber (market, 'max_quote_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);
@@ -727,7 +728,7 @@ export default class bigone extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTime (params = {}) {
@@ -969,7 +970,7 @@ export default class bigone extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         close: '0.021562',
@@ -1105,7 +1106,7 @@ export default class bigone extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //    {
         //        "id": '42154072251',

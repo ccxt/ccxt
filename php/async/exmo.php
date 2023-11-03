@@ -841,6 +841,7 @@ class exmo extends Exchange {
                             'max' => $this->safe_number($market, 'max_amount'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -905,7 +906,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "t":1584057600000,
@@ -1147,7 +1148,7 @@ class exmo extends Exchange {
                 $ticker = $this->safe_value($response, $marketId);
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1595,9 +1596,8 @@ class exmo extends Exchange {
             //     }
             //
             $order = $this->parse_order($response);
-            return array_merge($order, array(
-                'id' => (string) $id,
-            ));
+            $order['id'] = (string) $id;
+            return $order;
         }) ();
     }
 
@@ -1804,7 +1804,7 @@ class exmo extends Exchange {
         return $this->safe_string($side, $orderType, $orderType);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //

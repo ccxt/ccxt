@@ -275,6 +275,7 @@ class phemex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // not documented
+                    '401' => '\\ccxt\\AuthenticationError', // array("code":"401","msg":"401 Failed to load API KEY.")
                     '412' => '\\ccxt\\BadRequest', // array("code":412,"msg":"Missing parameter - resolution","data":null)
                     '6001' => '\\ccxt\\BadRequest', // array("error":array("code":6001,"message":"invalid argument"),"id":null,"result":null)
                     // documented
@@ -597,6 +598,7 @@ class phemex extends Exchange {
                     'max' => $this->parse_number($this->safe_string($market, 'maxOrderQty')),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -696,6 +698,7 @@ class phemex extends Exchange {
                     'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
                 ),
             ),
+            'created' => null,
             'info' => $market,
         );
     }
@@ -1070,7 +1073,7 @@ class phemex extends Exchange {
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -1105,11 +1108,12 @@ class phemex extends Exchange {
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#query-kline
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] *emulated not supported by the exchange* timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
-         * @param {array} [$params] extra parameters specific to the phemex api endpoint
+         * @param {int} [$since] *only used for USDT settled contracts, otherwise is emulated and not supported by the exchange* timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$limit] the maximum amount of candles $to fetch
+         * @param {array} [$params] extra parameters specific $to the phemex api endpoint
+         * @param {int} [$params->until] *USDT settled/ linear swaps only* end time in ms
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1119,32 +1123,51 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $possibleLimitValues = array( 5, 10, 50, 100, 500, 1000 );
+        $until = $this->safe_integer_2($params, 'until', 'to');
+        $params = $this->omit($params, array( 'until' ));
+        $usesSpecialFromToEndpoint = (($market['linear'] || $market['settle'] === 'USDT')) && (($since !== null) || ($until !== null));
         $maxLimit = 1000;
-        if ($limit === null && $since === null) {
-            $limit = $possibleLimitValues[5];
+        if ($usesSpecialFromToEndpoint) {
+            $maxLimit = 2000;
         }
-        if ($since !== null) {
-            // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
-            // we do not send $since param to the exchange, instead we calculate appropriate $limit param
-            $duration = $this->parse_timeframe($timeframe) * 1000;
-            $timeDelta = $this->milliseconds() - $since;
-            $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit to the number of candles after $since
-        }
-        if ($limit > $maxLimit) {
+        if ($limit === null) {
             $limit = $maxLimit;
-        } else {
-            for ($i = 0; $i < count($possibleLimitValues); $i++) {
-                if ($limit <= $possibleLimitValues[$i]) {
-                    $limit = $possibleLimitValues[$i];
-                }
-            }
         }
-        $request['limit'] = $limit;
+        $request['limit'] = min ($limit, $maxLimit);
         $response = null;
         if ($market['linear'] || $market['settle'] === 'USDT') {
-            $response = $this->publicGetMdV2KlineLast (array_merge($request, $params));
+            if (($until !== null) || ($since !== null)) {
+                $candleDuration = $this->parse_timeframe($timeframe);
+                if ($since !== null) {
+                    $since = (int) round($since / 1000);
+                    $request['from'] = $since;
+                } else {
+                    // when 'to' is defined $since is mandatory
+                    $since = ($until / 100) - ($maxLimit * $candleDuration);
+                }
+                if ($until !== null) {
+                    $request['to'] = (int) round($until / 1000);
+                } else {
+                    // when $since is defined 'to' is mandatory
+                    $to = $since . ($maxLimit * $candleDuration);
+                    $now = $this->seconds();
+                    if ($to > $now) {
+                        $to = $now;
+                    }
+                    $request['to'] = $to;
+                }
+                $response = $this->publicGetMdV2KlineList (array_merge($request, $params));
+            } else {
+                $response = $this->publicGetMdV2KlineLast (array_merge($request, $params));
+            }
         } else {
+            if ($since !== null) {
+                // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
+                // we do not send $since param $to the exchange, instead we calculate appropriate $limit param
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $timeDelta = $this->milliseconds() - $since;
+                $limit = $this->parse_to_int($timeDelta / $duration); // setting $limit $to the number of candles after $since
+            }
             $response = $this->publicGetMdV2Kline (array_merge($request, $params));
         }
         //
@@ -1782,6 +1805,9 @@ class phemex extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = 'privateGetSpotWallets';
         $request = array();
+        if (($type !== 'spot') && ($type !== 'swap')) {
+            throw new BadRequest($this->id . ' does not support ' . $type . ' markets, only spot and swap');
+        }
         if ($type === 'swap') {
             $code = $this->safe_string($params, 'code');
             $settle = null;
@@ -2265,7 +2291,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $isSwap = $this->safe_value($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {
@@ -3552,17 +3578,18 @@ class phemex extends Exchange {
             // 'limit' => 20, // Page size default 20, max 200
             // 'offset' => 0, // Page start default 0
         );
-        if ($limit > 200) {
-            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
-        }
         if ($limit !== null) {
+            if ($limit > 200) {
+                throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
+            }
             $request['limit'] = $limit;
         }
-        $method = 'privateGetApiDataFuturesFundingFees';
+        $response = null;
         if ($market['settle'] === 'USDT') {
-            $method = 'privateGetApiDataGFuturesFundingFees';
+            $response = $this->privateGetApiDataGFuturesFundingFees (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetApiDataFuturesFundingFees (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4245,12 +4272,28 @@ class phemex extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @see https://phemex-docs.github.io/#query-funding-rate-history-2
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
+         * @param {array} [$params] extra parameters specific to the phemex api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
+         */
         $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $isUsdtSettled = $market['settle'] === 'USDT';
         if (!$market['swap']) {
             throw new BadRequest($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 100);
         }
         $customSymbol = null;
         if ($isUsdtSettled) {
@@ -4267,6 +4310,7 @@ class phemex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = null;
         if ($isUsdtSettled) {
             $response = $this->v2GetApiDataPublicDataFundingRateHistory (array_merge($request, $params));

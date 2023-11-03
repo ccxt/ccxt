@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.huobijp import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -333,7 +332,6 @@ class huobijp(Exchange, ImplicitAPI):
                 'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
                 'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://coinmarketcap.com/currencies/penta/markets/
@@ -524,6 +522,7 @@ class huobijp(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -715,7 +714,7 @@ class huobijp(Exchange, ImplicitAPI):
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
         #
@@ -886,7 +885,7 @@ class huobijp(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -1221,7 +1220,7 @@ class huobijp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {                 id:  13997833014,
         #                    symbol: "ethbtc",
@@ -1355,7 +1354,7 @@ class huobijp(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
         id = self.safe_string(response, 'data')
-        return {
+        return self.safe_order({
             'info': response,
             'id': id,
             'timestamp': timestamp,
@@ -1374,7 +1373,7 @@ class huobijp(Exchange, ImplicitAPI):
             'fee': None,
             'clientOrderId': None,
             'average': None,
-        }
+        }, market)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

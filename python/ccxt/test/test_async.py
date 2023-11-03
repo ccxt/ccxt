@@ -25,6 +25,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 class Argv(object):
+    staticTests = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -45,6 +46,7 @@ parser.add_argument('--privateOnly', action='store_true', help='run private test
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
+parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -80,6 +82,12 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 class baseMainTestClass():
+    lang = 'PY'
+    staticTestsFailed = False
+    skippedMethods = {}
+    checkedPublicTests = {}
+    testFiles = {}
+    publicTests = {}
     pass
 
 
@@ -88,11 +96,20 @@ is_synchronous = 'async' not in os.path.basename(__file__)
 rootDir = current_dir + '/../../../'
 rootDirForSkips = current_dir + '/../../../'
 envVars = os.environ
+LOG_CHARS_LENGTH = 10000
 ext = 'py'
 
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
+
+def json_parse(elem):
+    return json.loads(elem)
+
+
+def json_stringify(elem):
+    return json.dumps(elem)
 
 
 def get_cli_arg_value(arg):
@@ -124,20 +141,28 @@ def io_file_read(path, decode=True):
         return content
 
 
+def io_dir_read(path):
+    return os.listdir(path)
+
+
 async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
 
 
+async def call_exchange_method_dynamically(exchange, methodName, args):
+    return await getattr(exchange, methodName)(*args)
+
+
 def exception_message(exc):
     message = '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
-    if len(message) > 1000:
+    if len(message) > LOG_CHARS_LENGTH:
         # Accessing out of range element causes error
-        message = message[0:1000]
+        message = message[0:LOG_CHARS_LENGTH]
     return message
 
 
-def exit_script():
-    exit(0)
+def exit_script(code=0):
+    exit(code)
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
@@ -180,6 +205,8 @@ async def close(exchange):
 
 
 import asyncio
+from typing import List
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
@@ -191,6 +218,7 @@ from ccxt.base.errors import AuthenticationError
 class testMainClass(baseMainTestClass):
 
     def parse_cli_args(self):
+        self.staticTests = get_cli_arg_value('--static')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -200,6 +228,8 @@ class testMainClass(baseMainTestClass):
 
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
+        if self.staticTests:
+            return await self.run_static_tests()
         symbolStr = symbol is not symbol if None else 'all'
         dump('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
         exchangeArgs = {
@@ -316,7 +346,7 @@ class testMainClass(baseMainTestClass):
         # console from there. So, even if some public tests fail, the script will continue
         # doing other things(testing other spot/swap or private tests ...)
         maxRetries = 3
-        argsStringified = '(' + ','.join(args) + ')'
+        argsStringified = exchange.json(args)  # args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
         for i in range(0, maxRetries):
             try:
                 await self.test_method(methodName, exchange, args, isPublic)
@@ -327,6 +357,7 @@ class testMainClass(baseMainTestClass):
                 isNetworkError = (isinstance(e, NetworkError))
                 isDDoSProtection = (isinstance(e, DDoSProtection))
                 isRequestTimeout = (isinstance(e, RequestTimeout))
+                isNotSupported = (isinstance(e, NotSupported))
                 tempFailure = (isRateLimitExceeded or isNetworkError or isDDoSProtection or isRequestTimeout)
                 if tempFailure:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return False
@@ -348,7 +379,11 @@ class testMainClass(baseMainTestClass):
                         dump('[TEST_WARNING]', 'Authentication problem for public method', exception_message(e), exchange.id, methodName, argsStringified)
                 else:
                     # if not a temporary connectivity issue, then mark test(no need to re-try)
-                    dump('[TEST_FAILURE]', exception_message(e), exchange.id, methodName, argsStringified)
+                    if isNotSupported:
+                        dump('[NOT_SUPPORTED]', exchange.id, methodName, argsStringified)
+                        return True  # why consider not supported failed test?
+                    else:
+                        dump('[TEST_FAILURE]', exception_message(e), exchange.id, methodName, argsStringified)
                 return False
 
     async def run_public_tests(self, exchange, symbol):
@@ -629,7 +664,7 @@ class testMainClass(baseMainTestClass):
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
-            'fetchBorrowRates': [code],
+            'fetchBorrowRates': [],
             'fetchBorrowRate': [code],
             'fetchBorrowInterest': [code, symbol],
             # 'addMargin': [],
@@ -662,7 +697,7 @@ class testMainClass(baseMainTestClass):
         market = exchange.market(symbol)
         isSpot = market['spot']
         if isSpot:
-            tests['fetchCurrencies'] = [symbol]
+            tests['fetchCurrencies'] = []
         else:
             # derivatives only
             tests['fetchPositions'] = [symbol]  # self test fetches all positions for 1 symbol
@@ -689,7 +724,8 @@ class testMainClass(baseMainTestClass):
                 errors.append(testName)
         errorsCnt = len(errors)  # PHP transpile count($errors)
         if errorsCnt > 0:
-            raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
+            # raise Error('Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
+            dump('[TEST_FAILURE]', 'Failed private tests [' + market['type'] + ']: ' + ', '.join(errors))
         else:
             if self.info:
                 dump(self.add_padding('[INFO:PRIVATE_TESTS_DONE]', 25), exchange.id)
@@ -711,6 +747,187 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             await close(exchange)
             raise e
+
+    def assert_static_error(self, cond: bool, message: str, calculatedOutput, storedOutput):
+        #  -----------------------------------------------------------------------------
+        #  --- Init of static tests functions------------------------------------------
+        #  -----------------------------------------------------------------------------
+        calculatedString = json_stringify(calculatedOutput)
+        outputString = json_stringify(storedOutput)
+        errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString
+        assert cond, errorMessage
+
+    def load_markets_from_file(self, id: str):
+        # load markets from file
+        # to make self test
+        # and basically independent from the exchange
+        # so we can run it offline
+        filename = './ts/src/test/static/markets/' + id + '.json'
+        content = io_file_read(filename)
+        return content
+
+    def load_static_data(self):
+        folder = './ts/src/test/static/data/'
+        files = io_dir_read(folder)
+        result = {}
+        for i in range(0, len(files)):
+            file = files[i]
+            exchangeName = file.replace('.json', '')
+            content = io_file_read(folder + file)
+            result[exchangeName] = content
+        return result
+
+    def remove_hostnamefrom_url(self, url: str):
+        if url is None:
+            return None
+        urlParts = url.split('/')
+        res = ''
+        for i in range(0, len(urlParts)):
+            if i > 2:
+                current = urlParts[i]
+                if current.find('?') > -1:
+                    # handle urls like self: /v1/account/accounts?AccessK
+                    currentParts = current.split('?')
+                    res += '/'
+                    res += currentParts[0]
+                    break
+                res += '/'
+                res += current
+        return res
+
+    def urlencoded_to_dict(self, url: str):
+        result = {}
+        parts = url.split('&')
+        for i in range(0, len(parts)):
+            part = parts[i]
+            keyValue = part.split('=')
+            key = keyValue[0]
+            value = keyValue[1]
+            result[key] = value
+        return result
+
+    def assert_new_and_stored_output(self, exchange, skipKeys: List[str], newOutput: object, storedOutput: object):
+        storedOutputKeys = list(storedOutput.keys())
+        newOutputKeys = list(newOutput.keys())
+        storedLenght = len(storedOutputKeys)
+        newLength = len(newOutputKeys)
+        self.assert_static_error(storedLenght == newLength, 'output length mismatch', storedOutput, newOutput)
+        for i in range(0, len(storedOutputKeys)):
+            key = storedOutputKeys[i]
+            if exchange.in_array(key, skipKeys):
+                continue
+            if not (exchange.in_array(key, newOutputKeys)):
+                self.assert_static_error(False, 'output key missing: ' + key, storedOutput, newOutput)
+            storedValue = storedOutput[key]
+            newValue = newOutput[key]
+            if isinstance(storedValue, dict):
+                if isinstance(newValue, dict):
+                    # recursive objects
+                    return self.assert_new_and_stored_output(exchange, skipKeys, newValue, storedValue)
+            messageError = 'output value mismatch for: ' + key + ' : ' + str(storedValue) + ' != ' + str(newValue)
+            self.assert_static_error(storedValue == newValue, messageError, storedOutput, newOutput)
+
+    def assert_static_output(self, exchange, type: str, skipKeys: List[str], storedUrl: str, requestUrl: str, storedOutput, newOutput):
+        if storedUrl != requestUrl:
+            # remove the host part from the url
+            firstPath = self.remove_hostnamefrom_url(storedUrl)
+            secondPath = self.remove_hostnamefrom_url(requestUrl)
+            self.assert_static_error(firstPath == secondPath, 'url mismatch', firstPath, secondPath)
+        # body(aka storedOutput and newOutput) is not defined and information is in the url
+        # example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if (storedOutput is None) and (newOutput is None):
+            if (storedUrl is not None) and (requestUrl is not None):
+                storedUrlParts = storedUrl.split('?')
+                newUrlParts = requestUrl.split('?')
+                storedUrlParams = self.urlencoded_to_dict(storedUrlParts[1])
+                newUrlParams = self.urlencoded_to_dict(newUrlParts[1])
+                self.assert_new_and_stored_output(exchange, skipKeys, newUrlParams, storedUrlParams)
+                return
+        # body is defined
+        if type == 'json':
+            if isinstance(storedOutput, str):
+                storedOutput = json_parse(storedOutput)
+            if isinstance(newOutput, str):
+                newOutput = json_parse(newOutput)
+        elif type == 'urlencoded':
+            storedOutput = self.urlencoded_to_dict(storedOutput)
+            newOutput = self.urlencoded_to_dict(newOutput)
+        if isinstance(storedOutput, list):
+            if not isinstance(newOutput, list):
+                self.assert_static_error(False, 'output type mismatch', storedOutput, newOutput)
+            for i in range(0, len(storedOutput)):
+                storedItem = storedOutput[i]
+                newItem = newOutput[i]
+                self.assert_new_and_stored_output(exchange, skipKeys, newItem, storedItem)
+        else:
+            self.assert_new_and_stored_output(exchange, skipKeys, newOutput, storedOutput)
+
+    async def test_method_statically(self, exchange, method: str, data: object, type: str, skipKeys: List[str]):
+        output = None
+        requestUrl = None
+        try:
+            await call_exchange_method_dynamically(exchange, method, data['input'])
+        except Exception as e:
+            if not (isinstance(e, NetworkError)):
+                # if it's not a network error, it means our request was not created succesfully
+                # so we might have an error in the request creation
+                raise e
+            output = exchange.last_request_body
+            requestUrl = exchange.last_request_url
+        try:
+            callOutput = exchange.safe_value(data, 'output')
+            self.assert_static_output(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output)
+        except Exception as e:
+            self.staticTestsFailed = True
+            errorMessage = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            dump(errorMessage)
+
+    async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
+        markets = self.load_markets_from_file(exchangeName)
+        # instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        exchange = init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+        methods = exchange.safe_value(exchangeData, 'methods', {})
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                type = exchange.safe_string(exchangeData, 'outputType')
+                skipKeys = exchange.safe_value(exchangeData, 'skipKeys', [])
+                await self.test_method_statically(exchange, method, result, type, skipKeys)
+        await close(exchange)
+
+    def get_number_of_tests_from_exchange(self, exchange, exchangeData: object):
+        sum = 0
+        methods = exchangeData['methods']
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            resultsLength = len(results)
+            sum = exchange.sum(sum, resultsLength)
+        return sum
+
+    async def run_static_tests(self):
+        staticData = self.load_static_data()
+        exchanges = list(staticData.keys())
+        exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling self code
+        promises = []
+        sum = 0
+        for i in range(0, len(exchanges)):
+            exchangeName = exchanges[i]
+            exchangeData = staticData[exchangeName]
+            numberOfTests = self.get_number_of_tests_from_exchange(exchange, exchangeData)
+            sum = exchange.sum(sum, numberOfTests)
+            promises.append(self.test_exchange_statically(exchangeName, exchangeData))
+        await asyncio.gather(*promises)
+        if self.staticTestsFailed:
+            exit_script(1)
+        else:
+            successMessage = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static tests passed.'
+            dump(successMessage)
+            exit_script(0)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

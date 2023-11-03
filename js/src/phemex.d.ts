@@ -1,5 +1,5 @@
 import Exchange from './abstract/phemex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class phemex
  * @extends Exchange
@@ -58,6 +58,7 @@ export default class phemex extends Exchange {
                 max: number;
             };
         };
+        created: any;
         info: any;
     };
     parseSpotMarket(market: any): {
@@ -111,18 +112,14 @@ export default class phemex extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     customParseBidAsk(bidask: any, priceKey?: number, amountKey?: number, market?: any): number[];
-    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: any): {
-        symbol: any;
-        timestamp: any;
-        datetime: string;
-        nonce: any;
-    };
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    customParseOrderBook(orderbook: any, symbol: any, timestamp?: any, bidsKey?: string, asksKey?: string, priceKey?: number, amountKey?: number, market?: any): any;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     toEn(n: any, scale: any): number;
     toEv(amount: any, market?: any): any;
     toEp(price: any, market?: any): any;
@@ -130,8 +127,8 @@ export default class phemex extends Exchange {
     fromEp(ep: any, market?: any): any;
     fromEv(ev: any, market?: any): any;
     fromEr(er: any, market?: any): any;
-    parseOHLCV(ohlcv: any, market?: any): any[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
@@ -143,18 +140,18 @@ export default class phemex extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrderType(type: any): string;
     parseTimeInForce(timeInForce: any): string;
-    parseSpotOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseSpotOrder(order: any, market?: any): Order;
     parseOrderSide(side: any): string;
-    parseSwapOrder(order: any, market?: any): import("./base/types.js").Order;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    editOrder(id: string, symbol: any, type?: any, side?: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    parseSwapOrder(order: any, market?: any): Order;
+    parseOrder(order: any, market?: any): Order;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type?: any, side?: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
@@ -188,7 +185,7 @@ export default class phemex extends Exchange {
     };
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -263,6 +260,6 @@ export default class phemex extends Exchange {
         status: string;
     };
     parseTransferStatus(status: any): string;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

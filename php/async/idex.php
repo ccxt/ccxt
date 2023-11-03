@@ -310,6 +310,7 @@ class idex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $entry,
                 );
             }
@@ -476,7 +477,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // {
         //   start => 1598345580000,
         //   $open => '0.09771286',
@@ -1046,7 +1047,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "market" => "DIL-ETH",
@@ -1538,7 +1539,7 @@ class idex extends Exchange {
             //
             //    array( serverTime => '1655258263236' )
             //
-            return $this->safe_number($response, 'serverTime');
+            return $this->safe_integer($response, 'serverTime');
         }) ();
     }
 

@@ -246,6 +246,7 @@ class bitbank extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $entry,
                 );
             }
@@ -451,7 +452,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "0.02501786",
@@ -604,7 +605,7 @@ class bitbank extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);

@@ -314,7 +314,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         // spot
         //
@@ -348,7 +348,7 @@ class mexc extends \ccxt\async\mexc {
         //     }
         //
         return array(
-            $this->safe_integer_product($ohlcv, 't', 1000),
+            $this->safe_timestamp($ohlcv, 't'),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),

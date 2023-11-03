@@ -567,6 +567,7 @@ class bigone extends bigone$1 {
                         'max': this.safeNumber(market, 'max_quote_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -718,7 +719,7 @@ class bigone extends bigone$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTime(params = {}) {
         /**

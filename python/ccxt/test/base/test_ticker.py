@@ -43,7 +43,7 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     # todo: atm, many exchanges fail, so temporarily decrease stict mode
     empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'ask', 'bid', 'bidVolume', 'askVolume', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average']
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
-    test_shared_methods.assert_timestamp(exchange, skipped_properties, method, entry)
+    test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     log_text = test_shared_methods.log_template(exchange, method, entry)
     #
     test_shared_methods.assert_greater(exchange, skipped_properties, method, entry, 'open', '0')
