@@ -14,6 +14,9 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
         timeframe = timeframeKeys[0];
     }
     const durationMs = exchange.parseTimeframe (timeframe) * 1000;
+    //
+    // check for all four possible "since" & "limit" combinations, where one of them could be undefined and the other not
+    //
     const sinceArray = [ undefined, exchange.milliseconds () - durationMs * 2000 ];// for example, "since" was theoretically from date of 2000 bars back
     const limitsArray = [ undefined, 50 ];
     for (let i = 0; i < sinceArray.length; i++) {
@@ -35,12 +38,6 @@ async function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcv
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
     }
-    testFetchOHLCV_checkResponse (exchange, skippedProperties, ohlcvs, timeframe, since, limit);
-}
-  
-function testFetchOHLCV_checkResponse (exchange, skippedProperties, ohlcvs, timeframe, since = undefined, limit = undefined) {
-    const method = 'fetchOHLCV';
-    const logText = testSharedMethods.logTemplate (exchange, method, {});
     const durationMs = exchange.parseTimeframe (timeframe) * 1000;
     const barsLength = ohlcvs.length;
     // check bars amounts, to be between 0 and limit
@@ -57,37 +54,35 @@ function testFetchOHLCV_checkResponse (exchange, skippedProperties, ohlcvs, time
         }
         // exchange was skipped for zero-bars, then just return and don't do any further check, because there were no ohlcv entries
         return;
-    } else {
-        //
-        // timestamps
-        //
-        const minActrualTs = ohlcvs[0][0];
-        const maxActualTs = ohlcvs[barsLength - 1][0];
-        const maxExpectedTs = minActrualTs + durationMs * limit;
-        // ensure that timestamps are greaterOrEqual than since
-        if (since !== undefined) {
-            if (!('compareTimestampToSince' in skippedProperties)) {
-                assert (minActrualTs >= since, 'Returned bars earliest timestamp (' + minActrualTs.toString () + ') is before than requested since (' + since.toString () + ')' + logText);
+    }
+    // else we continue and check timestamps
+    for (let i = 0; i < barsLength; i++) {
+        const ohlcv = ohlcvs[i];
+        const barTs = ohlcv[0];
+        // if this is the first bar, then ensure last timestamp is under than requested since + limit * duration
+        if (!('compareTimestampToSince' in skippedProperties)) {
+            if (i === 0 && since !== undefined) {
+                assert (barTs >= since, 'Returned bars earliest timestamp (' + barTs.toString () + ') is before than requested since (' + since.toString () + ')' + logText);
+                continue;
             }
         }
-        // ensure last timestamp is under than requested since + limit * duration
-        if (limit !== undefined) {
-            assert (maxActualTs <= maxExpectedTs, 'Returned bars maximum timestamp (' + maxActualTs.toString () + ') is greater than expected limit timestamp (' + maxExpectedTs.toString () + ')' + logText);
+        // if this is the last bar, then check if it's <= now
+        if (!('compareTimestampToLimit' in skippedProperties)) {
+            if (i === barsLength - 1 && limit !== undefined) {
+                const minActrualTs = ohlcvs[0][0];
+                const maxActualTs = ohlcvs[barsLength - 1][0];
+                const maxExpectedTs = minActrualTs + durationMs * limit;
+                assert (maxActualTs <= maxExpectedTs, 'Returned bars maximum timestamp (' + maxActualTs.toString () + ') is greater than expected limit timestamp (' + maxExpectedTs.toString () + ')' + logText);
+            }
         }
-        // ensure current bar ts is >= previous bar + one duration
+        // we do compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
         if (!('compareDuration' in skippedProperties)) {
-            for (let i = 0; i < barsLength; i++) {
-                const ohlcv = ohlcvs[i];
-                const barTs = ohlcv[0];
-                if (i > 0) {
-                    const previousBarTs = ohlcvs[i - 1][0];
-                    const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
-                    assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
-                    // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
-                    const isInteger = Number.isInteger (diffBetweenCurrentAndPrevious / durationMs);
-                    assert (isInteger, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
-                }
-            }
+            const previousBarTs = ohlcvs[i - 1][0];
+            const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
+            assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
+            // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
+            const isInteger = Number.isInteger (diffBetweenCurrentAndPrevious / durationMs);
+            assert (isInteger, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
         }
     }
 }
