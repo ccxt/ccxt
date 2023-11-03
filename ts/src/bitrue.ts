@@ -892,6 +892,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
@@ -2237,7 +2238,7 @@ export default class bitrue extends Exchange {
                     headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 }
             } else {
-                const timestamp = this.nonce ();
+                const timestamp = this.nonce ().toString ();
                 let signPath = undefined;
                 if (type === 'fapi') {
                     signPath = '/fapi';
