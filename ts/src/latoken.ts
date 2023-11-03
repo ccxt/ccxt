@@ -25,8 +25,8 @@ export default class latoken extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
-                'future': undefined,
+                'swap': false,
+                'future': false,
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
