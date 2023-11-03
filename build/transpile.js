@@ -908,14 +908,15 @@ class Transpiler {
                 }
             }
         }
+
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /-> Order/, /\[FundingHistory/, /\[OrderRequest/, /-> Balances/ ]
-        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory', 'OrderRequest', 'Balances' ]
+        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /: Order\s/, /\[FundingHistory/ ]
+        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory' ]
         const matches = []
         let match
-        const listRegex = new RegExp (': List\[(' + objects.join ('|') + ')\]', 'g')
+        const listRegex = /: List\[(\w+)\]/g
         while (match = listRegex.exec (bodyAsString)) {
             matches.push (match[1])
         }
@@ -1292,7 +1293,7 @@ class Transpiler {
         const sync = syncFilePath
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
-        const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
+        const syncBody = his.transpileAsyncPHPToSyncPHP (fileContents)
 
         const phpTestRegexes = [
             [ /Async\\coroutine\(\$main\)/, '\$main()' ],
@@ -1554,7 +1555,6 @@ class Transpiler {
                 'OHLCV': 'array',
                 'Order': 'array',
                 'FundingHistory[]': 'array',
-                'OrderRequest[]': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1592,10 +1592,9 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
-                'OHLCV': 'List',
+                'OHLCV': 'list',
                 'Order': 'Order',
                 'FundingHistory[]': 'List[FundingHistory]',
-                'OrderRequest[]': 'List[OrderRequest]'
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
