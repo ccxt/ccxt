@@ -325,6 +325,7 @@ export default class bitrue extends Exchange {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'defaultType': 'spot',
             },
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
@@ -537,6 +538,22 @@ export default class bitrue extends Exchange {
         return this.safeString2 (networksById, networkId, uppercaseNetworkId, networkId);
     }
 
+    isInverse (type, subType = undefined) {
+        if (subType === undefined) {
+            return type === 'delivery';
+        } else {
+            return subType === 'inverse';
+        }
+    }
+
+    isLinear (type, subType = undefined) {
+        if (subType === undefined) {
+            return (type === 'future') || (type === 'swap');
+        } else {
+            return subType === 'linear';
+        }
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -674,7 +691,9 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.spotV1PublicGetExchangeInfo (params);
+        // const response = await this.spotV1PublicGetExchangeInfo (params);
+        const response = await this.fapiV1PublicGetContracts (params);
+        // const response = await this.dapiV1PublicGetContracts (params);
         //
         //     {
         //         "timezone":"CTT",
@@ -796,35 +815,7 @@ export default class bitrue extends Exchange {
     }
 
     parseBalance (response) {
-        const result = {
-            'info': response,
-        };
-        const timestamp = this.safeInteger (response, 'updateTime');
-        const balances = this.safeValue (response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'asset');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'free');
-            account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
-        }
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601 (timestamp);
-        return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        /**
-         * @method
-         * @name bitrue#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the bitrue api endpoint
-         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.spotV1PrivateGetAccount (params);
+        // spot
         //
         //     {
         //         "makerCommission":0,
@@ -842,7 +833,157 @@ export default class bitrue extends Exchange {
         //         "canDeposit":false
         //     }
         //
-        return this.parseBalance (response);
+        // linear & inverse
+        //
+        //     {
+        //         "account":[
+        //             {
+        //                 "marginCoin":"USDT",
+        //                 "coinPrecious":4,
+        //                 "accountNormal":1010.4043400372839856,
+        //                 "accountLock":2.9827889600000006,
+        //                 "partPositionNormal":0,
+        //                 "totalPositionNormal":0,
+        //                 "achievedAmount":0,
+        //                 "unrealizedAmount":0,
+        //                 "totalMarginRate":0,
+        //                 "totalEquity":1010.4043400372839856,
+        //                 "partEquity":0,
+        //                 "totalCost":0,
+        //                 "sumMarginRate":0,
+        //                 "sumOpenRealizedAmount":0,
+        //                 "canUseTrialFund":0,
+        //                 "sumMaintenanceMargin":null,
+        //                 "futureModel":null,
+        //                 "positionVos":[]
+        //             }
+        //         ]
+        //     }
+        //
+        const result = {
+            'info': response,
+        };
+        const timestamp = this.safeInteger (response, 'updateTime');
+        const balances = this.safeValue2 (response, 'balances', 'account', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString2 (balance, 'asset', 'marginCoin');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString2 (balance, 'free', 'accountNormal');
+            account['used'] = this.safeString2 (balance, 'locked', 'accountLock');
+            result[code] = account;
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
+         * @param {string} [params.subType] 'linear', 'inverse'
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         */
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        let result = undefined;
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiV2PrivateGetAccount (params);
+            result = this.safeValue (response, 'data', {});
+            //
+            //     {
+            //         "code":"0",
+            //         "msg":"Success",
+            //         "data":{
+            //             "account":[
+            //                 {
+            //                     "marginCoin":"USDT",
+            //                     "coinPrecious":4,
+            //                     "accountNormal":1010.4043400372839856,
+            //                     "accountLock":2.9827889600000006,
+            //                     "partPositionNormal":0,
+            //                     "totalPositionNormal":0,
+            //                     "achievedAmount":0,
+            //                     "unrealizedAmount":0,
+            //                     "totalMarginRate":0,
+            //                     "totalEquity":1010.4043400372839856,
+            //                     "partEquity":0,
+            //                     "totalCost":0,
+            //                     "sumMarginRate":0,
+            //                     "sumOpenRealizedAmount":0,
+            //                     "canUseTrialFund":0,
+            //                     "sumMaintenanceMargin":null,
+            //                     "futureModel":null,
+            //                     "positionVos":[]
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiV2PrivateGetAccount (params);
+            result = this.safeValue (response, 'data', {});
+            //
+            // {
+            //         "code":"0",
+            //         "msg":"Success",
+            //         "data":{
+            //             "account":[
+            //                 {
+            //                     "marginCoin":"USD",
+            //                     "coinPrecious":4,
+            //                     "accountNormal":1010.4043400372839856,
+            //                     "accountLock":2.9827889600000006,
+            //                     "partPositionNormal":0,
+            //                     "totalPositionNormal":0,
+            //                     "achievedAmount":0,
+            //                     "unrealizedAmount":0,
+            //                     "totalMarginRate":0,
+            //                     "totalEquity":1010.4043400372839856,
+            //                     "partEquity":0,
+            //                     "totalCost":0,
+            //                     "sumMarginRate":0,
+            //                     "sumOpenRealizedAmount":0,
+            //                     "canUseTrialFund":0,
+            //                     "sumMaintenanceMargin":null,
+            //                     "futureModel":null,
+            //                     "positionVos":[]
+            //                 }
+            //             ]
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.spotV1PrivateGetAccount (params);
+            result = response;
+            //
+            //     {
+            //         "makerCommission":0,
+            //         "takerCommission":0,
+            //         "buyerCommission":0,
+            //         "sellerCommission":0,
+            //         "updateTime":null,
+            //         "balances":[
+            //             {"asset":"sbr","free":"0","locked":"0"},
+            //             {"asset":"ksm","free":"0","locked":"0"},
+            //             {"asset":"neo3s","free":"0","locked":"0"},
+            //         ],
+            //         "canTrade":false,
+            //         "canWithdraw":false,
+            //         "canDeposit":false
+            //     }
+            //
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
