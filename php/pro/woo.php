@@ -706,8 +706,11 @@ class woo extends \ccxt\async\woo {
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
-            $account['total'] = $this->safe_string($value, 'holding');
-            $account['used'] = $this->safe_string($value, 'frozen');
+            $total = $this->safe_string($value, 'holding');
+            $used = $this->safe_string($value, 'frozen');
+            $account['total'] = $total;
+            $account['used'] = $used;
+            $account['free'] = Precise::string_sub($total, $used);
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);

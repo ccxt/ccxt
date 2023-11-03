@@ -3066,7 +3066,7 @@ class deribit extends deribit$1 {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(undefined, market),
             'contracts': undefined,
@@ -3076,7 +3076,7 @@ class deribit extends deribit$1 {
             'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     nonce() {
         return this.milliseconds();

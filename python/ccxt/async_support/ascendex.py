@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -40,7 +39,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': True,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -62,7 +61,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
@@ -231,6 +230,7 @@ class ascendex(Exchange, ImplicitAPI):
                                 'futures/position': 1,
                                 'futures/free-margin': 1,
                                 'futures/order/hist/current': 1,
+                                'futures/funding-payments': 1,
                                 'futures/order/open': 1,
                                 'futures/order/status': 1,
                             },
@@ -275,7 +275,6 @@ class ascendex(Exchange, ImplicitAPI):
                 'accountsByType': {
                     'spot': 'cash',
                     'swap': 'futures',
-                    'future': 'futures',
                     'margin': 'margin',
                 },
                 'transfer': {
@@ -995,8 +994,8 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://ascendex.github.io/ascendex-pro-api/#ticker
-        see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+        :see: https://ascendex.github.io/ascendex-pro-api/#ticker
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -1039,7 +1038,7 @@ class ascendex(Exchange, ImplicitAPI):
             return self.parse_tickers([data], symbols)
         return self.parse_tickers(data, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "m":"bar",
@@ -1156,7 +1155,7 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://ascendex.github.io/ascendex-pro-api/#market-trades
+        :see: https://ascendex.github.io/ascendex-pro-api/#market-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1200,7 +1199,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1783,7 +1782,7 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -2638,20 +2637,20 @@ class ascendex(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
         set the level of leverage for a market
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         if (leverage < 1) or (leverage > 100):
             raise BadRequest(self.id + ' leverage should be between 1 and 100')
         await self.load_markets()
         await self.load_accounts()
         market = self.market(symbol)
-        if market['type'] != 'future':
-            raise BadSymbol(self.id + ' setLeverage() supports futures contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         request = {
@@ -2664,11 +2663,13 @@ class ascendex(Exchange, ImplicitAPI):
     async def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: response from the exchange
         """
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if marginMode == 'cross':
             marginMode = 'crossed'
@@ -2682,10 +2683,10 @@ class ascendex(Exchange, ImplicitAPI):
         request = {
             'account-group': accountGroup,
             'symbol': market['id'],
-            'marginMode': marginMode,
+            'marginType': marginMode,
         }
-        if market['type'] != 'future':
-            raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         return await self.v2PrivateAccountGroupPostFuturesMarginType(self.extend(request, params))
 
     async def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
@@ -2826,7 +2827,7 @@ class ascendex(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+        :see: https://ascendex.github.io/ascendex-pro-api/#list-all-assets
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the ascendex api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2856,7 +2857,7 @@ class ascendex(Exchange, ImplicitAPI):
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId != 'cash' and toId != 'cash':
-            raise ExchangeError(self.id + ' transfer() only supports direct balance transfer between spot and future, spot and margin')
+            raise ExchangeError(self.id + ' transfer() only supports direct balance transfer between spot and swap, spot and margin')
         request = {
             'account-group': accountGroup,
             'amount': amount,
@@ -2901,6 +2902,78 @@ class ascendex(Exchange, ImplicitAPI):
         if status == 0:
             return 'ok'
         return 'failed'
+
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
+        """
+        await self.load_markets()
+        await self.load_accounts()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_incremental('fetchFundingHistory', symbol, since, limit, params, 'page', 25)
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['pageSize'] = limit
+        response = await self.v2PrivateAccountGroupGetFuturesFundingPayments(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "data": [
+        #                 {
+        #                     "timestamp": 1640476800000,
+        #                     "symbol": "BTC-PERP",
+        #                     "paymentInUSDT": "-0.013991178",
+        #                     "fundingRate": "0.000173497"
+        #                 },
+        #             ],
+        #             "page": 1,
+        #             "pageSize": 3,
+        #             "hasNext": True
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        rows = self.safe_value(data, 'data', [])
+        return self.parse_incomes(rows, market, since, limit)
+
+    def parse_income(self, income, market=None):
+        #
+        #     {
+        #         "timestamp": 1640476800000,
+        #         "symbol": "BTC-PERP",
+        #         "paymentInUSDT": "-0.013991178",
+        #         "fundingRate": "0.000173497"
+        #     }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        timestamp = self.safe_integer(income, 'timestamp')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
+            'code': 'USDT',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(income, 'paymentInUSDT'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api[0]

@@ -738,7 +738,7 @@ class oceanex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // array(
         //    1559232000,
         //    8889.22,
@@ -785,7 +785,7 @@ class oceanex extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "created_at" => "2019-01-18T00:38:18Z",
@@ -848,19 +848,6 @@ class oceanex extends Exchange {
             'cancel' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function create_orders(string $symbol, $orders, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'orders' => $orders,
-        );
-        // $orders => [array("side":"buy", "volume":.2, "price":1001), array("side":"sell", "volume":0.2, "price":1002)]
-        $response = $this->privatePostOrdersMulti (array_merge($request, $params));
-        $data = $response['data'];
-        return $this->parse_orders($data);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

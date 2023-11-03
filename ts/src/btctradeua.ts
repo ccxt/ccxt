@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -499,7 +499,7 @@ export default class btctradeua extends Exchange {
         return await this.privatePostRemoveOrderId (this.extend (request, params));
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const side = this.safeString (order, 'type');

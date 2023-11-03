@@ -431,7 +431,7 @@ class bitget extends \ccxt\async\bitget {
         $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //      "1595779200000", // timestamp
@@ -468,7 +468,7 @@ class bitget extends \ccxt\async\bitget {
             $instType = $market['spot'] ? 'sp' : 'mc';
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }

@@ -298,7 +298,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve ($orderbook, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        c => '28909.0',

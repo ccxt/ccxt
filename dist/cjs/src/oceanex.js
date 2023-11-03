@@ -861,18 +861,6 @@ class oceanex extends oceanex$1 {
         };
         return this.safeString(statuses, status, status);
     }
-    async createOrders(symbol, orders, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'market': market['id'],
-            'orders': orders,
-        };
-        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await this.privatePostOrdersMulti(this.extend(request, params));
-        const data = response['data'];
-        return this.parseOrders(data);
-    }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
          * @method

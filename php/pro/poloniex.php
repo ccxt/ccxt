@@ -331,7 +331,7 @@ class poloniex extends \ccxt\async\poloniex {
         }) ();
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        symbol => 'BTC_USDT',

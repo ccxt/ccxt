@@ -23,7 +23,7 @@ class bitforex extends bitforex$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': false,
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
@@ -657,7 +657,7 @@ class bitforex extends bitforex$1 {
          * @method
          * @name bitforex#fetchOrder
          * @description fetches information on an order made by the user
-         * @see
+         * @see https://apidoc.bitforex.com/#order-information-user_data
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitforex api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}

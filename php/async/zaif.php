@@ -505,7 +505,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
