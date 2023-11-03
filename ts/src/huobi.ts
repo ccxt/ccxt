@@ -4832,7 +4832,7 @@ export default class huobi extends Exchange {
         if (timeInForce === 'FOK') {
             orderType = orderType + '-fok';
         } else if (timeInForce === 'IOC') {
-            orderType = orderType + '-ioc';
+            orderType = (side === 'buy') ? 'buy-ioc' : 'sell-ioc';
         }
         request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
