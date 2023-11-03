@@ -6075,7 +6075,7 @@ Raised when your nonce is less than the previous nonce used with your keypair, a
 
 ### ExchangeError
 
-In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly (The only exclusion is its sub-type `OperationFailed`, which can be retried to make the request successfull).
+In contrast to `NetworkError`, the `ExchangeError` is mostly happening when the request is impossible to succeed (because of factors listed below), so even if you retry the same request hundreds of times, they will still fail, because the request is being made incorrectly.
 
 Possible reasons for this exception:
 

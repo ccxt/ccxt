@@ -1,5 +1,5 @@
 {
-    "exchange": "binance",
+    "exchange": "bybit",
     "skipKeys": [],
     "outputType": "json",
     "methods": {

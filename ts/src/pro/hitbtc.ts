@@ -552,7 +552,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseWsTrades (trades, market: object = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {

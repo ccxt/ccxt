@@ -25,7 +25,7 @@ export default class bitforex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
+                'swap': false,  // bitforex has swap contracts, but no swap api
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
