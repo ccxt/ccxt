@@ -19,16 +19,16 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │                              .                              |
     │                  The Unified CCXT Pro API                   |
     |                              .                              |
-    |       loadMarkets            .         watchBalance         |
-    |       watchTicker            .         watchOrders          |
-    |       watchTickers           .         watchMyTrades        |
-    |       watchOrderBook         .         watchPositions       |
-    |       watchOHLCV             .         createOrderWs        |
-    |       watchStatus            .         editOrderWs          |
-    |       watchTrades            .         cancelOrderWs        |
-    │                              .         cancelOrdersWs       |
-    │                              .         cancelAllOrdersWs    |
-    │                              .                              |
+    |     loadMarkets              .         watchBalance         |
+    |     watchTicker              .         watchOrders          |
+    |     watchTickers             .         watchMyTrades        |
+    |     watchOrderBook           .         watchPositions       |
+    |     watchOHLCV               .         createOrderWs        |
+    |     watchStatus              .         editOrderWs          |
+    |     watchTrades              .         cancelOrderWs        |
+    │     watchOHLCVForSymbols     .         cancelOrdersWs       |
+    │     watchTradesForSymbols    .         cancelAllOrdersWs    |
+    │     watchOrderBookForSymbols .                              |
     │                              .                              |
     +=============================================================+
     │                              .                              |
@@ -97,7 +97,7 @@ The CCXT Pro library currently supports the following 53 cryptocurrency exchange
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                              | luno               | [luno](https://www.luno.com/invite/44893A)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                                                | mexc               | [MEXC Global](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                                          | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mxcdevelop.github.io/apidocs/spot_v3_en/)                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                                     | ndax               | [NDAX](https://one.ndax.io/bfQiSL)                                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.okcoin.com/docs/en/)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                    | okcoin             | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)                     | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                    |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                           | okx                | [OKX](https://www.okx.com/activities/ccxt-trade-and-earn?channelid=CCXT2023)                            | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                                | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                      | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -106,7 +106,7 @@ The CCXT Pro library currently supports the following 53 cryptocurrency exchange
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                                              | upbit              | [Upbit](https://upbit.com)                                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)        |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![wazirx](https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg)](https://wazirx.com/invite/k7rrnks5)                                                          | wazirx             | [WazirX](https://wazirx.com/invite/k7rrnks5)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.wazirx.com/#public-rest-api-for-wazirx)                                |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | whitebit           | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                      | woo                | [WOO X](https://referral.woo.org/BAJS6oNmZb3vi3RGA)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                         | woo                | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                        | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 
 This is the list of exchanges in CCXT Pro with support for WebSockets APIs. This list will be updated with new exchanges on a regular basis.
 
@@ -362,7 +362,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 ```javascript
 [
-    order, // see https://docs.ccxt.com/#/?id=order-structure
+    order, // see https://github.com/ccxt/ccxt/wiki/Manual#order-structure
     order,
     order,
     ...
@@ -535,11 +535,11 @@ The obvious downside of the throttling mode is being less reactive or responsive
 
 ##### watchOrderBook
 
-The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://docs.ccxt.com/#/?id=order-book). It accepts three arguments:
+The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://github.com/ccxt/ccxt/wiki/Manual#order-book). It accepts three arguments:
 
 - `symbol` – string, a unified CCXT symbol, required
 - `limit` – integer, the max number of bids/asks returned, optional
-- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://docs.ccxt.com/#/?id=overriding-unified-api-params)
+- `params` – assoc dictionary, optional overrides as described in [Overriding Unified API Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
 
 In general, the exchanges can be divided in two categories:
 
@@ -596,6 +596,40 @@ if ($exchange->has['watchOrderBook']) {
     });
 }
 ```
+
+##### watchOrderBookForSymbols
+
+Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
+
+```javascript
+// JavaScript
+if (exchange.has['watchOrderBookForSymbols']) {
+    while (true) {
+        try {
+            const orderbook = await exchange.watchOrderBookForSymbols (['BTC/USDT', 'LTC/USDT'], limit, params)
+            console.log (new Date (), symbol, orderbook['asks'][0], orderbook['bids'][0])
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
+```
+
+```python
+# Python
+if exchange.has['watchOrderBookForSymbols']:
+    while True:
+        try:
+            orderbook = await exchange.watchOrderBookForSymbols(['BTC/USDT', 'LTC/USDT'], limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), symbol, orderbook['asks'][0], orderbook['bids'][0])
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
 
 ##### watchTicker
 Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in `exchange.options['watchTicker']['name']`
@@ -777,6 +811,50 @@ if ($exchange->has['watchOHLCV']) {
 }
 ```
 
+
+##### watchOHLCVForSymbols
+
+Similar to `watchOHLCV` but allows multiple subscriptions of symbols and timeframes
+
+```javascript
+// JavaScript
+if (exchange.has['watchOHLCVForSymbols']) {
+    while (true) {
+        try {
+            const subscriptions = [[
+                ['BTC/USDT', '1d'],
+                ['LTC/USDT', '5m'],
+                ['ETH/USDT', '1h']
+            ]]
+            const candles = await exchange.watchOHLCVForSymbols (subscriptions, since, limit, params)
+            console.log (new Date (), candles)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
+```
+
+```python
+# Python
+if exchange.has['watchOHLCVForSymbols']:
+    while True:
+        try:
+            subscriptions = [[
+                ['BTC/USDT', '1d'],
+                ['LTC/USDT', '5m'],
+                ['ETH/USDT', '1h']
+            ]]
+            candles = await exchange.watch_ohlcv(subscriptions, since, limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), candles)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
 ##### watchTrades
 
 ```javascript
@@ -823,12 +901,45 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
+##### watchTradesForSymbols
+
+Similar to `watchTrades` but allows subscribing to multiple symbols in a single call.
+
+```javascript
+// JavaScript
+if (exchange.has['watchTradesForSymbols']) {
+    while (true) {
+        try {
+            const trades = await exchange.watchTradesForSymbols (['LTC/USDT', 'BTC/USDT'], since, limit, params)
+            console.log (new Date (), trades)
+        } catch (e) {
+            console.log (e)
+            // stop the loop on exception or leave it commented to retry
+            // throw e
+        }
+    }
+}
+```
+
+```python
+# Python
+if exchange.has['watchTradesForSymbols']:
+    while True:
+        try:
+            trades = await exchange.watchTradesForSymbols(['LTC/USDT', 'BTC/USDT'], since, limit, params)
+            print(exchange.iso8601(exchange.milliseconds()), trades)
+        except Exception as e:
+            print(e)
+            # stop the loop on exception or leave it commented to retry
+            # raise e
+```
+
 
 ### Private Methods
 
 #### Authentication
 
-In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://docs.ccxt.com/#/?id=api-keys-setup) for more details.
+In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
 
 #### Trading
 
@@ -1007,4 +1118,4 @@ cancel__all_orders_ws(string $symbol, $params = array ())
 
 ### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/?id=error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling) for more details.

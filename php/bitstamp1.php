@@ -105,18 +105,18 @@ class bitstamp1 extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'markets' => array(
-                'BTC/USD' => array( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'BTC/EUR' => array( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'EUR/USD' => array( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD', 'baseId' => 'eur', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'XRP/USD' => array( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'baseId' => 'xrp', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'XRP/EUR' => array( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'baseId' => 'xrp', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'XRP/BTC' => array( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'LTC/USD' => array( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'ltc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'LTC/EUR' => array( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'ltc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'LTC/BTC' => array( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'ETH/USD' => array( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'eth', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'ETH/EUR' => array( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'eth', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'ETH/BTC' => array( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
+                'BTC/USD' => $this->safe_market_structure(array( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'EUR/USD' => $this->safe_market_structure(array( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD', 'baseId' => 'eur', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'XRP/USD' => $this->safe_market_structure(array( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'baseId' => 'xrp', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'XRP/EUR' => $this->safe_market_structure(array( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'baseId' => 'xrp', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'XRP/BTC' => $this->safe_market_structure(array( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'LTC/USD' => $this->safe_market_structure(array( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'ltc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'LTC/EUR' => $this->safe_market_structure(array( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'ltc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'LTC/BTC' => $this->safe_market_structure(array( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'ETH/USD' => $this->safe_market_structure(array( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'eth', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'ETH/EUR' => $this->safe_market_structure(array( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'eth', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'ETH/BTC' => $this->safe_market_structure(array( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
             ),
         ));
     }
@@ -127,7 +127,7 @@ class bitstamp1 extends Exchange {
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
          */
         if ($symbol !== 'BTC/USD') {
             throw new ExchangeError($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
@@ -187,7 +187,7 @@ class bitstamp1 extends Exchange {
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
          */
         if ($symbol !== 'BTC/USD') {
             throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
@@ -212,6 +212,17 @@ class bitstamp1 extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // public $trade
+        //
+        //        {
+        //            "amount" => "0.00114000",
+        //            "date" => "1694287856",
+        //            "price" => "25865",
+        //            "tid" => 298730788,
+        //            "type" => 0
+        //        }
+        //
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'datetime');
         $side = ($trade['type'] === 0) ? 'buy' : 'sell';
         $orderId = $this->safe_string($trade, 'order_id');
@@ -244,7 +255,7 @@ class bitstamp1 extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         if ($symbol !== 'BTC/USD') {
             throw new BadSymbol($this->id . ' ' . $this->version . " fetchTrades doesn't support " . $symbol . ', use it for BTC/USD only');
@@ -255,6 +266,17 @@ class bitstamp1 extends Exchange {
             'time' => 'minute',
         );
         $response = $this->publicGetTransactions (array_merge($request, $params));
+        //
+        //    array(
+        //        array(
+        //            "amount" => "0.00114000",
+        //            "date" => "1694287856",
+        //            "price" => "25865",
+        //            "tid" => 298730788,
+        //            "type" => 0
+        //        ),
+        //    )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -278,7 +300,7 @@ class bitstamp1 extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $response = $this->privatePostBalance ($params);
         return $this->parse_balance($response);
@@ -291,9 +313,9 @@ class bitstamp1 extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' ' . $this->version . ' accepts limit orders only');
@@ -321,7 +343,7 @@ class bitstamp1 extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         return $this->privatePostCancelOrder (array( 'id' => $id ));
     }
@@ -352,7 +374,7 @@ class bitstamp1 extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
         $market = null;

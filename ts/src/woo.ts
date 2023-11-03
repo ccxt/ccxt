@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -125,7 +125,10 @@ export default class woo extends Exchange {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
@@ -208,9 +211,15 @@ export default class woo extends Exchange {
                             'buypower': 1,
                             'referrals': 60,
                             'referral_rewards': 60,
+                            'convert/exchangeInfo': 1,
+                            'convert/assetInfo': 1,
+                            'convert/rfq': 60,
+                            'convert/trade': 1,
+                            'convert/trades': 1,
                         },
                         'post': {
                             'algo/order': 5,
+                            'convert/rft': 60,
                         },
                         'put': {
                             'order/{oid}': 2,
@@ -236,6 +245,7 @@ export default class woo extends Exchange {
                 },
             },
             'options': {
+                'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -397,6 +407,7 @@ export default class woo extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.safeTimestamp (market, 'created_time'),
                 'info': market,
             });
         }
@@ -412,7 +423,7 @@ export default class woo extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
@@ -542,7 +553,7 @@ export default class woo extends Exchange {
          * @description fetch the trading fees for multiple markets
          * @see https://docs.woo.org/#get-account-information-new
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.v3PrivateGetAccountinfo (params);
@@ -740,7 +751,7 @@ export default class woo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -748,7 +759,7 @@ export default class woo extends Exchange {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase ();
@@ -893,10 +904,9 @@ export default class woo extends Exchange {
             const rows = this.safeValue (data, 'rows', []);
             return this.parseOrder (rows[0], market);
         }
-        return this.extend (
-            this.parseOrder (response, market),
-            { 'type': type }
-        );
+        const order = this.parseOrder (response, market);
+        order['type'] = type;
+        return order;
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -913,12 +923,12 @@ export default class woo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
          * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -939,26 +949,24 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ]);
         const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let method = undefined;
+        let response = undefined;
         if (isByClientOrder) {
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isStop) {
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                request['oid'] = id;
+                response = await this.v3PrivatePutAlgoOrderClientClientOrderId (this.extend (request, params));
             } else {
-                method = 'v3PrivatePutOrderClientClientOrderId';
-                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                response = await this.v3PrivatePutOrderClientClientOrderId (this.extend (request, params));
             }
         } else {
-            if (isStop) {
-                method = 'v3PrivatePutAlgoOrderOid';
-            } else {
-                method = 'v3PrivatePutOrderOid';
-            }
             request['oid'] = id;
+            if (isStop) {
+                response = await this.v3PrivatePutAlgoOrderOid (this.extend (request, params));
+            } else {
+                response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -987,7 +995,7 @@ export default class woo extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const stop = this.safeValue (params, 'stop', false);
         params = this.omit (params, 'stop');
@@ -995,30 +1003,29 @@ export default class woo extends Exchange {
             this.checkRequiredSymbol ('cancelOrder', symbol);
         }
         await this.loadMarkets ();
-        const request = {};
-        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
-        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let method = undefined;
-        if (stop) {
-            method = 'v3PrivateDeleteAlgoOrderOrderId';
-            request['order_id'] = id;
-        } else if (isByClientOrder) {
-            method = 'v1PrivateDeleteClientOrder';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        } else {
-            method = 'v1PrivateDeleteOrder';
-            request['order_id'] = id;
-        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if (!stop) {
+        const request = {};
+        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let response = undefined;
+        if (stop) {
+            request['order_id'] = id;
+            response = await this.v3PrivateDeleteAlgoOrderOrderId (this.extend (request, params));
+        } else {
             request['symbol'] = market['id'];
+            if (isByClientOrder) {
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v1PrivateDeleteClientOrder (this.extend (request, params));
+            } else {
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -1042,7 +1049,7 @@ export default class woo extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1075,7 +1082,7 @@ export default class woo extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
@@ -1083,18 +1090,17 @@ export default class woo extends Exchange {
         params = this.omit (params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let method = undefined;
+        let response = undefined;
         if (stop) {
-            method = 'v3PrivateGetAlgoOrderOid';
             request['oid'] = id;
+            response = await this.v3PrivateGetAlgoOrderOid (this.extend (request, params));
         } else if (clientOrderId) {
-            method = 'v1PrivateGetClientOrderClientOrderId';
             request['client_order_id'] = clientOrderId;
+            response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
         } else {
-            method = 'v1PrivateGetOrderOid';
             request['oid'] = id;
+            response = await this.v1PrivateGetOrderOid (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -1148,7 +1154,7 @@ export default class woo extends Exchange {
          * @param {boolean} [params.stop] whether the order is a stop/algo order
          * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
          * @param {string} [params.side] 'buy' or 'sell'
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1220,7 +1226,7 @@ export default class woo extends Exchange {
         return this.safeString (timeInForces, timeInForce, undefined);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1358,7 +1364,7 @@ export default class woo extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1394,6 +1400,7 @@ export default class woo extends Exchange {
         /**
          * @method
          * @name woo#fetchOHLCV
+         * @see https://docs.woo.org/#kline-public
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1446,7 +1453,7 @@ export default class woo extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // example response in fetchOHLCV
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
@@ -1468,7 +1475,7 @@ export default class woo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1510,7 +1517,7 @@ export default class woo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1556,7 +1563,7 @@ export default class woo extends Exchange {
          * @name woo#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
         const response = await this.v1PrivateGetSubAccountAssets (params);
         //
@@ -1604,7 +1611,7 @@ export default class woo extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.woo.org/#get-current-holding-get-balance-new
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.v3PrivateGetBalances (params);
@@ -1658,7 +1665,7 @@ export default class woo extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         // this method is TODO because of networks unification
         await this.loadMarkets ();
@@ -1754,7 +1761,7 @@ export default class woo extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
@@ -1821,7 +1828,7 @@ export default class woo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         const request = {
             'token_side': 'DEPOSIT',
@@ -1838,7 +1845,7 @@ export default class woo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         const request = {
             'token_side': 'WITHDRAW',
@@ -1855,7 +1862,7 @@ export default class woo extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
          * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         const request = {
             'type': 'BALANCE',
@@ -1931,7 +1938,7 @@ export default class woo extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1968,7 +1975,7 @@ export default class woo extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         const request = {
             'type': 'COLLATERAL',
@@ -2061,7 +2068,7 @@ export default class woo extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
@@ -2104,7 +2111,7 @@ export default class woo extends Exchange {
          * @param {float} amount the amount to repay
          * @param {string} symbol not used by woo.repayMargin ()
          * @param {object} [params] extra parameters specific to the woo api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2167,13 +2174,16 @@ export default class woo extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                const brokerId = this.safeString (this.options, 'brokerId', applicationId);
-                const isStop = path.indexOf ('algo') > -1;
-                if (isStop) {
-                    params['brokerId'] = brokerId;
-                } else {
-                    params['broker_id'] = brokerId;
+                const isSandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+                if (!isSandboxMode) {
+                    const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    const brokerId = this.safeString (this.options, 'brokerId', applicationId);
+                    const isStop = path.indexOf ('algo') > -1;
+                    if (isStop) {
+                        params['brokerId'] = brokerId;
+                    } else {
+                        params['broker_id'] = brokerId;
+                    }
                 }
                 params = this.keysort (params);
             }
@@ -2387,8 +2397,26 @@ export default class woo extends Exchange {
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the woo api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
+         */
         await this.loadMarkets ();
-        const request = {};
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25) as FundingRateHistory[];
+        }
+        let request = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
@@ -2397,6 +2425,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = this.parseToInt (since / 1000);
         }
+        [ request, params ] = this.handleUntilOption ('end_t', request, params, 0.001);
         const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
         //
         //     {
@@ -2432,7 +2461,7 @@ export default class woo extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
     async fetchLeverage (symbol: string, params = {}) {
@@ -2618,5 +2647,10 @@ export default class woo extends Exchange {
         }
         // if it was not returned according to above options, then return the first network of currency
         return this.safeValue (networkKeys, 0);
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 }

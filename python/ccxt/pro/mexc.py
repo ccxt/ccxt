@@ -69,7 +69,7 @@ class mexc(ccxt.async_support.mexc):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -193,7 +193,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -289,7 +289,7 @@ class mexc(ccxt.async_support.mexc):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         # spot
         #
@@ -323,7 +323,7 @@ class mexc(ccxt.async_support.mexc):
         #     }
         #
         return [
-            self.safe_integer_product(ohlcv, 't', 1000),
+            self.safe_timestamp(ohlcv, 't'),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),
@@ -333,12 +333,12 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -484,13 +484,13 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -564,13 +564,13 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -681,15 +681,15 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :params string|None params.type: the type of orders to retrieve, can be 'spot' or 'margin'
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         params = self.omit(params, 'type')
@@ -923,10 +923,10 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_balance(self, params={}):
         """
-        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         type = None

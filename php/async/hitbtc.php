@@ -12,7 +12,6 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\InvalidOrder;
-use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -40,6 +39,7 @@ class hitbtc extends Exchange {
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -596,7 +596,6 @@ class hitbtc extends Exchange {
                 'STEPN' => 'GMT',
                 'STX' => 'STOX',
                 'TV' => 'Tokenville',
-                'USD' => 'USDT',
                 'XMT' => 'MTL',
                 'XPNT' => 'PNT',
             ),
@@ -649,6 +648,9 @@ class hitbtc extends Exchange {
             $ids = is_array($response) ? array_keys($response) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
+                if (str_ends_with($id, '_BQX')) {
+                    continue; // seems like an invalid $symbol and if we try to access it individually we get => array("timestamp":"2023-09-02T14:38:20.351Z","error":array("description":"Try get /public/symbol, to get list of all available symbols.","code":2001,"message":"No such $symbol => EOSUSD_BQX"),"path":"/api/3/public/symbol/EOSUSD_BQX","requestId":"e1e9fce6-16374591")
+                }
                 $market = $this->safe_value($response, $id);
                 $marketType = $this->safe_string($market, 'type');
                 $expiry = $this->safe_integer($market, 'expiry');
@@ -739,6 +741,7 @@ class hitbtc extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -871,7 +874,7 @@ class hitbtc extends Exchange {
              * create a $currency deposit address
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -908,7 +911,7 @@ class hitbtc extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -963,7 +966,7 @@ class hitbtc extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $type = $this->safe_string_lower($params, 'type', 'spot');
             $params = $this->omit($params, array( 'type' ));
@@ -1001,7 +1004,7 @@ class hitbtc extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             $response = Async\await($this->fetch_tickers(array( $symbol ), $params));
             return $this->safe_value($response, $symbol);
@@ -1014,7 +1017,7 @@ class hitbtc extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1049,7 +1052,7 @@ class hitbtc extends Exchange {
                 $entry = $response[$marketId];
                 $result[$symbol] = $this->parse_ticker($entry, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -1105,7 +1108,7 @@ class hitbtc extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1116,7 +1119,7 @@ class hitbtc extends Exchange {
                 $request['symbols'] = $market['id'];
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 1000);
             }
             if ($since !== null) {
                 $request['from'] = $since;
@@ -1145,7 +1148,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching margin trades
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1243,6 +1246,8 @@ class hitbtc extends Exchange {
         $takerOrMaker = null;
         if ($taker !== null) {
             $takerOrMaker = $taker ? 'taker' : 'maker';
+        } else {
+            $takerOrMaker = 'taker'; // the only case when `$taker` field is missing, is public fetchTrades and it must be $taker
         }
         if ($feeCostString !== null) {
             $info = $this->safe_value($market, 'info', array());
@@ -1431,7 +1436,7 @@ class hitbtc extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
             return Async\await($this->fetch_transactions_helper('DEPOSIT,WITHDRAW', $code, $since, $limit, $params));
         }) ();
@@ -1445,7 +1450,7 @@ class hitbtc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             return Async\await($this->fetch_transactions_helper('DEPOSIT', $code, $since, $limit, $params));
         }) ();
@@ -1459,7 +1464,7 @@ class hitbtc extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             return Async\await($this->fetch_transactions_helper('WITHDRAW', $code, $since, $limit, $params));
         }) ();
@@ -1472,7 +1477,7 @@ class hitbtc extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
              * @param {int} [$limit] max number of entries per $orderbook to return, default is null
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market $symbol
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1504,7 +1509,7 @@ class hitbtc extends Exchange {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
             $result = Async\await($this->fetch_order_books(array( $symbol ), $limit, $params));
             return $result[$symbol];
@@ -1537,7 +1542,7 @@ class hitbtc extends Exchange {
              * fetch the trading fees for a $market
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1564,7 +1569,7 @@ class hitbtc extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by market symbols
              */
             Async\await($this->load_markets());
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
@@ -1596,19 +1601,28 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @see https://api.hitbtc.com/#candles
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest funding rate
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1000));
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbols' => $market['id'],
                 'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
+            list($request, $params) = $this->handle_until_option('till', $request, $params);
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
             }
@@ -1662,7 +1676,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // Spot and Swap
         //
@@ -1706,7 +1720,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching margin orders
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1746,7 +1760,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching a margin $order
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1803,7 +1817,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching margin trades
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1877,7 +1891,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching open margin orders
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1930,7 +1944,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for fetching an open margin order
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1964,7 +1978,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for canceling margin orders
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1998,7 +2012,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
              * @param {bool} [$params->margin] true for canceling a margin order
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = null;
@@ -2068,16 +2082,26 @@ class hitbtc extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
+             * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both
              * @param {bool} [$params->margin] true for creating a margin order
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
+             * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $isLimit = ($type === 'limit');
+            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $isPostOnly = $this->is_post_only($type === 'market', null, $params);
             $request = array(
                 'type' => $type,
                 'side' => $side,
@@ -2095,7 +2119,6 @@ class hitbtc extends Exchange {
                 // 'take_rate' => 0.001, // Optional
                 // 'make_rate' => 0.001, // Optional
             );
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
             if ($reduceOnly !== null) {
                 if (($market['type'] !== 'swap') && ($market['type'] !== 'margin')) {
                     throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
@@ -2104,8 +2127,12 @@ class hitbtc extends Exchange {
             if ($reduceOnly === true) {
                 $request['reduce_only'] = $reduceOnly;
             }
-            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force');
-            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+            if ($isPostOnly) {
+                $request['post_only'] = true;
+            }
+            if ($timeInForce !== null) {
+                $request['time_in_force'] = $timeInForce;
+            }
             if ($isLimit || ($type === 'stopLimit') || ($type === 'takeProfitLimit')) {
                 if ($price === null) {
                     throw new ExchangeError($this->id . ' createOrder() requires a $price argument for limit orders');
@@ -2128,19 +2155,18 @@ class hitbtc extends Exchange {
             } elseif (($type === 'stopLimit') || ($type === 'stopMarket') || ($type === 'takeProfitLimit') || ($type === 'takeProfitMarket')) {
                 throw new ExchangeError($this->id . ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
             }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            $method = $this->get_supported_mapping($marketType, array(
-                'spot' => 'privatePostSpotOrder',
-                'swap' => 'privatePostFuturesOrder',
-                'margin' => 'privatePostMarginOrder',
-            ));
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-            if ($marginMode !== null) {
-                $method = 'privatePostMarginOrder';
+            $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ));
+            if (($marketType === 'swap') && ($marginMode !== null)) {
+                $request['margin_mode'] = $marginMode;
             }
-            $params = $this->omit($params, array( 'triggerPrice', 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'reduceOnly' ));
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = null;
+            if ($marketType === 'swap') {
+                $response = Async\await($this->privatePostFuturesOrder (array_merge($request, $params)));
+            } elseif (($marketType === 'margin') || ($marginMode !== null)) {
+                $response = Async\await($this->privatePostMarginOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostSpotOrder (array_merge($request, $params)));
+            }
             return $this->parse_order($response, $market);
         }) ();
     }
@@ -2157,7 +2183,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // limit
         //     {
@@ -2287,7 +2313,7 @@ class hitbtc extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
              */
             // account can be "spot", "wallet", or "derivatives"
             Async\await($this->load_markets());
@@ -2379,7 +2405,7 @@ class hitbtc extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             Async\await($this->load_markets());
@@ -2420,14 +2446,22 @@ class hitbtc extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://api.hitbtc.com/#funding-history
              * fetches historical funding rate prices
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures} to fetch
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             * @param {int} [$params->until] timestamp in ms of the latest funding rate
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 1000));
+            }
             $market = null;
             $request = array(
                 // all arguments are optional
@@ -2438,6 +2472,7 @@ class hitbtc extends Exchange {
                 // 'limit' => 100,
                 // 'offset' => 0,
             );
+            list($request, $params) = $this->handle_until_option('till', $request, $params);
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
@@ -2498,7 +2533,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for fetching spot-margin positions
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2561,7 +2596,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for fetching a spot-margin position
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
              */
             Async\await($this->load_markets());
             $marketType = null;
@@ -2708,7 +2743,7 @@ class hitbtc extends Exchange {
              * fetch the current funding rate
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2860,7 +2895,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for reducing spot-margin
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
              */
             if ($amount !== 0) {
                 throw new BadRequest($this->id . ' reduceMargin() on hitbtc requires the $amount to be 0 and that will remove the entire margin amount');
@@ -2878,7 +2913,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for adding spot-margin
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();
@@ -2892,7 +2927,7 @@ class hitbtc extends Exchange {
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for fetching spot-margin leverage
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-structure leverage structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2985,7 +3020,7 @@ class hitbtc extends Exchange {
              * @see https://api.hitbtc.com/#currencies
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fees structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetPublicCurrency ($params));
@@ -3079,11 +3114,7 @@ class hitbtc extends Exchange {
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
-        if ($marginMode !== null) {
-            if ($marginMode !== 'isolated') {
-                throw new NotSupported($this->id . ' only isolated margin is supported');
-            }
-        } else {
+        if ($marginMode === null) {
             if (($defaultType === 'margin') || ($isMargin === true)) {
                 $marginMode = 'isolated';
             }

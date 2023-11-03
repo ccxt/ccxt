@@ -11,6 +11,8 @@ error_hierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -39,6 +41,7 @@ error_hierarchy = {
             },
             'InvalidNonce': {},
             'RequestTimeout': {},
+            'OperationFailed': {},
         },
     },
 }
@@ -81,6 +84,14 @@ class BadSymbol(BadRequest):
 
 
 class MarginModeAlreadySet(BadRequest):
+    pass
+
+
+class NoChange(BadRequest):
+    pass
+
+
+class OperationRejected(BadRequest):
     pass
 
 
@@ -168,6 +179,10 @@ class RequestTimeout(NetworkError):
     pass
 
 
+class OperationFailed(NetworkError):
+    pass
+
+
 __all__ = [
     'error_hierarchy',
     'BaseError',
@@ -180,6 +195,8 @@ __all__ = [
     'BadRequest',
     'BadSymbol',
     'MarginModeAlreadySet',
+    'NoChange',
+    'OperationRejected',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',
@@ -200,5 +217,6 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'RequestTimeout',
+    'OperationFailed'
 ]

@@ -19,6 +19,7 @@ export default class gate extends gateRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchBalance': true,
@@ -95,7 +96,7 @@ export default class gate extends gateRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -272,7 +273,7 @@ export default class gate extends gateRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -293,7 +294,7 @@ export default class gate extends gateRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -380,7 +381,7 @@ export default class gate extends gateRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -394,6 +395,33 @@ export default class gate extends gateRest {
         const trades = await this.subscribePublic(url, messageHash, payload, channel, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const market = this.market(symbols[0]);
+        const messageType = this.getTypeByMarket(market);
+        const channel = messageType + '.trades';
+        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const url = this.getUrlByMarket(market);
+        const trades = await this.subscribePublic(url, messageHash, marketIds, channel, params);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -431,6 +459,7 @@ export default class gate extends gateRest {
             cachedTrades.append(trade);
             const hash = 'trades:' + symbol;
             client.resolve(cachedTrades, hash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, cachedTrades);
         }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -492,15 +521,17 @@ export default class gate extends gateRest {
             const subscription = this.safeString(ohlcv, 'n', '');
             const parts = subscription.split('_');
             const timeframe = this.safeString(parts, 0);
+            const timeframeId = this.findTimeframe(timeframe);
             const prefix = timeframe + '_';
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV(ohlcv);
-            let stored = this.safeValue(this.ohlcvs, symbol);
+            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol] = stored;
+                this.ohlcvs[symbol][timeframeId] = stored;
             }
             stored.append(parsed);
             marketIds[symbol] = timeframe;
@@ -511,7 +542,7 @@ export default class gate extends gateRest {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe(timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue(this.ohlcvs, symbol);
+            const stored = this.safeValue(this.ohlcvs[symbol], interval);
             client.resolve(stored, hash);
         }
     }
@@ -524,7 +555,7 @@ export default class gate extends gateRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
         let subType = undefined;
@@ -614,7 +645,7 @@ export default class gate extends gateRest {
          * @name gate#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the gate api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         let type = undefined;
@@ -733,7 +764,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
         await this.loadMarkets();
         let market = undefined;
@@ -823,8 +854,11 @@ export default class gate extends gateRest {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {
-                const left = this.safeNumber(info, 'left');
-                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                const status = this.safeString(parsed, 'status');
+                if (status === undefined) {
+                    const left = this.safeNumber(info, 'left');
+                    parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                }
             }
             stored.append(parsed);
             const symbol = parsed['symbol'];

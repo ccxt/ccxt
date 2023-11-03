@@ -6,6 +6,7 @@ import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
 import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierstrass.js';
 import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
 import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
+import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
 
 /*  ------------------------------------------------------------------------ */
 
@@ -45,10 +46,18 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
     }
 }
 
-function eddsa (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
+function axolotl (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
     // used for waves.exchange (that's why the output is base58)
-    const signature = curve.sign (request, secret)
+    const signature = curve.signModified (request, secret)
     return base58.encode (signature)
+}
+
+function eddsa (request: Hex, secret: string, curve: CurveFnEDDSA) {
+    // secret is the base64 pem encoded key
+    // we get the last 32 bytes
+    const privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
+    const signature = curve.sign (request, privateKey)
+    return base64.encode (signature)
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -82,6 +91,7 @@ export {
     crc32,
     ecdsa,
     eddsa,
+    axolotl,
 };
 
 /*  ------------------------------------------------------------------------ */

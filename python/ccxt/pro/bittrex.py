@@ -9,8 +9,10 @@ import hashlib
 import json
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 
 
 class bittrex(ccxt.async_support.bittrex):
@@ -50,6 +52,12 @@ class bittrex(ccxt.async_support.bittrex):
                 'I': self.milliseconds(),
                 'watchOrderBook': {
                     'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': AuthenticationError,
+                    'UNAUTHORIZED_USER': AuthenticationError,
                 },
             },
         })
@@ -102,6 +110,7 @@ class bittrex(ccxt.async_support.bittrex):
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def authenticate(self, params={}):
+        self.check_required_credentials()
         await self.load_markets()
         request = await self.negotiate()
         return await self.send_request_to_authenticate(request, False, params)
@@ -122,7 +131,7 @@ class bittrex(ccxt.async_support.bittrex):
                 'negotiation': negotiation,
                 'method': self.handle_authenticate,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscription)
+            self.watch(url, messageHash, request, requestId, subscription)
         return await future
 
     async def send_authenticated_request_to_subscribe(self, authentication, messageHash, params={}):
@@ -209,7 +218,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         if symbol is not None:
@@ -260,7 +269,7 @@ class bittrex(ccxt.async_support.bittrex):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         authentication = await self.authenticate()
@@ -327,7 +336,7 @@ class bittrex(ccxt.async_support.bittrex):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         negotiation = await self.negotiate()
@@ -442,7 +451,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -503,10 +512,11 @@ class bittrex(ccxt.async_support.bittrex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
-        symbol = self.symbol(symbol)
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         authentication = await self.authenticate()
         trades = await self.subscribe_to_my_trades(authentication, params)
         if self.newUpdates:
@@ -554,7 +564,7 @@ class bittrex(ccxt.async_support.bittrex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bittrex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         limit = 25 if (limit is None) else limit  # 25 by default
         if (limit != 1) and (limit != 25) and (limit != 500):
@@ -624,8 +634,8 @@ class bittrex(ccxt.async_support.bittrex):
                 # unroll the accumulated deltas
                 # 3. Playback the cached Level 2 data flow.
                 for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    messageItem = messages[i]
+                    self.handle_order_book_message(client, messageItem, orderbook)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -747,6 +757,49 @@ class bittrex(ccxt.async_support.bittrex):
             method(client, message, subscription)
         return message
 
+    def handle_error_message(self, client: Client, message):
+        #
+        #    {
+        #        R: [{Success: False, ErrorCode: 'UNAUTHORIZED_USER'}, ...],
+        #        I: '1698601759267'
+        #    }
+        #    {
+        #        R: {Success: False, ErrorCode: 'INVALID_APIKEY'},
+        #        I: '1698601759266'
+        #    }
+        #
+        R = self.safe_value(message, 'R')
+        if R is None:
+            # Return there is no error
+            return False
+        I = self.safe_string(message, 'I')
+        errorCode = None
+        if isinstance(R, list):
+            for i in range(0, len(R)):
+                response = self.safe_value(R, i)
+                success = self.safe_value(response, 'Success', True)
+                if not success:
+                    errorCode = self.safe_string(response, 'ErrorCode')
+                    break
+        else:
+            success = self.safe_value(R, 'Success', True)
+            if not success:
+                errorCode = self.safe_string(R, 'ErrorCode')
+        if errorCode is None:
+            # Return there is no error
+            return False
+        feedback = self.id + ' ' + errorCode
+        try:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            if message is not None:
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
+            raise ExchangeError(feedback)
+        except Exception as e:
+            if isinstance(e, AuthenticationError):
+                client.reject(e, 'authenticate')
+            client.reject(e, I)
+        return True
+
     def handle_message(self, client: Client, message):
         #
         # subscription confirmation
@@ -793,6 +846,8 @@ class bittrex(ccxt.async_support.bittrex):
         #         M: [{H: 'C3', M: 'authenticationExpiring', A: []}]
         #     }
         #
+        if self.handle_error_message(client, message):
+            return
         methods = {
             'authenticationExpiring': self.handle_authentication_expiring,
             'order': self.handle_order,

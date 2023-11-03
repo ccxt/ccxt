@@ -5,8 +5,10 @@ export default class cryptocom extends cryptocomRest {
     describe(): any;
     pong(client: any, message: any): Promise<void>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleOrderBookSnapshot(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
@@ -23,6 +25,7 @@ export default class cryptocom extends cryptocomRest {
     cancelAllOrdersWs(symbol?: string, params?: {}): Promise<any>;
     handleCancelAllOrders(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
+    watchPublicMultiple(messageHash: any, topics: any, params?: {}): Promise<any>;
     watchPrivateRequest(nonce: any, params?: {}): Promise<any>;
     watchPrivateSubscribe(messageHash: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;

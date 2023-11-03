@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { InvalidNonce, BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest, ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -47,6 +47,12 @@ export default class bittrex extends bittrexRest {
                 'I': this.milliseconds (),
                 'watchOrderBook': {
                     'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': AuthenticationError,
+                    'UNAUTHORIZED_USER': AuthenticationError,
                 },
             },
         });
@@ -106,6 +112,7 @@ export default class bittrex extends bittrexRest {
     }
 
     async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const request = await this.negotiate ();
         return await this.sendRequestToAuthenticate (request, false, params);
@@ -127,7 +134,7 @@ export default class bittrex extends bittrexRest {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, requestId, subscription);
+            this.watch (url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -227,7 +234,7 @@ export default class bittrex extends bittrexRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         if (symbol !== undefined) {
@@ -286,7 +293,7 @@ export default class bittrex extends bittrexRest {
          * @name bittrex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
@@ -361,7 +368,7 @@ export default class bittrex extends bittrexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
@@ -488,7 +495,7 @@ export default class bittrex extends bittrexRest {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
@@ -557,10 +564,12 @@ export default class bittrex extends bittrexRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const authentication = await this.authenticate ();
         const trades = await this.subscribeToMyTrades (authentication, params);
         if (this.newUpdates) {
@@ -616,7 +625,7 @@ export default class bittrex extends bittrexRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -690,8 +699,8 @@ export default class bittrex extends bittrexRest {
                 // unroll the accumulated deltas
                 // 3. Playback the cached Level 2 data flow.
                 for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
+                    const messageItem = messages[i];
+                    this.handleOrderBookMessage (client, messageItem, orderbook);
                 }
                 this.orderbooks[symbol] = orderbook;
                 client.resolve (orderbook, messageHash);
@@ -832,6 +841,59 @@ export default class bittrex extends bittrexRest {
         return message;
     }
 
+    handleErrorMessage (client: Client, message) {
+        //
+        //    {
+        //        R: [{ Success: false, ErrorCode: 'UNAUTHORIZED_USER' }, ... ],
+        //        I: '1698601759267'
+        //    }
+        //    {
+        //        R: { Success: false, ErrorCode: 'INVALID_APIKEY' },
+        //        I: '1698601759266'
+        //    }
+        //
+        const R = this.safeValue (message, 'R');
+        if (R === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const I = this.safeString (message, 'I');
+        let errorCode = undefined;
+        if (Array.isArray (R)) {
+            for (let i = 0; i < R.length; i++) {
+                const response = this.safeValue (R, i);
+                const success = this.safeValue (response, 'Success', true);
+                if (!success) {
+                    errorCode = this.safeString (response, 'ErrorCode');
+                    break;
+                }
+            }
+        } else {
+            const success = this.safeValue (R, 'Success', true);
+            if (!success) {
+                errorCode = this.safeString (R, 'ErrorCode');
+            }
+        }
+        if (errorCode === undefined) {
+            // Return there is no error
+            return false;
+        }
+        const feedback = this.id + ' ' + errorCode;
+        try {
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            if (message !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
+            }
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            if (e instanceof AuthenticationError) {
+                client.reject (e, 'authenticate');
+            }
+            client.reject (e, I);
+        }
+        return true;
+    }
+
     handleMessage (client: Client, message) {
         //
         // subscription confirmation
@@ -878,6 +940,9 @@ export default class bittrex extends bittrexRest {
         //         M: [ { H: 'C3', M: 'authenticationExpiring', A: [] } ]
         //     }
         //
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const methods = {
             'authenticationExpiring': this.handleAuthenticationExpiring,
             'order': this.handleOrder,

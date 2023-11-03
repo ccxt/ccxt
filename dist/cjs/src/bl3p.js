@@ -32,6 +32,9 @@ class bl3p extends bl3p$1 {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -104,7 +107,7 @@ class bl3p extends bl3p$1 {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
+                'BTC/EUR': this.safeMarketStructure({ 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true }),
             },
             'precisionMode': number.TICK_SIZE,
         });
@@ -134,7 +137,7 @@ class bl3p extends bl3p$1 {
          * @name bl3p#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostGENMKTMoneyInfo(params);
@@ -156,7 +159,7 @@ class bl3p extends bl3p$1 {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const market = this.market(symbol);
         const request = {
@@ -216,7 +219,7 @@ class bl3p extends bl3p$1 {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const market = this.market(symbol);
         const request = {
@@ -241,6 +244,16 @@ class bl3p extends bl3p$1 {
         return this.parseTicker(ticker, market);
     }
     parseTrade(trade, market = undefined) {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id": "2518789",
+        //         "date": "1694348697745",
+        //         "amount_int": "2959153",
+        //         "price_int": "2416231440"
+        //     }
+        //
         const id = this.safeString(trade, 'trade_id');
         const timestamp = this.safeInteger(trade, 'date');
         const price = this.safeString(trade, 'price_int');
@@ -271,12 +284,26 @@ class bl3p extends bl3p$1 {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         const market = this.market(symbol);
         const response = await this.publicGetMarketTrades(this.extend({
             'market': market['id'],
         }, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "data": {
+        //            "trades": [
+        //                {
+        //                    "trade_id": "2518789",
+        //                    "date": "1694348697745",
+        //                    "amount_int": "2959153",
+        //                    "price_int": "2416231440"
+        //                },
+        //            ]
+        //        }
+        //     }
         const result = this.parseTrades(response['data']['trades'], market, since, limit);
         return result;
     }
@@ -286,7 +313,7 @@ class bl3p extends bl3p$1 {
          * @name bl3p#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privatePostGENMKTMoneyInfo(params);
@@ -340,13 +367,18 @@ class bl3p extends bl3p$1 {
          * @method
          * @name bl3p#createOrder
          * @description create a trade order
+         * @see https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.amount_funds] maximal EUR amount to spend (*1e5)
+         * @param {string} [params.fee_currency] 'EUR' or 'BTC'
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market(symbol);
         const amountString = this.numberToString(amount);
@@ -375,7 +407,7 @@ class bl3p extends bl3p$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bl3p api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const request = {
             'order_id': id,

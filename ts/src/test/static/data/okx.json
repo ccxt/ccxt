@@ -1,0 +1,67 @@
+{
+    "exchange": "okx",
+    "skipKeys": ["clOrdId", "tag"],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+          {
+            "description": "Spot limit buy order",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "LTC/USDT",
+              "limit",
+              "buy",
+              2,
+              50
+            ],
+            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"2\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"px\":\"50\",\"clOrdId\":\"e847386590ce4dBCbc180f9bc47b8d2b\",\"tag\":\"e847386590ce4dBC\"}]"
+          },
+          {
+            "description": "Spot market buy order",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "LTC/USDT",
+              "market",
+              "buy",
+              0.1
+            ],
+            "output": "[{\"instId\":\"LTC-USDT\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.1\",\"tdMode\":\"cash\",\"tgtCcy\":\"base_ccy\",\"clOrdId\":\"e847386590ce4dBCb5b084423460a131\",\"tag\":\"e847386590ce4dBC\"}]"
+          },
+          {
+            "description": "Swap market buy with posSide = long",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/batch-orders",
+            "input": [
+              "LTC/USDT:USDT",
+              "market",
+              "buy",
+              1,
+              null,
+              {
+                "posSide": "long"
+              }
+            ],
+            "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBC3301800ce435865e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
+          },
+          {
+            "description": "Swap limit buy with stopPrice and posSide = long",
+            "method": "createOrder",
+            "url": "https://www.okx.com/api/v5/trade/order-algo",
+            "input": [
+              "LTC/USDT:USDT",
+              "limit",
+              "buy",
+              1,
+              50,
+              {
+                "stopPrice": 55,
+                "posSide": "long"
+              }
+            ],
+            "output": "{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"1\",\"tdMode\":\"cross\",\"triggerPx\":\"55\",\"orderPx\":\"50\",\"clOrdId\":\"e847386590ce4dBCf7eca4f2a4d4ba1d\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}"
+          }
+        ]
+    }
+}

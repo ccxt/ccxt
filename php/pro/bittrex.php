@@ -6,8 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bittrex extends \ccxt\async\bittrex {
@@ -47,6 +49,12 @@ class bittrex extends \ccxt\async\bittrex {
                 'I' => $this->milliseconds(),
                 'watchOrderBook' => array(
                     'maxRetries' => 3,
+                ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    'INVALID_APIKEY' => '\\ccxt\\AuthenticationError',
+                    'UNAUTHORIZED_USER' => '\\ccxt\\AuthenticationError',
                 ),
             ),
         ));
@@ -109,6 +117,7 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
+            $this->check_required_credentials();
             Async\await($this->load_markets());
             $request = Async\await($this->negotiate());
             return Async\await($this->send_request_to_authenticate($request, false, $params));
@@ -132,7 +141,7 @@ class bittrex extends \ccxt\async\bittrex {
                     'negotiation' => $negotiation,
                     'method' => array($this, 'handle_authenticate'),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $requestId, $subscription);
+                $this->watch($url, $messageHash, $request, $requestId, $subscription);
             }
             return Async\await($future);
         }) ();
@@ -240,7 +249,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {
@@ -301,7 +310,7 @@ class bittrex extends \ccxt\async\bittrex {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $authentication = Async\await($this->authenticate());
@@ -382,7 +391,7 @@ class bittrex extends \ccxt\async\bittrex {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $negotiation = Async\await($this->negotiate());
@@ -513,7 +522,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -584,10 +593,12 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $authentication = Async\await($this->authenticate());
             $trades = Async\await($this->subscribe_to_my_trades($authentication, $params));
             if ($this->newUpdates) {
@@ -645,7 +656,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the bittrex api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             $limit = ($limit === null) ? 25 : $limit; // 25 by default
             if (($limit !== 1) && ($limit !== 25) && ($limit !== 500)) {
@@ -721,8 +732,8 @@ class bittrex extends \ccxt\async\bittrex {
                     // unroll the accumulated deltas
                     // 3. Playback the cached Level 2 data flow.
                     for ($i = 0; $i < count($messages); $i++) {
-                        $message = $messages[$i];
-                        $this->handle_order_book_message($client, $message, $orderbook);
+                        $messageItem = $messages[$i];
+                        $this->handle_order_book_message($client, $messageItem, $orderbook);
                     }
                     $this->orderbooks[$symbol] = $orderbook;
                     $client->resolve ($orderbook, $messageHash);
@@ -866,6 +877,59 @@ class bittrex extends \ccxt\async\bittrex {
         return $message;
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        //    {
+        //        $R => [array( Success => false, ErrorCode => 'UNAUTHORIZED_USER' ), ... ],
+        //        $I => '1698601759267'
+        //    }
+        //    {
+        //        $R => array( Success => false, ErrorCode => 'INVALID_APIKEY' ),
+        //        $I => '1698601759266'
+        //    }
+        //
+        $R = $this->safe_value($message, 'R');
+        if ($R === null) {
+            // Return there is no error
+            return false;
+        }
+        $I = $this->safe_string($message, 'I');
+        $errorCode = null;
+        if (gettype($R) === 'array' && array_keys($R) === array_keys(array_keys($R))) {
+            for ($i = 0; $i < count($R); $i++) {
+                $response = $this->safe_value($R, $i);
+                $success = $this->safe_value($response, 'Success', true);
+                if (!$success) {
+                    $errorCode = $this->safe_string($response, 'ErrorCode');
+                    break;
+                }
+            }
+        } else {
+            $success = $this->safe_value($R, 'Success', true);
+            if (!$success) {
+                $errorCode = $this->safe_string($R, 'ErrorCode');
+            }
+        }
+        if ($errorCode === null) {
+            // Return there is no error
+            return false;
+        }
+        $feedback = $this->id . ' ' . $errorCode;
+        try {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            if ($message !== null) {
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
+            }
+            throw new ExchangeError($feedback);
+        } catch (Exception $e) {
+            if ($e instanceof AuthenticationError) {
+                $client->reject ($e, 'authenticate');
+            }
+            $client->reject ($e, $I);
+        }
+        return true;
+    }
+
     public function handle_message(Client $client, $message) {
         //
         // subscription confirmation
@@ -912,6 +976,9 @@ class bittrex extends \ccxt\async\bittrex {
         //         $M => array( array( H => 'C3', $M => 'authenticationExpiring', $A => array() ) )
         //     }
         //
+        if ($this->handle_error_message($client, $message)) {
+            return;
+        }
         $methods = array(
             'authenticationExpiring' => array($this, 'handle_authentication_expiring'),
             'order' => array($this, 'handle_order'),

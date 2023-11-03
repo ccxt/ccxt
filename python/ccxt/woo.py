@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -132,7 +131,10 @@ class woo(Exchange, ImplicitAPI):
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
@@ -215,9 +217,15 @@ class woo(Exchange, ImplicitAPI):
                             'buypower': 1,
                             'referrals': 60,
                             'referral_rewards': 60,
+                            'convert/exchangeInfo': 1,
+                            'convert/assetInfo': 1,
+                            'convert/rfq': 60,
+                            'convert/trade': 1,
+                            'convert/trades': 1,
                         },
                         'post': {
                             'algo/order': 5,
+                            'convert/rft': 60,
                         },
                         'put': {
                             'order/{oid}': 2,
@@ -243,6 +251,7 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -400,6 +409,7 @@ class woo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': self.safe_timestamp(market, 'created_time'),
                 'info': market,
             })
         return result
@@ -411,7 +421,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
@@ -530,9 +540,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://docs.woo.org/#get-account-information-new
+        :see: https://docs.woo.org/#get-account-information-new
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.v3PrivateGetAccountinfo(params)
@@ -713,14 +723,14 @@ class woo(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        see https://docs.woo.org/#send-order
-        see https://docs.woo.org/#send-algo-order
+        :see: https://docs.woo.org/#send-order
+        :see: https://docs.woo.org/#send-algo-order
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the woo api endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
@@ -728,7 +738,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.algoType]: 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
@@ -857,29 +867,28 @@ class woo(Exchange, ImplicitAPI):
         if data is not None:
             rows = self.safe_value(data, 'rows', [])
             return self.parse_order(rows[0], market)
-        return self.extend(
-            self.parse_order(response, market),
-            {'type': type}
-        )
+        order = self.parse_order(response, market)
+        order['type'] = type
+        return order
 
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
-        see https://docs.woo.org/#edit-order
-        see https://docs.woo.org/#edit-order-by-client_order_id
-        see https://docs.woo.org/#edit-algo-order
-        see https://docs.woo.org/#edit-algo-order-by-client_order_id
+        :see: https://docs.woo.org/#edit-order
+        :see: https://docs.woo.org/#edit-order-by-client_order_id
+        :see: https://docs.woo.org/#edit-algo-order
+        :see: https://docs.woo.org/#edit-algo-order-by-client_order_id
         edit a trade order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the woo api endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -897,23 +906,21 @@ class woo(Exchange, ImplicitAPI):
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        method = None
-        if isByClientOrder:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId'
-                request['oid'] = id
-            else:
-                method = 'v3PrivatePutOrderClientClientOrderId'
-                request['client_order_id'] = clientOrderIdExchangeSpecific
-        else:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderOid'
-            else:
-                method = 'v3PrivatePutOrderOid'
-            request['oid'] = id
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice'])
-        response = getattr(self, method)(self.extend(request, params))
+        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        response = None
+        if isByClientOrder:
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            if isStop:
+                response = self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
+            else:
+                response = self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
+        else:
+            request['oid'] = id
+            if isStop:
+                response = self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
+            else:
+                response = self.v3PrivatePutOrderOid(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -931,42 +938,41 @@ class woo(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#cancel-algo-order
-        see https://docs.woo.org/#cancel-order
-        see https://docs.woo.org/#cancel-order-by-client_order_id
+        :see: https://docs.woo.org/#cancel-algo-order
+        :see: https://docs.woo.org/#cancel-order
+        :see: https://docs.woo.org/#cancel-order-by-client_order_id
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the woo api endpoint
         :param boolean [params.stop]: whether the order is a stop/algo order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         stop = self.safe_value(params, 'stop', False)
         params = self.omit(params, 'stop')
         if not stop:
             self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateDeleteAlgoOrderOrderId'
             request['order_id'] = id
-        elif isByClientOrder:
-            method = 'v1PrivateDeleteClientOrder'
-            request['client_order_id'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+            response = self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateDeleteOrder'
-            request['order_id'] = id
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        if not stop:
             request['symbol'] = market['id']
-        response = getattr(self, method)(self.extend(request, params))
+            if isByClientOrder:
+                request['client_order_id'] = clientOrderIdExchangeSpecific
+                params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+                response = self.v1PrivateDeleteClientOrder(self.extend(request, params))
+            else:
+                request['order_id'] = id
+                response = self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #
@@ -979,14 +985,14 @@ class woo(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#cancel-all-pending-orders
-        see https://docs.woo.org/#cancel-orders
-        see https://docs.woo.org/#cancel-all-pending-algo-orders
+        :see: https://docs.woo.org/#cancel-all-pending-orders
+        :see: https://docs.woo.org/#cancel-orders
+        :see: https://docs.woo.org/#cancel-all-pending-algo-orders
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the woo api endpoint
         :param boolean [params.stop]: whether the order is a stop/algo order
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')
@@ -1009,13 +1015,13 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
-        see https://docs.woo.org/#get-algo-order
-        see https://docs.woo.org/#get-order
+        :see: https://docs.woo.org/#get-algo-order
+        :see: https://docs.woo.org/#get-order
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the woo api endpoint
         :param boolean [params.stop]: whether the order is a stop/algo order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol) if (symbol is not None) else None
@@ -1023,17 +1029,16 @@ class woo(Exchange, ImplicitAPI):
         params = self.omit(params, 'stop')
         request = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateGetAlgoOrderOid'
             request['oid'] = id
+            response = self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
-            method = 'v1PrivateGetClientOrderClientOrderId'
             request['client_order_id'] = clientOrderId
+            response = self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateGetOrderOid'
             request['oid'] = id
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
         #     success: True,
@@ -1074,8 +1079,8 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.woo.org/#get-orders
-        see https://docs.woo.org/#get-algo-orders
+        :see: https://docs.woo.org/#get-orders
+        :see: https://docs.woo.org/#get-algo-orders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1084,7 +1089,7 @@ class woo(Exchange, ImplicitAPI):
         :param boolean [params.stop]: whether the order is a stop/algo order
         :param boolean [params.isTriggered]: whether the order has been triggered(False by default)
         :param str [params.side]: 'buy' or 'sell'
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         request = {}
@@ -1149,7 +1154,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # Possible input functions:
         # * createOrder
@@ -1280,7 +1285,7 @@ class woo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1312,6 +1317,7 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.woo.org/#kline-public
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1362,7 +1368,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'rows', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # example response in fetchOHLCV
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
@@ -1381,7 +1387,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
         market = None
@@ -1419,7 +1425,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
         request = {}
@@ -1460,7 +1466,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
         """
         response = self.v1PrivateGetSubAccountAssets(params)
         #
@@ -1502,9 +1508,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.woo.org/#get-current-holding-get-balance-new
+        :see: https://docs.woo.org/#get-current-holding-get-balance-new
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         response = self.v3PrivateGetBalances(params)
@@ -1553,7 +1559,7 @@ class woo(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         # self method is TODO because of networks unification
         self.load_markets()
@@ -1641,7 +1647,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         currency, rows = self.get_asset_history_rows(code, since, limit, params)
         return self.parse_ledger(rows, currency, since, limit, params)
@@ -1700,7 +1706,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         request = {
             'token_side': 'DEPOSIT',
@@ -1714,7 +1720,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         request = {
             'token_side': 'WITHDRAW',
@@ -1728,7 +1734,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         request = {
             'type': 'BALANCE',
@@ -1798,7 +1804,7 @@ class woo(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -1831,7 +1837,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         request = {
             'type': 'COLLATERAL',
@@ -1916,7 +1922,7 @@ class woo(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.load_markets()
@@ -1949,12 +1955,12 @@ class woo(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://docs.woo.org/#repay-interest
+        :see: https://docs.woo.org/#repay-interest
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: not used by woo.repayMargin()
         :param dict [params]: extra parameters specific to the woo api endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
         self.load_markets()
         market = None
@@ -2012,13 +2018,15 @@ class woo(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):
-                applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
-                brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                isStop = path.find('algo') > -1
-                if isStop:
-                    params['brokerId'] = brokerId
-                else:
-                    params['broker_id'] = brokerId
+                isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+                if not isSandboxMode:
+                    applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+                    brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+                    isStop = path.find('algo') > -1
+                    if isStop:
+                        params['brokerId'] = brokerId
+                    else:
+                        params['broker_id'] = brokerId
                 params = self.keysort(params)
             auth = ''
             ts = str(self.nonce())
@@ -2214,7 +2222,22 @@ class woo(Exchange, ImplicitAPI):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        fetches historical funding rate prices
+        :see: https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the woo api endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
+        """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25)
         request = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -2222,6 +2245,7 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = self.parse_to_int(since / 1000)
+        request, params = self.handle_until_option('end_t', request, params, 0.001)
         response = self.v1PublicGetFundingRateHistory(self.extend(request, params))
         #
         #     {
@@ -2432,3 +2456,7 @@ class woo(Exchange, ImplicitAPI):
                 return network
         # if it was not returned according to above options, then return the first network of currency
         return self.safe_value(networkKeys, 0)
+
+    def set_sandbox_mode(self, enable):
+        super(woo, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable

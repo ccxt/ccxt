@@ -62,7 +62,13 @@ interface Exchange {
     v3PrivateGetBuypower (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetReferrals (params?: {}): Promise<implicitReturnType>;
     v3PrivateGetReferralRewards (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertAssetInfo (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertRfq (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertTrade (params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetConvertTrades (params?: {}): Promise<implicitReturnType>;
     v3PrivatePostAlgoOrder (params?: {}): Promise<implicitReturnType>;
+    v3PrivatePostConvertRft (params?: {}): Promise<implicitReturnType>;
     v3PrivatePutOrderOid (params?: {}): Promise<implicitReturnType>;
     v3PrivatePutOrderClientClientOrderId (params?: {}): Promise<implicitReturnType>;
     v3PrivatePutAlgoOrderOid (params?: {}): Promise<implicitReturnType>;

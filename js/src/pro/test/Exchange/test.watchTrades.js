@@ -27,6 +27,7 @@ export default async (exchange, symbol) => {
         'coinflex',
         'woo',
         'independentreserve',
+        'bingx', // side is undefined and we don't have the skip logic for ws yet
     ];
     if (skippedExchanges.includes(exchange.id)) {
         console.log(exchange.id, method + '() test skipped');

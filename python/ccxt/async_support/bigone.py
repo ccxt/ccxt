@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -41,6 +40,7 @@ class bigone(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -142,8 +142,10 @@ class bigone(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'accountsByType': {
                     'spot': 'SPOT',
+                    'fund': 'FUND',
                     'funding': 'FUND',
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
@@ -430,7 +432,6 @@ class bigone(Exchange, ImplicitAPI):
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
-                    'type': type,
                     'margin': None,
                     'deposit': deposit,
                     'withdraw': withdraw,
@@ -458,6 +459,7 @@ class bigone(Exchange, ImplicitAPI):
                 'code': code,
                 'info': currency,
                 'name': name,
+                'type': type,
                 'active': None,
                 'deposit': currencyDepositEnabled,
                 'withdraw': currencyWithdrawEnabled,
@@ -568,6 +570,7 @@ class bigone(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -634,7 +637,7 @@ class bigone(Exchange, ImplicitAPI):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -666,7 +669,7 @@ class bigone(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         request = {}
@@ -710,7 +713,7 @@ class bigone(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_time(self, params={}):
         """
@@ -736,7 +739,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -896,7 +899,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -928,7 +931,7 @@ class bigone(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         close: '0.021562',
@@ -1020,7 +1023,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         type = self.safe_string(params, 'type', '')
@@ -1042,57 +1045,82 @@ class bigone(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order(self, order, market=None):
+    def parse_type(self, type: str):
+        types = {
+            'STOP_LIMIT': 'limit',
+            'STOP_MARKET': 'market',
+            'LIMIT': 'limit',
+            'MARKET': 'market',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_order(self, order, market=None) -> Order:
         #
         #    {
-        #        "id": 10,
-        #        "asset_pair_name": "EOS-BTC",
-        #        "price": "10.00",
-        #        "amount": "10.00",
-        #        "filled_amount": "9.0",
-        #        "avg_deal_price": "12.0",
-        #        "side": "ASK",
-        #        "state": "FILLED",
-        #        "created_at":"2019-01-29T06:05:56Z",
-        #        "updated_at":"2019-01-29T06:05:56Z",
+        #        "id": '42154072251',
+        #        "asset_pair_name": 'SOL-USDT',
+        #        "price": '20',
+        #        "amount": '0.5',
+        #        "filled_amount": '0',
+        #        "avg_deal_price": '0',
+        #        "side": 'ASK',
+        #        "state": 'PENDING',
+        #        "created_at": '2023-09-13T03:42:00Z',
+        #        "updated_at": '2023-09-13T03:42:00Z',
+        #        "type": 'LIMIT',
+        #        "stop_price": '0',
+        #        "immediate_or_cancel": False,
+        #        "post_only": False,
+        #        "client_order_id": ''
         #    }
         #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'amount')
-        average = self.safe_string(order, 'avg_deal_price')
-        filled = self.safe_string(order, 'filled_amount')
-        status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'BID':
             side = 'buy'
         else:
             side = 'sell'
-        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'updated_at'))
+        triggerPrice = self.safe_string(order, 'stop_price')
+        if Precise.string_eq(triggerPrice, '0'):
+            triggerPrice = None
+        immediateOrCancel = self.safe_value(order, 'immediate_or_cancel')
+        timeInForce = None
+        if immediateOrCancel:
+            timeInForce = 'IOC'
+        type = self.parse_type(self.safe_string(order, 'type'))
+        price = self.safe_string(order, 'price')
+        amount = None
+        filled = None
+        cost = None
+        if type == 'market' and side == 'buy':
+            cost = self.safe_string(order, 'filled_amount')
+        else:
+            amount = self.safe_string(order, 'amount')
+            filled = self.safe_string(order, 'filled_amount')
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'updated_at')),
             'symbol': symbol,
-            'type': None,
-            'timeInForce': None,
-            'postOnly': None,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': self.safe_value(order, 'post_only'),
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': None,
-            'average': average,
+            'cost': cost,
+            'average': self.safe_string(order, 'avg_deal_price'),
             'filled': filled,
             'remaining': None,
-            'status': status,
+            'status': self.parse_order_status(self.safe_string(order, 'state')),
             'fee': None,
             'trades': None,
         }, market)
@@ -1100,41 +1128,68 @@ class bigone(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://open.big.one/docs/spot_orders.html#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
+        :param str [params.timeInForce]: "GTC", "IOC", or "PO"
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str operator: *stop order only* GTE or LTE(default)
+        :param str client_order_id: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        requestSide = 'BID' if (side == 'buy') else 'ASK'
+        isBuy = (side == 'buy')
+        requestSide = 'BID' if isBuy else 'ASK'
         uppercaseType = type.upper()
+        isLimit = uppercaseType == 'LIMIT'
+        exchangeSpecificParam = self.safe_value(params, 'post_only')
+        postOnly = None
+        postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
             # 'price': self.price_to_precision(symbol, price),  # order price, string, required
-            'type': uppercaseType,
             # 'operator': 'GTE',  # stop orders only, GTE greater than and equal, LTE less than and equal
             # 'immediate_or_cancel': False,  # limit orders only, must be False when post_only is True
             # 'post_only': False,  # limit orders only, must be False when immediate_or_cancel is True
         }
-        if uppercaseType == 'LIMIT':
+        if isLimit or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
+            if isLimit:
+                timeInForce = self.safe_string(params, 'timeInForce')
+                if timeInForce == 'IOC':
+                    request['immediate_or_cancel'] = True
+                if postOnly:
+                    request['post_only'] = True
         else:
-            isStopLimit = (uppercaseType == 'STOP_LIMIT')
-            isStopMarket = (uppercaseType == 'STOP_MARKET')
-            if isStopLimit or isStopMarket:
-                stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
-                if stopPrice is None:
-                    raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price parameter')
-                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-                params = self.omit(params, ['stop_price', 'stopPrice'])
-            if isStopLimit:
-                request['price'] = self.price_to_precision(symbol, price)
+            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
+            if createMarketBuyOrderRequiresPrice and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    amount = self.parse_number(Precise.string_mul(amountString, priceString))
+        request['amount'] = self.amount_to_precision(symbol, amount)
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['operator'] = 'GTE' if isBuy else 'LTE'
+            if isLimit:
+                uppercaseType = 'STOP_LIMIT'
+            elif uppercaseType == 'MARKET':
+                uppercaseType = 'STOP_MARKET'
+        request['type'] = uppercaseType
+        params = self.omit(params, ['stop_price', 'stopPrice', 'triggerPrice', 'timeInForce'])
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #    {
@@ -1159,7 +1214,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: Not used by bigone cancelOrder()
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {'id': id}
@@ -1184,7 +1239,7 @@ class bigone(Exchange, ImplicitAPI):
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1211,7 +1266,7 @@ class bigone(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {'id': id}
@@ -1226,7 +1281,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1272,7 +1327,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         if symbol is None:
@@ -1337,7 +1392,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'state': 'PENDING',
@@ -1351,7 +1406,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'state': 'FILLED',
@@ -1395,7 +1450,7 @@ class bigone(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1512,7 +1567,7 @@ class bigone(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txid')
         address = self.safe_string(transaction, 'target_address')
         tag = self.safe_string(transaction, 'memo')
-        type = 'deposit' if ('customer_id' in transaction) else 'withdrawal'
+        type = 'withdrawal' if ('customer_id' in transaction) else 'deposit'
         return {
             'info': transaction,
             'id': id,
@@ -1541,7 +1596,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1588,7 +1643,7 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -1631,12 +1686,13 @@ class bigone(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        :see: https://open.big.one/docs/spot_transfer.html#transfer-of-user
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
+        :param str toAccount: 'SPOT', 'FUND', or 'CONTRACT'
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1704,7 +1760,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the bigone api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()

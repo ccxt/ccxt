@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 
 class kucoin extends \ccxt\async\kucoin {
@@ -18,9 +19,11 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
             ),
@@ -130,7 +133,7 @@ class kucoin extends \ccxt\async\kucoin {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -140,6 +143,30 @@ class kucoin extends \ccxt\async\kucoin {
             $topic = $method . ':' . $market['id'];
             $messageHash = 'ticker:' . $symbol;
             return Async\await($this->subscribe($url, $messageHash, $topic, $query));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = 'tickers';
+            if ($symbols !== null) {
+                $messageHash = 'tickers::' . implode(',', $symbols);
+            }
+            $url = Async\await($this->negotiate(false));
+            $topic = '/market/ticker:all';
+            $tickers = Async\await($this->subscribe($url, $messageHash, $topic, $params));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -202,7 +229,13 @@ class kucoin extends \ccxt\async\kucoin {
         $market = null;
         if ($topic !== null) {
             $parts = explode(':', $topic);
-            $marketId = $this->safe_string($parts, 1);
+            $first = $this->safe_string($parts, 1);
+            $marketId = null;
+            if ($first === 'all') {
+                $marketId = $this->safe_string($message, 'subject');
+            } else {
+                $marketId = $first;
+            }
             $market = $this->safe_market($marketId, $market, '-');
         }
         $data = $this->safe_value($message, 'data', array());
@@ -212,6 +245,21 @@ class kucoin extends \ccxt\async\kucoin {
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
+        // watchTickers
+        $client->resolve ($ticker, 'tickers');
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $currentMessageHash = $messageHashes[$i];
+            $parts = explode('::', $currentMessageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $tickers = $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            $tickersSymbols = is_array($tickers) ? array_keys($tickers) : array();
+            $numTickers = count($tickersSymbols);
+            if ($numTickers > 0) {
+                $client->resolve ($tickers, $currentMessageHash);
+            }
+        }
     }
 
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -292,7 +340,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(false));
@@ -303,6 +351,37 @@ class kucoin extends \ccxt\async\kucoin {
             $trades = Async\await($this->subscribe($url, $messageHash, $topic, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $url = Async\await($this->negotiate(false));
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $topic = '/market/match:' . implode(',', $marketIds);
+            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $trades = Async\await($this->subscribe($url, $messageHash, $topic, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -340,6 +419,8 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $trades->append ($trade);
         $client->resolve ($trades, $messageHash);
+        // watchMultipleTrades
+        $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $trades);
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
@@ -349,7 +430,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             //
             // https://docs.kucoin.com/#level-2-$market-data
@@ -387,6 +468,40 @@ class kucoin extends \ccxt\async\kucoin {
         }) ();
     }
 
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the kucoin api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+            }
+            if ($limit !== null) {
+                if (($limit !== 20) && ($limit !== 100)) {
+                    throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 20 or 100");
+                }
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $url = Async\await($this->negotiate(false));
+            $topic = '/market/level2:' . implode(',', $marketIds);
+            $messageHash = 'multipleOrderbook::' . implode(',', $symbols);
+            $subscription = array(
+                'method' => array($this, 'handle_order_book_subscription'),
+                'symbols' => $symbols,
+                'limit' => $limit,
+            );
+            $orderbook = Async\await($this->subscribe($url, $messageHash, $topic, $params, $subscription));
+            return $orderbook->limit ();
+        }) ();
+    }
+
     public function handle_order_book(Client $client, $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
@@ -417,7 +532,18 @@ class kucoin extends \ccxt\async\kucoin {
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $topic = $this->safe_string($message, 'topic');
-            $subscription = $client->subscriptions[$topic];
+            $topicParts = explode(':', $topic);
+            $topicSymbol = $this->safe_string($topicParts, 1);
+            $topicChannel = $this->safe_string($topicParts, 0);
+            $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            $subscription = null;
+            for ($i = 0; $i < count($subscriptions); $i++) {
+                $key = $subscriptions[$i];
+                if ((mb_strpos($key, $topicSymbol) !== false) && (mb_strpos($key, $topicChannel) !== false)) {
+                    $subscription = $client->subscriptions[$key];
+                    break;
+                }
+            }
             $limit = $this->safe_integer($subscription, 'limit');
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 5);
             if ($cacheLength === $snapshotDelay) {
@@ -430,6 +556,8 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $this->handle_delta($storedOrderBook, $data);
         $client->resolve ($storedOrderBook, $messageHash);
+        // watchMultipleOrderBook
+        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbook::', $symbol, $storedOrderBook);
     }
 
     public function get_cache_index($orderbook, $cache) {
@@ -472,9 +600,17 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
-        $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
-        $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        $symbols = $this->safe_value($subscription, 'symbols');
+        if ($symbols === null) {
+            $symbol = $this->safe_string($subscription, 'symbol');
+            $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+        } else {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
+            }
+        }
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta
@@ -518,13 +654,16 @@ class kucoin extends \ccxt\async\kucoin {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {boolean} [$params->stop] trigger $orders are watched if true
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'stop', 'trigger' ));
             $url = Async\await($this->negotiate(true));
-            $topic = '/spotMarket/tradeOrders';
+            $topic = $stop ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
             $request = array(
                 'privateChannel' => true,
             );
@@ -549,60 +688,80 @@ class kucoin extends \ccxt\async\kucoin {
             'match' => 'open',
             'update' => 'open',
             'canceled' => 'canceled',
+            'cancel' => 'canceled',
+            'TRIGGERED' => 'triggered',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_ws_order($order, $market = null) {
         //
-        //     {
-        //         'symbol' => 'XCAD-USDT',
-        //         'orderType' => 'limit',
-        //         'side' => 'buy',
-        //         'orderId' => '6249167327218b000135e749',
-        //         'type' => 'canceled',
-        //         'orderTime' => 1648957043065280224,
-        //         'size' => '100.452',
-        //         'filledSize' => '0',
-        //         'price' => '2.9635',
-        //         'clientOid' => 'buy-XCAD-USDT-1648957043010159',
-        //         'remainSize' => '0',
-        //         'status' => 'done',
-        //         'ts' => 1648957054031001037
-        //     }
+        // /spotMarket/tradeOrders
         //
-        $id = $this->safe_string($order, 'orderId');
-        $clientOrderId = $this->safe_string($order, 'clientOid');
-        $orderType = $this->safe_string_lower($order, 'orderType');
-        $price = $this->safe_string($order, 'price');
-        $filled = $this->safe_string($order, 'filledSize');
-        $amount = $this->safe_string($order, 'size');
+        //    {
+        //        'symbol' => 'XCAD-USDT',
+        //        'orderType' => 'limit',
+        //        'side' => 'buy',
+        //        'orderId' => '6249167327218b000135e749',
+        //        'type' => 'canceled',
+        //        'orderTime' => 1648957043065280224,
+        //        'size' => '100.452',
+        //        'filledSize' => '0',
+        //        'price' => '2.9635',
+        //        'clientOid' => 'buy-XCAD-USDT-1648957043010159',
+        //        'remainSize' => '0',
+        //        'status' => 'done',
+        //        'ts' => 1648957054031001037
+        //    }
+        //
+        // /spotMarket/advancedOrders
+        //
+        //    {
+        //        "createdAt" => 1589789942337,
+        //        "orderId" => "5ec244f6a8a75e0009958237",
+        //        "orderPrice" => "0.00062",
+        //        "orderType" => "stop",
+        //        "side" => "sell",
+        //        "size" => "1",
+        //        "stop" => "entry",
+        //        "stopPrice" => "0.00062",
+        //        "symbol" => "KCS-BTC",
+        //        "tradeType" => "TRADE",
+        //        "triggerSuccess" => true,
+        //        "ts" => 1589790121382281286,
+        //        "type" => "triggered"
+        //    }
+        //
         $rawType = $this->safe_string($order, 'type');
         $status = $this->parse_ws_order_status($rawType);
-        $timestamp = $this->safe_integer($order, 'orderTime');
+        $timestamp = $this->safe_integer_2($order, 'orderTime', 'createdAt');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $side = $this->safe_string_lower($order, 'side');
+        $triggerPrice = $this->safe_string($order, 'stopPrice');
+        $triggerSuccess = $this->safe_value($order, 'triggerSuccess');
+        $triggerFail = ($triggerSuccess !== true) && ($triggerSuccess !== null);  // TODO => updated to $triggerSuccess === False once transpiler transpiles it correctly
+        if (($status === 'triggered') && $triggerFail) {
+            $status = 'canceled';
+        }
         return $this->safe_order(array(
             'info' => $order,
-            'symbol' => $symbol,
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'symbol' => $market['symbol'],
+            'id' => $this->safe_string($order, 'orderId'),
+            'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'type' => $orderType,
+            'type' => $this->safe_string_lower($order, 'orderType'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => $amount,
+            'side' => $this->safe_string_lower($order, 'side'),
+            'price' => $this->safe_string_2($order, 'price', 'orderPrice'),
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'amount' => $this->safe_string($order, 'size'),
             'cost' => null,
             'average' => null,
-            'filled' => $filled,
+            'filled' => $this->safe_string($order, 'filledSize'),
             'remaining' => null,
             'status' => $status,
             'fee' => null,
@@ -611,32 +770,51 @@ class kucoin extends \ccxt\async\kucoin {
     }
 
     public function handle_order(Client $client, $message) {
+        //
+        // Trigger Orders
+        //
+        //    {
+        //        createdAt => 1692745706437,
+        //        error => 'Balance insufficient!',       // not always there
+        //        $orderId => 'vs86kp757vlda6ni003qs70v',
+        //        orderPrice => '0.26',
+        //        orderType => 'stop',
+        //        side => 'sell',
+        //        size => '5',
+        //        stop => 'loss',
+        //        stopPrice => '0.26',
+        //        $symbol => 'ADA-USDT',
+        //        tradeType => 'TRADE',
+        //        triggerSuccess => false,                // not always there
+        //        ts => '1692745706442929298',
+        //        type => 'open'
+        //    }
+        //
         $messageHash = 'orders';
         $data = $this->safe_value($message, 'data');
         $parsed = $this->parse_ws_order($data);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
+        $triggerPrice = $this->safe_value($parsed, 'triggerPrice');
+        $isTriggerOrder = ($triggerPrice !== null);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->triggerOrders = new ArrayCacheBySymbolById ($limit);
         }
-        $cachedOrders = $this->orders;
+        $cachedOrders = $isTriggerOrder ? $this->triggerOrders : $this->orders;
         $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
         $order = $this->safe_value($orders, $orderId);
         if ($order !== null) {
             // todo add others to calculate average etc
-            $stopPrice = $this->safe_value($order, 'stopPrice');
-            if ($stopPrice !== null) {
-                $parsed['stopPrice'] = $stopPrice;
-            }
             if ($order['status'] === 'closed') {
                 $parsed['status'] = 'closed';
             }
         }
         $cachedOrders->append ($parsed);
-        $client->resolve ($this->orders, $messageHash);
+        $client->resolve ($cachedOrders, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $symbol;
-        $client->resolve ($this->orders, $symbolSpecificMessageHash);
+        $client->resolve ($cachedOrders, $symbolSpecificMessageHash);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -647,7 +825,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -740,7 +918,7 @@ class kucoin extends \ccxt\async\kucoin {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the kucoin api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
@@ -825,6 +1003,10 @@ class kucoin extends \ccxt\async\kucoin {
         //         }
         //     }
         //
+        $topic = $this->safe_string($message, 'topic');
+        if ($topic === '/market/ticker:all') {
+            return $this->handle_ticker($client, $message);
+        }
         $subject = $this->safe_string($message, 'subject');
         $methods = array(
             'trade.l2update' => array($this, 'handle_order_book'),
@@ -835,6 +1017,7 @@ class kucoin extends \ccxt\async\kucoin {
             'account.balance' => array($this, 'handle_balance'),
             '/spot/tradeFills' => array($this, 'handle_my_trade'),
             'orderChange' => array($this, 'handle_order'),
+            'stopOrder' => array($this, 'handle_order'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {

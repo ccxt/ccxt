@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/mexc.js';
-import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended } from './base/errors.js';
+import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { IndexType, Int, OrderSide, Balances, OrderType } from './base/types.js';
+import { IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -29,8 +29,8 @@ export default class mexc extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': true,
-                'future': true,
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
@@ -38,6 +38,7 @@ export default class mexc extends Exchange {
                 'cancelOrders': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
@@ -194,6 +195,9 @@ export default class mexc extends Exchange {
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
                             'rebate/referCode': 1,
+                            'rebate/affiliate/commission': 1,
+                            'rebate/affiliate/withdraw': 1,
+                            'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                         },
@@ -394,10 +398,6 @@ export default class mexc extends Exchange {
                 'fetchMarkets': {
                     'types': {
                         'spot': true,
-                        'future': {
-                            'linear': false,
-                            'inverse': false,
-                        },
                         'swap': {
                             'linear': true,
                             'inverse': false,
@@ -717,6 +717,7 @@ export default class mexc extends Exchange {
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '400': BadRequest, // {"msg":"The start time cannot be earlier than 90 days","code":400}
+                    // '500': OnMaintenance, // {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                     '600': BadRequest,
                     '70011': PermissionDenied, // {"code":70011,"msg":"Pair user ban trade apikey."}
                     '88004': InsufficientFunds, // {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
@@ -811,6 +812,7 @@ export default class mexc extends Exchange {
                     'Bid price is great than max allow price': InvalidOrder, // code:2003
                     'Invalid symbol.': BadSymbol, // code:-1121
                     'Param error!': BadRequest, // code:600
+                    'maintenance': OnMaintenance, // {"code": 500,"message": "Under maintenance, please try again later","announcement": "https://www.mexc.com/support/articles/17827791510263"}
                 },
             },
         });
@@ -822,7 +824,7 @@ export default class mexc extends Exchange {
          * @name mexc3#fetchStatus
          * @description the latest known information on the availability of the exchange API
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
@@ -833,7 +835,9 @@ export default class mexc extends Exchange {
             //
             //     {}
             //
-            status = Object.keys (response).length ? this.json (response) : 'ok';
+            const keys = Object.keys (response);
+            const length = keys.length;
+            status = length ? this.json (response) : 'ok';
         } else if (marketType === 'swap') {
             response = await this.contractPublicGetPing (query);
             //
@@ -1163,6 +1167,7 @@ export default class mexc extends Exchange {
                         'max': maxQuoteAmount,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1275,6 +1280,7 @@ export default class mexc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1291,7 +1297,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1344,7 +1350,7 @@ export default class mexc extends Exchange {
             orderbook = this.parseOrderBook (data, symbol, timestamp);
             orderbook['nonce'] = this.safeInteger (data, 'version');
         }
-        return orderbook;
+        return orderbook as OrderBook;
     }
 
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countKey: IndexType = 2) {
@@ -1361,12 +1367,16 @@ export default class mexc extends Exchange {
         /**
          * @method
          * @name mexc3#fetchTrades
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1376,11 +1386,21 @@ export default class mexc extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // if (since !== undefined) {
-        //     request['startTime'] = since; bug in api, waiting for fix
-        // }
         let trades = undefined;
         if (market['spot']) {
+            const until = this.safeIntegerN (params, [ 'endTime', 'until', 'till' ]);
+            if (since !== undefined) {
+                request['startTime'] = since;
+                if (until === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTrades() requires an until parameter when since is provided');
+                }
+            }
+            if (until !== undefined) {
+                if (since === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTrades() requires a since parameter when until is provided');
+                }
+                request['endTime'] = until;
+            }
             let method = this.safeString (this.options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
             method = this.safeString (params, 'method', method); // AggTrades, HistoricalTrades, Trades
             trades = await this[method] (this.extend (request, params));
@@ -1611,30 +1631,52 @@ export default class mexc extends Exchange {
         /**
          * @method
          * @name mexc3#fetchOHLCV
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const maxLimit = (market['spot']) ? 1000 : 2000;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+        }
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
+        const duration = this.parseTimeframe (timeframe) * 1000;
         const request = {
             'symbol': market['id'],
             'interval': timeframeValue,
         };
         let candles = undefined;
         if (market['spot']) {
+            const until = this.safeIntegerN (params, [ 'until', 'endTime', 'till' ]);
             if (since !== undefined) {
                 request['startTime'] = since;
+                if (until === undefined) {
+                    // we have to calculate it assuming we can get at most 2000 entries per request
+                    const end = this.sum (since, maxLimit * duration);
+                    const now = this.milliseconds ();
+                    request['endTime'] = Math.min (end, now);
+                }
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
+            }
+            if (until !== undefined) {
+                params = this.omit (params, [ 'until', 'till' ]);
+                request['endTime'] = until;
             }
             const response = await this.spotPublicGetKlines (this.extend (request, params));
             //
@@ -1653,8 +1695,13 @@ export default class mexc extends Exchange {
             //
             candles = response;
         } else if (market['swap']) {
+            const until = this.safeIntegerProductN (params, [ 'until', 'endTime', 'till' ], 0.001);
             if (since !== undefined) {
                 request['start'] = this.parseToInt (since / 1000);
+            }
+            if (until !== undefined) {
+                params = this.omit (params, [ 'until', 'till' ]);
+                request['end'] = until;
             }
             const priceType = this.safeString (params, 'price', 'default');
             params = this.omit (params, 'price');
@@ -1685,7 +1732,7 @@ export default class mexc extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1703,7 +1750,7 @@ export default class mexc extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1791,7 +1838,7 @@ export default class mexc extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1981,7 +2028,7 @@ export default class mexc extends Exchange {
          * @description fetches the bid and ask price and volume for multiple markets
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2025,23 +2072,22 @@ export default class mexc extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (market['spot']) {
             return await this.createSpotOrder (market, type, side, amount, price, marginMode, query);
-        } else if (market['swap']) {
+        } else {
             return await this.createSwapOrder (market, type, side, amount, price, marginMode, query);
         }
-        return undefined;
     }
 
-    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+    createSpotOrderRequest (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = (side === 'buy') ? 'BUY' : 'SELL';
         const request = {
@@ -2075,19 +2121,28 @@ export default class mexc extends Exchange {
             request['newClientOrderId'] = clientOrderId;
             params = this.omit (params, [ 'type', 'clientOrderId' ]);
         }
-        let method = 'spotPrivatePostOrder';
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new BadRequest (this.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
             }
-            method = 'spotPrivatePostMarginOrder';
         }
         let postOnly = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'LIMIT_MAKER', params);
         if (postOnly) {
             request['type'] = 'LIMIT_MAKER';
         }
-        const response = await this[method] (this.extend (request, params));
+        return this.extend (request, params);
+    }
+
+    async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
+        let response = undefined;
+        if (marginMode !== undefined) {
+            response = await this.spotPrivatePostMarginOrder (this.extend (request, params));
+        } else {
+            response = await this.spotPrivatePostOrder (this.extend (request, params));
+        }
         //
         // spot
         //
@@ -2107,12 +2162,12 @@ export default class mexc extends Exchange {
         //         "transactTime": 1661992652132
         //     }
         //
-        return this.extend (this.parseOrder (response, market), {
-            'side': side,
-            'type': type,
-            'price': price,
-            'amount': amount,
-        });
+        const order = this.parseOrder (response, market);
+        order['side'] = side;
+        order['type'] = type;
+        order['price'] = price;
+        order['amount'] = amount;
+        return order;
     }
 
     async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
@@ -2216,6 +2271,70 @@ export default class mexc extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name mexc#createOrders
+         * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            const market = this.market (marketId);
+            if (!market['spot']) {
+                throw new NotSupported (this.id + ' createOrders() is only supported for spot markets');
+            }
+            if (symbol === undefined) {
+                symbol = marketId;
+            } else {
+                if (symbol !== marketId) {
+                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            let marginMode = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+            const orderRequest = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const request = {
+            'batchOrders': ordersRequests,
+        };
+        const response = await this.spotPrivatePostBatchOrders (request);
+        //
+        // [
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612316",
+        //       "newClientOrderId": "hio8279hbdsds",
+        //       "orderListId": -1
+        //     },
+        //     {
+        //       "newClientOrderId": "123456",
+        //       "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //       "code": 30002
+        //     },
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "orderId": "1196315350023612318",
+        //       "orderListId": -1
+        //     }
+        // ]
+        //
+        return this.parseOrders (response);
+    }
+
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
         /**
          * @method
@@ -2224,7 +2343,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2346,7 +2465,7 @@ export default class mexc extends Exchange {
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2575,7 +2694,7 @@ export default class mexc extends Exchange {
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2663,7 +2782,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         return await this.fetchOrdersByState (3, symbol, since, limit, params);
     }
@@ -2677,7 +2796,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         return await this.fetchOrdersByState (4, symbol, since, limit, params);
     }
@@ -2692,7 +2811,7 @@ export default class mexc extends Exchange {
         }
         const [ marketType ] = this.handleMarketTypeAndParams ('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
-            throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
+            throw new NotSupported (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
             request['states'] = state;
             return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
@@ -2708,7 +2827,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -2813,7 +2932,7 @@ export default class mexc extends Exchange {
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
@@ -2848,7 +2967,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
@@ -2926,7 +3045,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // spot: createOrder
         //
@@ -3075,6 +3194,23 @@ export default class mexc extends Exchange {
         //         "updateTime": "1648984276000",
         //     }
         //
+        // createOrders error
+        //
+        //     {
+        //         "newClientOrderId": "123456",
+        //         "msg": "The minimum transaction volume cannot be less than:0.5USDT",
+        //         "code": 30002
+        //     }
+        //
+        const code = this.safeInteger (order, 'code');
+        if (code !== undefined) {
+            // error upon placing multiple orders
+            return this.safeOrder ({
+                'info': order,
+                'status': 'rejected',
+                'clientOrderId': this.safeString (order, 'newClientOrderId'),
+            });
+        }
         let id = undefined;
         if (typeof order === 'string') {
             id = order;
@@ -3228,7 +3364,7 @@ export default class mexc extends Exchange {
          * @name mexc3#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
         // TODO: is the below endpoints suitable for fetchAccounts?
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchAccounts', undefined, params);
@@ -3256,7 +3392,7 @@ export default class mexc extends Exchange {
          * @name mexc3#fetchTradingFees
          * @description fetch the trading fees for multiple markets
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.fetchAccountHelper ('spot', params);
@@ -3410,7 +3546,7 @@ export default class mexc extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.symbols] // required for margin, market id's separated by commas
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
@@ -3538,7 +3674,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -3629,7 +3765,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -3726,7 +3862,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
@@ -3739,7 +3875,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         * @returns {object} a [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
     }
@@ -3785,7 +3921,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -3851,7 +3987,7 @@ export default class mexc extends Exchange {
                 'amount': this.safeNumber (entry, 'funding'),
             });
         }
-        return result;
+        return result as FundingHistory[];
     }
 
     parseFundingRate (contract, market = undefined) {
@@ -3900,7 +4036,7 @@ export default class mexc extends Exchange {
          * @description fetch the current funding rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3936,7 +4072,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] not used by mexc, but filtered internally by ccxt
          * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
          * @param {object} [params] extra parameters specific to the mexc api endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -3993,7 +4129,7 @@ export default class mexc extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
     async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
@@ -4003,9 +4139,10 @@ export default class mexc extends Exchange {
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap', true, true);
         const response = await this.contractPublicGetDetail (params);
         //
         //     {
@@ -4119,7 +4256,7 @@ export default class mexc extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+         * @returns {object} a dictionary of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure} indexed by the network
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4161,7 +4298,7 @@ export default class mexc extends Exchange {
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.network] the blockchain network name
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4201,7 +4338,7 @@ export default class mexc extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
@@ -4232,7 +4369,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4293,7 +4430,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -4468,7 +4605,7 @@ export default class mexc extends Exchange {
          * @description fetch data on a single open contract trade position
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object} a [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4476,7 +4613,7 @@ export default class mexc extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.fetchPositions (undefined, this.extend (request, params));
-        return this.safeValue (response, 0);
+        return this.safeValue (response, 0) as Position;
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
@@ -4486,7 +4623,7 @@ export default class mexc extends Exchange {
          * @description fetch all open positions
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
          */
         await this.loadMarkets ();
         const response = await this.contractPrivateGetPositionOpenPositions (params);
@@ -4630,7 +4767,7 @@ export default class mexc extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of  transfers structures to retrieve
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
         await this.loadMarkets ();
@@ -4720,7 +4857,7 @@ export default class mexc extends Exchange {
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -4855,7 +4992,7 @@ export default class mexc extends Exchange {
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -4925,7 +5062,7 @@ export default class mexc extends Exchange {
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -4962,7 +5099,7 @@ export default class mexc extends Exchange {
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.borrowId] transaction id '762407666453712896'
-         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+         * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -5001,7 +5138,7 @@ export default class mexc extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|undefined} codes returns fees for all currencies if undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetCapitalConfigGetall (params);
@@ -5102,7 +5239,7 @@ export default class mexc extends Exchange {
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|undefined} codes returns fees for all currencies if undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
-         * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.spotPrivateGetCapitalConfigGetall (params);

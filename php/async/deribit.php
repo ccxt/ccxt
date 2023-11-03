@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -60,9 +61,12 @@ class deribit extends Exchange {
                 'fetchFundingRateHistory' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMyLiquidations' => true,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -84,6 +88,7 @@ class deribit extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
+                'fetchUnderlyingAssets' => false,
                 'fetchVolatilityHistory' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
@@ -501,7 +506,7 @@ class deribit extends Exchange {
             /**
              * the latest known information on the availability of the exchange API
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure status structure}
              */
             $response = Async\await($this->publicGetStatus ($params));
             //
@@ -534,7 +539,7 @@ class deribit extends Exchange {
             /**
              * fetch all the accounts associated with a profile
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
              */
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetGetSubaccounts ($params));
@@ -812,6 +817,7 @@ class deribit extends Exchange {
                                 'max' => null,
                             ),
                         ),
+                        'created' => $this->safe_integer($market, 'creation_timestamp'),
                         'info' => $market,
                     );
                 }
@@ -839,7 +845,7 @@ class deribit extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
             $code = $this->code_from_options('fetchBalance', $params);
@@ -901,7 +907,7 @@ class deribit extends Exchange {
              * create a $currency deposit $address
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -939,7 +945,7 @@ class deribit extends Exchange {
              * fetch the deposit $address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -1059,7 +1065,7 @@ class deribit extends Exchange {
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1106,7 +1112,7 @@ class deribit extends Exchange {
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1153,7 +1159,7 @@ class deribit extends Exchange {
                 $symbol = $ticker['symbol'];
                 $tickers[$symbol] = $ticker;
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -1315,7 +1321,7 @@ class deribit extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1328,7 +1334,7 @@ class deribit extends Exchange {
                 $request['start_timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['count'] = $limit; // default 10
+                $request['count'] = min ($limit, 1000); // default 10
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -1367,7 +1373,7 @@ class deribit extends Exchange {
             /**
              * fetch the trading $fees for multiple markets
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $code = $this->code_from_options('fetchTradingFees', $params);
@@ -1486,7 +1492,7 @@ class deribit extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1575,7 +1581,7 @@ class deribit extends Exchange {
         return $this->safe_string($orderTypes, $orderType, $orderType);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -1680,7 +1686,7 @@ class deribit extends Exchange {
              * fetches information on an order made by the user
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1729,9 +1735,9 @@ class deribit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade. For perpetual and futures the $amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
-             * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1925,7 +1931,7 @@ class deribit extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by deribit cancelOrder ()
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -1943,7 +1949,7 @@ class deribit extends Exchange {
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1968,7 +1974,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -1998,7 +2004,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $request = array();
@@ -2029,7 +2035,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2082,7 +2088,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             Async\await($this->load_markets());
             $request = array(
@@ -2161,7 +2167,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
@@ -2209,7 +2215,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
@@ -2401,7 +2407,7 @@ class deribit extends Exchange {
              * fetch data on a single open contract trade position
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2446,7 +2452,7 @@ class deribit extends Exchange {
              * fetch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
              */
             Async\await($this->load_markets());
             $code = null;
@@ -2512,7 +2518,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#public-get_historical_volatility
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=volatility-structure volatility history objects~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#volatility-structure volatility history objects}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2557,12 +2563,12 @@ class deribit extends Exchange {
         $result = array();
         for ($i = 0; $i < count($volatilityResult); $i++) {
             $timestamp = $this->safe_integer($volatilityResult[$i], 0);
-            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $volatilityObj = $this->safe_number($volatilityResult[$i], 1);
             $result[] = array(
-                'info' => $volatility,
+                'info' => $volatilityObj,
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
-                'volatility' => $volatility,
+                'volatility' => $volatilityObj,
             );
         }
         return $result;
@@ -2576,7 +2582,7 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structures}
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
@@ -2638,7 +2644,7 @@ class deribit extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2727,7 +2733,7 @@ class deribit extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
@@ -2782,7 +2788,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#public-get_currencies
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
-             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetGetCurrencies ($params));
@@ -2822,7 +2828,7 @@ class deribit extends Exchange {
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
              * @param {int} [$params->start_timestamp] fetch funding rate starting from this timestamp
              * @param {int} [$params->end_timestamp] fetch funding rate ending at this timestamp
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure funding rate structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2855,10 +2861,16 @@ class deribit extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the deribit api endpoint
              * @param {int} [$params->end_timestamp] fetch funding $rate ending at this timestamp
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-$rate-structure funding $rate structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 720));
+            }
             $time = $this->milliseconds();
             $month = 30 * 24 * 60 * 60 * 1000;
             if ($since === null) {
@@ -2937,6 +2949,171 @@ class deribit extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the public liquidations of a trading pair
+             * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the deribit api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $params, 'continuation', 'continuation', null));
+            }
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $market['type'] . ' markets');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+                'type' => 'bankruptcy',
+            );
+            if ($since !== null) {
+                $request['search_start_timestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            $response = Async\await($this->publicGetGetLastSettlementsByInstrument (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             "settlements" => array(
+            //                 array(
+            //                     "type" => "bankruptcy",
+            //                     "timestamp" => 1696579200041,
+            //                     "funded" => 10000.0,
+            //                     "session_bankrupcy" => 10000.0
+            //                     "session_profit_loss" => 112951.68715857354,
+            //                     "session_tax" => 0.15,
+            //                     "session_tax_rate" => 0.0015,
+            //                     "socialized" => 0.001,
+            //                 ),
+            //             ),
+            //             "continuation" => "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+            //         ),
+            //         "usIn" => 1696652052254890,
+            //         "usOut" => 1696652052255733,
+            //         "usDiff" => 843,
+            //         "testnet" => false
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $cursor = $this->safe_string($result, 'continuation');
+            $settlements = $this->safe_value($result, 'settlements', array());
+            $settlementsWithCursor = $this->add_pagination_cursor_to_result($cursor, $settlements);
+            return $this->parse_liquidations($settlementsWithCursor, $market, $since, $limit);
+        }) ();
+    }
+
+    public function add_pagination_cursor_to_result($cursor, $data) {
+        if ($cursor !== null) {
+            $dataLength = count($data);
+            if ($dataLength > 0) {
+                $first = $data[0];
+                $last = $data[$dataLength - 1];
+                $first['continuation'] = $cursor;
+                $last['continuation'] = $cursor;
+                $data[0] = $first;
+                $data[$dataLength - 1] = $last;
+            }
+        }
+        return $data;
+    }
+
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * retrieves the users liquidated positions
+             * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the deribit api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            $this->check_required_symbol('fetchMyLiquidations', $symbol);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+                'type' => 'bankruptcy',
+            );
+            if ($since !== null) {
+                $request['search_start_timestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            $response = Async\await($this->privateGetGetSettlementHistoryByInstrument (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             "settlements" => array(
+            //                 array(
+            //                     "type" => "bankruptcy",
+            //                     "timestamp" => 1696579200041,
+            //                     "funded" => 10000.0,
+            //                     "session_bankrupcy" => 10000.0
+            //                     "session_profit_loss" => 112951.68715857354,
+            //                     "session_tax" => 0.15,
+            //                     "session_tax_rate" => 0.0015,
+            //                     "socialized" => 0.001,
+            //                 ),
+            //             ),
+            //             "continuation" => "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+            //         ),
+            //         "usIn" => 1696652052254890,
+            //         "usOut" => 1696652052255733,
+            //         "usDiff" => 843,
+            //         "testnet" => false
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $settlements = $this->safe_value($result, 'settlements', array());
+            return $this->parse_liquidations($settlements, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        //     {
+        //         "type" => "bankruptcy",
+        //         "timestamp" => 1696579200041,
+        //         "funded" => 1,
+        //         "session_bankrupcy" => 0.001,
+        //         "session_profit_loss" => 0.001,
+        //         "session_tax" => 0.0015,
+        //         "session_tax_rate" => 0.0015,
+        //         "socialized" => 0.001,
+        //     }
+        //
+        $timestamp = $this->safe_integer($liquidation, 'timestamp');
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol(null, $market),
+            'contracts' => null,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'price' => null,
+            'baseValue' => $this->safe_number($liquidation, 'session_bankrupcy'),
+            'quoteValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
     }
 
     public function nonce() {

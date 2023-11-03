@@ -104,7 +104,7 @@ export default class zonda extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zonda.exchange',
+            'hostname': 'zondacrypto.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -116,7 +116,7 @@ export default class zonda extends Exchange {
                     'v1_01Private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
-                    'https://docs.zonda.exchange/',
+                    'https://docs.zondacrypto.exchange/',
                     'https://github.com/BitBayNet/API',
                 ],
                 'support': 'https://zondaglobal.com/en/helpdesk/zonda-exchange',
@@ -177,6 +177,8 @@ export default class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -285,6 +287,10 @@ export default class zonda extends Exchange {
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
                 'INVALID_STOP_RATE': InvalidOrder,
+                'TIMEOUT': ExchangeError,
+                'RESPONSE_TIMEOUT': ExchangeError,
+                'ACTION_BLOCKED': PermissionDenied,
+                'INVALID_HASH_SIGNATURE': AuthenticationError,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -295,7 +301,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchMarkets
-         * @see https://docs.zonda.exchange/reference/ticker-1
+         * @see https://docs.zondacrypto.exchange/reference/ticker-1
          * @description retrieves data on all markets for zonda
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
@@ -388,6 +394,7 @@ export default class zonda extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': item,
             });
         }
@@ -397,13 +404,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOpenOrders
-         * @see https://docs.zonda.exchange/reference/active-orders
+         * @see https://docs.zondacrypto.exchange/reference/active-orders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol not used by zonda fetchOpenOrders
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -465,13 +472,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchMyTrades
-         * @see https://docs.zonda.exchange/reference/transactions-history
+         * @see https://docs.zondacrypto.exchange/reference/transactions-history
          * @description fetch all trades made by the user
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         const request = {};
@@ -530,10 +537,10 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchBalance
-         * @see https://docs.zonda.exchange/reference/list-of-wallets
+         * @see https://docs.zondacrypto.exchange/reference/list-of-wallets
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const response = await this.v1_01PrivateGetBalancesBITBAYBalance(params);
@@ -543,12 +550,12 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOrderBook
-         * @see https://docs.zonda.exchange/reference/orderbook-2
+         * @see https://docs.zondacrypto.exchange/reference/orderbook-2
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -656,11 +663,11 @@ export default class zonda extends Exchange {
          * @method
          * @name zonda#fetchTicker
          * @description v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-         * @see https://docs.zonda.exchange/reference/market-statistics
+         * @see https://docs.zondacrypto.exchange/reference/market-statistics
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the zonda api endpoint
          * @param {string} [params.method] v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -729,11 +736,11 @@ export default class zonda extends Exchange {
          * @method
          * @name zonda#fetchTickersV2
          * @description v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-         * @see https://docs.zonda.exchange/reference/market-statistics
+         * @see https://docs.zondacrypto.exchange/reference/market-statistics
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the zonda api endpoint
          * @param {string} [params.method] v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const method = 'v1_01PublicGetTradingTicker';
@@ -802,13 +809,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchLedger
-         * @see https://docs.zonda.exchange/reference/operations-history
+         * @see https://docs.zondacrypto.exchange/reference/operations-history
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         const balanceCurrencies = [];
         if (code !== undefined) {
@@ -1176,7 +1183,7 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchOHLCV
-         * @see https://docs.zonda.exchange/reference/candles-chart
+         * @see https://docs.zondacrypto.exchange/reference/candles-chart
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1302,13 +1309,13 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchTrades
-         * @see https://docs.zonda.exchange/reference/last-transactions
+         * @see https://docs.zondacrypto.exchange/reference/last-transactions
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1335,9 +1342,9 @@ export default class zonda extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -1355,7 +1362,6 @@ export default class zonda extends Exchange {
         const isStopLimit = (type === 'stop-limit') || (isLimitOrder && isStopLossPrice);
         const isStopMarket = type === 'stop-market' || (isMarketOrder && isStopLossPrice);
         const isStopOrder = isStopLimit || isStopMarket;
-        const method = isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
         if (isLimitOrder || isStopLimit) {
             request['rate'] = this.priceToPrecision(symbol, price);
             request['mode'] = isStopLimit ? 'stop-limit' : 'limit';
@@ -1366,14 +1372,18 @@ export default class zonda extends Exchange {
         else {
             throw new ExchangeError(this.id + ' createOrder() invalid type');
         }
+        params = this.omit(params, ['stopPrice', 'stopLossPrice']);
+        let response = undefined;
         if (isStopOrder) {
             if (!isStopLossPrice) {
                 throw new ExchangeError(this.id + ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-market orders');
             }
             request['stopRate'] = this.priceToPrecision(symbol, stopLossPrice);
+            response = await this.v1_01PrivatePostTradingStopOfferSymbol(this.extend(request, params));
         }
-        params = this.omit(params, ['stopPrice', 'stopLossPrice']);
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1_01PrivatePostTradingOfferSymbol(this.extend(request, params));
+        }
         //
         // unfilled (open order)
         //
@@ -1457,12 +1467,12 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#cancelOrder
-         * @see https://docs.zonda.exchange/reference/cancel-order
+         * @see https://docs.zondacrypto.exchange/reference/cancel-order
          * @description cancels an open order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const side = this.safeString(params, 'side');
         if (side === undefined) {
@@ -1518,12 +1528,12 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchDepositAddress
-         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+         * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the zonda api endpoint
          * @param {string} [params.walletId] Wallet id to filter deposit adresses.
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1552,11 +1562,11 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#fetchDepositAddresses
-         * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+         * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
          * @description fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+         * @returns {object} a list of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
          */
         await this.loadMarkets();
         const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses(params);
@@ -1580,14 +1590,14 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#transfer
-         * @see https://docs.zonda.exchange/reference/internal-transfer
+         * @see https://docs.zondacrypto.exchange/reference/internal-transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -1692,38 +1702,36 @@ export default class zonda extends Exchange {
         /**
          * @method
          * @name zonda#withdraw
-         * @see https://docs.zonda.exchange/reference/crypto-withdrawal-1
+         * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();
-        let method = undefined;
+        let response = undefined;
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
-            'quantity': amount,
+            'amount': amount,
+            'address': address,
+            // request['balanceId'] = params['balanceId']; // Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
         };
         if (this.isFiat(code)) {
-            method = 'privatePostWithdraw';
-            // request['account'] = params['account']; // they demand an account number
-            // request['express'] = params['express']; // whatever it means, they don't explain
-            // request['bic'] = '';
+            // request['swift'] = params['swift']; // Bank identifier, if required.
+            response = await this.v1_01PrivatePostApiPaymentsWithdrawalsFiat(this.extend(request, params));
         }
         else {
-            method = 'privatePostTransfer';
             if (tag !== undefined) {
-                address += '?dt=' + tag.toString();
+                request['tag'] = tag;
             }
-            request['address'] = address;
+            response = await this.v1_01PrivatePostApiPaymentsWithdrawalsCrypto(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         //
         //     {
         //         "status": "Ok",

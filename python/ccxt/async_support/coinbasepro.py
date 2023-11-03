@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -125,6 +124,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': [
+                        'address-book',
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',
@@ -418,6 +418,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             }))
         return result
@@ -426,7 +427,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
         """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
@@ -488,7 +489,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetAccounts(params)
@@ -496,11 +497,12 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         # level 1 - only the best bid and ask
@@ -614,7 +616,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -650,14 +652,15 @@ class coinbasepro(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(first, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -762,16 +765,21 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        # 2018-08-23
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -779,17 +787,24 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        until = self.safe_value_2(params, 'until', 'end_date')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_date'] = self.iso8601(until)
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -799,13 +814,24 @@ class coinbasepro(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100
         response = await self.publicGetProductsIdTrades(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "trade_id": "15035219",
+        #            "side": "sell",
+        #            "size": "0.27426731",
+        #            "price": "25820.42000000",
+        #            "time": "2023-09-10T13:47:41.447577Z"
+        #        },
+        #    ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetFees(params)
@@ -831,7 +857,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591514160,
@@ -853,15 +879,22 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        if paginate:
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
         parsedTimeframe = self.safe_integer(self.timeframes, timeframe)
         request = {
@@ -871,6 +904,8 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['granularity'] = parsedTimeframe
         else:
             request['granularity'] = timeframe
+        until = self.safe_value_2(params, 'until', 'end')
+        params = self.omit(params, ['until'])
         if since is not None:
             request['start'] = self.iso8601(since)
             if limit is None:
@@ -878,11 +913,14 @@ class coinbasepro(Exchange, ImplicitAPI):
                 limit = 300  # max = 300
             else:
                 limit = min(300, limit)
-            parsedTimeframeMilliseconds = parsedTimeframe * 1000
-            if since % parsedTimeframeMilliseconds == 0:
-                request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
+            if until is None:
+                parsedTimeframeMilliseconds = parsedTimeframe * 1000
+                if since % parsedTimeframeMilliseconds == 0:
+                    request['end'] = self.iso8601(self.sum((limit - 1) * parsedTimeframeMilliseconds, since))
+                else:
+                    request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))
             else:
-                request['end'] = self.iso8601(self.sum(limit * parsedTimeframeMilliseconds, since))
+                request['end'] = self.iso8601(until)
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         #
         #     [
@@ -919,7 +957,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -994,10 +1032,11 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
         fetches information on an order made by the user
         :param str symbol: not used by coinbasepro fetchOrder
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1021,7 +1060,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -1035,12 +1074,14 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [params.until]: the latest time in ms to fetch open orders for
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'status': 'all',
@@ -1049,14 +1090,21 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [params.until]: the latest time in ms to fetch open orders for
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params, 100)
         request = {}
         market = None
         if symbol is not None:
@@ -1064,17 +1112,25 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['product_id'] = market['id']
         if limit is not None:
             request['limit'] = limit  # default 100
+        if since is not None:
+            request['start_date'] = self.iso8601(since)
+        until = self.safe_value_2(params, 'until', 'end_date')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_date'] = self.iso8601(until)
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [params.until]: the latest time in ms to fetch open orders for
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'status': 'done',
@@ -1083,14 +1139,15 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1165,11 +1222,12 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1192,10 +1250,11 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1215,7 +1274,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param float amount: The amount of currency to send in the deposit(e.g. `20`)
         :param str address: Not used by coinbasepro
         :param dict [params]: Parameters specific to the exchange API endpoint(e.g. `{"network": "TRX"}`)
-        :returns: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1251,7 +1310,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1358,12 +1417,14 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :returns dict: a `ledger structure <https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure>`
         """
         # https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if code is None:
@@ -1388,6 +1449,10 @@ class coinbasepro(Exchange, ImplicitAPI):
             request['start_date'] = self.iso8601(since)
         if limit is not None:
             request['limit'] = limit  # default 100
+        until = self.safe_value_2(params, 'until', 'end_date')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['end_date'] = self.iso8601(until)
         response = await self.privateGetAccountsIdLedger(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
@@ -1396,14 +1461,14 @@ class coinbasepro(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
         :param str [params.id]: account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
-        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a list of `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         await self.load_accounts()
@@ -1497,7 +1562,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'deposit'}, params))
 
@@ -1508,7 +1573,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'withdraw'}, params))
 
@@ -1606,7 +1671,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)

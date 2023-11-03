@@ -26,7 +26,7 @@ class ascendex extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => true,
+                'future' => false,
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
@@ -48,7 +48,7 @@ class ascendex extends Exchange {
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
@@ -217,6 +217,7 @@ class ascendex extends Exchange {
                                 'futures/position' => 1,
                                 'futures/free-margin' => 1,
                                 'futures/order/hist/current' => 1,
+                                'futures/funding-payments' => 1,
                                 'futures/order/open' => 1,
                                 'futures/order/status' => 1,
                             ),
@@ -261,7 +262,6 @@ class ascendex extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'cash',
                     'swap' => 'futures',
-                    'future' => 'futures',
                     'margin' => 'margin',
                 ),
                 'transfer' => array(
@@ -661,6 +661,7 @@ class ascendex extends Exchange {
                         'max' => $this->safe_number($market, 'maxNotional'),
                     ),
                 ),
+                'created' => $this->safe_integer($market, 'tradingStartTime'),
                 'info' => $market,
             );
         }
@@ -695,7 +696,7 @@ class ascendex extends Exchange {
         /**
          * fetch all the accounts associated with a profile
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
          */
         $accountGroup = $this->safe_string($this->options, 'account-group');
         $response = null;
@@ -795,7 +796,7 @@ class ascendex extends Exchange {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -881,7 +882,7 @@ class ascendex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -972,7 +973,7 @@ class ascendex extends Exchange {
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1007,7 +1008,7 @@ class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $request = array();
@@ -1051,7 +1052,7 @@ class ascendex extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "m":"bar",
@@ -1178,7 +1179,7 @@ class ascendex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1220,7 +1221,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -1406,7 +1407,7 @@ class ascendex extends Exchange {
         /**
          * fetch the trading $fees for multiple markets
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$fee-structure $fee structures} indexed by market symbols
          */
         $this->load_markets();
         $this->load_accounts();
@@ -1457,12 +1458,12 @@ class ascendex extends Exchange {
          * @param {string} $type "limit" or "market"
          * @param {string} $side "buy" or "sell"
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} $price *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
+         * @param {float} [$price] *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
          * @param {array} [$params] Extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
          * @param {float} [$params->stopPrice] The $price at which a trigger $order is triggered at
-         * @return ~@link https://docs.ccxt.com/#/?id=$order-structure An $order structure~
+         * @return {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure An $order structure}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -1610,7 +1611,7 @@ class ascendex extends Exchange {
          * fetches information on an order made by the user
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -1721,7 +1722,7 @@ class ascendex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -1843,7 +1844,7 @@ class ascendex extends Exchange {
          * @param {int} [$limit] the maximum number of  orde structures to retrieve
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -2000,7 +2001,7 @@ class ascendex extends Exchange {
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2115,7 +2116,7 @@ class ascendex extends Exchange {
          * cancel all open orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -2241,7 +2242,7 @@ class ascendex extends Exchange {
          * fetch the deposit $address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2313,7 +2314,7 @@ class ascendex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $request = array(
             'txType' => 'deposit',
@@ -2328,7 +2329,7 @@ class ascendex extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
         $request = array(
             'txType' => 'withdrawal',
@@ -2343,7 +2344,7 @@ class ascendex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
         $this->load_markets();
         $request = array(
@@ -2466,7 +2467,7 @@ class ascendex extends Exchange {
          * fetch all open positions
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$position-structure $position structure}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -2633,7 +2634,7 @@ class ascendex extends Exchange {
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2716,9 +2717,9 @@ class ascendex extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure margin structure}
          */
-        return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+        return $this->modify_margin_helper($symbol, -$amount, 'reduce', $params);
     }
 
     public function add_margin(string $symbol, $amount, $params = array ()) {
@@ -2727,7 +2728,7 @@ class ascendex extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure margin structure}
          */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
@@ -2735,22 +2736,21 @@ class ascendex extends Exchange {
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setLeverage', $symbol);
         if (($leverage < 1) || ($leverage > 100)) {
             throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
         }
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
-        if ($market['type'] !== 'future') {
-            throw new BadSymbol($this->id . ' setLeverage() supports futures contracts only');
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
@@ -2765,11 +2765,13 @@ class ascendex extends Exchange {
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
          * @return {array} response from the exchange
          */
+        $this->check_required_symbol('setMarginMode', $symbol);
         $marginMode = strtolower($marginMode);
         if ($marginMode === 'cross') {
             $marginMode = 'crossed';
@@ -2785,10 +2787,10 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
             'symbol' => $market['id'],
-            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
         );
-        if ($market['type'] !== 'future') {
-            throw new BadSymbol($this->id . ' setMarginMode() supports futures contracts only');
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
         return $this->v2PrivateAccountGroupPostFuturesMarginType (array_merge($request, $params));
     }
@@ -2798,7 +2800,7 @@ class ascendex extends Exchange {
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
          */
         $this->load_markets();
         $response = $this->v2PublicGetFuturesContract ($params);
@@ -2940,7 +2942,7 @@ class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
          */
         $this->load_markets();
         $response = $this->v2PublicGetAssets ($params);
@@ -2956,7 +2958,7 @@ class ascendex extends Exchange {
          * @param {string} $fromAccount $account to $transfer from
          * @param {string} $toAccount $account to $transfer to
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$transfer-structure $transfer structure}
          */
         $this->load_markets();
         $this->load_accounts();
@@ -2968,7 +2970,7 @@ class ascendex extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if ($fromId !== 'cash' && $toId !== 'cash') {
-            throw new ExchangeError($this->id . ' $transfer() only supports direct balance $transfer between spot and future, spot and margin');
+            throw new ExchangeError($this->id . ' $transfer() only supports direct balance $transfer between spot and swap, spot and margin');
         }
         $request = array(
             'account-group' => $accountGroup,
@@ -3018,6 +3020,83 @@ class ascendex extends Exchange {
             return 'ok';
         }
         return 'failed';
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this $account
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ascendex api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
+         */
+        $this->load_markets();
+        $this->load_accounts();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 25);
+        }
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $request = array(
+            'account-group' => $accountGroup,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->v2PrivateAccountGroupGetFuturesFundingPayments (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "data" => array(
+        //                 array(
+        //                     "timestamp" => 1640476800000,
+        //                     "symbol" => "BTC-PERP",
+        //                     "paymentInUSDT" => "-0.013991178",
+        //                     "fundingRate" => "0.000173497"
+        //                 ),
+        //             ),
+        //             "page" => 1,
+        //             "pageSize" => 3,
+        //             "hasNext" => true
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_value($data, 'data', array());
+        return $this->parse_incomes($rows, $market, $since, $limit);
+    }
+
+    public function parse_income($income, $market = null) {
+        //
+        //     {
+        //         "timestamp" => 1640476800000,
+        //         "symbol" => "BTC-PERP",
+        //         "paymentInUSDT" => "-0.013991178",
+        //         "fundingRate" => "0.000173497"
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $timestamp = $this->safe_integer($income, 'timestamp');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
+            'code' => 'USDT',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => null,
+            'amount' => $this->safe_number($income, 'paymentInUSDT'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
