@@ -704,7 +704,7 @@ class Transpiler {
     getTypescripSignaturetRemovalRegexes() {
         // currently they can't be mixin with the ones above
         return [
-            // [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
+            [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
             // remove param types
             // Currently supported: single name (object, number, mytype, etc)
             // optional params (string | number)
@@ -912,9 +912,14 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /: OrderSide/, /: List\[OrderRequest\]/, /: OrderType/, /: IndexType/, /: Order/ ]
-        const objects = [ 'OrderSide', 'OrderRequest', 'OrderType', 'IndexType', 'Order' ]
+        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /: Order\s/, /\[FundingHistory/ ]
+        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory' ]
         const matches = []
+        let match
+        const listRegex = /: List\[(\w+)\]/g
+        while (match = listRegex.exec (bodyAsString)) {
+            matches.push (match[1])
+        }
         for (let i = 0; i < matchAgainst.length; i++) {
             const regex = matchAgainst[i]
             if (bodyAsString.match (regex)) {
@@ -1499,7 +1504,9 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            if (className === 'Exchange') {
+                signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            }
 
             let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
@@ -1547,6 +1554,7 @@ class Transpiler {
                 'OrderSide': 'string',
                 'OHLCV': 'array',
                 'Order': 'array',
+                'FundingHistory[]': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1586,6 +1594,7 @@ class Transpiler {
                 'string[]': 'List[str]',
                 'OHLCV': 'List',
                 'Order': 'Order',
+                'FundingHistory[]': 'List[FundingHistory]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

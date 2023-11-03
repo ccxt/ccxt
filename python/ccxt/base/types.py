@@ -1,13 +1,13 @@
 import sys
 import types
-from typing import Union, List
+from typing import Union, List, Optional
 from decimal import Decimal
 
 if sys.version_info.minor > 7:
-    from typing import TypedDict, Literal, NotRequired
+    from typing import TypedDict, Literal
 else:
     TypedDict = dict
-    from typing_extensions import Literal, NotRequired
+    from typing_extensions import Literal
 
 
 OrderSide = Literal['buy', 'sell']
@@ -109,21 +109,31 @@ class Order(TypedDict):
     datetime: str
     timestamp: int
     lastTradeTimestamp: int
-    lastUpdateTimestamp: NotRequired[int]
+    lastUpdateTimestamp: Optional[int]
     status: str
     symbol: str
     type: str
     timeInForce: str
     side: OrderSide
     price: Numeric
-    average: NotRequired[Numeric]
+    average: Optional[Numeric]
     amount: Numeric
     filled: Numeric
     remaining: Numeric
-    stopPrice: NotRequired[Numeric]
-    takeProfitPrice: NotRequired[Numeric]
-    stopLossPrice: NotRequired[Numeric]
+    stopPrice: Optional[Numeric]
+    takeProfitPrice: Optional[Numeric]
+    stopLossPrice: Optional[Numeric]
     cost: Numeric
     trades: List[Trade]
     fee: TypedDict
     info: TypedDict
+
+
+class FundingHistory(TypedDict):
+    info: TypedDict
+    symbol: str
+    code: str
+    timestamp: Optional[int]
+    datetime: Optional[str]
+    id: str
+    amount: Numeric
