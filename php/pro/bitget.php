@@ -431,7 +431,7 @@ class bitget extends \ccxt\async\bitget {
         $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //      "1595779200000", // timestamp

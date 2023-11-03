@@ -684,7 +684,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "t" => 1626860340000,             // Message timestamp

@@ -314,7 +314,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         // spot
         //

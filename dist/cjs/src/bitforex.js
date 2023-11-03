@@ -23,7 +23,7 @@ class bitforex extends bitforex$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': false,
                 'future': false,
                 'option': false,
                 'cancelOrder': true,

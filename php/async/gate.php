@@ -2278,7 +2278,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_funding_histories($response, $symbol, $since, $limit) {
+    public function parse_funding_histories($response, $symbol, $since, $limit): array {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -2989,7 +2989,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // Spot $market candles
         //
@@ -4194,7 +4194,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder

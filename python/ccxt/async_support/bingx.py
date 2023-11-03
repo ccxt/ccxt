@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderSide
+from ccxt.base.types import Order, OrderSide
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -58,7 +58,9 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchLeverage': True,
+                'fetchLiquidations': False,
                 'fetchMarkets': True,
+                'fetchMyLiquidations': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
@@ -697,7 +699,7 @@ class bingx(Exchange, ImplicitAPI):
             ohlcvs = [ohlcvs]
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "open": "19394.4",
@@ -1690,7 +1692,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         return self.safe_string(sides, side, side)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         # createOrder, cancelOrder
@@ -2921,6 +2923,105 @@ class bingx(Exchange, ImplicitAPI):
                 arrStr += ']'
                 sortedParams[key] = arrStr
         return sortedParams
+
+    async def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the users liquidated positions
+        :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+        :param str [symbol]: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the bingx api endpoint
+        :param int [params.until]: timestamp in ms of the latest liquidation
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        await self.load_markets()
+        request = {
+            'autoCloseType': 'LIQUIDATION',
+        }
+        request, params = self.handle_until_option('endTime', request, params)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = symbol
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.swapV2PrivateGetTradeForceOrders(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "orders": [
+        #                 {
+        #                     "time": "int64",
+        #                     "symbol": "string",
+        #                     "side": "string",
+        #                      "type": "string",
+        #                     "positionSide": "string",
+        #                     "cumQuote": "string",
+        #                     "status": "string",
+        #                     "stopPrice": "string",
+        #                     "price": "string",
+        #                     "origQty": "string",
+        #                     "avgPrice": "string",
+        #                     "executedQty": "string",
+        #                     "orderId": "int64",
+        #                     "profit": "string",
+        #                     "commission": "string",
+        #                     "workingType": "string",
+        #                     "updateTime": "int64"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        liquidations = self.safe_value(data, 'orders', [])
+        return self.parse_liquidations(liquidations, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        #     {
+        #         "time": "int64",
+        #         "symbol": "string",
+        #         "side": "string",
+        #         "type": "string",
+        #         "positionSide": "string",
+        #         "cumQuote": "string",
+        #         "status": "string",
+        #         "stopPrice": "string",
+        #         "price": "string",
+        #         "origQty": "string",
+        #         "avgPrice": "string",
+        #         "executedQty": "string",
+        #         "orderId": "int64",
+        #         "profit": "string",
+        #         "commission": "string",
+        #         "workingType": "string",
+        #         "updateTime": "int64"
+        #     }
+        #
+        marketId = self.safe_string(liquidation, 'symbol')
+        timestamp = self.safe_integer(liquidation, 'time')
+        contractsString = self.safe_string(liquidation, 'executedQty')
+        contractSizeString = self.safe_string(market, 'contractSize')
+        priceString = self.safe_string(liquidation, 'avgPrice')
+        baseValueString = Precise.string_mul(contractsString, contractSizeString)
+        quoteValueString = Precise.string_mul(baseValueString, priceString)
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(marketId, market),
+            'contracts': self.parse_number(contractsString),
+            'contractSize': self.parse_number(contractSizeString),
+            'price': self.parse_number(priceString),
+            'baseValue': self.parse_number(baseValueString),
+            'quoteValue': self.parse_number(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         type = section[0]

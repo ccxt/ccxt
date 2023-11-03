@@ -289,7 +289,7 @@ class mexc(ccxt.async_support.mexc):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         # spot
         #

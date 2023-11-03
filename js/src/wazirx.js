@@ -25,7 +25,7 @@ export default class wazirx extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,

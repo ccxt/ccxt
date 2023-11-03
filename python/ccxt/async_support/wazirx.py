@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -35,7 +34,7 @@ class wazirx(Exchange, ImplicitAPI):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -310,7 +309,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    [1669014300,1402001,1402001,1402001,1402001,0],
         #
@@ -793,7 +792,7 @@ class wazirx(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         # {
         #     "id":1949417813,
         #     "symbol":"ltcusdt",

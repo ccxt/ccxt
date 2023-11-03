@@ -22,7 +22,7 @@ class wazirx extends wazirx$1 {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,

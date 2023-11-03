@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1061,7 +1060,7 @@ class phemex(Exchange, ImplicitAPI):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1592467200,  # timestamp
@@ -2223,7 +2222,7 @@ class phemex(Exchange, ImplicitAPI):
             'trades': None,
         })
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         isSwap = self.safe_value(market, 'swap', False)
         hasPnl = ('closedPnl' in order)
         if isSwap or hasPnl:

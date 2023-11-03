@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.36'
+__version__ = '4.1.37'
 
 # -----------------------------------------------------------------------------
 
@@ -1681,7 +1681,7 @@ class Exchange(BaseExchange):
                 result.append(objects[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         if isinstance(ohlcv, list):
             return [
                 self.safe_integer(ohlcv, 0),  # timestamp

@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.36';
+$version = '4.1.37';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.36';
+    const VERSION = '4.1.37';
 
     public $browser;
     public $marketsLoading = null;
@@ -1747,7 +1747,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp

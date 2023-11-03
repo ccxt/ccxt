@@ -961,7 +961,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //     1482311500, // timestamp
@@ -1378,7 +1378,7 @@ class lbank2 extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrderSupplement (private)
         //

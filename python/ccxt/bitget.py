@@ -7,9 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType, FundingHistory
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2539,7 +2537,7 @@ class bitget(Exchange, ImplicitAPI):
             'taker': self.safe_number(data, 'takerFeeRate'),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         # spot
         #
@@ -2888,7 +2886,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #     {
@@ -5086,7 +5084,7 @@ class bitget(Exchange, ImplicitAPI):
             'id': id,
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Optional[int] = None, limit: Optional[int] = None):
+    def parse_funding_histories(self, contracts, market=None, since: Optional[int] = None, limit: Optional[int] = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
