@@ -4,9 +4,10 @@ from typing import Union, List, Optional
 from decimal import Decimal
 
 if sys.version_info.minor > 7:
-    from typing import TypedDict, Literal
+    from typing import TypedDict, Literal, Dict
 else:
     TypedDict = dict
+    Dict = dict
     from typing_extensions import Literal
 
 
@@ -47,6 +48,11 @@ class Balance(TypedDict):
     used: Numeric
     total: Numeric
 
+class Fee(TypedDict):
+    type: Optional[str]
+    currency: Optional[str]
+    rate: Optional[Numeric]
+    cost: Numeric
 
 class Trade(TypedDict):
     amount: Numeric
@@ -61,7 +67,7 @@ class Trade(TypedDict):
     symbol: str
     takerOrMaker: str
     cost: Numeric
-    fee: TypedDict
+    fee: Fee
 
 
 class Position(TypedDict):
@@ -91,7 +97,7 @@ class Position(TypedDict):
     percentage: Numeric
     stopLossPrice: Numeric
     takeProfitPrice: Numeric
-    info: TypedDict
+    info: Dict[str, any]
 
 
 class OrderRequest(TypedDict):
@@ -100,7 +106,7 @@ class OrderRequest(TypedDict):
     side: str
     amount: Union[None, float]
     price: Union[None, float]
-    params: TypedDict
+    params: Dict[str, any]
 
 
 class Order(TypedDict):
@@ -125,12 +131,12 @@ class Order(TypedDict):
     stopLossPrice: Optional[Numeric]
     cost: Numeric
     trades: List[Trade]
-    fee: TypedDict
-    info: TypedDict
+    fee: Fee
+    info: Dict[str, any]
 
 
 class FundingHistory(TypedDict):
-    info: TypedDict
+    info: Dict[str, any]
     symbol: str
     code: str
     timestamp: Optional[int]
@@ -139,7 +145,8 @@ class FundingHistory(TypedDict):
     amount: Numeric
 
 
-class Balances(TypedDict[Balance]):
-    info: TypedDict
-    timestamp: Optional[int]
+
+class Balances(Dict[str, Balance]):
     datetime: Optional[str]
+    timestamp: Optional[int]
+
