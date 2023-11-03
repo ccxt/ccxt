@@ -851,7 +851,42 @@ export default class bitget extends bitgetRest {
         //        ]
         //    }
         //
+        //    {
+        //        action: 'snapshot',
+        //        arg: { instType: 'umcbl', channel: 'ordersAlgo', instId: 'default' },
+        //        data: [
+        //          {
+        //            actualPx: '55.000000000',
+        //            actualSz: '0.000000000',
+        //            cOid: '1104372235724890112',
+        //            cTime: '1699028779917',
+        //            eps: 'web',
+        //            hM: 'double_hold',
+        //            id: '1104372235724890113',
+        //            instId: 'BTCUSDT_UMCBL',
+        //            key: '1104372235724890113',
+        //            ordPx: '55.000000000',
+        //            ordType: 'limit',
+        //            planType: 'pl',
+        //            posSide: 'long',
+        //            side: 'buy',
+        //            state: 'not_trigger',
+        //            sz: '3.557000000',
+        //            tS: 'open_long',
+        //            tgtCcy: 'USDT',
+        //            triggerPx: '55.000000000',
+        //            triggerPxType: 'last',
+        //            triggerTime: '1699028779917',
+        //            uTime: '1699028779917',
+        //            userId: '3704614084',
+        //            version: 1104372235586478100
+        //          }
+        //        ],
+        //        ts: 1699028780327
+        //    }
+        //
         const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
         const instType = this.safeString (arg, 'instType');
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const isContractUpdate = (!sandboxMode) ? (instType === 'umcbl') : (instType === 'sumcbl');
@@ -859,8 +894,9 @@ export default class bitget extends bitgetRest {
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
+            this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
-        const stored = this.orders;
+        const stored = (channel === 'ordersAlgo') ? this.triggerOrders : this.orders;
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
