@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingHistory, FundingRateHistory, Int, OHLCV, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -2312,7 +2312,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         const isSwap = this.safeValue (market, 'swap', false);
         const hasPnl = ('closedPnl' in order);
         if (isSwap || hasPnl) {

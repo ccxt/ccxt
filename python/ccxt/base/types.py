@@ -1,12 +1,13 @@
 import sys
 import types
-from typing import Union
+from typing import Union, List
+from decimal import Decimal
 
 if sys.version_info.minor > 7:
-    from typing import TypedDict, Literal
+    from typing import TypedDict, Literal, NotRequired
 else:
     TypedDict = dict
-    from typing_extensions import Literal
+    from typing_extensions import Literal, NotRequired
 
 
 OrderSide = Literal['buy', 'sell']
@@ -44,7 +45,7 @@ class Balance(TypedDict):
 
 
 IndexType = Union[str, int]
-Numeric = Union[None, str, float, int]
+Numeric = Union[None, str, float, int, Decimal]
 
 
 class Trade(TypedDict):
@@ -100,3 +101,29 @@ class OrderRequest(TypedDict):
     amount: Union[None, float]
     price: Union[None, float]
     params: TypedDict
+
+
+class Order(TypedDict):
+    id: str
+    clientOrderId: str
+    datetime: str
+    timestamp: int
+    lastTradeTimestamp: int
+    lastUpdateTimestamp: NotRequired[int]
+    status: str
+    symbol: str
+    type: str
+    timeInForce: str
+    side: OrderSide
+    price: Numeric
+    average: NotRequired[Numeric]
+    amount: Numeric
+    filled: Numeric
+    remaining: Numeric
+    stopPrice: NotRequired[Numeric]
+    takeProfitPrice: NotRequired[Numeric]
+    stopLossPrice: NotRequired[Numeric]
+    cost: Numeric
+    trades: List[Trade]
+    fee: TypedDict
+    info: TypedDict

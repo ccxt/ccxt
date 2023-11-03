@@ -820,7 +820,7 @@ export default class oceanex extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "created_at": "2019-01-18T00:38:18Z",

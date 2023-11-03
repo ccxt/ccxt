@@ -549,7 +549,7 @@ export default class lbank extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "symbol"："eth_btc",

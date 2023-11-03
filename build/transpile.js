@@ -704,7 +704,7 @@ class Transpiler {
     getTypescripSignaturetRemovalRegexes() {
         // currently they can't be mixin with the ones above
         return [
-            [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
+            // [ /(\s*(?:async\s)?\w+\s\([^)]+\)):[^{]+({)/, "$1 $2" ], // remove return type
             // remove param types
             // Currently supported: single name (object, number, mytype, etc)
             // optional params (string | number)
@@ -912,17 +912,17 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        if (bodyAsString.match (/: OrderSide/)) {
-            libraries.push ('from ccxt.base.types import OrderSide')
+        const matchAgainst = [ /: OrderSide/, /: List\[OrderRequest\]/, /: OrderType/, /: IndexType/, /: Order/ ]
+        const objects = [ 'OrderSide', 'OrderRequest', 'OrderType', 'IndexType', 'Order' ]
+        const matches = []
+        for (let i = 0; i < matchAgainst.length; i++) {
+            const regex = matchAgainst[i]
+            if (bodyAsString.match (regex)) {
+                matches.push (objects[i])
+            }
         }
-        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
-            libraries.push ('from ccxt.base.types import OrderRequest')
-        }
-        if (bodyAsString.match (/: OrderType/)) {
-            libraries.push ('from ccxt.base.types import OrderType')
-        }
-        if (bodyAsString.match (/: IndexType/)) {
-            libraries.push ('from ccxt.base.types import IndexType')
+        if (matches.length) {
+            libraries.push ('from ccxt.base.types import ' + matches.join (', '))
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -1546,6 +1546,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
                 'OHLCV': 'array',
+                'Order': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1583,7 +1584,8 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
-                'OHLCV': 'List[int]'
+                'OHLCV': 'List',
+                'Order': 'Order',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

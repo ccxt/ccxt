@@ -846,7 +846,7 @@ export default class cex extends Exchange {
         return this.extend (this.parseOrder ({}), { 'info': response, 'type': undefined, 'id': id, 'status': 'canceled' });
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         let timestamp = this.safeValue (order, 'time');

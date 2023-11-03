@@ -1659,7 +1659,7 @@ export default class bitmex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
