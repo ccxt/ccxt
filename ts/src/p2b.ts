@@ -4,7 +4,7 @@
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ export default class p2b extends Exchange {
             'urls': {
                 'extension': '.json',
                 'referral': '',  // TODO
-                'logo': 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
+                'logo': 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
                 'api': {
                     'public': ' https://api.p2pb2b.com/api/v2/public',
                     'private': ' https://api.p2pb2b.com/api/v2',
@@ -67,7 +67,7 @@ export default class p2b extends Exchange {
                         'account/order_history',
                         'account/executed_history',
                     ],
-                }
+                },
             },
             'fees': {
                 'trading': {
@@ -115,7 +115,7 @@ export default class p2b extends Exchange {
                 '1008': AuthenticationError,    // Invalid request in body. The passed request parameter does not match the URL of this request.
                 '1009': AuthenticationError,    // Invalid payload. The transmitted payload value (X-TXC-PAYLOAD header) does not match the request body.
                 '1010': AuthenticationError,    // This action is unauthorized. - API key passed in the X-TXC-APIKEY header does not exist. - Access to API is not activated. Go to profile and activate access.
-                '1011': AuthenticationError,    // This action is unauthorized. Please, enable two-factor authentication. 	Two-factor authentication is not activated for the user.
+                '1011': AuthenticationError,    // This action is unauthorized. Please, enable two-factor authentication. Two-factor authentication is not activated for the user.
                 '1012': AuthenticationError,    // Invalid nonce. Parameter "nonce" is not a number.
                 '1013': AuthenticationError,    // Too many requests. - A request came with a repeated value of nonce. - Received more than the limited value of requests (10) within one second.
                 '1014': AuthenticationError,    // Unauthorized request. Signature value passed (in the X-TXC-SIGNATURE header) does not match the request body.
@@ -152,6 +152,112 @@ export default class p2b extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchMarkets
+         * @description retrieves data on all markets for bigone
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetMarkets (params);
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": [
+        //            {
+        //                "name": "ETH_BTC",
+        //                "stock": "ETH",
+        //                "money": "BTC",
+        //                "precision": {
+        //                    "money": "6",
+        //                    "stock": "4",
+        //                    "fee": "4"
+        //                },
+        //                "limits": {
+        //                    "min_amount": "0.001",
+        //                    "max_amount": "100000",
+        //                    "step_size": "0.0001",
+        //                    "min_price": "0.00001",
+        //                    "max_price": "922327",
+        //                    "tick_size": "0.00001",
+        //                    "min_total": "0.0001"
+        //                }
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const markets = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const marketId = this.safeString (market, 'name');
+            const baseId = this.safeValue (market, 'stock');
+            const quoteId = this.safeValue (market, 'money');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const precision = this.safeValue (market, 'precision');
+            const limits = this.safeValue (market, 'limits');
+            const entry = this.safeMarketStructure ({
+                'id': marketId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeString (limits, 'step_size'),
+                    'price': this.safeString (limits, 'tick_size'),
+                    'base': this.parsePrecision (this.safeString (precision, 'stock')),
+                    'quote': this.parsePrecision (this.safeString (precision, 'money')),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeString (limits, 'min_amount'),
+                        'max': this.safeString (limits, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeString (limits, 'min_price'),
+                        'max': this.safeString (limits, 'max_price'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'created': undefined,
+                'info': market,
+            });
+            result.push (entry);
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -164,7 +270,7 @@ export default class p2b extends Exchange {
             const nonce = this.nonce ();
             params['nonce'] = nonce;
             params['request'] = '/api/v2/' + path;
-            const payload = this.encode (params);  // Body json encoded in base64
+            const payload = this.encode (this.json (params));  // Body json encoded in base64
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
