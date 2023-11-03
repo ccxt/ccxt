@@ -21,12 +21,10 @@ process.on ('unhandledRejection', (e: any) => {
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
 const RateLimitExceeded = ccxt.RateLimitExceeded;
-const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const NetworkError = ccxt.NetworkError;
 const DDoSProtection = ccxt.DDoSProtection;
 const OnMaintenance = ccxt.OnMaintenance;
 const RequestTimeout = ccxt.RequestTimeout;
-const ExchangeError = ccxt.ExchangeError;
 const NotSupported = ccxt.NotSupported;
 
 // non-transpiled part, but shared names among langs
