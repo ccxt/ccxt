@@ -354,5 +354,4 @@ export default {
     checkPrecisionAccuracy,
     assertValidCurrencyIdAndCode,
     assertType,
-    isInteger,
 };
