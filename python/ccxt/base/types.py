@@ -146,7 +146,7 @@ class FundingHistory(TypedDict):
 
 
 
-class Balances(Dict[str,Balance]):
+class Balances(Dict[str, Balance]):
     datetime: Optional[str]
     timestamp: Optional[int]
 
