@@ -912,13 +912,16 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /: Order\s/, /\[FundingHistory/ ]
-        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory' ]
+        const matchAgainst = [ /: Order/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/ ]
+        const objects = [ 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory' ]
         const matches = []
         let match
         const listRegex = /: List\[(\w+)\]/g
+        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
         while (match = listRegex.exec (bodyAsString)) {
-            matches.push (match[1])
+            if (!pythonBuiltIns.includes (match[1])) {
+                matches.push (match[1])
+            }
         }
         for (let i = 0; i < matchAgainst.length; i++) {
             const regex = matchAgainst[i]
