@@ -754,6 +754,9 @@ class bitget extends bitget$1 {
         /**
          * @method
          * @name bitget#watchOrders
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#order-channel
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#order-channel
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#plan-order-channel
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -764,7 +767,9 @@ class bitget extends bitget$1 {
         await this.loadMarkets();
         let market = undefined;
         let marketId = undefined;
-        let messageHash = 'order';
+        const isStop = this.safeValue(params, 'stop', false);
+        params = this.omit(params, 'stop');
+        let messageHash = (isStop) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -772,8 +777,6 @@ class bitget extends bitget$1 {
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
-        const isStop = this.safeValue(params, 'stop', false);
-        params = this.omit(params, 'stop');
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params);
         if ((type === 'spot') && (symbol === undefined)) {
@@ -795,6 +798,9 @@ class bitget extends bitget$1 {
             else {
                 instType = 'SUMCBL';
             }
+        }
+        if (isStop) {
+            subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         const channel = isStop ? 'ordersAlgo' : 'orders';
@@ -837,7 +843,42 @@ class bitget extends bitget$1 {
         //        ]
         //    }
         //
+        //    {
+        //        action: 'snapshot',
+        //        arg: { instType: 'umcbl', channel: 'ordersAlgo', instId: 'default' },
+        //        data: [
+        //          {
+        //            actualPx: '55.000000000',
+        //            actualSz: '0.000000000',
+        //            cOid: '1104372235724890112',
+        //            cTime: '1699028779917',
+        //            eps: 'web',
+        //            hM: 'double_hold',
+        //            id: '1104372235724890113',
+        //            instId: 'BTCUSDT_UMCBL',
+        //            key: '1104372235724890113',
+        //            ordPx: '55.000000000',
+        //            ordType: 'limit',
+        //            planType: 'pl',
+        //            posSide: 'long',
+        //            side: 'buy',
+        //            state: 'not_trigger',
+        //            sz: '3.557000000',
+        //            tS: 'open_long',
+        //            tgtCcy: 'USDT',
+        //            triggerPx: '55.000000000',
+        //            triggerPxType: 'last',
+        //            triggerTime: '1699028779917',
+        //            uTime: '1699028779917',
+        //            userId: '3704614084',
+        //            version: 1104372235586478100
+        //          }
+        //        ],
+        //        ts: 1699028780327
+        //    }
+        //
         const arg = this.safeValue(message, 'arg', {});
+        const channel = this.safeString(arg, 'channel');
         const instType = this.safeString(arg, 'instType');
         const sandboxMode = this.safeValue(this.options, 'sandboxMode', false);
         const isContractUpdate = (!sandboxMode) ? (instType === 'umcbl') : (instType === 'sumcbl');
@@ -845,8 +886,10 @@ class bitget extends bitget$1 {
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
+            this.triggerOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const stored = this.orders;
+        const stored = (channel === 'ordersAlgo') ? this.triggerOrders : this.orders;
+        const messageHash = (channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -863,10 +906,10 @@ class bitget extends bitget$1 {
         const keys = Object.keys(marketSymbols);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const messageHash = 'order:' + symbol;
-            client.resolve(stored, messageHash);
+            const innerMessageHash = messageHash + ':' + symbol;
+            client.resolve(stored, innerMessageHash);
         }
-        client.resolve(stored, 'order');
+        client.resolve(stored, messageHash);
     }
     parseWsOrder(order, market = undefined) {
         //
