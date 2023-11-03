@@ -908,15 +908,14 @@ class Transpiler {
                 }
             }
         }
-
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /: Order\s/, /\[FundingHistory/ ]
-        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory' ]
+        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /-> Order/, /\[FundingHistory/, /\[OrderRequest/ ]
+        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory', 'OrderRequest' ]
         const matches = []
         let match
-        const listRegex = /: List\[(\w+)\]/g
+        const listRegex = new RegExp (': List\[(' + objects.join ('|') + ')\]', 'g')
         while (match = listRegex.exec (bodyAsString)) {
             matches.push (match[1])
         }
@@ -1555,6 +1554,7 @@ class Transpiler {
                 'OHLCV': 'array',
                 'Order': 'array',
                 'FundingHistory[]': 'array',
+                'OrderRequest[]': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1595,6 +1595,7 @@ class Transpiler {
                 'OHLCV': 'List',
                 'Order': 'Order',
                 'FundingHistory[]': 'List[FundingHistory]',
+                'OrderRequest[]': 'List[OrderRequest]'
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

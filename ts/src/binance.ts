@@ -1638,7 +1638,7 @@ export default class binance extends Exchange {
         return reconstructedDate;
     }
 
-    createExpiredOptionMarket (symbol): Market {
+    createExpiredOptionMarket (symbol) {
         // support expired option contracts
         const settle = 'USDT';
         const optionParts = symbol.split ('-');
@@ -1701,7 +1701,7 @@ export default class binance extends Exchange {
         };
     }
 
-    market (symbol): Market {
+    market (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
@@ -2421,7 +2421,7 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalance (response, type = undefined, marginMode = undefined): Balances {
+    parseBalance (response, type = undefined, marginMode = undefined) {
         const result = {
             'info': response,
         };
