@@ -29,6 +29,22 @@
               55
             ],
             "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"55\",\"timeInForceValue\":\"normal\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"side\":\"open_long\"}"
+          },
+          {
+            "description": "Swap limit buy with trigger price",
+            "method": "createOrder",
+            "url": "https://api.bitget.com/api/mix/v1/plan/placePlan",
+            "input": [
+              "LTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.1,
+              55,
+              {
+                "triggerPrice": 56
+              }
+            ],
+            "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"orderType\":\"limit\",\"timeInForceValue\":\"normal\",\"marginCoin\":\"USDT\",\"triggerType\":\"market_price\",\"size\":\"0.1\",\"side\":\"open_long\",\"triggerPrice\":56,\"executePrice\":\"55\"}"
           }
         ]
     }
