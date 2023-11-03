@@ -769,6 +769,9 @@ export default class bitget extends bitgetRest {
         /**
          * @method
          * @name bitget#watchOrders
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#order-channel
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#order-channel
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#plan-order-channel
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -808,6 +811,9 @@ export default class bitget extends bitgetRest {
             } else {
                 instType = 'SUMCBL';
             }
+        }
+        if (isStop) {
+            subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
         }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         const channel = isStop ? 'ordersAlgo' : 'orders';
