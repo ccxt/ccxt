@@ -59,6 +59,7 @@ build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run test-base
+    npm run static-tests
     npm run test-base-ws
     run_tests
   fi
@@ -137,8 +138,11 @@ done
 # faster version of post-transpile
 npm run check-php-syntax
 
-echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
-ruff ${PYTHON_FILES[*]}
+# only run the python linter if exchange related files are changed
+if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
+  echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
+  ruff ${PYTHON_FILES[*]}
+fi
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
@@ -149,6 +153,9 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   echo "$msgPrefix no exchanges to test, exiting"
   exit
 fi
+
+# run static tests:
+npm run static-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"

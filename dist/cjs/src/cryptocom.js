@@ -32,6 +32,7 @@ class cryptocom extends cryptocom$1 {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -1425,6 +1426,37 @@ class cryptocom extends cryptocom$1 {
         //
         const result = this.safeValue(response, 'result', {});
         return this.parseOrder(result, market);
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelOrders
+         * @description cancel multiple orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        this.checkRequiredSymbol('cancelOrders', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const orderRequests = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const order = {
+                'instrument_name': market['id'],
+                'order_id': id.toString(),
+            };
+            orderRequests.push(order);
+        }
+        const request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrderList(this.extend(request, params));
+        const result = this.safeValue(response, 'result', []);
+        return this.parseOrders(result, market, undefined, undefined, params);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitforex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -34,7 +33,7 @@ class bitforex(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
+                'swap': False,  # bitforex has swap contracts, but no swap api
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
@@ -497,7 +496,7 @@ class bitforex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "close":0.02505143,
@@ -591,7 +590,7 @@ class bitforex(Exchange, ImplicitAPI):
         else:
             return None
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_number(order, 'createTime')
         lastTradeTimestamp = self.safe_number(order, 'lastTime')
@@ -638,7 +637,7 @@ class bitforex(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-         * @see
+        :see: https://apidoc.bitforex.com/#order-information-user_data
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitforex api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`

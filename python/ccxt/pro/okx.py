@@ -6,8 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderSide, OrderType
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
@@ -798,7 +797,7 @@ class okx(ccxt.async_support.okx):
         request = {
             'instType': uppercaseType,
         }
-        orders = await self.subscribe('private', messageHash, channel, symbol, self.extend(request, params))
+        orders = await self.subscribe('private', messageHash, channel, None, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)

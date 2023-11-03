@@ -833,7 +833,7 @@ class kraken extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1591475640,
@@ -1218,8 +1218,10 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account();
-            $account['total'] = $this->safe_string($balances, $currencyId);
+            $account['used'] = $this->safe_string($balance, 'hold_trade');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1228,19 +1230,24 @@ class kraken extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getAccountBalance
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
-        $response = $this->privatePostBalance ($params);
+        $response = $this->privatePostBalanceEx ($params);
         //
         //     {
-        //         "error":array(),
-        //         "result":{
-        //             "ZUSD":"58.8649",
-        //             "KFEE":"4399.43",
-        //             "XXBT":"0.0000034506",
+        //         "error" => array(),
+        //         "result" => {
+        //             "ZUSD" => array(
+        //                 "balance" => 25435.21,
+        //                 "hold_trade" => 8249.76
+        //             ),
+        //             "XXBT" => {
+        //                 "balance" => 1.2435,
+        //                 "hold_trade" => 0.8423
+        //             }
         //         }
         //     }
         //
@@ -1341,7 +1348,7 @@ class kraken extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder for regular orders
         //

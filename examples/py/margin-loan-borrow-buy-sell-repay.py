@@ -53,7 +53,7 @@ async def example():
             balance_spot = await exchange.fetch_balance({
                 'type': 'spot',
             })
-            if balance_spot[collateral_coin]['free'] < needed_collateral_amount:
+            if exchange.parse_number(balance_spot[collateral_coin]['free']) < needed_collateral_amount:
                 print('hmm, I neither do have enough balance on spot - only ', balance_spot[collateral_coin]['free'], '. Script can not continue...')
                 return
             else:

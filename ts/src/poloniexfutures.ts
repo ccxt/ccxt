@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1187,7 +1187,7 @@ export default class poloniexfutures extends Exchange {
                 'positionCost': this.safeNumber (listItem, 'positionCost'),
             });
         }
-        return fees;
+        return fees as FundingHistory[];
     }
 
     async cancelAllOrders (symbol: string = undefined, params = {}) {
@@ -1470,7 +1470,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //

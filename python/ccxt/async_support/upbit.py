@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -895,7 +894,7 @@ class upbit(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         market: "BTC-ETH",
@@ -942,15 +941,16 @@ class upbit(Exchange, ImplicitAPI):
             'timeframe': timeframeValue,
             'count': limit,
         }
-        method = 'publicGetCandlesTimeframe'
-        if timeframeValue == 'minutes':
-            numMinutes = int(round(timeframePeriod / 60))
-            request['unit'] = numMinutes
-            method += 'Unit'
+        response = None
         if since is not None:
             # convert `since` to `to` value
             request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
-        response = await getattr(self, method)(self.extend(request, params))
+        if timeframeValue == 'minutes':
+            numMinutes = int(round(timeframePeriod / 60))
+            request['unit'] = numMinutes
+            response = await self.publicGetCandlesTimeframeUnit(self.extend(request, params))
+        else:
+            response = await self.publicGetCandlesTimeframe(self.extend(request, params))
         #
         #     [
         #         {
@@ -1260,7 +1260,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",

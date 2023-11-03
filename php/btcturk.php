@@ -520,7 +520,7 @@ class btcturk extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        'timestamp' => 1661990400,
@@ -766,7 +766,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrders / fetchOpenOrders
         //     {

@@ -486,7 +486,7 @@ class bybit extends \ccxt\async\bybit {
         $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "start" => 1670363160000,

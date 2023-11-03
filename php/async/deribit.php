@@ -1581,7 +1581,7 @@ class deribit extends Exchange {
         return $this->safe_string($orderTypes, $orderType, $orderType);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -3103,7 +3103,7 @@ class deribit extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol(null, $market),
             'contracts' => null,
@@ -3113,7 +3113,7 @@ class deribit extends Exchange {
             'quoteValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function nonce() {

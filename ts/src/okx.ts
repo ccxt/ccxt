@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2035,7 +2035,7 @@ export default class okx extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         "1678928760000", // timestamp
@@ -3082,6 +3082,7 @@ export default class okx extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'canceled': 'canceled',
+            'order_failed': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -3090,7 +3091,7 @@ export default class okx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -5765,7 +5766,7 @@ export default class okx extends Exchange {
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingHistory[];
     }
 
     async setLeverage (leverage, symbol: string = undefined, params = {}) {

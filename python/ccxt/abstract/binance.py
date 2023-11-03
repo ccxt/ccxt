@@ -446,6 +446,7 @@ class ImplicitAPI:
     fapidata_get_toplongshortpositionratio = fapiDataGetTopLongShortPositionRatio = Entry('topLongShortPositionRatio', 'fapiData', 'GET', {'cost': 1})
     fapidata_get_globallongshortaccountratio = fapiDataGetGlobalLongShortAccountRatio = Entry('globalLongShortAccountRatio', 'fapiData', 'GET', {'cost': 1})
     fapidata_get_takerlongshortratio = fapiDataGetTakerlongshortRatio = Entry('takerlongshortRatio', 'fapiData', 'GET', {'cost': 1})
+    fapidata_get_basis = fapiDataGetBasis = Entry('basis', 'fapiData', 'GET', {'cost': 1})
     fapiprivate_get_forceorders = fapiPrivateGetForceOrders = Entry('forceOrders', 'fapiPrivate', 'GET', {'cost': 20, 'noSymbol': 50})
     fapiprivate_get_allorders = fapiPrivateGetAllOrders = Entry('allOrders', 'fapiPrivate', 'GET', {'cost': 5})
     fapiprivate_get_openorder = fapiPrivateGetOpenOrder = Entry('openOrder', 'fapiPrivate', 'GET', {'cost': 1})

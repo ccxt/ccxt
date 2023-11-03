@@ -3,7 +3,7 @@
 import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -458,7 +458,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
         //        "E":1631683058904,      Event time

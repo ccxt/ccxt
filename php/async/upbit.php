@@ -941,7 +941,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         $market => "BTC-ETH",
@@ -991,17 +991,18 @@ class upbit extends Exchange {
                 'timeframe' => $timeframeValue,
                 'count' => $limit,
             );
-            $method = 'publicGetCandlesTimeframe';
-            if ($timeframeValue === 'minutes') {
-                $numMinutes = (int) round($timeframePeriod / 60);
-                $request['unit'] = $numMinutes;
-                $method .= 'Unit';
-            }
+            $response = null;
             if ($since !== null) {
                 // convert `$since` to `to` value
                 $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($timeframeValue === 'minutes') {
+                $numMinutes = (int) round($timeframePeriod / 60);
+                $request['unit'] = $numMinutes;
+                $response = Async\await($this->publicGetCandlesTimeframeUnit (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetCandlesTimeframe (array_merge($request, $params)));
+            }
             //
             //     array(
             //         array(
@@ -1341,7 +1342,7 @@ class upbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",

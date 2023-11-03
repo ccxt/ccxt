@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker, OrderType, OHLCV, Order, Trade, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -593,7 +593,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    [
         //        "1545904980000",          // Start time of the candle cycle
@@ -749,10 +749,6 @@ export default class kucoinfutures extends kucoin {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
-        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -870,7 +866,7 @@ export default class kucoinfutures extends kucoin {
                 'positionCost': this.safeNumber (listItem, 'positionCost'),
             });
         }
-        return fees;
+        return fees as FundingHistory[];
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -1640,7 +1636,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrder, fetchOrdersByStatus
         //

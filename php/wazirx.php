@@ -21,7 +21,7 @@ class wazirx extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -305,7 +305,7 @@ class wazirx extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -817,7 +817,7 @@ class wazirx extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         // array(
         //     "id":1949417813,
         //     "symbol":"ltcusdt",

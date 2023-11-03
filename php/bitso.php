@@ -675,7 +675,7 @@ class bitso extends Exchange {
         return $this->parse_ohlcvs($payload, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "bucket_start_time":1648219140000,
@@ -1046,7 +1046,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //
         // canceledOrder

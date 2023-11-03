@@ -1,12 +1,12 @@
 import Exchange from './abstract/poloniex.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order } from './base/types.js';
 /**
  * @class poloniex
  * @extends Exchange
  */
 export default class poloniex extends Exchange {
     describe(): any;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Market>>;
     fetchMarkets(params?: {}): Promise<any[]>;
@@ -19,16 +19,16 @@ export default class poloniex extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrder(order: any, market?: any): Order;
     parseOrderType(status: any): string;
     parseOpenOrders(orders: any, market: any, result: any): any;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     orderRequest(symbol: any, type: any, side: any, amount: any, request: any, price?: any, params?: {}): any[];
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<"open" | "closed">;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;

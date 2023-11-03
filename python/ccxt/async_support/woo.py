@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -252,6 +251,7 @@ class woo(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'sandboxMode': False,
                 'createMarketBuyOrderRequiresPrice': True,
                 # these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -906,23 +906,21 @@ class woo(Exchange, ImplicitAPI):
         stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if stopPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
-        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
-        method = None
-        if isByClientOrder:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId'
-                request['oid'] = id
-            else:
-                method = 'v3PrivatePutOrderClientClientOrderId'
-                request['client_order_id'] = clientOrderIdExchangeSpecific
-        else:
-            if isStop:
-                method = 'v3PrivatePutAlgoOrderOid'
-            else:
-                method = 'v3PrivatePutOrderOid'
-            request['oid'] = id
         params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice'])
-        response = await getattr(self, method)(self.extend(request, params))
+        isStop = (stopPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        response = None
+        if isByClientOrder:
+            request['client_order_id'] = clientOrderIdExchangeSpecific
+            if isStop:
+                response = await self.v3PrivatePutAlgoOrderClientClientOrderId(self.extend(request, params))
+            else:
+                response = await self.v3PrivatePutOrderClientClientOrderId(self.extend(request, params))
+        else:
+            request['oid'] = id
+            if isStop:
+                response = await self.v3PrivatePutAlgoOrderOid(self.extend(request, params))
+            else:
+                response = await self.v3PrivatePutOrderOid(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -955,27 +953,26 @@ class woo(Exchange, ImplicitAPI):
         if not stop:
             self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request = {}
         clientOrderIdUnified = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         clientOrderIdExchangeSpecific = self.safe_string(params, 'client_order_id', clientOrderIdUnified)
         isByClientOrder = clientOrderIdExchangeSpecific is not None
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateDeleteAlgoOrderOrderId'
             request['order_id'] = id
-        elif isByClientOrder:
-            method = 'v1PrivateDeleteClientOrder'
-            request['client_order_id'] = clientOrderIdExchangeSpecific
-            params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+            response = await self.v3PrivateDeleteAlgoOrderOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateDeleteOrder'
-            request['order_id'] = id
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        if not stop:
             request['symbol'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+            if isByClientOrder:
+                request['client_order_id'] = clientOrderIdExchangeSpecific
+                params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+                response = await self.v1PrivateDeleteClientOrder(self.extend(request, params))
+            else:
+                request['order_id'] = id
+                response = await self.v1PrivateDeleteOrder(self.extend(request, params))
         #
         # {success: True, status: 'CANCEL_SENT'}
         #
@@ -1032,17 +1029,16 @@ class woo(Exchange, ImplicitAPI):
         params = self.omit(params, 'stop')
         request = {}
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
-        method = None
+        response = None
         if stop:
-            method = 'v3PrivateGetAlgoOrderOid'
             request['oid'] = id
+            response = await self.v3PrivateGetAlgoOrderOid(self.extend(request, params))
         elif clientOrderId:
-            method = 'v1PrivateGetClientOrderClientOrderId'
             request['client_order_id'] = clientOrderId
+            response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
         else:
-            method = 'v1PrivateGetOrderOid'
             request['oid'] = id
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.v1PrivateGetOrderOid(self.extend(request, params))
         #
         # {
         #     success: True,
@@ -1158,7 +1154,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # Possible input functions:
         # * createOrder
@@ -1372,7 +1368,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'rows', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # example response in fetchOHLCV
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
@@ -2022,13 +2018,15 @@ class woo(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             if method == 'POST' and (path == 'algo/order' or path == 'order'):
-                applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
-                brokerId = self.safe_string(self.options, 'brokerId', applicationId)
-                isStop = path.find('algo') > -1
-                if isStop:
-                    params['brokerId'] = brokerId
-                else:
-                    params['broker_id'] = brokerId
+                isSandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+                if not isSandboxMode:
+                    applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+                    brokerId = self.safe_string(self.options, 'brokerId', applicationId)
+                    isStop = path.find('algo') > -1
+                    if isStop:
+                        params['brokerId'] = brokerId
+                    else:
+                        params['broker_id'] = brokerId
                 params = self.keysort(params)
             auth = ''
             ts = str(self.nonce())
@@ -2458,3 +2456,7 @@ class woo(Exchange, ImplicitAPI):
                 return network
         # if it was not returned according to above options, then return the first network of currency
         return self.safe_value(networkKeys, 0)
+
+    def set_sandbox_mode(self, enable):
+        super(woo, self).set_sandbox_mode(enable)
+        self.options['sandboxMode'] = enable

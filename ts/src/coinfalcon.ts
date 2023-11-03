@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequire
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -613,7 +613,7 @@ export default class coinfalcon extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"

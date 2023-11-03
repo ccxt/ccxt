@@ -475,7 +475,7 @@ class btcmarkets extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "2020-09-12T18:30:00.000000Z",
@@ -919,7 +919,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

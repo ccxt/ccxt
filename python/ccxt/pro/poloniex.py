@@ -292,7 +292,7 @@ class poloniex(ccxt.async_support.poloniex):
         await self.authenticate()
         return await self.subscribe(name, name, True, None, params)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        symbol: 'BTC_USDT',
