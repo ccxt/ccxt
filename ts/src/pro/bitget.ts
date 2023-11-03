@@ -782,7 +782,9 @@ export default class bitget extends bitgetRest {
         await this.loadMarkets ();
         let market = undefined;
         let marketId = undefined;
-        let messageHash = 'order';
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, 'stop');
+        let messageHash = (isStop) ? 'triggerOrder' : 'order';
         let subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -790,8 +792,6 @@ export default class bitget extends bitgetRest {
             marketId = market['id'];
             messageHash = messageHash + ':' + symbol;
         }
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, 'stop');
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         if ((type === 'spot') && (symbol === undefined)) {
@@ -920,9 +920,12 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
             const messageHash = 'order:' + symbol;
+            const triggerMessageHash = 'triggerOrder:' + symbol;
             client.resolve (stored, messageHash);
+            client.resolve (stored, triggerMessageHash);
         }
         client.resolve (stored, 'order');
+        client.resolve (stored, 'triggerOrder');
     }
 
     parseWsOrder (order, market = undefined) {
