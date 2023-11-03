@@ -908,21 +908,25 @@ class Transpiler {
                 }
             }
         }
-
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        if (bodyAsString.match (/: OrderSide/)) {
-            libraries.push ('from ccxt.base.types import OrderSide')
+        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /-> Order/, /\[FundingHistory/, /\[OrderRequest/, /-> Balances/ ]
+        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory', 'OrderRequest', 'Balances' ]
+        const matches = []
+        let match
+        const listRegex = new RegExp (': List\[(' + objects.join ('|') + ')\]', 'g')
+        while (match = listRegex.exec (bodyAsString)) {
+            matches.push (match[1])
         }
-        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
-            libraries.push ('from ccxt.base.types import OrderRequest')
+        for (let i = 0; i < matchAgainst.length; i++) {
+            const regex = matchAgainst[i]
+            if (bodyAsString.match (regex)) {
+                matches.push (objects[i])
+            }
         }
-        if (bodyAsString.match (/: OrderType/)) {
-            libraries.push ('from ccxt.base.types import OrderType')
-        }
-        if (bodyAsString.match (/: IndexType/)) {
-            libraries.push ('from ccxt.base.types import IndexType')
+        if (matches.length) {
+            libraries.push ('from ccxt.base.types import ' + matches.join (', '))
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -1499,7 +1503,9 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            if (className === 'Exchange') {
+                signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            }
 
             let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
@@ -1545,6 +1551,10 @@ class Transpiler {
                 'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
+                'OHLCV': 'array',
+                'Order': 'array',
+                'FundingHistory[]': 'array',
+                'OrderRequest[]': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1582,6 +1592,10 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
+                'OHLCV': 'List',
+                'Order': 'Order',
+                'FundingHistory[]': 'List[FundingHistory]',
+                'OrderRequest[]': 'List[OrderRequest]'
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -2461,7 +2475,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",    
+                "use React\\Async;",
                 "use React\\Promise;",
                 "",
                 "",

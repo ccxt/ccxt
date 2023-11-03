@@ -2159,7 +2159,7 @@ export default class cryptocom extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "o": "26949.89",
@@ -2200,7 +2200,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder, cancelOrder
         //

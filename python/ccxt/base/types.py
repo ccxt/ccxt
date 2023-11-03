@@ -1,6 +1,7 @@
 import sys
 import types
-from typing import Union
+from typing import Union, List, Optional
+from decimal import Decimal
 
 if sys.version_info.minor > 7:
     from typing import TypedDict, Literal
@@ -37,29 +38,29 @@ class Entry:
         self.name = name
 
 
-class Balance(TypedDict):
-    free: Union[None, str, float]
-    used: Union[None, str, float]
-    total: Union[None, str, float]
-
-
 IndexType = Union[str, int]
-Numeric = Union[None, str, float, int]
+Numeric = Union[None, str, float, int, Decimal]
+
+
+class Balance(TypedDict):
+    free: Numeric
+    used: Numeric
+    total: Numeric
 
 
 class Trade(TypedDict):
-    amount: Union[None, str, float]
+    amount: Numeric
     datetime: str
     id: str
     info: None
     order: str
-    price: Union[None, str, float]
+    price: Numeric
     timestamp: int
     type: str
     side: str
     symbol: str
     takerOrMaker: str
-    cost: Union[None, str, float]
+    cost: Numeric
     fee: TypedDict
 
 
@@ -100,3 +101,45 @@ class OrderRequest(TypedDict):
     amount: Union[None, float]
     price: Union[None, float]
     params: TypedDict
+
+
+class Order(TypedDict):
+    id: str
+    clientOrderId: str
+    datetime: str
+    timestamp: int
+    lastTradeTimestamp: int
+    lastUpdateTimestamp: Optional[int]
+    status: str
+    symbol: str
+    type: str
+    timeInForce: str
+    side: OrderSide
+    price: Numeric
+    average: Optional[Numeric]
+    amount: Numeric
+    filled: Numeric
+    remaining: Numeric
+    stopPrice: Optional[Numeric]
+    takeProfitPrice: Optional[Numeric]
+    stopLossPrice: Optional[Numeric]
+    cost: Numeric
+    trades: List[Trade]
+    fee: TypedDict
+    info: TypedDict
+
+
+class FundingHistory(TypedDict):
+    info: TypedDict
+    symbol: str
+    code: str
+    timestamp: Optional[int]
+    datetime: Optional[str]
+    id: str
+    amount: Numeric
+
+
+class Balances(TypedDict[Balance]):
+    info: TypedDict
+    timestamp: Optional[int]
+    datetime: Optional[str]

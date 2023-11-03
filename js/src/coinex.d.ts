@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { FundingHistory, FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinex
  * @extends Exchange
@@ -34,8 +34,8 @@ export default class coinex extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     };
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchMarginBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSpotBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSwapBalance(params?: {}): Promise<import("./base/types.js").Balances>;

@@ -1,6 +1,6 @@
 import Exchange from './abstract/wavesexchange.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class wavesexchange
  * @extends Exchange
@@ -30,9 +30,9 @@ export default class wavesexchange extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     filterFutureCandles(ohlcvs: any): any[];
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         address: string;
         code: string;

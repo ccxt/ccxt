@@ -1243,7 +1243,7 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { 
+                            }).catch ((e) => {
                                 delete client.subscriptions[subscribeHash];
                                 future.reject (e);
                             });
@@ -1728,7 +1728,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -2838,7 +2838,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
