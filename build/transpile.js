@@ -911,8 +911,8 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /-> Order/, /\[FundingHistory/, /\[OrderRequest/ ]
-        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory', 'OrderRequest' ]
+        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /-> Order/, /\[FundingHistory/, /\[OrderRequest/, /-> Balances/ ]
+        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory', 'OrderRequest', 'Balances' ]
         const matches = []
         let match
         const listRegex = new RegExp (': List\[(' + objects.join ('|') + ')\]', 'g')

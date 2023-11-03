@@ -38,29 +38,29 @@ class Entry:
         self.name = name
 
 
-class Balance(TypedDict):
-    free: Union[None, str, float]
-    used: Union[None, str, float]
-    total: Union[None, str, float]
-
-
 IndexType = Union[str, int]
 Numeric = Union[None, str, float, int, Decimal]
 
 
+class Balance(TypedDict):
+    free: Numeric
+    used: Numeric
+    total: Numeric
+
+
 class Trade(TypedDict):
-    amount: Union[None, str, float]
+    amount: Numeric
     datetime: str
     id: str
     info: None
     order: str
-    price: Union[None, str, float]
+    price: Numeric
     timestamp: int
     type: str
     side: str
     symbol: str
     takerOrMaker: str
-    cost: Union[None, str, float]
+    cost: Numeric
     fee: TypedDict
 
 
@@ -137,3 +137,9 @@ class FundingHistory(TypedDict):
     datetime: Optional[str]
     id: str
     amount: Numeric
+
+
+class Balances(TypedDict[Balance]):
+    info: TypedDict
+    timestamp: Optional[int]
+    datetime: Optional[str]
