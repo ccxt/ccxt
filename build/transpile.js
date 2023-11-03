@@ -942,6 +942,10 @@ class Transpiler {
             libraries.push ('from typing import List')
         }
 
+        if (bodyAsString.match (/-> Any/)) {
+            libraries.push ('from typing import Any')
+        }
+
         const errorImports = []
 
         for (let error in errors) {
