@@ -702,6 +702,7 @@ class bitrue extends bitrue$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -796,6 +797,16 @@ class bitrue extends bitrue$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        //
         // fetchTicker
         //
         //     {
@@ -819,17 +830,17 @@ class bitrue extends bitrue$1 {
             'datetime': undefined,
             'high': this.safeString(ticker, 'high24hr'),
             'low': this.safeString(ticker, 'low24hr'),
-            'bid': this.safeString(ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'lowestAsk'),
-            'askVolume': undefined,
+            'bid': this.safeString2(ticker, 'highestBid', 'bidPrice'),
+            'bidVolume': this.safeString(ticker, 'bidQty'),
+            'ask': this.safeString2(ticker, 'lowestAsk', 'askPrice'),
+            'askVolume': this.safeString(ticker, 'askQty'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'percentChange'),
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'percentChange'), '10000'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
@@ -950,26 +961,31 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
-        const defaultType = this.safeString2(this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
-        const query = this.omit(params, 'type');
-        let method = undefined;
-        if (type === 'future') {
-            method = 'fapiPublicGetTickerBookTicker';
+        symbols = this.marketSymbols(symbols);
+        let market = undefined;
+        const request = {};
+        if (symbols !== undefined) {
+            const first = this.safeString(symbols, 0);
+            market = this.market(first);
+            request['symbol'] = market['id'];
         }
-        else if (type === 'delivery') {
-            method = 'dapiPublicGetTickerBookTicker';
-        }
-        else {
-            method = 'publicGetTickerBookTicker';
-        }
-        const response = await this[method](query);
-        return this.parseTickers(response, symbols);
+        const response = await this.v1PublicGetTickerBookTicker(this.extend(request, params));
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        const data = {};
+        data[market['id']] = response;
+        return this.parseTickers(data, symbols);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -1284,12 +1300,19 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#createOrder
          * @description create a trade order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {decimal} [params.icebergQty]
+         * @param {long} [params.recvWindow]
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();

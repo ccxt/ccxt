@@ -313,7 +313,6 @@ class huobijp extends Exchange {
                 'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
                 'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
                 'HIT' => 'HitChain',
-                'HOT' => 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
@@ -513,6 +512,7 @@ class huobijp extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -716,7 +716,7 @@ class huobijp extends Exchange {
             $ticker['datetime'] = $this->iso8601($timestamp);
             $result[$symbol] = $ticker;
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -862,7 +862,7 @@ class huobijp extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min ($limit, 2000);
         }
         $response = $this->marketGetHistoryTrade (array_merge($request, $params));
         //
@@ -1407,7 +1407,7 @@ class huobijp extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         $timestamp = $this->milliseconds();
         $id = $this->safe_string($response, 'data');
-        return array(
+        return $this->safe_order(array(
             'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -1426,7 +1426,7 @@ class huobijp extends Exchange {
             'fee' => null,
             'clientOrderId' => null,
             'average' => null,
-        );
+        ), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

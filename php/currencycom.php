@@ -562,6 +562,7 @@ class currencycom extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -1071,7 +1072,7 @@ class currencycom extends Exchange {
             // 'limit' => 500, // default 500, max 1000
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 500, max 1000
+            $request['limit'] = min ($limit, 1000); // default 500, max 1000
         }
         if ($since !== null) {
             $request['startTime'] = $since;

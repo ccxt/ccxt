@@ -287,7 +287,8 @@ class probit extends \ccxt\async\probit {
         //     }
         //
         $rawTrades = $this->safe_value($message, 'data', array());
-        if (strlen($rawTrades) === 0) {
+        $length = count($rawTrades);
+        if ($length === 0) {
             return;
         }
         $reset = $this->safe_value($message, 'reset', false);
@@ -375,7 +376,8 @@ class probit extends \ccxt\async\probit {
         //     }
         //
         $rawOrders = $this->safe_value($message, 'data', array());
-        if (strlen($rawOrders) === 0) {
+        $length = count($rawOrders);
+        if ($length === 0) {
             return;
         }
         $messageHash = 'orders';

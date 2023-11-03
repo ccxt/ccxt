@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinsph.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinsph
  * @extends Exchange
@@ -20,8 +20,8 @@ export default class coinsph extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

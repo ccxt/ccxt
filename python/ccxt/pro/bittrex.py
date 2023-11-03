@@ -9,8 +9,10 @@ import hashlib
 import json
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import AuthenticationError
 
 
 class bittrex(ccxt.async_support.bittrex):
@@ -50,6 +52,12 @@ class bittrex(ccxt.async_support.bittrex):
                 'I': self.milliseconds(),
                 'watchOrderBook': {
                     'maxRetries': 3,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'INVALID_APIKEY': AuthenticationError,
+                    'UNAUTHORIZED_USER': AuthenticationError,
                 },
             },
         })
@@ -102,6 +110,7 @@ class bittrex(ccxt.async_support.bittrex):
         return await self.watch(url, messageHash, request, messageHash, subscription)
 
     async def authenticate(self, params={}):
+        self.check_required_credentials()
         await self.load_markets()
         request = await self.negotiate()
         return await self.send_request_to_authenticate(request, False, params)
@@ -122,7 +131,7 @@ class bittrex(ccxt.async_support.bittrex):
                 'negotiation': negotiation,
                 'method': self.handle_authenticate,
             }
-            self.spawn(self.watch, url, messageHash, request, requestId, subscription)
+            self.watch(url, messageHash, request, requestId, subscription)
         return await future
 
     async def send_authenticated_request_to_subscribe(self, authentication, messageHash, params={}):
@@ -506,7 +515,8 @@ class bittrex(ccxt.async_support.bittrex):
         :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
-        symbol = self.symbol(symbol)
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         authentication = await self.authenticate()
         trades = await self.subscribe_to_my_trades(authentication, params)
         if self.newUpdates:
@@ -624,8 +634,8 @@ class bittrex(ccxt.async_support.bittrex):
                 # unroll the accumulated deltas
                 # 3. Playback the cached Level 2 data flow.
                 for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
+                    messageItem = messages[i]
+                    self.handle_order_book_message(client, messageItem, orderbook)
                 self.orderbooks[symbol] = orderbook
                 client.resolve(orderbook, messageHash)
         except Exception as e:
@@ -747,6 +757,49 @@ class bittrex(ccxt.async_support.bittrex):
             method(client, message, subscription)
         return message
 
+    def handle_error_message(self, client: Client, message):
+        #
+        #    {
+        #        R: [{Success: False, ErrorCode: 'UNAUTHORIZED_USER'}, ...],
+        #        I: '1698601759267'
+        #    }
+        #    {
+        #        R: {Success: False, ErrorCode: 'INVALID_APIKEY'},
+        #        I: '1698601759266'
+        #    }
+        #
+        R = self.safe_value(message, 'R')
+        if R is None:
+            # Return there is no error
+            return False
+        I = self.safe_string(message, 'I')
+        errorCode = None
+        if isinstance(R, list):
+            for i in range(0, len(R)):
+                response = self.safe_value(R, i)
+                success = self.safe_value(response, 'Success', True)
+                if not success:
+                    errorCode = self.safe_string(response, 'ErrorCode')
+                    break
+        else:
+            success = self.safe_value(R, 'Success', True)
+            if not success:
+                errorCode = self.safe_string(R, 'ErrorCode')
+        if errorCode is None:
+            # Return there is no error
+            return False
+        feedback = self.id + ' ' + errorCode
+        try:
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            if message is not None:
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
+            raise ExchangeError(feedback)
+        except Exception as e:
+            if isinstance(e, AuthenticationError):
+                client.reject(e, 'authenticate')
+            client.reject(e, I)
+        return True
+
     def handle_message(self, client: Client, message):
         #
         # subscription confirmation
@@ -793,6 +846,8 @@ class bittrex(ccxt.async_support.bittrex):
         #         M: [{H: 'C3', M: 'authenticationExpiring', A: []}]
         #     }
         #
+        if self.handle_error_message(client, message):
+            return
         methods = {
             'authenticationExpiring': self.handle_authentication_expiring,
             'order': self.handle_order,

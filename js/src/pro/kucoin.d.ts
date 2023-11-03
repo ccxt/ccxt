@@ -8,12 +8,15 @@ export default class kucoin extends kucoinRest {
     requestId(): any;
     subscribe(url: any, messageHash: any, subscriptionHash: any, params?: {}, subscription?: any): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
+    watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
     getCacheIndex(orderbook: any, cache: any): any;
     handleDelta(orderbook: any, delta: any): void;

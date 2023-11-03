@@ -309,6 +309,7 @@ class idex extends idex$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -508,7 +509,7 @@ class idex extends idex$1 {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         // [
         //   {
@@ -1516,7 +1517,7 @@ class idex extends idex$1 {
         //
         //    { serverTime: '1655258263236' }
         //
-        return this.safeNumber(response, 'serverTime');
+        return this.safeInteger(response, 'serverTime');
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
         /**

@@ -163,6 +163,7 @@ class kraken extends Exchange {
                         'Depth' => 1,
                         'OHLC' => 1,
                         'Spread' => 1,
+                        'SystemStatus' => 1,
                         'Ticker' => 1,
                         'Time' => 1,
                         'Trades' => 1,
@@ -175,6 +176,7 @@ class kraken extends Exchange {
                         'AddExport' => 3,
                         'Balance' => 3,
                         'CancelAll' => 3,
+                        'CancelAllOrdersAfter' => 3,
                         'CancelOrder' => 0,
                         'CancelOrderBatch' => 0,
                         'ClosedOrders' => 6,
@@ -210,6 +212,13 @@ class kraken extends Exchange {
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
+                        // earn
+                        'Earn/Allocate' => 3,
+                        'Earn/Deallocate' => 3,
+                        'Earn/AllocateStatus' => 3,
+                        'Earn/DeallocateStatus' => 3,
+                        'Earn/Strategies' => 3,
+                        'Earn/Allocations' => 3,
                     ),
                 ),
             ),
@@ -366,6 +375,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for kraken
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -497,6 +507,7 @@ class kraken extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -553,6 +564,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -612,6 +624,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structure}
@@ -683,6 +696,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
@@ -787,6 +801,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
@@ -816,7 +831,7 @@ class kraken extends Exchange {
                 $ticker = $tickers[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -824,6 +839,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structure}
@@ -870,14 +886,21 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 720));
+            }
             $market = $this->market($symbol);
             $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
             $request = array(
@@ -927,7 +950,7 @@ class kraken extends Exchange {
         //     {
         //         'LTFK7F-N2CUX-PNY4SX' => array(
         //             refid => "TSJTGT-DT7WN-GPPQMJ",
-        //             $time =>  1520102320.555,
+        //             time =>  1520102320.555,
         //             $type => "trade",
         //             aclass => "currency",
         //             asset => "XETH",
@@ -952,11 +975,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $time = $this->safe_number($item, 'time');
-        $timestamp = null;
-        if ($time !== null) {
-            $timestamp = $this->parse_to_int($time * 1000);
-        }
+        $timestamp = $this->safe_timestamp($item, 'time');
         return array(
             'info' => $item,
             'id' => $id,
@@ -982,11 +1001,14 @@ class kraken extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
              * @param {int} [$limit] max number of $ledger entrys to return, default is null
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest $ledger entry
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#$ledger-structure $ledger structure}
              */
             // https://www.kraken.com/features/api#get-ledgers-info
@@ -1000,6 +1022,7 @@ class kraken extends Exchange {
             if ($since !== null) {
                 $request['start'] = $this->parse_to_int($since / 1000);
             }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->privatePostLedgers (array_merge($request, $params)));
             // {  error => array(),
             //   $result => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
@@ -1166,6 +1189,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1230,8 +1254,10 @@ class kraken extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account();
-            $account['total'] = $this->safe_string($balances, $currencyId);
+            $account['used'] = $this->safe_string($balance, 'hold_trade');
+            $account['total'] = $this->safe_string($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1241,18 +1267,24 @@ class kraken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privatePostBalance ($params));
+            $response = Async\await($this->privatePostBalanceEx ($params));
             //
             //     {
-            //         "error":array(),
-            //         "result":{
-            //             "ZUSD":"58.8649",
-            //             "KFEE":"4399.43",
-            //             "XXBT":"0.0000034506",
+            //         "error" => array(),
+            //         "result" => {
+            //             "ZUSD" => array(
+            //                 "balance" => 25435.21,
+            //                 "hold_trade" => 8249.76
+            //             ),
+            //             "XXBT" => {
+            //                 "balance" => 1.2435,
+            //                 "hold_trade" => 0.8423
+            //             }
             //         }
             //     }
             //
@@ -1484,7 +1516,16 @@ class kraken extends Exchange {
             $id = $this->safe_string($txid, 0);
         }
         $clientOrderId = $this->safe_string($order, 'userref');
-        $rawTrades = $this->safe_value($order, 'trades');
+        $rawTrades = $this->safe_value($order, 'trades', array());
+        $trades = array();
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $rawTrade = $rawTrades[$i];
+            if (gettype($rawTrade) === 'string') {
+                $trades[] = $this->safe_trade(array( 'id' => $rawTrade, 'orderId' => $id, 'symbol' => $symbol, 'info' => array()));
+            } else {
+                $trades[] = $rawTrade;
+            }
+        }
         $stopPrice = $this->safe_number($order, 'stopprice', $stopPrice);
         return $this->safe_order(array(
             'id' => $id,
@@ -1508,7 +1549,7 @@ class kraken extends Exchange {
             'average' => $average,
             'remaining' => null,
             'fee' => $fee,
-            'trades' => $rawTrades,
+            'trades' => $trades,
         ), $market);
     }
 
@@ -1640,6 +1681,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
              * @param {string} $symbol not used by kraken fetchOrder
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
@@ -1701,7 +1743,8 @@ class kraken extends Exchange {
                 throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
             }
             $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
-            return array_merge(array( 'info' => $response ), $order);
+            $order['info'] = $order;
+            return $order;
         }) ();
     }
 
@@ -1709,6 +1752,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the $trades made from a single order
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
              * @param {string} $id order $id
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -1810,6 +1854,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1870,6 +1915,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
@@ -1900,6 +1946,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
              * @param {string[]} $ids open orders transaction ID (txid) or user reference (userref)
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
@@ -1925,6 +1972,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -1937,7 +1985,9 @@ class kraken extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
              * fetch all unfilled currently open $orders
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
              * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
@@ -1969,11 +2019,14 @@ class kraken extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * fetches information on multiple closed $orders made by the user
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest entry
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -1987,6 +2040,7 @@ class kraken extends Exchange {
                 $request['userref'] = $clientOrderId;
                 $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
             }
+            list($request, $params) = $this->handle_until_option('end', $request, $params);
             $response = Async\await($this->privatePostClosedOrders (array_merge($request, $query)));
             //
             //     {
@@ -2170,7 +2224,9 @@ class kraken extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
              * fetch all deposits made to an account
+             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -2208,6 +2264,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -2231,6 +2288,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -2268,6 +2326,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
+             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
              * @param {string} $code unified currency $code of the currency for the deposit address
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
@@ -2318,6 +2377,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
@@ -2401,6 +2461,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2438,6 +2499,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
              * @param {string[]|null} $symbols not used by kraken fetchPositions ()
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure position structure}
@@ -2513,6 +2575,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * transfer from spot wallet to futures wallet
+             * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
              * @param {str} $code Unified currency $code
              * @param {float} $amount Size of the transfer
              * @param {dict} [$params] Exchange specific parameters

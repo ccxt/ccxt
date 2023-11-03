@@ -291,8 +291,8 @@ class whitebit extends \ccxt\async\whitebit {
         // watchTickers
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            if (mb_strpos($messageHash, 'tickers') !== false && mb_strpos($messageHash, $symbol) !== false) {
+            $currentMessageHash = $messageHashes[$i];
+            if (mb_strpos($currentMessageHash, 'tickers') !== false && mb_strpos($currentMessageHash, $symbol) !== false) {
                 // Example => user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be => 'tickers:LTC/USDT:ETH/USDT'
                 // since we only have access to a single $symbol at a time
@@ -302,7 +302,7 @@ class whitebit extends \ccxt\async\whitebit {
                 // user might have multiple watchTickers promises
                 // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
-                $client->resolve ($ticker, $messageHash);
+                $client->resolve ($ticker, $currentMessageHash);
             }
         }
         return $message;
@@ -769,15 +769,15 @@ class whitebit extends \ccxt\async\whitebit {
                     return Async\await($this->watch($url, $messageHash, $request, $method, $subscription));
                 } else {
                     // resubscribe
-                    $marketIds = array();
-                    $marketIds = is_array($subscription) ? array_keys($subscription) : array();
+                    $marketIdsNew = array();
+                    $marketIdsNew = is_array($subscription) ? array_keys($subscription) : array();
                     if ($isNested) {
-                        $marketIds = array( $marketIds );
+                        $marketIdsNew = array( $marketIdsNew );
                     }
                     $resubRequest = array(
                         'id' => $id,
                         'method' => $method,
-                        'params' => $marketIds,
+                        'params' => $marketIdsNew,
                     );
                     if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
                         unset($client->subscriptions[$method]);

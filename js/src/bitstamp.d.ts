@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class bitstamp
  * @extends Exchange
@@ -48,8 +48,8 @@ export default class bitstamp extends Exchange {
     getMarketFromTrade(trade: any): any;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
@@ -74,7 +74,7 @@ export default class bitstamp extends Exchange {
     parseTransactionFees(response: any, codes?: any): {};
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;

@@ -3,7 +3,7 @@
 import poloniexRest from '../poloniex.js';
 import { BadRequest, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -326,7 +326,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
         //        symbol: 'BTC_USDT',
@@ -637,8 +637,8 @@ export default class poloniex extends poloniexRest {
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = previousOrder['trades'];
-                    for (let i = 0; i < previousOrderTrades.length; i++) {
-                        const previousOrderTrade = previousOrderTrades[i];
+                    for (let j = 0; j < previousOrderTrades.length; j++) {
+                        const previousOrderTrade = previousOrderTrades[j];
                         const cost = this.numberToString (previousOrderTrade['cost']);
                         const amount = this.numberToString (previousOrderTrade['amount']);
                         totalCost = Precise.stringAdd (totalCost, cost);
@@ -675,8 +675,8 @@ export default class poloniex extends poloniexRest {
                     previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append (previousOrder);
-                    marketIds.push (marketId);
                 }
+                marketIds.push (marketId);
             }
         }
         for (let i = 0; i < marketIds.length; i++) {
@@ -684,7 +684,7 @@ export default class poloniex extends poloniexRest {
             const market = this.market (marketId);
             const symbol = market['symbol'];
             const messageHash = 'orders::' + symbol;
-            client.resolve (orders[symbol], messageHash);
+            client.resolve (orders, messageHash);
         }
         client.resolve (orders, 'orders');
         return message;
@@ -881,16 +881,16 @@ export default class poloniex extends poloniexRest {
                 }
                 const orderbook = this.orderbooks[symbol];
                 if (bids !== undefined) {
-                    for (let i = 0; i < bids.length; i++) {
-                        const bid = this.safeValue (bids, i);
+                    for (let j = 0; j < bids.length; j++) {
+                        const bid = this.safeValue (bids, j);
                         const price = this.safeNumber (bid, 0);
                         const amount = this.safeNumber (bid, 1);
                         orderbook['bids'].store (price, amount);
                     }
                 }
                 if (asks !== undefined) {
-                    for (let i = 0; i < asks.length; i++) {
-                        const ask = this.safeValue (asks, i);
+                    for (let j = 0; j < asks.length; j++) {
+                        const ask = this.safeValue (asks, j);
                         const price = this.safeNumber (ask, 0);
                         const amount = this.safeNumber (ask, 1);
                         orderbook['asks'].store (price, amount);

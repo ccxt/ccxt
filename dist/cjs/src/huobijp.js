@@ -316,7 +316,6 @@ class huobijp extends huobijp$1 {
                 'GET': 'Themis',
                 'GTC': 'Game.com',
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
@@ -514,6 +513,7 @@ class huobijp extends huobijp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -721,7 +721,7 @@ class huobijp extends huobijp$1 {
             ticker['datetime'] = this.iso8601(timestamp);
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -869,7 +869,7 @@ class huobijp extends huobijp$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, 2000);
         }
         const response = await this.marketGetHistoryTrade(this.extend(request, params));
         //
@@ -1421,7 +1421,7 @@ class huobijp extends huobijp$1 {
         const response = await this[method](this.extend(request, params));
         const timestamp = this.milliseconds();
         const id = this.safeString(response, 'data');
-        return {
+        return this.safeOrder({
             'info': response,
             'id': id,
             'timestamp': timestamp,
@@ -1440,7 +1440,7 @@ class huobijp extends huobijp$1 {
             'fee': undefined,
             'clientOrderId': undefined,
             'average': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

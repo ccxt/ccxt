@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitrue.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class bitrue
  * @extends Exchange
@@ -25,8 +25,8 @@ export default class bitrue extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;

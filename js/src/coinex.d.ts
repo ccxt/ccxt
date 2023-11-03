@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class coinex
  * @extends Exchange
@@ -12,7 +12,7 @@ export default class coinex extends Exchange {
     fetchContractMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTime(params?: {}): Promise<number>;
     fetchOrderBook(symbol: string, limit?: number, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
@@ -34,8 +34,8 @@ export default class coinex extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     };
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchMarginBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSpotBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchSwapBalance(params?: {}): Promise<import("./base/types.js").Balances>;
@@ -94,7 +94,7 @@ export default class coinex extends Exchange {
     };
     addMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     reduceMargin(symbol: string, amount: any, params?: {}): Promise<any>;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -158,7 +158,7 @@ export default class coinex extends Exchange {
         };
     }>;
     parseTransactionStatus(status: any): string;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<any>;
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseTransaction(transaction: any, currency?: any): {
         info: any;
         id: string;

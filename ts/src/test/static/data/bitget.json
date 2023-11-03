@@ -1,0 +1,35 @@
+{
+    "exchange": "bitget",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+          {
+            "description": "Spot limit buy",
+            "method": "createOrder",
+            "url": "https://api.bitget.com/api/spot/v1/trade/orders",
+            "input": [
+              "LTC/USDT",
+              "limit",
+              "buy",
+              0.1,
+              50
+            ],
+            "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"orderType\":\"limit\",\"price\":\"50\",\"force\":\"normal\",\"side\":\"buy\",\"quantity\":\"0.1\"}"
+          },
+          {
+            "description": "Swap limit buy",
+            "method": "createOrder",
+            "url": "https://api.bitget.com/api/mix/v1/order/placeOrder",
+            "input": [
+              "LTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.1,
+              55
+            ],
+            "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"55\",\"timeInForceValue\":\"normal\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"side\":\"open_long\"}"
+          }
+        ]
+    }
+}

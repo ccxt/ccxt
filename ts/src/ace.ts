@@ -5,7 +5,7 @@ import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -246,6 +246,7 @@ export default class ace extends Exchange {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
                 },
                 'active': undefined,
+                'created': undefined,
                 'info': market,
             });
         }
@@ -343,7 +344,7 @@ export default class ace extends Exchange {
             const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -408,7 +409,7 @@ export default class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "changeRate": 0,
@@ -498,7 +499,7 @@ export default class ace extends Exchange {
         return this.safeString (statuses, status, undefined);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -894,10 +895,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'attachment');
-        const trades = this.safeValue (data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const trades = this.safeValue (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1037,7 +1035,7 @@ export default class ace extends Exchange {
                 'timeStamp': nonce,
             }, params);
             const dataKeys = Object.keys (data);
-            const sortedDataKeys = this.sortBy (dataKeys, 0);
+            const sortedDataKeys = this.sortBy (dataKeys, 0, false, '');
             for (let i = 0; i < sortedDataKeys.length; i++) {
                 const key = sortedDataKeys[i];
                 auth += this.safeString (data, key);

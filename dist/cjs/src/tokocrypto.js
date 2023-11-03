@@ -735,6 +735,7 @@ class tokocrypto extends tokocrypto$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {

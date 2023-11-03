@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, Cance
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -305,6 +305,7 @@ export default class novadax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -437,7 +438,7 @@ export default class novadax extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -655,7 +656,7 @@ export default class novadax extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "amount": 8.25709100,
@@ -1050,7 +1051,7 @@ export default class novadax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder, fetchOrders, fetchOrder
         //

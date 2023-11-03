@@ -264,6 +264,7 @@ export default class wazirx extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -427,7 +428,7 @@ export default class wazirx extends Exchange {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -447,7 +448,7 @@ export default class wazirx extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min(limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method](this.extend(request, params));
@@ -592,7 +593,7 @@ export default class wazirx extends Exchange {
         }, market);
     }
     parseBalance(response) {
-        const result = {};
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString(balance, 'asset');

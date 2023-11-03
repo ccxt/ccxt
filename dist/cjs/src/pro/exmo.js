@@ -513,7 +513,7 @@ class exmo extends exmo$1 {
         const symbol = this.safeSymbol(marketId);
         const orderBook = this.safeValue(message, 'data', {});
         const messageHash = 'orderbook:' + symbol;
-        const timestamp = this.safeNumber(message, 'ts');
+        const timestamp = this.safeInteger(message, 'ts');
         let storedOrderBook = this.safeValue(this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
             storedOrderBook = this.orderBook({});

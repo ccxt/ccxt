@@ -1,5 +1,5 @@
 import Exchange from './abstract/bithumb.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class bithumb
  * @extends Exchange
@@ -13,10 +13,10 @@ export default class bithumb extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;

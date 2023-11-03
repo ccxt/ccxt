@@ -37,6 +37,7 @@ class hollaex extends hollaex$1 {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -311,6 +312,7 @@ class hollaex extends hollaex$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'created_at')),
                 'info': market,
             });
         }
@@ -533,7 +535,7 @@ class hollaex extends hollaex$1 {
             const symbol = market['symbol'];
             result[symbol] = this.extend(this.parseTicker(ticker, market), params);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -792,7 +794,7 @@ class hollaex extends hollaex$1 {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-    parseOHLCV(response, market = undefined) {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -805,12 +807,12 @@ class hollaex extends hollaex$1 {
         //     }
         //
         return [
-            this.parse8601(this.safeString(response, 'time')),
-            this.safeNumber(response, 'open'),
-            this.safeNumber(response, 'high'),
-            this.safeNumber(response, 'low'),
-            this.safeNumber(response, 'close'),
-            this.safeNumber(response, 'volume'),
+            this.parse8601(this.safeString(ohlcv, 'time')),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
         ];
     }
     parseBalance(response) {
@@ -1125,6 +1127,8 @@ class hollaex extends hollaex$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
+         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();

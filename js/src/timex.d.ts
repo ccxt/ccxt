@@ -1,5 +1,5 @@
 import Exchange from './abstract/timex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from './base/types.js';
 /**
  * @class timex
  * @extends Exchange
@@ -35,7 +35,7 @@ export default class timex extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
@@ -106,6 +106,7 @@ export default class timex extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
     parseCurrency(currency: any): {
@@ -147,7 +148,7 @@ export default class timex extends Exchange {
         takerOrMaker: string;
         fee: any;
     };
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     parseOrder(order: any, market?: any): import("./base/types.js").Order;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

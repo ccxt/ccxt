@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequire
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -216,6 +216,7 @@ export default class coinfalcon extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -277,7 +278,7 @@ export default class coinfalcon extends Exchange {
          */
         await this.loadMarkets ();
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
+        return tickers[symbol] as Ticker;
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -318,7 +319,7 @@ export default class coinfalcon extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -612,7 +613,7 @@ export default class coinfalcon extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -959,9 +960,9 @@ export default class coinfalcon extends Exchange {
         const amountString = this.safeString (transaction, 'amount');
         const amount = this.parseNumber (amountString);
         const feeCostString = this.safeString (transaction, 'fee');
-        let feeCost = 0;
+        let feeCost = '0';
         if (feeCostString !== undefined) {
-            feeCost = this.parseNumber (feeCostString);
+            feeCost = feeCostString;
         }
         return {
             'info': transaction,
@@ -983,7 +984,7 @@ export default class coinfalcon extends Exchange {
             'updated': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
             },
         };
     }

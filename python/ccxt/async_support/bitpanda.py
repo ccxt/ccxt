@@ -438,6 +438,7 @@ class bitpanda(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -677,7 +678,7 @@ class bitpanda(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
@@ -1443,7 +1444,7 @@ class bitpanda(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://docs.onetrading.com/#create-order
+        :see: https://docs.onetrading.com/#create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'

@@ -261,6 +261,7 @@ class wazirx extends wazirx$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -424,7 +425,7 @@ class wazirx extends wazirx$1 {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -444,7 +445,7 @@ class wazirx extends wazirx$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min(limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method](this.extend(request, params));
@@ -589,7 +590,7 @@ class wazirx extends wazirx$1 {
         }, market);
     }
     parseBalance(response) {
-        const result = {};
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString(balance, 'asset');

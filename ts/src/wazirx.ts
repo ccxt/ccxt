@@ -3,7 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 /**
  * @class wazirx
@@ -21,7 +21,7 @@ export default class wazirx extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -261,6 +261,7 @@ export default class wazirx extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -308,7 +309,7 @@ export default class wazirx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -429,7 +430,7 @@ export default class wazirx extends Exchange {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -450,7 +451,7 @@ export default class wazirx extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min (limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString (this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method] (this.extend (request, params));
@@ -600,7 +601,7 @@ export default class wazirx extends Exchange {
     }
 
     parseBalance (response) {
-        const result = { };
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString (balance, 'asset');
@@ -844,7 +845,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         // {
         //     "id":1949417813,
         //     "symbol":"ltcusdt",
