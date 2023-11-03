@@ -903,6 +903,7 @@ export default class bitget extends bitgetRest {
             this.triggerOrders = new ArrayCacheBySymbolById (limit);
         }
         const stored = (channel === 'ordersAlgo') ? this.triggerOrders : this.orders;
+        const messageHash = (channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
         const marketSymbols = {};
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
@@ -919,13 +920,10 @@ export default class bitget extends bitgetRest {
         const keys = Object.keys (marketSymbols);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const messageHash = 'order:' + symbol;
-            const triggerMessageHash = 'triggerOrder:' + symbol;
-            client.resolve (stored, messageHash);
-            client.resolve (stored, triggerMessageHash);
+            const innerMessageHash = messageHash + ':' + symbol;
+            client.resolve (stored, innerMessageHash);
         }
-        client.resolve (stored, 'order');
-        client.resolve (stored, 'triggerOrder');
+        client.resolve (stored, messageHash);
     }
 
     parseWsOrder (order, market = undefined) {
