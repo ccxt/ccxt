@@ -42,28 +42,32 @@ export default class p2b extends Exchange {
                 'fees': 'https://p2pb2b.com/fee-schedule/',
             },
             'api': {
-                'get': [
-                    'markets',
-                    'market',
-                    'tickers',
-                    'ticker',
-                    'book',
-                    'history',
-                    'depth/result',
-                    'market/kline',
-                ],
-                'post': [
-                    'account/balances',
-                    'account/balance',
-                    'order/new',
-                    'order/cancel',
-                    'orders',
-                    'account/market_order_history',
-                    'account/market_deal_history',
-                    'account/order',
-                    'account/order_history',
-                    'account/executed_history',
-                ],
+                'public': {
+                    'get': [
+                        'markets',
+                        'market',
+                        'tickers',
+                        'ticker',
+                        'book',
+                        'history',
+                        'depth/result',
+                        'market/kline',
+                    ],
+                },
+                'private': {
+                    'post': [
+                        'account/balances',
+                        'account/balance',
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/market_order_history',
+                        'account/market_deal_history',
+                        'account/order',
+                        'account/order_history',
+                        'account/executed_history',
+                    ],
+                }
             },
             'fees': {
                 'trading': {
