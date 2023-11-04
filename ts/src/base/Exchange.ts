@@ -4138,11 +4138,6 @@ export default class Exchange {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterBySymbolsSinceLimit (array, symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
-        const result = this.filterByArray (array, 'symbol', symbols, false);
-        return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
-    }
-
     filterByCurrencySinceLimit (array, code = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
