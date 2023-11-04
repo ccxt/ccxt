@@ -46,7 +46,7 @@
             "output": "[{\"instId\":\"LTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"1\",\"tdMode\":\"cross\",\"clOrdId\":\"e847386590ce4dBC3301800ce435865e\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
           },
           {
-            "description": "Swap limit buy with stopPrice and posSide = long",
+            "description": "Swap limit buy with stopPrice and posSide = long.",
             "method": "createOrder",
             "url": "https://www.okx.com/api/v5/trade/order-algo",
             "input": [
