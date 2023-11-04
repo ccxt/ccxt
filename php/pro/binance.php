@@ -1230,7 +1230,18 @@ class binance extends \ccxt\async\binance {
             $params['recvWindow'] = $recvWindow;
         }
         $extendedParams = $this->keysort($extendedParams);
-        $extendedParams['signature'] = $this->hmac($this->encode($this->urlencode($extendedParams)), $this->encode($this->secret), 'sha256');
+        $query = $this->urlencode($extendedParams);
+        $signature = null;
+        if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
+            if (strlen($this->secret) > 120) {
+                $signature = $this->rsa($query, $this->secret, 'sha256');
+            } else {
+                $signature = $this->eddsa($this->encode($query), $this->secret, 'ed25519');
+            }
+        } else {
+            $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
+        }
+        $extendedParams['signature'] = $signature;
         return $extendedParams;
     }
 

@@ -1119,7 +1119,16 @@ class binance(ccxt.async_support.binance):
         if recvWindow is not None:
             params['recvWindow'] = recvWindow
         extendedParams = self.keysort(extendedParams)
-        extendedParams['signature'] = self.hmac(self.encode(self.urlencode(extendedParams)), self.encode(self.secret), hashlib.sha256)
+        query = self.urlencode(extendedParams)
+        signature = None
+        if self.secret.find('PRIVATE KEY') > -1:
+            if len(self.secret) > 120:
+                signature = self.rsa(query, self.secret, 'sha256')
+            else:
+                signature = self.eddsa(self.encode(query), self.secret, 'ed25519')
+        else:
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+        extendedParams['signature'] = signature
         return extendedParams
 
     async def authenticate(self, params={}):
