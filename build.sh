@@ -74,7 +74,7 @@ if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[
 fi
 
 ##### DETECT CHANGES #####
-# in appveyor, there is no origin/master locally, so we need to fetch it
+# in appveyor, there is no origin/master locally, so we need to fetch it.
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   git remote set-branches origin 'master'
   git fetch --depth=1 --no-tags
@@ -84,6 +84,7 @@ diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
+diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
