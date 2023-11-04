@@ -310,6 +310,7 @@ class digifinex(Exchange, ImplicitAPI):
             'options': {
                 'defaultType': 'spot',
                 'types': ['spot', 'margin', 'otc'],
+                'createMarketBuyOrderRequiresPrice': True,
                 'accountsByType': {
                     'spot': '1',
                     'margin': '2',
@@ -1684,7 +1685,19 @@ class digifinex(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
             request['type'] = side + suffix
             # limit orders require the amount in the base currency, market orders require the amount in the quote currency
-            request['amount'] = self.amount_to_precision(symbol, amount)
+            quantity = None
+            createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+            if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                    quantity = self.price_to_precision(symbol, cost)
+            else:
+                quantity = self.amount_to_precision(symbol, amount)
+            request['amount'] = quantity
         if postOnly:
             if postOnlyParsed:
                 request['post_only'] = postOnlyParsed
