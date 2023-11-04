@@ -1991,12 +1991,11 @@ export default class phemex extends Exchange {
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
-            '4': 'canceled,
+            '4': 'canceled',
             '5': 'open',
             '6': 'open',
             '7': 'closed',
-            '8': 'canceled'
-            
+            '8': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
