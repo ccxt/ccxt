@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderSide, OrderType
 from typing import Optional
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise

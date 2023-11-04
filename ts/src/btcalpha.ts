@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -571,7 +571,7 @@ export default class btcalpha extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "time":1591296000,
@@ -663,7 +663,7 @@ export default class btcalpha extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchClosedOrders / fetchOrder
         //     {

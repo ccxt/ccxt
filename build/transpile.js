@@ -912,17 +912,25 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        if (bodyAsString.match (/: OrderSide/)) {
-            libraries.push ('from ccxt.base.types import OrderSide')
+        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/ ]
+        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory' ]
+        const matches = []
+        let match
+        const listRegex = /: List\[(\w+)\]/g
+        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
+        while (match = listRegex.exec (bodyAsString)) {
+            if (!pythonBuiltIns.includes (match[1])) {
+                matches.push (match[1])
+            }
         }
-        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
-            libraries.push ('from ccxt.base.types import OrderRequest')
+        for (let i = 0; i < matchAgainst.length; i++) {
+            const regex = matchAgainst[i]
+            if (bodyAsString.match (regex)) {
+                matches.push (objects[i])
+            }
         }
-        if (bodyAsString.match (/: OrderType/)) {
-            libraries.push ('from ccxt.base.types import OrderType')
-        }
-        if (bodyAsString.match (/: IndexType/)) {
-            libraries.push ('from ccxt.base.types import IndexType')
+        if (matches.length) {
+            libraries.push ('from ccxt.base.types import ' + matches.join (', '))
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -932,6 +940,10 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
+        }
+
+        if (bodyAsString.match (/-> Any/)) {
+            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -1288,7 +1300,7 @@ class Transpiler {
         const sync = syncFilePath
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
-        const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
+        const syncBody = his.transpileAsyncPHPToSyncPHP (fileContents)
 
         const phpTestRegexes = [
             [ /Async\\coroutine\(\$main\)/, '\$main()' ],
@@ -1499,7 +1511,9 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            if (className === 'Exchange') {
+                signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            }
 
             let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
@@ -1545,6 +1559,9 @@ class Transpiler {
                 'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
+                'OHLCV': 'array',
+                'Order': 'array',
+                'FundingHistory[]': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1582,6 +1599,9 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
+                'OHLCV': 'list',
+                'Order': 'Order',
+                'FundingHistory[]': 'List[FundingHistory]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -2160,6 +2180,9 @@ class Transpiler {
 
 
         // ########### PHP ###########
+        php = php.replace('use Exception; // a common import', '')
+        phpAsync = phpAsync.replace('use Exception; // a common import', '')
+
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines of test_async.php
         phpAsync = phpAsync.replace ('(this,','($this,');
@@ -2458,7 +2481,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",    
+                "use React\\Async;",
                 "use React\\Promise;",
                 "",
                 "",
@@ -2628,7 +2651,8 @@ class Transpiler {
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
-        if (!child) {
+        const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (!transpilingSingleExchange && !child) {
             createFolderRecursively (python2Folder)
             createFolderRecursively (python3Folder)
             createFolderRecursively (phpFolder)
@@ -2646,19 +2670,21 @@ class Transpiler {
             return
         }
 
-        this.transpileBaseMethods ()
+        if (!transpilingSingleExchange) {
+            this.transpileBaseMethods ()
 
-        //*/
+            //*/
 
-        this.transpileErrorHierarchy ()
+            this.transpileErrorHierarchy ()
 
-        this.transpileTests ()
+            this.transpileTests ()
 
-        // this.transpilePhpBaseClassMethods ()
+            // this.transpilePhpBaseClassMethods ()
 
-        this.transpileExamples ()
+            this.transpileExamples ()
 
-        this.addGeneratedHeaderToJs ('./js/')
+            this.addGeneratedHeaderToJs ('./js/')
+        }
 
         log.bright.green ('Transpiled successfully.')
     }

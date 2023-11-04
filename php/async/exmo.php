@@ -906,7 +906,7 @@ class exmo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "t":1584057600000,
@@ -1804,7 +1804,7 @@ class exmo extends Exchange {
         return $this->safe_string($side, $orderType, $orderType);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //

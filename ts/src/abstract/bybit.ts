@@ -265,6 +265,7 @@ interface Exchange {
     privateGetV5UserQueryApi (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserGetMemberType (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserAffCustomerInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;
@@ -434,6 +435,7 @@ interface Exchange {
     privatePostV5PositionTradingStop (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetAutoAddMargin (params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionAddMargin (params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionConfirmPendingMmr (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify (params?: {}): Promise<implicitReturnType>;

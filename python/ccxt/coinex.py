@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1190,7 +1189,7 @@ class coinex(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591484400,
@@ -1479,7 +1478,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrder
         #
@@ -1711,7 +1710,8 @@ class coinex(Exchange, ImplicitAPI):
         remainingString = self.safe_string(order, 'left')
         marketId = self.safe_string(order, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, market, None, defaultType)
+        orderType = 'swap' if ('source' in order) else defaultType
+        market = self.safe_market(marketId, market, None, orderType)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:

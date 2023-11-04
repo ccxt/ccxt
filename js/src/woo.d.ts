@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 /**
  * @class woo
  * @extends Exchange
@@ -12,18 +12,18 @@ export default class woo extends Exchange {
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseTimeInForce(timeInForce: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): any;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchAccounts(params?: {}): Promise<any[]>;
@@ -160,7 +160,7 @@ export default class woo extends Exchange {
         amount: number;
         rate: number;
     };
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     parseFundingRate(fundingRate: any, market?: any): {
         info: any;
         symbol: any;
@@ -210,4 +210,5 @@ export default class woo extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     defaultNetworkCodeForCurrency(code: any): any;
+    setSandboxMode(enable: any): void;
 }

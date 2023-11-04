@@ -1,5 +1,5 @@
 import Exchange from './abstract/huobijp.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 /**
  * @class huobijp
  * @extends Exchange
@@ -36,8 +36,8 @@ export default class huobijp extends Exchange {
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: number, params?: {}): Promise<OHLCV[]>;
     fetchAccounts(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
     parseBalance(response: any): import("./base/types.js").Balances;

@@ -1208,7 +1208,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1591484400,
@@ -1511,7 +1511,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrder
         //
@@ -1743,7 +1743,8 @@ class coinex extends Exchange {
         $remainingString = $this->safe_string($order, 'left');
         $marketId = $this->safe_string($order, 'market');
         $defaultType = $this->safe_string($this->options, 'defaultType');
-        $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $orderType = (is_array($order) && array_key_exists('source', $order)) ? 'swap' : $defaultType;
+        $market = $this->safe_market($marketId, $market, null, $orderType);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($feeCurrency === null) {

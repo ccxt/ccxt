@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -555,11 +554,10 @@ class gemini(Exchange, ImplicitAPI):
             marketIds = fetchDetailsForMarketIds
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            method = 'publicGetV1SymbolsDetailsSymbol'
             request = {
                 'symbol': marketId,
             }
-            promises.append(getattr(self, method)(self.extend(request, params)))
+            promises.append(self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params)))
             #
             #     {
             #         "symbol": "BTCUSD",
@@ -1022,7 +1020,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder(private)
         #

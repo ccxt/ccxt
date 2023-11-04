@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -565,11 +565,10 @@ export default class gemini extends Exchange {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const method = 'publicGetV1SymbolsDetailsSymbol';
             const request = {
                 'symbol': marketId,
             };
-            promises.push (this[method] (this.extend (request, params)));
+            promises.push (this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params)));
             //
             //     {
             //         "symbol": "BTCUSD",
@@ -1071,7 +1070,7 @@ export default class gemini extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder (private)
         //

@@ -22,6 +22,7 @@ export default class cryptocom extends Exchange {
     createAdvancedOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<Order[]>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseAddress(addressString: any): any[];
@@ -77,7 +78,7 @@ export default class cryptocom extends Exchange {
     };
     parseTicker(ticker: any, market?: any): Ticker;
     parseTrade(trade: any, market?: any): Trade;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): Order;

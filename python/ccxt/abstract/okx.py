@@ -190,6 +190,7 @@ class ImplicitAPI:
     private_post_sprd_order = privatePostSprdOrder = Entry('sprd/order', 'private', 'POST', {'cost': 1})
     private_post_sprd_cancel_order = privatePostSprdCancelOrder = Entry('sprd/cancel-order', 'private', 'POST', {'cost': 1})
     private_post_sprd_mass_cancel = privatePostSprdMassCancel = Entry('sprd/mass-cancel', 'private', 'POST', {'cost': 1})
+    private_post_sprd_amend_order = privatePostSprdAmendOrder = Entry('sprd/amend-order', 'private', 'POST', {'cost': 1})
     private_post_trade_order = privatePostTradeOrder = Entry('trade/order', 'private', 'POST', {'cost': 0.3333333333333333})
     private_post_trade_batch_orders = privatePostTradeBatchOrders = Entry('trade/batch-orders', 'private', 'POST', {'cost': 0.06666666666666667})
     private_post_trade_cancel_order = privatePostTradeCancelOrder = Entry('trade/cancel-order', 'private', 'POST', {'cost': 0.3333333333333333})

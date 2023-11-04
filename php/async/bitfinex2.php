@@ -1375,7 +1375,7 @@ class bitfinex2 extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1457539800000,
@@ -1441,7 +1441,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($orderTypes, $orderType, 'GTC');
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
         $symbol = $this->safe_symbol($marketId);

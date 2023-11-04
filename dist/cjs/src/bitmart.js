@@ -4026,7 +4026,7 @@ class bitmart extends bitmart$1 {
         const priceString = this.safeString(liquidation, 'deal_avg_price');
         const baseValueString = Precise["default"].stringMul(contractsString, contractSizeString);
         const quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
@@ -4036,7 +4036,7 @@ class bitmart extends bitmart$1 {
             'quoteValue': this.parseNumber(quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     nonce() {
         return this.milliseconds();

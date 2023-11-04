@@ -33,6 +33,7 @@ export default class cryptocom extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createOrder': true,
                 'createOrders': true,
                 'fetchAccounts': true,
@@ -1406,6 +1407,38 @@ export default class cryptocom extends Exchange {
         return this.parseOrder (result, market);
     }
 
+    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#cancelOrders
+         * @description cancel multiple orders
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        this.checkRequiredSymbol ('cancelOrders', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderRequests = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const order = {
+                'instrument_name': market['id'],
+                'order_id': id.toString (),
+            };
+            orderRequests.push (order);
+        }
+        const request = {
+            'contingency_type': 'LIST',
+            'order_list': orderRequests,
+        };
+        const response = await this.v1PrivatePostPrivateCancelOrderList (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, undefined, undefined, params);
+    }
+
     async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -2126,7 +2159,7 @@ export default class cryptocom extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "o": "26949.89",
@@ -2167,7 +2200,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder, cancelOrder
         //

@@ -379,6 +379,7 @@ class okx extends Exchange {
                         'sprd/order' => 1,
                         'sprd/cancel-order' => 1,
                         'sprd/mass-cancel' => 1,
+                        'sprd/amend-order' => 1,
                         // trade
                         'trade/order' => 1 / 3,
                         'trade/batch-orders' => 1 / 15,
@@ -2043,7 +2044,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -3088,6 +3089,7 @@ class okx extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'canceled' => 'canceled',
+            'order_failed' => 'canceled',
             'live' => 'open',
             'partially_filled' => 'open',
             'filled' => 'closed',
@@ -3096,7 +3098,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

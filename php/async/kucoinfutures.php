@@ -10,7 +10,6 @@ use ccxt\async\abstract\kucoinfutures as kucoin;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
-use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -599,7 +598,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    array(
         //        "1545904980000",          // Start time of the candle cycle
@@ -753,10 +752,6 @@ class kucoinfutures extends kucoin {
             //
             return $this->parse_ticker($response['data'], $market);
         }) ();
-    }
-
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1646,7 +1641,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrder, fetchOrdersByStatus
         //

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import AccountSuspended
@@ -1385,7 +1384,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #

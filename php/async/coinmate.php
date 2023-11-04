@@ -789,7 +789,7 @@ class coinmate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // limit sell
         //

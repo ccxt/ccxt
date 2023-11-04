@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.26';
+$version = '4.1.38';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.26';
+    const VERSION = '4.1.38';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -120,6 +120,8 @@ class Exchange {
     public $certified = false; // if certified by the CCXT dev team
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
+
+    public $debug = false;
 
     public $urls = array();
     public $api = array();
@@ -331,6 +333,9 @@ class Exchange {
     public $last_http_response = null;
     public $last_json_response = null;
     public $last_response_headers = null;
+    public $last_request_headers = null;
+    public $last_request_body = null;
+    public $last_request_url = null;
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
@@ -1343,7 +1348,7 @@ class Exchange {
             $this->curl = curl_init();
         }
 
-
+        $this->last_request_headers = $headers;
         // ##### PROXY & HEADERS #####
         $headers = array_merge($this->headers, $headers ? $headers : array());
 
@@ -3149,6 +3154,26 @@ class Exchange {
         );
     }
 
+    public function safe_liquidation(array $liquidation, ?array $market = null) {
+        $contracts = $this->safe_string($liquidation, 'contracts');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $price = $this->safe_string($liquidation, 'price');
+        $baseValue = $this->safe_string($liquidation, 'baseValue');
+        $quoteValue = $this->safe_string($liquidation, 'quoteValue');
+        if (($baseValue === null) && ($contracts !== null) && ($contractSize !== null) && ($price !== null)) {
+            $baseValue = Precise::string_mul($contracts, $contractSize);
+        }
+        if (($quoteValue === null) && ($baseValue !== null) && ($price !== null)) {
+            $quoteValue = Precise::string_mul($baseValue, $price);
+        }
+        $liquidation['contracts'] = $this->parse_number($contracts);
+        $liquidation['contractSize'] = $this->parse_number($contractSize);
+        $liquidation['price'] = $this->parse_number($price);
+        $liquidation['baseValue'] = $this->parse_number($baseValue);
+        $liquidation['quoteValue'] = $this->parse_number($quoteValue);
+        return $liquidation;
+    }
+
     public function safe_trade(array $trade, ?array $market = null) {
         $amount = $this->safe_string($trade, 'amount');
         $price = $this->safe_string($trade, 'price');
@@ -3561,7 +3586,7 @@ class Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
@@ -3910,6 +3935,9 @@ class Exchange {
         }
         $this->lastRestRequestTimestamp = $this->milliseconds ();
         $request = $this->sign ($path, $api, $method, $params, $headers, $body);
+        $this->last_request_headers = $request['headers'];
+        $this->last_request_body = $request['body'];
+        $this->last_request_url = $request['url'];
         return $this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']);
     }
 
@@ -4565,6 +4593,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchFundingRateHistory() is not supported yet');
     }
 
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
+    }
+
     public function parse_last_price($price, $market = null) {
         throw new NotSupported($this->id . ' parseLastPrice() is not supported yet');
     }
@@ -4847,6 +4879,11 @@ class Exchange {
 
     public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
+    }
+
+    public function filter_by_symbols_since_limit($array, ?array $symbols = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        $result = $this->filter_by_array($array, 'symbol', $symbols, false);
+        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp', $tail);
     }
 
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {

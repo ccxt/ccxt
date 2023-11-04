@@ -122,6 +122,7 @@ class bitopro extends Exchange {
                         'provisioning/trading-pairs' => 1,
                         'provisioning/limitations-and-fees' => 1,
                         'trading-history/{pair}' => 1,
+                        'price/otc/{currency}' => 1,
                     ),
                 ),
                 'private' => array(
@@ -730,7 +731,7 @@ class bitopro extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -905,7 +906,7 @@ class bitopro extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //         {
@@ -1135,14 +1136,14 @@ class bitopro extends Exchange {
             $request = array(
                 // 'pair' => $market['id'], // optional
             );
-            // privateDeleteOrdersAll or privateDeleteOrdersPair
-            $method = $this->safe_string($this->options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll');
+            $response = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
-                $method = 'privateDeleteOrdersPair';
+                $response = Async\await($this->privateDeleteOrdersPair (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteOrdersAll (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             $result = $this->safe_value($response, 'data', array());
             //
             //     {

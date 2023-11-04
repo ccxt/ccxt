@@ -1,5 +1,5 @@
 import bingxRest from '../bingx.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
@@ -8,7 +8,7 @@ export default class bingx extends bingxRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     handleOHLCV(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;

@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -130,6 +129,7 @@ class bitopro(Exchange, ImplicitAPI):
                         'provisioning/trading-pairs': 1,
                         'provisioning/limitations-and-fees': 1,
                         'trading-history/{pair}': 1,
+                        'price/otc/{currency}': 1,
                     },
                 },
                 'private': {
@@ -703,7 +703,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -861,7 +861,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #         {
@@ -1071,13 +1071,13 @@ class bitopro(Exchange, ImplicitAPI):
         request = {
             # 'pair': market['id'],  # optional
         }
-        # privateDeleteOrdersAll or privateDeleteOrdersPair
-        method = self.safe_string(self.options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll')
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method = 'privateDeleteOrdersPair'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateDeleteOrdersPair(self.extend(request, params))
+        else:
+            response = self.privateDeleteOrdersAll(self.extend(request, params))
         result = self.safe_value(response, 'data', {})
         #
         #     {
