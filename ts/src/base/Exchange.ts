@@ -704,6 +704,7 @@ export default class Exchange {
         this.trades       = {}
         this.transactions = {}
         this.ohlcvs       = {}
+        this.myLiquidations = {}
         this.myTrades     = undefined
         this.positions    = {}
         // web3 and cryptography flags
