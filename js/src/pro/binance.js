@@ -10,6 +10,9 @@ import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { rsa } from '../base/functions/rsa.js';
+import { eddsa } from '../base/functions/crypto.js';
+import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 // -----------------------------------------------------------------------------
 export default class binance extends binanceRest {
     describe() {
@@ -1216,7 +1219,20 @@ export default class binance extends binanceRest {
             params['recvWindow'] = recvWindow;
         }
         extendedParams = this.keysort(extendedParams);
-        extendedParams['signature'] = this.hmac(this.encode(this.urlencode(extendedParams)), this.encode(this.secret), sha256);
+        const query = this.urlencode(extendedParams);
+        let signature = undefined;
+        if (this.secret.indexOf('PRIVATE KEY') > -1) {
+            if (this.secret.length > 120) {
+                signature = rsa(query, this.secret, sha256);
+            }
+            else {
+                signature = eddsa(this.encode(query), this.secret, ed25519);
+            }
+        }
+        else {
+            signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+        }
+        extendedParams['signature'] = signature;
         return extendedParams;
     }
     async authenticate(params = {}) {
