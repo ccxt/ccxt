@@ -207,7 +207,7 @@ export default class binance extends binanceRest {
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
         await this.loadMarkets ();
-        const subscriptionHash = '!forceOrder@arr';
+        const subscriptionHash = '!' + 'forceOrder@arr';
         let messageHash = 'liquidations';
         symbols = this.marketSymbols (symbols, undefined, true, true);
         if (symbols !== undefined) {
