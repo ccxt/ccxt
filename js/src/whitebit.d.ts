@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 /**
  * @class whitebit
  * @extends Exchange
@@ -23,8 +23,8 @@ export default class whitebit extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: any): Trade;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;

@@ -822,6 +822,7 @@ class bitget extends bitget$1 {
                     '40017': errors.ExchangeError,
                     '40018': errors.PermissionDenied,
                     '40019': errors.BadRequest,
+                    '40037': errors.AuthenticationError,
                     '40102': errors.BadRequest,
                     '40103': errors.BadRequest,
                     '40104': errors.ExchangeError,
@@ -6311,7 +6312,7 @@ class bitget extends bitget$1 {
         const liquidationFee = this.safeString(liquidation, 'LiqFee');
         const totalDebt = this.safeString(liquidation, 'totalDebt');
         const quoteValueString = Precise["default"].stringAdd(liquidationFee, totalDebt);
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': undefined,
@@ -6321,7 +6322,7 @@ class bitget extends bitget$1 {
             'quoteValue': this.parseNumber(quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     async fetchBorrowRate(code, params = {}) {
         /**

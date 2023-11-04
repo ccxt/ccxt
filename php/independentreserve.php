@@ -338,7 +338,7 @@ class independentreserve extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrder
         //

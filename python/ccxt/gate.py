@@ -6,9 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType, FundingHistory
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2183,7 +2181,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbol, since, limit)
 
-    def parse_funding_histories(self, response, symbol, since, limit):
+    def parse_funding_histories(self, response, symbol, since, limit) -> List[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2838,7 +2836,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         # Spot market candles
         #
@@ -3934,7 +3932,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # SPOT
         # createOrder/cancelOrder/fetchOrder/editOrder
@@ -6277,7 +6275,7 @@ class gate(Exchange, ImplicitAPI):
         quoteValueString = self.safe_string(liquidation, 'pnl')
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
@@ -6287,7 +6285,7 @@ class gate(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

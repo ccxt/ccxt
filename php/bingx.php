@@ -41,7 +41,9 @@ class bingx extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchLeverage' => true,
+                'fetchLiquidations' => false,
                 'fetchMarkets' => true,
+                'fetchMyLiquidations' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
@@ -343,6 +345,7 @@ class bingx extends Exchange {
                     'SFUTURES' => 'future',
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec
+                'broker' => 'CCXT',
             ),
         ));
     }
@@ -702,7 +705,7 @@ class bingx extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "open" => "19394.4",
@@ -1748,7 +1751,7 @@ class bingx extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         // createOrder, cancelOrder
@@ -3042,6 +3045,110 @@ class bingx extends Exchange {
         return $sortedParams;
     }
 
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * retrieves the users liquidated positions
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @param {string} [$symbol] unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters for the bingx api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest liquidation
+         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+         */
+        $this->load_markets();
+        $request = array(
+            'autoCloseType' => 'LIQUIDATION',
+        );
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $symbol;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->swapV2PrivateGetTradeForceOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => {
+        //             "orders" => array(
+        //                 array(
+        //                     "time" => "int64",
+        //                     "symbol" => "string",
+        //                     "side" => "string",
+        //                      "type" => "string",
+        //                     "positionSide" => "string",
+        //                     "cumQuote" => "string",
+        //                     "status" => "string",
+        //                     "stopPrice" => "string",
+        //                     "price" => "string",
+        //                     "origQty" => "string",
+        //                     "avgPrice" => "string",
+        //                     "executedQty" => "string",
+        //                     "orderId" => "int64",
+        //                     "profit" => "string",
+        //                     "commission" => "string",
+        //                     "workingType" => "string",
+        //                     "updateTime" => "int64"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $liquidations = $this->safe_value($data, 'orders', array());
+        return $this->parse_liquidations($liquidations, $market, $since, $limit);
+    }
+
+    public function parse_liquidation($liquidation, $market = null) {
+        //
+        //     {
+        //         "time" => "int64",
+        //         "symbol" => "string",
+        //         "side" => "string",
+        //         "type" => "string",
+        //         "positionSide" => "string",
+        //         "cumQuote" => "string",
+        //         "status" => "string",
+        //         "stopPrice" => "string",
+        //         "price" => "string",
+        //         "origQty" => "string",
+        //         "avgPrice" => "string",
+        //         "executedQty" => "string",
+        //         "orderId" => "int64",
+        //         "profit" => "string",
+        //         "commission" => "string",
+        //         "workingType" => "string",
+        //         "updateTime" => "int64"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'symbol');
+        $timestamp = $this->safe_integer($liquidation, 'time');
+        $contractsString = $this->safe_string($liquidation, 'executedQty');
+        $contractSizeString = $this->safe_string($market, 'contractSize');
+        $priceString = $this->safe_string($liquidation, 'avgPrice');
+        $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
+        $quoteValueString = Precise::string_mul($baseValueString, $priceString);
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'contracts' => $this->parse_number($contractsString),
+            'contractSize' => $this->parse_number($contractSizeString),
+            'price' => $this->parse_number($priceString),
+            'baseValue' => $this->parse_number($baseValueString),
+            'quoteValue' => $this->parse_number($quoteValueString),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $type = $section[0];
         $version = $section[1];
@@ -3076,7 +3183,7 @@ class bingx extends Exchange {
             $query .= 'signature=' . $signature;
             $headers = array(
                 'X-BX-APIKEY' => $this->apiKey,
-                'X-SOURCE-KEY' => 'CCXT',
+                'X-SOURCE-KEY' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             $url .= $query;
         }

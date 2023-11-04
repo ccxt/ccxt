@@ -819,6 +819,7 @@ class bitget extends Exchange {
                     '40017' => '\\ccxt\\ExchangeError', // Parameter verification failed
                     '40018' => '\\ccxt\\PermissionDenied', // Invalid IP
                     '40019' => '\\ccxt\\BadRequest', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
+                    '40037' => '\\ccxt\\AuthenticationError', // Apikey does not exist
                     '40102' => '\\ccxt\\BadRequest', // Contract configuration does not exist, please check the parameters
                     '40103' => '\\ccxt\\BadRequest', // Request method cannot be empty
                     '40104' => '\\ccxt\\ExchangeError', // Lever adjustment failure
@@ -2589,7 +2590,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // spot
         //
@@ -2961,7 +2962,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //     {
@@ -5340,7 +5341,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -6182,7 +6183,7 @@ class bitget extends Exchange {
         $liquidationFee = $this->safe_string($liquidation, 'LiqFee');
         $totalDebt = $this->safe_string($liquidation, 'totalDebt');
         $quoteValueString = Precise::string_add($liquidationFee, $totalDebt);
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => null,
@@ -6192,7 +6193,7 @@ class bitget extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {

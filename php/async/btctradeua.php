@@ -498,7 +498,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $side = $this->safe_string($order, 'type');

@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ export default class digifinex extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
@@ -291,6 +292,7 @@ export default class digifinex extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'types': [ 'spot', 'margin', 'otc' ],
+                'createMarketBuyOrderRequiresPrice': true,
                 'accountsByType': {
                     'spot': '1',
                     'margin': '2',
@@ -1432,7 +1434,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1556712900,
@@ -1553,28 +1555,169 @@ export default class digifinex extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the digifinex api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
          * @param {bool} [params.reduceOnly] true or false
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const marginResult = this.handleMarginModeAndParams ('createOrder', params);
+        const marginMode = marginResult[0];
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.privateSwapPostTradeOrderPlace (request);
+        } else {
+            if (marginMode !== undefined) {
+                response = await this.privateSpotPostMarginOrderNew (request);
+            } else {
+                response = await this.privateSpotPostSpotOrderNew (request);
+            }
+        }
+        //
+        // spot and margin
+        //
+        //     {
+        //         "code": 0,
+        //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590873693003714560"
+        //     }
+        //
+        const order = this.parseOrder (response, market);
+        order['symbol'] = market['symbol'];
+        order['type'] = type;
+        order['side'] = side;
+        order['amount'] = amount;
+        order['price'] = price;
+        return order;
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name digifinex#createOrders
+         * @description create a list of trade orders (all orders should be of the same symbol)
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let marginMode = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            } else {
+                if (symbol !== marketId) {
+                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams ('createOrders', params);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                } else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new BadRequest (this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const market = this.market (symbol);
+        const request = {};
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.privateSwapPostTradeBatchOrder (ordersRequests);
+        } else {
+            request['market'] = (marginMode !== undefined) ? 'margin' : 'spot';
+            request['symbol'] = market['id'];
+            request['list'] = this.json (ordersRequests);
+            response = await this.privateSpotPostMarketOrderBatchNew (request);
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "order_ids": [
+        //             "064290fbe2d26e7b28d7e6c0a5cf70a5",
+        //             "24c8f9b73d81e4d9d8d7e3280281c258"
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             "1720297963537829888",
+        //             "1720297963537829889"
+        //         ]
+        //     }
+        //
+        let data = [];
+        if (market['swap']) {
+            data = this.safeValue (response, 'data', []);
+        } else {
+            data = this.safeValue (response, 'order_ids', []);
+        }
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const individualOrder = {};
+            individualOrder['order_id'] = data[i];
+            individualOrder['instrument_id'] = market['id'];
+            individualOrder['amount'] = this.safeNumber (rawOrder, 'amount');
+            individualOrder['price'] = this.safeNumber (rawOrder, 'price');
+            result.push (individualOrder);
+        }
+        return this.parseOrders (result, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name digifinex#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the digifinex api endpoint
+         * @returns {object} request to be sent to the exchange
+         */
+        const market = this.market (symbol);
         let marketType = undefined;
         let marginMode = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostSpotOrderNew',
-            'margin': 'privateSpotPostMarginOrderNew',
-            'swap': 'privateSwapPostTradeOrderPlace',
-        });
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrderRequest', market, params);
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrderRequest', params);
         if (marginMode !== undefined) {
-            method = 'privateSpotPostMarginOrderNew';
             marketType = 'margin';
         }
         const request = {};
@@ -1625,39 +1768,31 @@ export default class digifinex extends Exchange {
             }
             request['type'] = side + suffix;
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
-            request['amount'] = this.amountToPrecision (symbol, amount);
+            let quantity = undefined;
+            const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+            if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    quantity = this.priceToPrecision (symbol, cost);
+                }
+            } else {
+                quantity = this.amountToPrecision (symbol, amount);
+            }
+            request['amount'] = quantity;
         }
         if (postOnly) {
             if (postOnlyParsed) {
-                request['postOnly'] = postOnlyParsed;
+                request['post_only'] = postOnlyParsed;
             } else {
-                request['postOnly'] = postOnly;
+                request['post_only'] = postOnly;
             }
         }
-        const query = this.omit (params, [ 'postOnly', 'post_only' ]);
-        const response = await this[method] (this.extend (request, query));
-        //
-        // spot and margin
-        //
-        //     {
-        //         "code": 0,
-        //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": 0,
-        //         "data": "1590873693003714560"
-        //     }
-        //
-        const order = this.parseOrder (response, market);
-        order['symbol'] = symbol;
-        order['type'] = type;
-        order['side'] = side;
-        order['amount'] = amount;
-        order['price'] = price;
-        return order;
+        params = this.omit (params, [ 'postOnly' ]);
+        return this.extend (request, params);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -1781,7 +1916,7 @@ export default class digifinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // spot: createOrder
         //
@@ -1795,6 +1930,15 @@ export default class digifinex extends Exchange {
         //     {
         //         "code": 0,
         //         "data": "1590873693003714560"
+        //     }
+        //
+        // spot and swap: createOrders
+        //
+        //     {
+        //         "order_id": "d64d92a5e0a120f792f385485bc3d95b",
+        //         "instrument_id": "BTC_USDT",
+        //         "amount": 0.0001,
+        //         "price": 27000
         //     }
         //
         // spot: fetchOrder, fetchOpenOrders, fetchOrders
@@ -1842,21 +1986,23 @@ export default class digifinex extends Exchange {
         let type = undefined;
         let side = this.safeString (order, 'type');
         const marketId = this.safeString2 (order, 'symbol', 'instrument_id');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        const symbol = this.safeSymbol (marketId, market);
         market = this.market (symbol);
         if (market['type'] === 'swap') {
             const orderType = this.safeInteger (order, 'order_type');
-            if ((orderType === 9) || (orderType === 10) || (orderType === 11) || (orderType === 12) || (orderType === 15)) {
-                timeInForce = 'FOK';
-            } else if ((orderType === 1) || (orderType === 2) || (orderType === 3) || (orderType === 4) || (orderType === 13)) {
-                timeInForce = 'IOC';
-            } else if ((orderType === 6) || (orderType === 7) || (orderType === 8) || (orderType === 14)) {
-                timeInForce = 'GTC';
-            }
-            if ((orderType === 0) || (orderType === 1) || (orderType === 4) || (orderType === 5) || (orderType === 9) || (orderType === 10)) {
-                type = 'limit';
-            } else {
-                type = 'market';
+            if (orderType !== undefined) {
+                if ((orderType === 9) || (orderType === 10) || (orderType === 11) || (orderType === 12) || (orderType === 15)) {
+                    timeInForce = 'FOK';
+                } else if ((orderType === 1) || (orderType === 2) || (orderType === 3) || (orderType === 4) || (orderType === 13)) {
+                    timeInForce = 'IOC';
+                } else if ((orderType === 6) || (orderType === 7) || (orderType === 8) || (orderType === 14)) {
+                    timeInForce = 'GTC';
+                }
+                if ((orderType === 0) || (orderType === 1) || (orderType === 4) || (orderType === 5) || (orderType === 9) || (orderType === 10)) {
+                    type = 'limit';
+                } else {
+                    type = 'market';
+                }
             }
             if (side === '1') {
                 side = 'open long';

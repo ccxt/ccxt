@@ -727,6 +727,7 @@ class binance extends Exchange {
                         'topLongShortPositionRatio' => 1,
                         'globalLongShortAccountRatio' => 1,
                         'takerlongshortRatio' => 1,
+                        'basis' => 1,
                     ),
                 ),
                 'fapiPrivate' => array(
@@ -1611,7 +1612,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function is_inverse($type, $subType = null) {
+    public function is_inverse($type, $subType = null): bool {
         if ($subType === null) {
             return $type === 'delivery';
         } else {
@@ -1619,7 +1620,7 @@ class binance extends Exchange {
         }
     }
 
-    public function is_linear($type, $subType = null) {
+    public function is_linear($type, $subType = null): bool {
         if ($subType === null) {
             return ($type === 'future') || ($type === 'swap');
         } else {
@@ -2424,7 +2425,7 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance($response, $type = null, $marginMode = null): Balances {
         $result = array(
             'info' => $response,
         );
@@ -3221,7 +3222,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
@@ -4067,7 +4068,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //
@@ -9442,7 +9443,7 @@ class binance extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'symbol');
         $timestamp = $this->safe_integer_2($liquidation, 'updatedTime', 'updateTime');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'executedQty'),
@@ -9452,6 +9453,6 @@ class binance extends Exchange {
             'quoteValue' => $this->safe_number($liquidation, 'cumQuote'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 }

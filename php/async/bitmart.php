@@ -1465,7 +1465,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // spot
         //
@@ -1748,7 +1748,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function custom_parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType): Balances {
         $data = $this->safe_value($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
@@ -1978,7 +1978,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -4068,7 +4068,7 @@ class bitmart extends Exchange {
         $priceString = $this->safe_string($liquidation, 'deal_avg_price');
         $baseValueString = Precise::string_mul($contractsString, $contractSizeString);
         $quoteValueString = Precise::string_mul($baseValueString, $priceString);
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->parse_number($contractsString),
@@ -4078,7 +4078,7 @@ class bitmart extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function nonce() {

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1155,7 +1154,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # Possible input functions:
         # * createOrder
@@ -1369,7 +1368,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'rows', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # example response in fetchOHLCV
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),

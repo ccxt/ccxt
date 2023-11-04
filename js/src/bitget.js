@@ -825,6 +825,7 @@ export default class bitget extends Exchange {
                     '40017': ExchangeError,
                     '40018': PermissionDenied,
                     '40019': BadRequest,
+                    '40037': AuthenticationError,
                     '40102': BadRequest,
                     '40103': BadRequest,
                     '40104': ExchangeError,
@@ -6314,7 +6315,7 @@ export default class bitget extends Exchange {
         const liquidationFee = this.safeString(liquidation, 'LiqFee');
         const totalDebt = this.safeString(liquidation, 'totalDebt');
         const quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': undefined,
@@ -6324,7 +6325,7 @@ export default class bitget extends Exchange {
             'quoteValue': this.parseNumber(quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     async fetchBorrowRate(code, params = {}) {
         /**

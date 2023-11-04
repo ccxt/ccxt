@@ -1,5 +1,5 @@
 import wazirxRest from '../wazirx.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class wazirx extends wazirxRest {
     describe(): any;
@@ -15,7 +15,7 @@ export default class wazirx extends wazirxRest {
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;

@@ -43,7 +43,9 @@ export default class bingx extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLeverage': true,
+                'fetchLiquidations': false,
                 'fetchMarkets': true,
+                'fetchMyLiquidations': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
@@ -342,7 +344,8 @@ export default class bingx extends Exchange {
                     'PFUTURES': 'swap',
                     'SFUTURES': 'future',
                 },
-                'recvWindow': 5 * 1000, // 5 sec
+                'recvWindow': 5 * 1000,
+                'broker': 'CCXT',
             },
         });
     }
@@ -3079,6 +3082,110 @@ export default class bingx extends Exchange {
         }
         return sortedParams;
     }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @param {string} [symbol] unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the bingx api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        let request = {
+            'autoCloseType': 'LIQUIDATION',
+        };
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['symbol'] = symbol;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.swapV2PrivateGetTradeForceOrders(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "time": "int64",
+        //                     "symbol": "string",
+        //                     "side": "string",
+        //                      "type": "string",
+        //                     "positionSide": "string",
+        //                     "cumQuote": "string",
+        //                     "status": "string",
+        //                     "stopPrice": "string",
+        //                     "price": "string",
+        //                     "origQty": "string",
+        //                     "avgPrice": "string",
+        //                     "executedQty": "string",
+        //                     "orderId": "int64",
+        //                     "profit": "string",
+        //                     "commission": "string",
+        //                     "workingType": "string",
+        //                     "updateTime": "int64"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const liquidations = this.safeValue(data, 'orders', []);
+        return this.parseLiquidations(liquidations, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        //     {
+        //         "time": "int64",
+        //         "symbol": "string",
+        //         "side": "string",
+        //         "type": "string",
+        //         "positionSide": "string",
+        //         "cumQuote": "string",
+        //         "status": "string",
+        //         "stopPrice": "string",
+        //         "price": "string",
+        //         "origQty": "string",
+        //         "avgPrice": "string",
+        //         "executedQty": "string",
+        //         "orderId": "int64",
+        //         "profit": "string",
+        //         "commission": "string",
+        //         "workingType": "string",
+        //         "updateTime": "int64"
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'symbol');
+        const timestamp = this.safeInteger(liquidation, 'time');
+        const contractsString = this.safeString(liquidation, 'executedQty');
+        const contractSizeString = this.safeString(market, 'contractSize');
+        const priceString = this.safeString(liquidation, 'avgPrice');
+        const baseValueString = Precise.stringMul(contractsString, contractSizeString);
+        const quoteValueString = Precise.stringMul(baseValueString, priceString);
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.parseNumber(contractsString),
+            'contractSize': this.parseNumber(contractSizeString),
+            'price': this.parseNumber(priceString),
+            'baseValue': this.parseNumber(baseValueString),
+            'quoteValue': this.parseNumber(quoteValueString),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const type = section[0];
         const version = section[1];
@@ -3116,7 +3223,7 @@ export default class bingx extends Exchange {
             query += 'signature=' + signature;
             headers = {
                 'X-BX-APIKEY': this.apiKey,
-                'X-SOURCE-KEY': 'CCXT',
+                'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),
             };
             url += query;
         }

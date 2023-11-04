@@ -461,7 +461,7 @@ class wazirx extends \ccxt\async\wazirx {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "E":1631683058904,      Event time

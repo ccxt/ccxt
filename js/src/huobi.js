@@ -4823,6 +4823,7 @@ export default class huobi extends Exchange {
          * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
          * @param {bool} [params.postOnly] *contract only* true or false
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -4895,6 +4896,13 @@ export default class huobi extends Exchange {
         if (postOnly) {
             orderType = 'limit-maker';
         }
+        const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
+        if (timeInForce === 'FOK') {
+            orderType = orderType + '-fok';
+        }
+        else if (timeInForce === 'IOC') {
+            orderType = 'ioc';
+        }
         request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
@@ -4942,7 +4950,7 @@ export default class huobi extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        params = this.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator']);
+        params = this.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce']);
         const response = await this.spotPrivatePostV1OrderOrdersPlace(this.extend(request, params));
         //
         // spot
@@ -4987,6 +4995,7 @@ export default class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market(symbol);
@@ -4999,6 +5008,13 @@ export default class huobi extends Exchange {
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
+        }
+        const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
+        if (timeInForce === 'FOK') {
+            type = 'fok';
+        }
+        else if (timeInForce === 'IOC') {
+            type = 'ioc';
         }
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
         const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
@@ -5052,7 +5068,7 @@ export default class huobi extends Exchange {
             request['lever_rate'] = leverRate;
             request['order_price_type'] = type;
         }
-        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate']);
+        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce']);
         const broker = this.safeValue(this.options, 'broker', {});
         const brokerId = this.safeString(broker, 'id');
         request['channel_code'] = brokerId;
@@ -8494,7 +8510,7 @@ export default class huobi extends Exchange {
         //
         const marketId = this.safeString(liquidation, 'contract_code');
         const timestamp = this.safeInteger(liquidation, 'created_at');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(liquidation, 'volume'),
@@ -8504,6 +8520,6 @@ export default class huobi extends Exchange {
             'quoteValue': this.safeNumber(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
 }

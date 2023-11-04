@@ -281,6 +281,7 @@ export default class phemex extends Exchange {
             'exceptions': {
                 'exact': {
                     // not documented
+                    '401': AuthenticationError,
                     '412': BadRequest,
                     '6001': BadRequest,
                     // documented
