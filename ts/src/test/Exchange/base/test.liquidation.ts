@@ -32,7 +32,7 @@ function testLiquidation (exchange, skippedProperties, method, entry, symbol) {
     if (contracts && contractSize) {
         assert (Precise.stringEq (baseValue, Precise.stringMul (contracts, contractSize)), 'baseValue == contracts * contractSize' + logText);
         if (price) {
-            assert (Precise.stringEq (baseValue, Precise.stringMul(Precise.stringMul (contracts, contractSize), price)), 'quoteValue == contracts * contractSize * price' + logText);
+            assert (Precise.stringEq (baseValue, Precise.stringMul (Precise.stringMul (contracts, contractSize), price)), 'quoteValue == contracts * contractSize * price' + logText);
         }
     }
     // if singular was called, then symbol needs to be asserted

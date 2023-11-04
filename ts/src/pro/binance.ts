@@ -21,9 +21,11 @@ export default class binance extends binanceRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchLiquidations': true,
+                'watchLiquidationsForSymbols': true,
                 'watchAllLiquidations': true,
                 'watchAllMyLiquidations': true,
                 'watchMyLiquidations': true,
+                'watchMyLiquidationsForSymbols': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
@@ -182,11 +184,11 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const liquidations = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscribe);
+        const newLiquidation = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscribe);
         if (this.newUpdates) {
-            limit = liquidations.getLimit (liquidations, limit);
+            return [ newLiquidation ];
         }
-        return this.filterBySinceLimit (liquidations, since, limit, 'timestamp', true);
+        return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
     async watchAllLiquidations (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -235,7 +237,7 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return newLiquidations;
         }
-        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
     handleLiquidation (client: Client, message) {
@@ -290,8 +292,8 @@ export default class binance extends binanceRest {
         }
         liquidations.append (liquidation);
         this.liquidations[symbol] = liquidations;
-        client.resolve (this.liquidations, 'liquidations');
-        this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, liquidations);
+        client.resolve ([ liquidation ], 'liquidations');
+        this.resolvePromiseIfMessagehashMatches (client, 'liquidations::', symbol, [ liquidation ]);
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
@@ -325,11 +327,54 @@ export default class binance extends binanceRest {
         //        "z":"1",                   // Order Filled Accumulated Quantity
         //        "T": 1591154240949,        // Order Trade Time
         //    }
+        // myLiquidation
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
         //
         const marketId = this.safeString (liquidation, 's');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (liquidation, 'T');
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.safeNumber (liquidation, 'l'),
@@ -339,7 +384,7 @@ export default class binance extends binanceRest {
             'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -394,21 +439,66 @@ export default class binance extends binanceRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const message = undefined;
-        const liquidations = await this.watch (url, messageHash, message, type);
+        const newLiquidations = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
-            limit = liquidations.getLimit (liquidations, limit);
+            return newLiquidations;
         }
-        return this.filterBySinceLimit (liquidations, since, limit, 'timestamp', true);
+        return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
     }
 
     handleMyLiquidation (client: Client, message) {
         //
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
         //
-        const rawLiquidation = this.safeValue (message, 'o', {});
-        const marketId = this.safeString (rawLiquidation, 's');
+        const orderType = this.safeString (message, 'o');
+        if (orderType !== 'LIQUIDATION') {
+            return;
+        }
+        const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId);
-        const liquidation = this.parseWsLiquidation (rawLiquidation, market);
+        const liquidation = this.parseWsLiquidation (message, market);
         let myLiquidations = this.safeValue (this.myLiquidations, symbol);
         if (myLiquidations === undefined) {
             const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
@@ -416,8 +506,8 @@ export default class binance extends binanceRest {
         }
         myLiquidations.append (liquidation);
         this.myLiquidations[symbol] = myLiquidations;
-        client.resolve (this.myLiquidations, 'myLiquidations');
-        this.resolvePromiseIfMessagehashMatches (client, 'myLiquidations::', symbol, myLiquidations);
+        client.resolve ([ liquidation ], 'myLiquidations');
+        this.resolvePromiseIfMessagehashMatches (client, 'myLiquidations::', symbol, [ liquidation ]);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -2629,6 +2719,7 @@ export default class binance extends binanceRest {
         }
         this.handleMyTrade (client, message);
         this.handleOrder (client, message);
+        this.handleMyLiquidation (client, message);
     }
 
     async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2813,9 +2904,6 @@ export default class binance extends binanceRest {
             client.resolve (this.myTrades, messageHash);
             const messageHashSymbol = messageHash + ':' + symbol;
             client.resolve (this.myTrades, messageHashSymbol);
-        }
-        if (executionType === 'CALCULATED') {
-            this.handleLiquidation (client, message);
         }
     }
 

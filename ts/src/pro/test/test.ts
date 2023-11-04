@@ -122,6 +122,7 @@ async function testPublic (exchange, symbol) {
     await tests['watchTicker']      (exchange, symbol);
     await tests['watchTrades']      (exchange, symbol);
     await tests['watchOHLCV']       (exchange, symbol);
+    // await tests['watchLiquidations'] (exchange, symbol);
     // await tests['watchStatus']      (exchange)
     // await tests['watchHeartbeat']   (exchange)
     // await tests['watchL2OrderBook'] (exchange, symbol)
@@ -141,6 +142,7 @@ async function testPrivate (exchange, symbol, code) {
         // await tests['watchTransactions'] (exchange, code)
         // await tests['watchDeposits']     (exchange, code)
         // await tests['watchWithdrawals']  (exchange, code)
+        // await tests['watchMyLiquidations'] (exchange, symbol);
     }
 }
 
