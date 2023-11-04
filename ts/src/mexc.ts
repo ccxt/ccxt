@@ -2807,7 +2807,7 @@ export default class mexc extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            // request['symbol'] = market['id']; // Adding this line causes fetchOrders() to always return an empty array.
         }
         const [ marketType ] = this.handleMarketTypeAndParams ('fetchOrdersByState', market, params);
         if (marketType === 'spot') {
