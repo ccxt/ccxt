@@ -2255,6 +2255,8 @@ class Transpiler {
             str = str.replace (/assert\((.*)\)(?!$)/g, 'assert $1');
             str = str.replace (/ == True/g, ' is True');
             str = str.replace (/ == False/g, ' is False');
+            str = str.replace (/Number.is_integer\s*\(([^\)]+)\)/g, "isinstance($1, int)");
+
             return exchangeCamelCaseProps(str);
         }
 
@@ -2263,7 +2265,9 @@ class Transpiler {
                 replace (/\$exchange\[\$method\]/g, '$exchange->$method').
                 replace (/\$test_shared_methods\->/g, '').
                 replace (/TICK_SIZE/g, '\\ccxt\\TICK_SIZE').
-                replace (/Precise\->/g, 'Precise::');
+                replace (/Precise\->/g, 'Precise::').
+                replace (/Number->is_integer\s*\(([^\)]+)\)/g, "is_int($1)");
+
             return exchangeCamelCaseProps(str);
         }
 
