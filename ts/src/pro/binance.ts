@@ -1233,9 +1233,9 @@ export default class binance extends binanceRest {
         let signature = undefined;
         if (this.secret.indexOf ('PRIVATE KEY') > -1) {
             if (this.secret.length > 120) {
-                signature = this.encodeURIComponent (rsa (query, this.secret, sha256));
+                signature = rsa (query, this.secret, sha256);
             } else {
-                signature = this.encodeURIComponent (eddsa (this.encode (query), this.secret, ed25519));
+                signature = eddsa (this.encode (query), this.secret, ed25519);
             }
         } else {
             signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
