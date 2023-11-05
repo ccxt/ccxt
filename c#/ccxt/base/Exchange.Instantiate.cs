@@ -4,15 +4,22 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public static Exchange MagicallyCreateInstance(string className, Dictionary<string, object> args = null)
+    public static Exchange MagicallyCreateInstance(string className, object args = null)
     {
         var assembly = Assembly.GetExecutingAssembly();
 
         var type = assembly.GetTypes()
             .First(t => t.Name == className);
 
-        object[] constructorArgs = new object[] { args };
-        return Activator.CreateInstance(type, constructorArgs) as Exchange;
+
+        // tmp check this, can't find constructor
+        // if (args != null)
+        // {
+        //     args ??= new Dictionary<string, object>();
+        //     object[] constructorArgs = new object[] { args as Dictionary<string, object> };
+        //     return Activator.CreateInstance(type, constructorArgs) as Exchange;
+        // }
+        return Activator.CreateInstance(type) as Exchange;
     }
 
     public static object DynamicallyCallMethod(Exchange instance, string methodName, object[] parameters)
