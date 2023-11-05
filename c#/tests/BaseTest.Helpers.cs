@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
     public static Exchange initExchange(object exchangeId, object exchangeArgs = null)
     {
-        var exchange = Exchange.MagicallyCreateInstance((string)exchangeId);
+        var exchange = Exchange.MagicallyCreateInstance((string)exchangeId, (dict)exchangeArgs);
         return exchange;
     }
 
