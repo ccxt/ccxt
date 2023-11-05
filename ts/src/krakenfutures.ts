@@ -93,6 +93,7 @@ export default class krakenfutures extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -102,6 +103,7 @@ export default class krakenfutures extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -140,11 +142,6 @@ export default class krakenfutures extends Exchange {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ],
-                },
-                'feeschedules': {
-                    'get': [
-                        'volumes',
                     ],
                 },
             },
@@ -2142,6 +2139,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
+            this.checkRequiredCredentials ();
             let auth = postData + '/api/';
             if (api !== 'private') {
                 auth += api + '/';
