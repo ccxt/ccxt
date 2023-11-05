@@ -394,6 +394,7 @@ class Exchange(object):
     last_response_headers = None
     last_request_body = None
     last_request_url = None
+    last_request_headers = None
 
     requiresEddsa = False
     base58_encoder = None
