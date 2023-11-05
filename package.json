@@ -109,7 +109,8 @@
     "static-js": "node js/src/test/test.js --static",
     "static-py": "python python/ccxt/test/test_async.py --static",
     "static-php": "php php/test/test_async.php --static",
-    "static-tests": "npm run static-js && npm run static-py && npm run static-php"
+    "static-csharp": "dotnet run --project c#/tests/tests.csproj --static",
+    "static-tests": "npm run static-js && npm run static-py && npm run static-php && npm run static-csharp"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
