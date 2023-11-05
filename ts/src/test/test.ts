@@ -164,7 +164,8 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
         if (this.staticTests) {
-            return await this.runStaticTests ();
+            await this.runStaticTests ();
+            return undefined;
         }
         const symbolStr = symbol !== undefined ? symbol : 'all';
         dump ('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
@@ -178,6 +179,7 @@ export default class testMainClass extends baseMainTestClass {
         await this.importFiles (exchange);
         this.expandSettings (exchange, symbol);
         await this.startTest (exchange, symbol);
+        return undefined; // c# requirement
     }
 
     async importFiles (exchange) {
