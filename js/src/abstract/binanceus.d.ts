@@ -445,6 +445,7 @@ interface binance {
     fapiDataGetTopLongShortPositionRatio(params?: {}): Promise<implicitReturnType>;
     fapiDataGetGlobalLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTakerlongshortRatio(params?: {}): Promise<implicitReturnType>;
+    fapiDataGetBasis(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetForceOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAllOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOpenOrder(params?: {}): Promise<implicitReturnType>;

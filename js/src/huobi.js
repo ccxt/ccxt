@@ -869,6 +869,7 @@ export default class huobi extends Exchange {
                     '1220': AccountNotEnabled,
                     '1303': BadRequest,
                     '1461': InvalidOrder,
+                    '4007': BadRequest,
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest,
                     'validation-constraints-required': BadRequest,
@@ -939,41 +940,195 @@ export default class huobi extends Exchange {
                 },
                 'networks': {
                     // by displaynames
-                    'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'BSC': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'AVALANCHE': 'AVAXCCHAIN',
-                    'AVAX': 'AVAXCCHAIN',
-                    'HRC20': 'HECO',
-                    'HECO': 'HECO',
-                    // 'HT': 'HECO', // HT is not acceptable networkcode for unification
-                    'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
+                    'TRC20': 'TRX',
                     'BTC': 'BTC',
-                    'BITCOIN': 'BTC',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'SOLANA': 'SOL',
-                    'SOL': 'SOL',
-                    'SPL': 'SOL',
-                    'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
-                    'MATIC': 'PRC20',
-                },
-                'networksById': {
-                    'ALGO': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'AVAXCCHAIN': 'AVALANCHE',
-                    'HECO': 'HRC20',
-                    'TRC20': 'TRC20',
-                    'BTC': 'BTC',
-                    'ARB': 'ARBITRUM',
+                    'ERC20': 'ETH',
                     'SOL': 'SOLANA',
-                    'PRC20': 'POLYGON',
+                    'HRC20': 'HECO',
+                    'BEP20': 'BSC',
+                    'XMR': 'XMR',
+                    'LTC': 'LTC',
+                    'XRP': 'XRP',
+                    'XLM': 'XLM',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'GLMR': 'GLMR',
+                    'POLYGON': 'MATIC',
+                    'MATIC': 'MATIC',
+                    'BTT': 'BTT',
+                    'CUBE': 'CUBE',
+                    'IOST': 'IOST',
+                    'NEO': 'NEO',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'THETA': 'THETA',
+                    'NAS': 'NAS',
+                    'NULS': 'NULS',
+                    'QTUM': 'QTUM',
+                    'FTM': 'FTM',
+                    'CELO': 'CELO',
+                    'DOGE': 'DOGE',
+                    'DOGECHAIN': 'DOGECHAIN',
+                    'NEAR': 'NEAR',
+                    'STEP': 'STEP',
+                    'BITCI': 'BITCI',
+                    'CARDANO': 'ADA',
+                    'ADA': 'ADA',
+                    'ETC': 'ETC',
+                    'LUK': 'LUK',
+                    'MINEPLEX': 'MINEPLEX',
+                    'DASH': 'DASH',
+                    'ZEC': 'ZEC',
+                    'IOTA': 'IOTA',
+                    'NEON3': 'NEON3',
+                    'XEM': 'XEM',
+                    'HC': 'HC',
+                    'LSK': 'LSK',
+                    'DCR': 'DCR',
+                    'BTG': 'BTG',
+                    'STEEM': 'STEEM',
+                    'BTS': 'BTS',
+                    'ICX': 'ICX',
+                    'WAVES': 'WAVES',
+                    'CMT': 'CMT',
+                    'BTM': 'BTM',
+                    'VET': 'VET',
+                    'XZC': 'XZC',
+                    'ACT': 'ACT',
+                    'SMT': 'SMT',
+                    'BCD': 'BCD',
+                    'WAX': 'WAX1',
+                    'WICC': 'WICC',
+                    'ELF': 'ELF',
+                    'ZIL': 'ZIL',
+                    'ELA': 'ELA',
+                    'BCX': 'BCX',
+                    'SBTC': 'SBTC',
+                    'BIFI': 'BIFI',
+                    'CTXC': 'CTXC',
+                    'WAN': 'WAN',
+                    'POLYX': 'POLYX',
+                    'PAI': 'PAI',
+                    'WTC': 'WTC',
+                    'DGB': 'DGB',
+                    'XVG': 'XVG',
+                    'AAC': 'AAC',
+                    'AE': 'AE',
+                    'SEELE': 'SEELE',
+                    'BCV': 'BCV',
+                    'GRS': 'GRS',
+                    'ARDR': 'ARDR',
+                    'NANO': 'NANO',
+                    'ZEN': 'ZEN',
+                    'RBTC': 'RBTC',
+                    'BSV': 'BSV',
+                    'GAS': 'GAS',
+                    'XTZ': 'XTZ',
+                    'LAMB': 'LAMB',
+                    'CVNT1': 'CVNT1',
+                    'DOCK': 'DOCK',
+                    'SC': 'SC',
+                    'KMD': 'KMD',
+                    'ETN': 'ETN',
+                    'TOP': 'TOP',
+                    'IRIS': 'IRIS',
+                    'UGAS': 'UGAS',
+                    'TT': 'TT',
+                    'NEWTON': 'NEWTON',
+                    'VSYS': 'VSYS',
+                    'FSN': 'FSN',
+                    'BHD': 'BHD',
+                    'ONE': 'ONE',
+                    'EM': 'EM',
+                    'CKB': 'CKB',
+                    'EOSS': 'EOSS',
+                    'HIVE': 'HIVE',
+                    'RVN': 'RVN',
+                    'DOT': 'DOT',
+                    'KSM': 'KSM',
+                    'BAND': 'BAND',
+                    'OEP4': 'OEP4',
+                    'NBS': 'NBS',
+                    'FIS': 'FIS',
+                    'AR': 'AR',
+                    'HBAR': 'HBAR',
+                    'FIL': 'FIL',
+                    'MASS': 'MASS',
+                    'KAVA': 'KAVA',
+                    'XYM': 'XYM',
+                    'ENJ': 'ENJ',
+                    'CRUST': 'CRUST',
+                    'ICP': 'ICP',
+                    'CSPR': 'CSPR',
+                    'FLOW': 'FLOW',
+                    'IOTX': 'IOTX',
+                    'LAT': 'LAT',
+                    'APT': 'APT',
+                    'XCH': 'XCH',
+                    'MINA': 'MINA',
+                    'XEC': 'ECASH',
+                    'XPRT': 'XPRT',
+                    'CCA': 'ACA',
+                    'AOTI': 'COTI',
+                    'AKT': 'AKT',
+                    'ARS': 'ARS',
+                    'ASTR': 'ASTR',
+                    'AZERO': 'AZERO',
+                    'BLD': 'BLD',
+                    'BRISE': 'BRISE',
+                    'CORE': 'CORE',
+                    'DESO': 'DESO',
+                    'DFI': 'DFI',
+                    'EGLD': 'EGLD',
+                    'ERG': 'ERG',
+                    'ETHF': 'ETHFAIR',
+                    'ETHW': 'ETHW',
+                    'EVMOS': 'EVMOS',
+                    'FIO': 'FIO',
+                    'FLR': 'FLR',
+                    'FINSCHIA': 'FINSCHIA',
+                    'KMA': 'KMA',
+                    'KYVE': 'KYVE',
+                    'MEV': 'MEV',
+                    'MOVR': 'MOVR',
+                    'NODL': 'NODL',
+                    'OAS': 'OAS',
+                    'OSMO': 'OSMO',
+                    'PAYCOIN': 'PAYCOIN',
+                    'POKT': 'POKT',
+                    'PYG': 'PYG',
+                    'REI': 'REI',
+                    'SCRT': 'SCRT',
+                    'SDN': 'SDN',
+                    'SEI': 'SEI',
+                    'SGB': 'SGB',
+                    'SUI': 'SUI',
+                    'SXP': 'SOLAR',
+                    'SYS': 'SYS',
+                    'TENET': 'TENET',
+                    'TON': 'TON',
+                    'UNQ': 'UNQ',
+                    'UYU': 'UYU',
+                    'WEMIX': 'WEMIX',
+                    'XDC': 'XDC',
+                    'XPLA': 'XPLA',
+                    // todo: below
+                    // 'LUNC': 'LUNC',
+                    // 'TERRA': 'TERRA', // tbd
+                    // 'LUNA': 'LUNA', tbd
+                    // 'FCT2': 'FCT2',
+                    // FIL-0X ?
+                    // 'COSMOS': 'ATOM1',
+                    // 'ATOM': 'ATOM1',
+                    // 'CRO': 'CRO',
+                    // 'OP': [ 'OPTIMISM', 'OPTIMISMETH' ]
+                    // 'ARB': ['ARB', 'ARBITRUMETH']
+                    // 'CHZ': [ 'CHZ', 'CZH' ],
+                    // todo: AVAXCCHAIN CCHAIN AVAX
+                    // 'ALGO': ['ALGO', 'ALGOUSDT']
+                    // 'ONT': [ 'ONT', 'ONTOLOGY' ],
+                    // 'BCC': 'BCC', BCH's somewhat chain
+                    // 'DBC1': 'DBC1',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',
@@ -2924,10 +3079,10 @@ export default class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString(chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString(chainEntry, 'displayName');
+                const title = this.safeString2(chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode(title, code);
+                const networkCode = this.networkIdToCode(uniqueChainId);
                 minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
@@ -2947,6 +3102,10 @@ export default class huobi extends Exchange {
                     'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'withdraw': {
                             'min': minWithdraw,
                             'max': maxWithdraw,
@@ -2977,6 +3136,10 @@ export default class huobi extends Exchange {
                         'min': minWithdraw,
                         'max': maxWithdraw,
                     },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
                 'precision': this.parseNumber(minPrecision),
                 'networks': networks,
@@ -3004,13 +3167,25 @@ export default class huobi extends Exchange {
             throw new ExchangeError(this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
         const uniqueNetworkIds = this.safeValue(this.options['networkChainIdsByNames'], currencyCode, {});
-        const networkTitle = super.networkCodeToId(networkCode);
-        return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
+        if (networkCode in uniqueNetworkIds) {
+            return uniqueNetworkIds[networkCode];
+        }
+        else {
+            const networkTitle = super.networkCodeToId(networkCode);
+            return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
+        }
     }
     async fetchBalance(params = {}) {
         /**
          * @method
          * @name huobi#fetchBalance
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
@@ -3023,10 +3198,8 @@ export default class huobi extends Exchange {
         const isUnifiedAccount = this.safeValue2(params, 'isUnifiedAccount', 'unified', false);
         params = this.omit(params, ['isUnifiedAccount', 'unified']);
         const request = {};
-        let method = undefined;
         const spot = (type === 'spot');
         const future = (type === 'future');
-        const swap = (type === 'swap');
         const defaultSubType = this.safeString2(this.options, 'defaultSubType', 'subType', 'linear');
         let subType = this.safeString2(options, 'defaultSubType', 'subType', defaultSubType);
         subType = this.safeString2(params, 'defaultSubType', 'subType', subType);
@@ -3038,42 +3211,42 @@ export default class huobi extends Exchange {
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
+        let response = undefined;
         if (spot || margin) {
             if (margin) {
                 if (isolated) {
-                    method = 'spotPrivateGetV1MarginAccountsBalance';
+                    response = await this.spotPrivateGetV1MarginAccountsBalance(this.extend(request, params));
                 }
                 else {
-                    method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                    response = await this.spotPrivateGetV1CrossMarginAccountsBalance(this.extend(request, params));
                 }
             }
             else {
                 await this.loadAccounts();
                 const accountId = await this.fetchAccountIdByType(type, undefined, undefined, params);
                 request['account-id'] = accountId;
-                method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+                response = await this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, params));
             }
         }
         else if (isUnifiedAccount) {
-            method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
+            response = await this.contractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.extend(request, params));
         }
         else if (linear) {
             if (isolated) {
-                method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                response = await this.contractPrivatePostLinearSwapApiV1SwapAccountInfo(this.extend(request, params));
             }
             else {
-                method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(this.extend(request, params));
             }
         }
         else if (inverse) {
             if (future) {
-                method = 'contractPrivatePostApiV1ContractAccountInfo';
+                response = await this.contractPrivatePostApiV1ContractAccountInfo(this.extend(request, params));
             }
-            else if (swap) {
-                method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+            else {
+                response = await this.contractPrivatePostSwapApiV1SwapAccountInfo(this.extend(request, params));
             }
         }
-        const response = await this[method](this.extend(request, params));
         //
         // spot
         //
@@ -4644,6 +4817,7 @@ export default class huobi extends Exchange {
          * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
          * @param {bool} [params.postOnly] *contract only* true or false
          * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
@@ -4716,6 +4890,13 @@ export default class huobi extends Exchange {
         if (postOnly) {
             orderType = 'limit-maker';
         }
+        const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
+        if (timeInForce === 'FOK') {
+            orderType = orderType + '-fok';
+        }
+        else if (timeInForce === 'IOC') {
+            orderType = 'ioc';
+        }
         request['type'] = side + '-' + orderType;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
@@ -4763,7 +4944,7 @@ export default class huobi extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        params = this.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator']);
+        params = this.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce']);
         const response = await this.spotPrivatePostV1OrderOrdersPlace(this.extend(request, params));
         //
         // spot
@@ -4808,6 +4989,7 @@ export default class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         const market = this.market(symbol);
@@ -4820,6 +5002,13 @@ export default class huobi extends Exchange {
         [postOnly, params] = this.handlePostOnly(type === 'market', type === 'post_only', params);
         if (postOnly) {
             type = 'post_only';
+        }
+        const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
+        if (timeInForce === 'FOK') {
+            type = 'fok';
+        }
+        else if (timeInForce === 'IOC') {
+            type = 'ioc';
         }
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
         const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
@@ -4873,7 +5062,7 @@ export default class huobi extends Exchange {
             request['lever_rate'] = leverRate;
             request['order_price_type'] = type;
         }
-        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate']);
+        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce']);
         const broker = this.safeValue(this.options, 'broker', {});
         const brokerId = this.safeString(broker, 'id');
         request['channel_code'] = brokerId;
@@ -5439,7 +5628,7 @@ export default class huobi extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode(networkId, code),
+            'network': this.networkIdToCode(networkId),
             'note': note,
             'info': depositAddress,
         };
@@ -5714,7 +5903,7 @@ export default class huobi extends Exchange {
             'txid': txHash,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId, code),
+            'network': this.networkIdToCode(networkId),
             'address': this.safeString(transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -8315,7 +8504,7 @@ export default class huobi extends Exchange {
         //
         const marketId = this.safeString(liquidation, 'contract_code');
         const timestamp = this.safeInteger(liquidation, 'created_at');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(liquidation, 'volume'),
@@ -8325,6 +8514,6 @@ export default class huobi extends Exchange {
             'quoteValue': this.safeNumber(liquidation, 'trade_turnover'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
 }

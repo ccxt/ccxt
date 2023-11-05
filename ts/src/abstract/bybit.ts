@@ -265,6 +265,7 @@ interface Exchange {
     privateGetV5UserQueryApi (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserGetMemberType (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserAffCustomerInfo (params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;

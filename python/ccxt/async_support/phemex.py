@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -297,6 +296,7 @@ class phemex(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # not documented
+                    '401': AuthenticationError,  # {"code":"401","msg":"401 Failed to load API KEY."}
                     '412': BadRequest,  # {"code":412,"msg":"Missing parameter - resolution","data":null}
                     '6001': BadRequest,  # {"error":{"code":6001,"message":"invalid argument"},"id":null,"result":null}
                     # documented
@@ -1060,7 +1060,7 @@ class phemex(Exchange, ImplicitAPI):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1592467200,  # timestamp
@@ -1912,6 +1912,9 @@ class phemex(Exchange, ImplicitAPI):
             'Filled': 'closed',
             'Canceled': 'canceled',
             '1': 'open',
+            '2': 'canceled',
+            '3': 'closed',
+            '4': 'canceled',
             '5': 'open',
             '6': 'open',
             '7': 'closed',
@@ -2222,7 +2225,7 @@ class phemex(Exchange, ImplicitAPI):
             'trades': None,
         })
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         isSwap = self.safe_value(market, 'swap', False)
         hasPnl = ('closedPnl' in order)
         if isSwap or hasPnl:
@@ -3398,14 +3401,15 @@ class phemex(Exchange, ImplicitAPI):
             # 'limit': 20,  # Page size default 20, max 200
             # 'offset': 0,  # Page start default 0
         }
-        if limit > 200:
-            raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
         if limit is not None:
+            if limit > 200:
+                raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
             request['limit'] = limit
-        method = 'privateGetApiDataFuturesFundingFees'
+        response = None
         if market['settle'] == 'USDT':
-            method = 'privateGetApiDataGFuturesFundingFees'
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetApiDataGFuturesFundingFees(self.extend(request, params))
+        else:
+            response = await self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
         #
         #     {
         #         "code": 0,

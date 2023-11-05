@@ -4,7 +4,6 @@ var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
-var crypto = require('./base/functions/crypto.js');
 var number = require('./base/functions/number.js');
 
 //  ---------------------------------------------------------------------------
@@ -752,7 +751,7 @@ class wavesexchange extends wavesexchange$1 {
             const messageHex = this.binaryToBase16(this.encode(message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16(this.base58ToBinary(this.secret));
-            const signature = crypto.axolotl(payload, hexKey, ed25519.ed25519);
+            const signature = this.axolotl(payload, hexKey, ed25519.ed25519);
             const request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -1421,7 +1420,7 @@ class wavesexchange extends wavesexchange$1 {
         if ((serializedOrder[0] === '"') && (serializedOrder[(serializedOrder.length - 1)] === '"')) {
             serializedOrder = serializedOrder.slice(1, serializedOrder.length - 1);
         }
-        const signature = crypto.axolotl(this.binaryToBase16(this.base58ToBinary(serializedOrder)), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(this.base58ToBinary(serializedOrder)), this.binaryToBase16(this.base58ToBinary(this.secret)), ed25519.ed25519);
         body['signature'] = signature;
         //
         //     {
@@ -1536,7 +1535,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const request = {
             'Timestamp': timestamp.toString(),
             'Signature': signature,
@@ -1571,7 +1570,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const request = {
             'Accept': 'application/json',
             'Timestamp': timestamp.toString(),
@@ -1935,7 +1934,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
@@ -2533,7 +2532,7 @@ class wavesexchange extends wavesexchange$1 {
         ];
         const binary = this.binaryConcatArray(byteArray);
         const hexSecret = this.binaryToBase16(this.base58ToBinary(this.secret));
-        const signature = crypto.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
+        const signature = this.axolotl(this.binaryToBase16(binary), hexSecret, ed25519.ed25519);
         const request = {
             'senderPublicKey': this.apiKey,
             'amount': amountInteger,

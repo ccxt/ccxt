@@ -39,3 +39,7 @@ __pycache__
 *.pyc
 bin/
 obj/
+
+# docs
+wiki/spec.md
+wiki/examples/**/*.md

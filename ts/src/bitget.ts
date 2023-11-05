@@ -824,6 +824,7 @@ export default class bitget extends Exchange {
                     '40017': ExchangeError, // Parameter verification failed
                     '40018': PermissionDenied, // Invalid IP
                     '40019': BadRequest, // {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40037': AuthenticationError, // Apikey does not exist
                     '40102': BadRequest, // Contract configuration does not exist, please check the parameters
                     '40103': BadRequest, // Request method cannot be empty
                     '40104': ExchangeError, // Lever adjustment failure
@@ -2622,7 +2623,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         // spot
         //
@@ -2998,7 +2999,7 @@ export default class bitget extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // spot
         //     {
@@ -6281,7 +6282,7 @@ export default class bitget extends Exchange {
         const liquidationFee = this.safeString (liquidation, 'LiqFee');
         const totalDebt = this.safeString (liquidation, 'totalDebt');
         const quoteValueString = Precise.stringAdd (liquidationFee, totalDebt);
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': undefined,
@@ -6291,7 +6292,7 @@ export default class bitget extends Exchange {
             'quoteValue': this.parseNumber (quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     async fetchBorrowRate (code: string, params = {}) {

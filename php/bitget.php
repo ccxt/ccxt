@@ -819,6 +819,7 @@ class bitget extends Exchange {
                     '40017' => '\\ccxt\\ExchangeError', // Parameter verification failed
                     '40018' => '\\ccxt\\PermissionDenied', // Invalid IP
                     '40019' => '\\ccxt\\BadRequest', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
+                    '40037' => '\\ccxt\\AuthenticationError', // Apikey does not exist
                     '40102' => '\\ccxt\\BadRequest', // Contract configuration does not exist, please check the parameters
                     '40103' => '\\ccxt\\BadRequest', // Request method cannot be empty
                     '40104' => '\\ccxt\\ExchangeError', // Lever adjustment failure
@@ -1298,11 +1299,14 @@ class bitget extends Exchange {
     }
 
     public function fetch_markets_by_type($type, $params = array ()) {
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => 'publicSpotGetPublicProducts',
-            'swap' => 'publicMixGetMarketContracts',
-        ));
-        $response = $this->$method ($params);
+        $response = null;
+        if ($type === 'spot') {
+            $response = $this->publicSpotGetPublicProducts ($params);
+        } elseif ($type === 'swap') {
+            $response = $this->publicMixGetMarketContracts ($params);
+        } else {
+            throw new NotSupported($this->id . ' does not support ' . $type . ' market');
+        }
         //
         // spot
         //
@@ -2586,7 +2590,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         // spot
         //
@@ -2958,7 +2962,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //     {
@@ -3502,11 +3506,6 @@ class bitget extends Exchange {
         if (!$isStopOrder && !$isTriggerOrder) {
             throw new InvalidOrder($this->id . ' editOrder() only support plan orders');
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostPlanModifyPlan',
-            'swap' => 'privateMixPostPlanModifyPlan',
-            'future' => 'privateMixPostPlanModifyPlan',
-        ));
         if ($triggerPrice !== null) {
             // default $triggerType to $market $price for unification
             $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
@@ -3514,6 +3513,8 @@ class bitget extends Exchange {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['executePrice'] = $this->price_to_precision($symbol, $price);
         }
+        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice' ));
+        $response = null;
         if ($marketType === 'spot') {
             if ($isStopOrder) {
                 throw new InvalidOrder($this->id . ' editOrder() does not support stop orders on spot markets, only swap markets');
@@ -3531,9 +3532,14 @@ class bitget extends Exchange {
             } else {
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
             }
+            $response = $this->privateSpotPostPlanModifyPlan (array_merge($request, $omitted));
         } else {
             $request['symbol'] = $market['id'];
             $request['size'] = $this->amount_to_precision($symbol, $amount);
+            if (($marketType !== 'swap') && ($marketType !== 'future')) {
+                throw new NotSupported($this->id . ' editOrder() does not support ' . $marketType . ' market');
+            }
+            $request['marginCoin'] = $market['settleId'];
             if ($isStopOrder) {
                 if (!$isMarketOrder) {
                     throw new ExchangeError($this->id . ' editOrder() bitget stopLoss or takeProfit orders must be $market orders');
@@ -3545,12 +3551,11 @@ class bitget extends Exchange {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
                     $request['planType'] = 'profit_plan';
                 }
-                $method = 'privateMixPostPlanModifyTPSLPlan';
+                $response = $this->privateMixPostPlanModifyTPSLPlan (array_merge($request, $omitted));
+            } else {
+                $response = $this->privateMixPostPlanModifyPlan (array_merge($request, $omitted));
             }
-            $request['marginCoin'] = $market['settleId'];
         }
-        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice' ));
-        $response = $this->$method (array_merge($request, $omitted));
         //
         // spot
         //     {
@@ -3864,16 +3869,18 @@ class bitget extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeOrderInfo',
-            'swap' => 'privateMixGetOrderDetail',
-            'future' => 'privateMixGetOrderDetail',
-        ));
         $request = array(
             'symbol' => $market['id'],
             'orderId' => $id,
         );
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = $this->privateSpotPostTradeOrderInfo (array_merge($request, $query));
+        } elseif (($marketType === 'swap') || ($marketType === 'future')) {
+            $response = $this->privateMixGetOrderDetail (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOrder() does not support ' . $marketType . ' market');
+        }
         // spot
         //     {
         //       code => '00000',
@@ -4776,16 +4783,18 @@ class bitget extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeFills',
-            'swap' => 'privateMixGetOrderFills',
-            'future' => 'privateMixGetOrderFills',
-        ));
         $request = array(
             'symbol' => $market['id'],
             'orderId' => $id,
         );
-        $response = $this->$method (array_merge($request, $query));
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = $this->privateSpotPostTradeFills (array_merge($request, $query));
+        } elseif (($marketType === 'swap') || ($marketType === 'future')) {
+            $response = $this->privateMixGetOrderFills (array_merge($request, $query));
+        } else {
+            throw new NotSupported($this->id . ' fetchOrderTrades() does not support ' . $marketType . ' market');
+        }
         // spot
         //
         // swap
@@ -5243,7 +5252,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_funding_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the funding history
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
@@ -5254,6 +5263,7 @@ class bitget extends Exchange {
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structures}
          */
         $this->load_markets();
+        $this->check_required_symbol('fetchFundingHistory', $symbol);
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
@@ -5331,7 +5341,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -6173,7 +6183,7 @@ class bitget extends Exchange {
         $liquidationFee = $this->safe_string($liquidation, 'LiqFee');
         $totalDebt = $this->safe_string($liquidation, 'totalDebt');
         $quoteValueString = Precise::string_add($liquidationFee, $totalDebt);
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => null,
@@ -6183,7 +6193,7 @@ class bitget extends Exchange {
             'quoteValue' => $this->parse_number($quoteValueString),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function fetch_borrow_rate(string $code, $params = array ()) {

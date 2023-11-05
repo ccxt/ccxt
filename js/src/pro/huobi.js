@@ -99,7 +99,8 @@ export default class huobi extends huobiRest {
                         '2021': BadRequest,
                         '2001': BadSymbol,
                         '2011': BadSymbol,
-                        '2040': BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
+                        '2040': BadRequest,
+                        '4007': BadRequest, // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
                 },
             },
@@ -539,6 +540,9 @@ export default class huobi extends huobiRest {
             const snapshot = this.parseOrderBook(tick, symbol, timestamp);
             orderbook.reset(snapshot);
             orderbook['nonce'] = seqNum;
+        }
+        if (prevSeqNum !== undefined && prevSeqNum > orderbook['nonce']) {
+            throw new InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
         }
         if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue(tick, 'asks', []);
@@ -1188,12 +1192,12 @@ export default class huobi extends huobiRest {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
-        let type = this.safeString2(this.options, 'watchBalance', 'defaultType', 'spot');
-        type = this.safeString(params, 'type', type);
-        let subType = this.safeString2(this.options, 'watchBalance', 'subType', 'linear');
-        subType = this.safeString(params, 'subType', subType);
-        params = this.omit(params, ['type', 'subType']);
-        params = this.omit(params, 'type');
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params, 'linear');
+        const isUnifiedAccount = this.safeValue2(params, 'isUnifiedAccount', 'unified', false);
+        params = this.omit(params, ['isUnifiedAccount', 'unified']);
         await this.loadMarkets();
         let messageHash = undefined;
         let channel = undefined;
@@ -1214,29 +1218,37 @@ export default class huobi extends huobiRest {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                // usdt contracts account
-                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
-                messageHash = prefix;
-                if (marginMode === 'isolated') {
-                    // isolated margin only allows filtering by symbol3
-                    if (symbol !== undefined) {
-                        messageHash += '.' + market['id'];
-                        channel = messageHash;
-                    }
-                    else {
-                        // subscribe to all
-                        channel = prefix + '.' + '*';
-                    }
+                if (isUnifiedAccount) {
+                    // usdt contracts account
+                    prefix = 'accounts_unify';
+                    messageHash = prefix;
+                    channel = prefix + '.' + 'usdt';
                 }
                 else {
-                    // cross margin
-                    if (currencyCode !== undefined) {
-                        channel = prefix + '.' + currencyCode['id'];
-                        messageHash = channel;
+                    // usdt contracts account
+                    prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                    messageHash = prefix;
+                    if (marginMode === 'isolated') {
+                        // isolated margin only allows filtering by symbol3
+                        if (symbol !== undefined) {
+                            messageHash += '.' + market['id'];
+                            channel = messageHash;
+                        }
+                        else {
+                            // subscribe to all
+                            channel = prefix + '.' + '*';
+                        }
                     }
                     else {
-                        // subscribe to all
-                        channel = prefix + '.' + '*';
+                        // cross margin
+                        if (currencyCode !== undefined) {
+                            channel = prefix + '.' + currencyCode['id'];
+                            messageHash = channel;
+                        }
+                        else {
+                            // subscribe to all
+                            channel = prefix + '.' + '*';
+                        }
                     }
                 }
             }
@@ -1414,7 +1426,9 @@ export default class huobi extends huobiRest {
                 return;
             }
             const first = this.safeValue(data, 0, {});
-            let messageHash = this.safeString(message, 'topic');
+            const topic = this.safeString(message, 'topic');
+            const splitTopic = topic.split('.');
+            let messageHash = this.safeString(splitTopic, 0);
             let subscription = this.safeValue2(client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -1422,13 +1436,37 @@ export default class huobi extends huobiRest {
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                const marginAsset = this.safeString(first, 'margin_asset');
-                messageHash += '.' + marginAsset.toLowerCase();
+                const currencyId = this.safeString2(first, 'margin_asset', 'symbol');
+                messageHash += '.' + currencyId.toLowerCase();
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
             const type = this.safeString(subscription, 'type');
             const subType = this.safeString(subscription, 'subType');
-            if (subType === 'linear') {
+            if (topic === 'accounts_unify') {
+                // {
+                //     margin_asset: 'USDT',
+                //     margin_static: 10,
+                //     cross_margin_static: 10,
+                //     margin_balance: 10,
+                //     cross_profit_unreal: 0,
+                //     margin_frozen: 0,
+                //     withdraw_available: 10,
+                //     cross_risk_rate: null,
+                //     cross_swap: [],
+                //     cross_future: [],
+                //     isolated_swap: []
+                // }
+                const marginAsset = this.safeString(first, 'margin_asset');
+                const code = this.safeCurrencyCode(marginAsset);
+                const marginFrozen = this.safeString(first, 'margin_frozen');
+                const unifiedAccount = this.account();
+                unifiedAccount['free'] = this.safeString(first, 'withdraw_available');
+                unifiedAccount['used'] = marginFrozen;
+                this.balance[code] = unifiedAccount;
+                this.balance = this.safeBalance(this.balance);
+                client.resolve(this.balance, 'accounts_unify');
+            }
+            else if (subType === 'linear') {
                 const margin = this.safeString(subscription, 'margin');
                 if (margin === 'cross') {
                     const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
@@ -1726,6 +1764,15 @@ export default class huobi extends huobiRest {
         //         id: '2'
         //     }
         //
+        //     {
+        //         op: 'sub',
+        //         cid: '1',
+        //         topic: 'accounts_unify.USDT',
+        //         'err-code': 4007,
+        //         'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface',
+        //         ts: 1698419490189
+        //     }
+        //
         const status = this.safeString(message, 'status');
         if (status === 'error') {
             const id = this.safeString(message, 'id');
@@ -1747,8 +1794,8 @@ export default class huobi extends huobiRest {
             }
             return false;
         }
-        const code = this.safeInteger(message, 'code');
-        if (code !== undefined && code !== 200) {
+        const code = this.safeInteger2(message, 'code', 'err-code');
+        if (code !== undefined && ((code !== 200) && (code !== 0))) {
             const feedback = this.id + ' ' + this.json(message);
             try {
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);

@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, Dup
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -94,6 +94,7 @@ export default class krakenfutures extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -103,6 +104,7 @@ export default class krakenfutures extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -141,11 +143,6 @@ export default class krakenfutures extends Exchange {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ],
-                },
-                'feeschedules': {
-                    'get': [
-                        'volumes',
                     ],
                 },
             },
@@ -641,7 +638,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
         //        "time": 1645198500000,
@@ -1043,12 +1040,12 @@ export default class krakenfutures extends Exchange {
          * @name krakenfutures#cancelOrders
          * @description cancel multiple orders
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {[string]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+         * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1211,7 +1208,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // LIMIT
         //
@@ -2359,6 +2356,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
+            this.checkRequiredCredentials ();
             let auth = postData + '/api/';
             if (api !== 'private') {
                 auth += api + '/';

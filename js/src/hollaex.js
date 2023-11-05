@@ -791,7 +791,7 @@ export default class hollaex extends Exchange {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-    parseOHLCV(response, market = undefined) {
+    parseOHLCV(ohlcv, market = undefined) {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -804,12 +804,12 @@ export default class hollaex extends Exchange {
         //     }
         //
         return [
-            this.parse8601(this.safeString(response, 'time')),
-            this.safeNumber(response, 'open'),
-            this.safeNumber(response, 'high'),
-            this.safeNumber(response, 'low'),
-            this.safeNumber(response, 'close'),
-            this.safeNumber(response, 'volume'),
+            this.parse8601(this.safeString(ohlcv, 'time')),
+            this.safeNumber(ohlcv, 'open'),
+            this.safeNumber(ohlcv, 'high'),
+            this.safeNumber(ohlcv, 'low'),
+            this.safeNumber(ohlcv, 'close'),
+            this.safeNumber(ohlcv, 'volume'),
         ];
     }
     parseBalance(response) {

@@ -4023,7 +4023,7 @@ export default class bitmart extends Exchange {
         const priceString = this.safeString(liquidation, 'deal_avg_price');
         const baseValueString = Precise.stringMul(contractsString, contractSizeString);
         const quoteValueString = Precise.stringMul(baseValueString, priceString);
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
@@ -4033,7 +4033,7 @@ export default class bitmart extends Exchange {
             'quoteValue': this.parseNumber(quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     nonce() {
         return this.milliseconds();

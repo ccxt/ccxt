@@ -3063,7 +3063,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger(liquidation, 'timestamp');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(undefined, market),
             'contracts': undefined,
@@ -3073,7 +3073,7 @@ export default class deribit extends Exchange {
             'quoteValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     nonce() {
         return this.milliseconds();

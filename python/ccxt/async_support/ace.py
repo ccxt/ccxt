@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -398,7 +397,7 @@ class ace(Exchange, ImplicitAPI):
         orderBook = self.safe_value(response, 'attachment')
         return self.parse_order_book(orderBook, market['symbol'], None, 'bids', 'asks')
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "changeRate": 0,
@@ -480,7 +479,7 @@ class ace(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #         "15697850529570392100421100482693"

@@ -819,6 +819,7 @@ export default class bitget extends Exchange {
                     '40017': ExchangeError,
                     '40018': PermissionDenied,
                     '40019': BadRequest,
+                    '40037': AuthenticationError,
                     '40102': BadRequest,
                     '40103': BadRequest,
                     '40104': ExchangeError,
@@ -1300,11 +1301,16 @@ export default class bitget extends Exchange {
         };
     }
     async fetchMarketsByType(type, params = {}) {
-        const method = this.getSupportedMapping(type, {
-            'spot': 'publicSpotGetPublicProducts',
-            'swap': 'publicMixGetMarketContracts',
-        });
-        const response = await this[method](params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicSpotGetPublicProducts(params);
+        }
+        else if (type === 'swap') {
+            response = await this.publicMixGetMarketContracts(params);
+        }
+        else {
+            throw new NotSupported(this.id + ' does not support ' + type + ' market');
+        }
         //
         // spot
         //
@@ -3562,11 +3568,6 @@ export default class bitget extends Exchange {
         if (!isStopOrder && !isTriggerOrder) {
             throw new InvalidOrder(this.id + ' editOrder() only support plan orders');
         }
-        let method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostPlanModifyPlan',
-            'swap': 'privateMixPostPlanModifyPlan',
-            'future': 'privateMixPostPlanModifyPlan',
-        });
         if (triggerPrice !== undefined) {
             // default triggerType to market price for unification
             const triggerType = this.safeString(params, 'triggerType', 'market_price');
@@ -3574,6 +3575,8 @@ export default class bitget extends Exchange {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['executePrice'] = this.priceToPrecision(symbol, price);
         }
+        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice']);
+        let response = undefined;
         if (marketType === 'spot') {
             if (isStopOrder) {
                 throw new InvalidOrder(this.id + ' editOrder() does not support stop orders on spot markets, only swap markets');
@@ -3593,10 +3596,15 @@ export default class bitget extends Exchange {
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
             }
+            response = await this.privateSpotPostPlanModifyPlan(this.extend(request, omitted));
         }
         else {
             request['symbol'] = market['id'];
             request['size'] = this.amountToPrecision(symbol, amount);
+            if ((marketType !== 'swap') && (marketType !== 'future')) {
+                throw new NotSupported(this.id + ' editOrder() does not support ' + marketType + ' market');
+            }
+            request['marginCoin'] = market['settleId'];
             if (isStopOrder) {
                 if (!isMarketOrder) {
                     throw new ExchangeError(this.id + ' editOrder() bitget stopLoss or takeProfit orders must be market orders');
@@ -3609,12 +3617,12 @@ export default class bitget extends Exchange {
                     request['triggerPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
                     request['planType'] = 'profit_plan';
                 }
-                method = 'privateMixPostPlanModifyTPSLPlan';
+                response = await this.privateMixPostPlanModifyTPSLPlan(this.extend(request, omitted));
             }
-            request['marginCoin'] = market['settleId'];
+            else {
+                response = await this.privateMixPostPlanModifyPlan(this.extend(request, omitted));
+            }
         }
-        const omitted = this.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice']);
-        const response = await this[method](this.extend(request, omitted));
         //
         // spot
         //     {
@@ -3944,16 +3952,20 @@ export default class bitget extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostTradeOrderInfo',
-            'swap': 'privateMixGetOrderDetail',
-            'future': 'privateMixGetOrderDetail',
-        });
         const request = {
             'symbol': market['id'],
             'orderId': id,
         };
-        let response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateSpotPostTradeOrderInfo(this.extend(request, query));
+        }
+        else if ((marketType === 'swap') || (marketType === 'future')) {
+            response = await this.privateMixGetOrderDetail(this.extend(request, query));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrder() does not support ' + marketType + ' market');
+        }
         // spot
         //     {
         //       code: '00000',
@@ -4879,16 +4891,20 @@ export default class bitget extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrderTrades', market, params);
-        const method = this.getSupportedMapping(marketType, {
-            'spot': 'privateSpotPostTradeFills',
-            'swap': 'privateMixGetOrderFills',
-            'future': 'privateMixGetOrderFills',
-        });
         const request = {
             'symbol': market['id'],
             'orderId': id,
         };
-        const response = await this[method](this.extend(request, query));
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateSpotPostTradeFills(this.extend(request, query));
+        }
+        else if ((marketType === 'swap') || (marketType === 'future')) {
+            response = await this.privateMixGetOrderFills(this.extend(request, query));
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOrderTrades() does not support ' + marketType + ' market');
+        }
         // spot
         //
         // swap
@@ -5352,7 +5368,7 @@ export default class bitget extends Exchange {
             'previousFundingDatetime': undefined,
         };
     }
-    async fetchFundingHistory(symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchFundingHistory
@@ -5365,6 +5381,7 @@ export default class bitget extends Exchange {
          * @returns {object[]} a list of [funding history structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
         await this.loadMarkets();
+        this.checkRequiredSymbol('fetchFundingHistory', symbol);
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new BadSymbol(this.id + ' fetchFundingHistory() supports swap contracts only');
@@ -6292,7 +6309,7 @@ export default class bitget extends Exchange {
         const liquidationFee = this.safeString(liquidation, 'LiqFee');
         const totalDebt = this.safeString(liquidation, 'totalDebt');
         const quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': undefined,
@@ -6302,7 +6319,7 @@ export default class bitget extends Exchange {
             'quoteValue': this.parseNumber(quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     async fetchBorrowRate(code, params = {}) {
         /**

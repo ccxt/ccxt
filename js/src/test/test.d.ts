@@ -1,4 +1,7 @@
 declare class baseMainTestClass {
+    lang: string;
+    staticTestsFailed: boolean;
+    staticTests: boolean;
     info: boolean;
     verbose: boolean;
     debug: boolean;
@@ -28,5 +31,16 @@ export default class testMainClass extends baseMainTestClass {
     testExchange(exchange: any, providedSymbol?: any): Promise<void>;
     runPrivateTests(exchange: any, symbol: any): Promise<void>;
     startTest(exchange: any, symbol: any): Promise<void>;
+    assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
+    loadMarketsFromFile(id: string): any;
+    loadStaticData(): {};
+    removeHostnamefromUrl(url: string): string;
+    urlencodedToDict(url: string): {};
+    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: object, storedOutput: object): any;
+    assertStaticOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
+    testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
+    testExchangeStatically(exchangeName: string, exchangeData: object): Promise<void>;
+    getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
+    runStaticTests(): Promise<void>;
 }
 export {};

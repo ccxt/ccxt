@@ -6658,7 +6658,7 @@ class gate extends gate$1 {
         if (quoteValueString === undefined) {
             quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
         }
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
@@ -6668,7 +6668,7 @@ class gate extends gate$1 {
             'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

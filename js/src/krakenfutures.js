@@ -1037,12 +1037,12 @@ export default class krakenfutures extends Exchange {
          * @name krakenfutures#cancelOrders
          * @description cancel multiple orders
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {[string]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+         * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2340,6 +2340,7 @@ export default class krakenfutures extends Exchange {
         }
         const url = this.urls['api'][api] + query;
         if (api === 'private' || access === 'private') {
+            this.checkRequiredCredentials();
             let auth = postData + '/api/';
             if (api !== 'private') {
                 auth += api + '/';

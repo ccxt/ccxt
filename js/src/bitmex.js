@@ -929,7 +929,7 @@ export default class bitmex extends Exchange {
          */
         // Bitmex barfs if you set 'open': false in the filter...
         const orders = await this.fetchOrders(symbol, since, limit, params);
-        return this.filterBy(orders, 'status', 'closed');
+        return this.filterByArray(orders, 'status', ['closed', 'canceled'], false);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1668,18 +1668,15 @@ export default class bitmex extends Exchange {
         //         "timestamp":"2021-01-02T21:38:49.246Z"
         //     }
         //
-        const status = this.parseOrderStatus(this.safeString(order, 'ordStatus'));
         const marketId = this.safeString(order, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
-        const timestamp = this.parse8601(this.safeString(order, 'timestamp'));
-        const lastTradeTimestamp = this.parse8601(this.safeString(order, 'transactTime'));
-        const price = this.safeString(order, 'price');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const qty = this.safeString(order, 'orderQty');
         let cost = undefined;
         let amount = undefined;
-        const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
         let isInverse = false;
-        if (market === undefined) {
+        if (marketId === undefined) {
+            const defaultSubType = this.safeString(this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         }
         else {
@@ -1700,38 +1697,35 @@ export default class bitmex extends Exchange {
         else {
             filled = cumQty;
         }
-        const id = this.safeString(order, 'orderID');
-        const type = this.safeStringLower(order, 'ordType');
-        const side = this.safeStringLower(order, 'side');
-        const clientOrderId = this.safeString(order, 'clOrdID');
-        const timeInForce = this.parseTimeInForce(this.safeString(order, 'timeInForce'));
-        const stopPrice = this.safeNumber(order, 'stopPx');
         const execInst = this.safeString(order, 'execInst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = (execInst === 'ParticipateDoNotInitiate');
         }
+        const timestamp = this.parse8601(this.safeString(order, 'timestamp'));
+        const stopPrice = this.safeNumber(order, 'stopPx');
+        const remaining = this.safeString(order, 'leavesQty');
         return this.safeOrder({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString(order, 'orderID'),
+            'clientOrderId': this.safeString(order, 'clOrdID'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': this.parse8601(this.safeString(order, 'transactTime')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': this.safeStringLower(order, 'ordType'),
+            'timeInForce': this.parseTimeInForce(this.safeString(order, 'timeInForce')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
+            'side': this.safeStringLower(order, 'side'),
+            'price': this.safeString(order, 'price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': undefined,
-            'status': status,
+            'remaining': this.convertFromRawQuantity(symbol, remaining),
+            'status': this.parseOrderStatus(this.safeString(order, 'ordStatus')),
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -2706,7 +2700,7 @@ export default class bitmex extends Exchange {
         //     }
         //
         const marketId = this.safeString(liquidation, 'symbol');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': undefined,
@@ -2716,7 +2710,7 @@ export default class bitmex extends Exchange {
             'quoteValue': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        });
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

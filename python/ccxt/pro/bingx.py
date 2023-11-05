@@ -276,7 +276,7 @@ class bingx(ccxt.async_support.bingx):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        c: '28909.0',

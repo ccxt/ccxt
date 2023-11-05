@@ -642,7 +642,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "time" => 1645198500000,
@@ -1043,12 +1043,12 @@ class krakenfutures extends Exchange {
             /**
              * cancel multiple $orders
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-             * @param {[string]} $ids order $ids
+             * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified market $symbol
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {[string]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+             * @param {string[]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
@@ -1212,7 +1212,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // LIMIT
         //
@@ -2361,6 +2361,7 @@ class krakenfutures extends Exchange {
         }
         $url = $this->urls['api'][$api] . $query;
         if ($api === 'private' || $access === 'private') {
+            $this->check_required_credentials();
             $auth = $postData . '/api/';
             if ($api !== 'private') {
                 $auth .= $api . '/';

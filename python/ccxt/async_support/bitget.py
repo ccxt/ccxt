@@ -8,9 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType, FundingHistory
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -847,6 +845,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40017': ExchangeError,  # Parameter verification failed
                     '40018': PermissionDenied,  # Invalid IP
                     '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40037': AuthenticationError,  # Apikey does not exist
                     '40102': BadRequest,  # Contract configuration does not exist, please check the parameters
                     '40103': BadRequest,  # Request method cannot be empty
                     '40104': ExchangeError,  # Lever adjustment failure
@@ -1309,11 +1308,13 @@ class bitget(Exchange, ImplicitAPI):
         }
 
     async def fetch_markets_by_type(self, type, params={}):
-        method = self.get_supported_mapping(type, {
-            'spot': 'publicSpotGetPublicProducts',
-            'swap': 'publicMixGetMarketContracts',
-        })
-        response = await getattr(self, method)(params)
+        response = None
+        if type == 'spot':
+            response = await self.publicSpotGetPublicProducts(params)
+        elif type == 'swap':
+            response = await self.publicMixGetMarketContracts(params)
+        else:
+            raise NotSupported(self.id + ' does not support ' + type + ' market')
         #
         # spot
         #
@@ -2537,7 +2538,7 @@ class bitget(Exchange, ImplicitAPI):
             'taker': self.safe_number(data, 'takerFeeRate'),
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         # spot
         #
@@ -2886,7 +2887,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #     {
@@ -3381,17 +3382,14 @@ class bitget(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if not isStopOrder and not isTriggerOrder:
             raise InvalidOrder(self.id + ' editOrder() only support plan orders')
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostPlanModifyPlan',
-            'swap': 'privateMixPostPlanModifyPlan',
-            'future': 'privateMixPostPlanModifyPlan',
-        })
         if triggerPrice is not None:
             # default triggerType to market price for unification
             triggerType = self.safe_string(params, 'triggerType', 'market_price')
             request['triggerType'] = triggerType
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['executePrice'] = self.price_to_precision(symbol, price)
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice'])
+        response = None
         if marketType == 'spot':
             if isStopOrder:
                 raise InvalidOrder(self.id + ' editOrder() does not support stop orders on spot markets, only swap markets')
@@ -3406,9 +3404,13 @@ class bitget(Exchange, ImplicitAPI):
                     request['size'] = self.price_to_precision(symbol, cost)
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
+            response = await self.privateSpotPostPlanModifyPlan(self.extend(request, omitted))
         else:
             request['symbol'] = market['id']
             request['size'] = self.amount_to_precision(symbol, amount)
+            if (marketType != 'swap') and (marketType != 'future'):
+                raise NotSupported(self.id + ' editOrder() does not support ' + marketType + ' market')
+            request['marginCoin'] = market['settleId']
             if isStopOrder:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' editOrder() bitget stopLoss or takeProfit orders must be market orders')
@@ -3418,10 +3420,9 @@ class bitget(Exchange, ImplicitAPI):
                 elif isTakeProfitOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['planType'] = 'profit_plan'
-                method = 'privateMixPostPlanModifyTPSLPlan'
-            request['marginCoin'] = market['settleId']
-        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice'])
-        response = await getattr(self, method)(self.extend(request, omitted))
+                response = await self.privateMixPostPlanModifyTPSLPlan(self.extend(request, omitted))
+            else:
+                response = await self.privateMixPostPlanModifyPlan(self.extend(request, omitted))
         #
         # spot
         #     {
@@ -3714,16 +3715,17 @@ class bitget(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeOrderInfo',
-            'swap': 'privateMixGetOrderDetail',
-            'future': 'privateMixGetOrderDetail',
-        })
         request = {
             'symbol': market['id'],
             'orderId': id,
         }
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marketType == 'spot':
+            response = await self.privateSpotPostTradeOrderInfo(self.extend(request, query))
+        elif (marketType == 'swap') or (marketType == 'future'):
+            response = await self.privateMixGetOrderDetail(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrder() does not support ' + marketType + ' market')
         # spot
         #     {
         #       code: '00000',
@@ -4557,16 +4559,17 @@ class bitget(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'privateSpotPostTradeFills',
-            'swap': 'privateMixGetOrderFills',
-            'future': 'privateMixGetOrderFills',
-        })
         request = {
             'symbol': market['id'],
             'orderId': id,
         }
-        response = await getattr(self, method)(self.extend(request, query))
+        response = None
+        if marketType == 'spot':
+            response = await self.privateSpotPostTradeFills(self.extend(request, query))
+        elif (marketType == 'swap') or (marketType == 'future'):
+            response = await self.privateMixGetOrderFills(self.extend(request, query))
+        else:
+            raise NotSupported(self.id + ' fetchOrderTrades() does not support ' + marketType + ' market')
         # spot
         #
         # swap
@@ -4998,7 +5001,7 @@ class bitget(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    async def fetch_funding_history(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the funding history
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
@@ -5009,6 +5012,7 @@ class bitget(Exchange, ImplicitAPI):
         :returns dict[]: a list of `funding history structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
         await self.load_markets()
+        self.check_required_symbol('fetchFundingHistory', symbol)
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
@@ -5081,7 +5085,7 @@ class bitget(Exchange, ImplicitAPI):
             'id': id,
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Optional[int] = None, limit: Optional[int] = None):
+    def parse_funding_histories(self, contracts, market=None, since: Optional[int] = None, limit: Optional[int] = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
@@ -5874,7 +5878,7 @@ class bitget(Exchange, ImplicitAPI):
         liquidationFee = self.safe_string(liquidation, 'LiqFee')
         totalDebt = self.safe_string(liquidation, 'totalDebt')
         quoteValueString = Precise.string_add(liquidationFee, totalDebt)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': None,
@@ -5884,7 +5888,7 @@ class bitget(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(quoteValueString),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     async def fetch_borrow_rate(self, code: str, params={}):
         """

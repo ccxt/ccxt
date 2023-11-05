@@ -6,9 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -631,7 +629,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "time": 1645198500000,
@@ -993,12 +991,12 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         cancel multiple orders
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-        :param [str] ids: order ids
+        :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the bingx api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-        :param [str] [params.clientOrderIds]: max length 10 e.g. ["my_id_1","my_id_2"]
+        :param str[] [params.clientOrderIds]: max length 10 e.g. ["my_id_1","my_id_2"]
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1145,7 +1143,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # LIMIT
         #
@@ -2206,6 +2204,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             query += '?' + postData
         url = self.urls['api'][api] + query
         if api == 'private' or access == 'private':
+            self.check_required_credentials()
             auth = postData + '/api/'
             if api != 'private':
                 auth += api + '/'

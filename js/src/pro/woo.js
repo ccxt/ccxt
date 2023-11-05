@@ -661,8 +661,11 @@ export default class woo extends wooRest {
             const value = balances[key];
             const code = this.safeCurrencyCode(key);
             const account = (code in this.balance) ? this.balance[code] : this.account();
-            account['total'] = this.safeString(value, 'holding');
-            account['used'] = this.safeString(value, 'frozen');
+            const total = this.safeString(value, 'holding');
+            const used = this.safeString(value, 'frozen');
+            account['total'] = total;
+            account['used'] = used;
+            account['free'] = Precise.stringSub(total, used);
             this.balance[code] = account;
         }
         this.balance = this.safeBalance(this.balance);

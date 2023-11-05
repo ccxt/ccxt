@@ -879,6 +879,7 @@ class huobi extends Exchange {
                     '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718)
                     '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
                     '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
+                    '4007' => '\\ccxt\\BadRequest', // array("code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651")'
                     'bad-request' => '\\ccxt\\BadRequest',
                     'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
                     'validation-constraints-required' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-constraints-required","err-msg":"Field is missing => client-order-id.","data":null)
@@ -949,41 +950,195 @@ class huobi extends Exchange {
                 ),
                 'networks' => array(
                     // by displaynames
-                    'ALGO' => 'ALGO',
-                    'ALGORAND' => 'ALGO',
-                    'BEP20' => 'BEP20',
-                    'BSC' => 'BEP20',
-                    'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
-                    'AVALANCHE' => 'AVAXCCHAIN',
-                    'AVAX' => 'AVAXCCHAIN',
-                    'HRC20' => 'HECO',
-                    'HECO' => 'HECO',
-                    // 'HT' => 'HECO', // HT is not acceptable networkcode for unification
-                    'TRC20' => 'TRC20',
-                    'TRX' => 'TRC20',
+                    'TRC20' => 'TRX', // TRON for mainnet
                     'BTC' => 'BTC',
-                    'BITCOIN' => 'BTC',
-                    'ARBITRUM' => 'ARB',
-                    'ARB' => 'ARB',
-                    'SOLANA' => 'SOL',
-                    'SOL' => 'SOL',
-                    'SPL' => 'SOL',
-                    'PRC20' => 'PRC20',
-                    'POLYGON' => 'PRC20',
-                    'MATIC' => 'PRC20',
-                ),
-                'networksById' => array(
-                    'ALGO' => 'ALGO',
-                    'BEP20' => 'BEP20',
-                    'ERC20' => 'ERC20',
-                    'AVAXCCHAIN' => 'AVALANCHE',
-                    'HECO' => 'HRC20',
-                    'TRC20' => 'TRC20',
-                    'BTC' => 'BTC',
-                    'ARB' => 'ARBITRUM',
+                    'ERC20' => 'ETH', // ETH for mainnet
                     'SOL' => 'SOLANA',
-                    'PRC20' => 'POLYGON',
+                    'HRC20' => 'HECO',
+                    'BEP20' => 'BSC',
+                    'XMR' => 'XMR',
+                    'LTC' => 'LTC',
+                    'XRP' => 'XRP',
+                    'XLM' => 'XLM',
+                    'CRONOS' => 'CRO',
+                    'CRO' => 'CRO',
+                    'GLMR' => 'GLMR',
+                    'POLYGON' => 'MATIC',
+                    'MATIC' => 'MATIC',
+                    'BTT' => 'BTT',
+                    'CUBE' => 'CUBE',
+                    'IOST' => 'IOST',
+                    'NEO' => 'NEO',
+                    'KLAY' => 'KLAY',
+                    'EOS' => 'EOS',
+                    'THETA' => 'THETA',
+                    'NAS' => 'NAS',
+                    'NULS' => 'NULS',
+                    'QTUM' => 'QTUM',
+                    'FTM' => 'FTM',
+                    'CELO' => 'CELO',
+                    'DOGE' => 'DOGE',
+                    'DOGECHAIN' => 'DOGECHAIN',
+                    'NEAR' => 'NEAR',
+                    'STEP' => 'STEP',
+                    'BITCI' => 'BITCI',
+                    'CARDANO' => 'ADA',
+                    'ADA' => 'ADA',
+                    'ETC' => 'ETC',
+                    'LUK' => 'LUK',
+                    'MINEPLEX' => 'MINEPLEX',
+                    'DASH' => 'DASH',
+                    'ZEC' => 'ZEC',
+                    'IOTA' => 'IOTA',
+                    'NEON3' => 'NEON3',
+                    'XEM' => 'XEM',
+                    'HC' => 'HC',
+                    'LSK' => 'LSK',
+                    'DCR' => 'DCR',
+                    'BTG' => 'BTG',
+                    'STEEM' => 'STEEM',
+                    'BTS' => 'BTS',
+                    'ICX' => 'ICX',
+                    'WAVES' => 'WAVES',
+                    'CMT' => 'CMT',
+                    'BTM' => 'BTM',
+                    'VET' => 'VET',
+                    'XZC' => 'XZC',
+                    'ACT' => 'ACT',
+                    'SMT' => 'SMT',
+                    'BCD' => 'BCD',
+                    'WAX' => 'WAX1',
+                    'WICC' => 'WICC',
+                    'ELF' => 'ELF',
+                    'ZIL' => 'ZIL',
+                    'ELA' => 'ELA',
+                    'BCX' => 'BCX',
+                    'SBTC' => 'SBTC',
+                    'BIFI' => 'BIFI',
+                    'CTXC' => 'CTXC',
+                    'WAN' => 'WAN',
+                    'POLYX' => 'POLYX',
+                    'PAI' => 'PAI',
+                    'WTC' => 'WTC',
+                    'DGB' => 'DGB',
+                    'XVG' => 'XVG',
+                    'AAC' => 'AAC',
+                    'AE' => 'AE',
+                    'SEELE' => 'SEELE',
+                    'BCV' => 'BCV',
+                    'GRS' => 'GRS',
+                    'ARDR' => 'ARDR',
+                    'NANO' => 'NANO',
+                    'ZEN' => 'ZEN',
+                    'RBTC' => 'RBTC',
+                    'BSV' => 'BSV',
+                    'GAS' => 'GAS',
+                    'XTZ' => 'XTZ',
+                    'LAMB' => 'LAMB',
+                    'CVNT1' => 'CVNT1',
+                    'DOCK' => 'DOCK',
+                    'SC' => 'SC',
+                    'KMD' => 'KMD',
+                    'ETN' => 'ETN',
+                    'TOP' => 'TOP',
+                    'IRIS' => 'IRIS',
+                    'UGAS' => 'UGAS',
+                    'TT' => 'TT',
+                    'NEWTON' => 'NEWTON',
+                    'VSYS' => 'VSYS',
+                    'FSN' => 'FSN',
+                    'BHD' => 'BHD',
+                    'ONE' => 'ONE',
+                    'EM' => 'EM',
+                    'CKB' => 'CKB',
+                    'EOSS' => 'EOSS',
+                    'HIVE' => 'HIVE',
+                    'RVN' => 'RVN',
+                    'DOT' => 'DOT',
+                    'KSM' => 'KSM',
+                    'BAND' => 'BAND',
+                    'OEP4' => 'OEP4',
+                    'NBS' => 'NBS',
+                    'FIS' => 'FIS',
+                    'AR' => 'AR',
+                    'HBAR' => 'HBAR',
+                    'FIL' => 'FIL',
+                    'MASS' => 'MASS',
+                    'KAVA' => 'KAVA',
+                    'XYM' => 'XYM',
+                    'ENJ' => 'ENJ',
+                    'CRUST' => 'CRUST',
+                    'ICP' => 'ICP',
+                    'CSPR' => 'CSPR',
+                    'FLOW' => 'FLOW',
+                    'IOTX' => 'IOTX',
+                    'LAT' => 'LAT',
+                    'APT' => 'APT',
+                    'XCH' => 'XCH',
+                    'MINA' => 'MINA',
+                    'XEC' => 'ECASH',
+                    'XPRT' => 'XPRT',
+                    'CCA' => 'ACA',
+                    'AOTI' => 'COTI',
+                    'AKT' => 'AKT',
+                    'ARS' => 'ARS',
+                    'ASTR' => 'ASTR',
+                    'AZERO' => 'AZERO',
+                    'BLD' => 'BLD',
+                    'BRISE' => 'BRISE',
+                    'CORE' => 'CORE',
+                    'DESO' => 'DESO',
+                    'DFI' => 'DFI',
+                    'EGLD' => 'EGLD',
+                    'ERG' => 'ERG',
+                    'ETHF' => 'ETHFAIR',
+                    'ETHW' => 'ETHW',
+                    'EVMOS' => 'EVMOS',
+                    'FIO' => 'FIO',
+                    'FLR' => 'FLR',
+                    'FINSCHIA' => 'FINSCHIA',
+                    'KMA' => 'KMA',
+                    'KYVE' => 'KYVE',
+                    'MEV' => 'MEV',
+                    'MOVR' => 'MOVR',
+                    'NODL' => 'NODL',
+                    'OAS' => 'OAS',
+                    'OSMO' => 'OSMO',
+                    'PAYCOIN' => 'PAYCOIN',
+                    'POKT' => 'POKT',
+                    'PYG' => 'PYG',
+                    'REI' => 'REI',
+                    'SCRT' => 'SCRT',
+                    'SDN' => 'SDN',
+                    'SEI' => 'SEI',
+                    'SGB' => 'SGB',
+                    'SUI' => 'SUI',
+                    'SXP' => 'SOLAR',
+                    'SYS' => 'SYS',
+                    'TENET' => 'TENET',
+                    'TON' => 'TON',
+                    'UNQ' => 'UNQ',
+                    'UYU' => 'UYU',
+                    'WEMIX' => 'WEMIX',
+                    'XDC' => 'XDC',
+                    'XPLA' => 'XPLA',
+                    // todo => below
+                    // 'LUNC' => 'LUNC',
+                    // 'TERRA' => 'TERRA', // tbd
+                    // 'LUNA' => 'LUNA', tbd
+                    // 'FCT2' => 'FCT2',
+                    // FIL-0X ?
+                    // 'COSMOS' => 'ATOM1',
+                    // 'ATOM' => 'ATOM1',
+                    // 'CRO' => 'CRO',
+                    // 'OP' => array( 'OPTIMISM', 'OPTIMISMETH' )
+                    // 'ARB' => ['ARB', 'ARBITRUMETH']
+                    // 'CHZ' => array( 'CHZ', 'CZH' ),
+                    // todo => AVAXCCHAIN CCHAIN AVAX
+                    // 'ALGO' => ['ALGO', 'ALGOUSDT']
+                    // 'ONT' => array( 'ONT', 'ONTOLOGY' ),
+                    // 'BCC' => 'BCC', BCH's somewhat chain
+                    // 'DBC1' => 'DBC1',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -2617,7 +2772,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -2915,10 +3070,10 @@ class huobi extends Exchange {
                 for ($j = 0; $j < count($chains); $j++) {
                     $chainEntry = $chains[$j];
                     $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
-                    $title = $this->safe_string($chainEntry, 'displayName');
+                    $title = $this->safe_string_2($chainEntry, 'baseChain', 'displayName'); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
                     $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
                     $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
-                    $networkCode = $this->network_id_to_code($title, $code);
+                    $networkCode = $this->network_id_to_code($uniqueChainId);
                     $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
                     $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
                     $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
@@ -2938,6 +3093,10 @@ class huobi extends Exchange {
                         'id' => $uniqueChainId,
                         'network' => $networkCode,
                         'limits' => array(
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                             'withdraw' => array(
                                 'min' => $minWithdraw,
                                 'max' => $maxWithdraw,
@@ -2967,6 +3126,10 @@ class huobi extends Exchange {
                         'withdraw' => array(
                             'min' => $minWithdraw,
                             'max' => $maxWithdraw,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
                         ),
                     ),
                     'precision' => $this->parse_number($minPrecision),
@@ -2998,13 +3161,24 @@ class huobi extends Exchange {
             throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
         }
         $uniqueNetworkIds = $this->safe_value($this->options['networkChainIdsByNames'], $currencyCode, array());
-        $networkTitle = parent::network_code_to_id($networkCode);
-        return $this->safe_value($uniqueNetworkIds, $networkTitle, $networkTitle);
+        if (is_array($uniqueNetworkIds) && array_key_exists($networkCode, $uniqueNetworkIds)) {
+            return $uniqueNetworkIds[$networkCode];
+        } else {
+            $networkTitle = parent::network_code_to_id($networkCode);
+            return $this->safe_value($uniqueNetworkIds, $networkTitle, $networkTitle);
+        }
     }
 
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$account-information
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$isolated-query-user-s-$account-information
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$cross-query-user-39-s-$account-information
              * query for $balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the huobi api endpoint
              * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
@@ -3017,10 +3191,8 @@ class huobi extends Exchange {
             $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
             $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
             $request = array();
-            $method = null;
             $spot = ($type === 'spot');
             $future = ($type === 'future');
-            $swap = ($type === 'swap');
             $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
             $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
             $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
@@ -3032,35 +3204,35 @@ class huobi extends Exchange {
             $isolated = ($marginMode === 'isolated');
             $cross = ($marginMode === 'cross');
             $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
+            $response = null;
             if ($spot || $margin) {
                 if ($margin) {
                     if ($isolated) {
-                        $method = 'spotPrivateGetV1MarginAccountsBalance';
+                        $response = Async\await($this->spotPrivateGetV1MarginAccountsBalance (array_merge($request, $params)));
                     } else {
-                        $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                        $response = Async\await($this->spotPrivateGetV1CrossMarginAccountsBalance (array_merge($request, $params)));
                     }
                 } else {
                     Async\await($this->load_accounts());
                     $accountId = Async\await($this->fetch_account_id_by_type($type, null, null, $params));
                     $request['account-id'] = $accountId;
-                    $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
+                    $response = Async\await($this->spotPrivateGetV1AccountAccountsAccountIdBalance (array_merge($request, $params)));
                 }
             } elseif ($isUnifiedAccount) {
-                $method = 'contractPrivateGetLinearSwapApiV3UnifiedAccountInfo';
+                $response = Async\await($this->contractPrivateGetLinearSwapApiV3UnifiedAccountInfo (array_merge($request, $params)));
             } elseif ($linear) {
                 if ($isolated) {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo';
+                    $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapAccountInfo (array_merge($request, $params)));
                 } else {
-                    $method = 'contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo';
+                    $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossAccountInfo (array_merge($request, $params)));
                 }
             } elseif ($inverse) {
                 if ($future) {
-                    $method = 'contractPrivatePostApiV1ContractAccountInfo';
-                } elseif ($swap) {
-                    $method = 'contractPrivatePostSwapApiV1SwapAccountInfo';
+                    $response = Async\await($this->contractPrivatePostApiV1ContractAccountInfo (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->contractPrivatePostSwapApiV1SwapAccountInfo (array_merge($request, $params)));
                 }
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // $spot
             //
@@ -3132,7 +3304,7 @@ class huobi extends Exchange {
             //         )
             //     }
             //
-            // $future, $swap $isolated
+            // $future, swap $isolated
             //
             //     {
             //         "status" => "ok",
@@ -3152,7 +3324,7 @@ class huobi extends Exchange {
             //                 "adjust_factor" => 0.025000000000000000,
             //                 "margin_static" => 0,
             //                 "is_debit" => 0, // $future only
-            //                 "contract_code" => "BTC-USD", // $swap only
+            //                 "contract_code" => "BTC-USD", // swap only
             //                 "margin_asset" => "USDT", // $linear only
             //                 "margin_mode" => "isolated", // $linear only
             //                 "margin_account" => "BTC-USDT" // $linear only
@@ -3162,7 +3334,7 @@ class huobi extends Exchange {
             //         "ts" => 1637644827566
             //     }
             //
-            // $linear $cross futures and $linear $cross $swap
+            // $linear $cross futures and $linear $cross swap
             //
             //     {
             //         "status" => "ok",
@@ -3216,7 +3388,7 @@ class huobi extends Exchange {
             //         "ts" => 1640915104870
             //     }
             //
-            // TODO add $balance parsing for $linear $swap
+            // TODO add $balance parsing for $linear swap
             //
             $result = array( 'info' => $response );
             $data = $this->safe_value($response, 'data');
@@ -4205,7 +4377,7 @@ class huobi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //
@@ -4611,6 +4783,7 @@ class huobi extends Exchange {
              * @param {string} [$params->offset] *contract only* 'open', 'close', or 'both', required in hedge mode
              * @param {bool} [$params->postOnly] *contract only* true or false
              * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+             * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
@@ -4681,6 +4854,12 @@ class huobi extends Exchange {
             if ($postOnly) {
                 $orderType = 'limit-maker';
             }
+            $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+            if ($timeInForce === 'FOK') {
+                $orderType = $orderType . '-fok';
+            } elseif ($timeInForce === 'IOC') {
+                $orderType = 'ioc';
+            }
             $request['type'] = $side . '-' . $orderType;
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
             if ($clientOrderId === null) {
@@ -4722,7 +4901,7 @@ class huobi extends Exchange {
             if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator' ));
+            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
             $response = Async\await($this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params)));
             //
             // spot
@@ -4768,6 +4947,7 @@ class huobi extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             $market = $this->market($symbol);
@@ -4780,6 +4960,12 @@ class huobi extends Exchange {
             list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
             if ($postOnly) {
                 $type = 'post_only';
+            }
+            $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+            if ($timeInForce === 'FOK') {
+                $type = 'fok';
+            } elseif ($timeInForce === 'IOC') {
+                $type = 'ioc';
             }
             $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
             $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
@@ -4830,7 +5016,7 @@ class huobi extends Exchange {
                 $request['lever_rate'] = $leverRate;
                 $request['order_price_type'] = $type;
             }
-            $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate' ));
+            $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ));
             $broker = $this->safe_value($this->options, 'broker', array());
             $brokerId = $this->safe_string($broker, 'id');
             $request['channel_code'] = $brokerId;
@@ -5341,7 +5527,7 @@ class huobi extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $this->network_id_to_code($networkId, $code),
+            'network' => $this->network_id_to_code($networkId),
             'note' => $note,
             'info' => $depositAddress,
         );
@@ -5624,7 +5810,7 @@ class huobi extends Exchange {
             'txid' => $txHash,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId, $code),
+            'network' => $this->network_id_to_code($networkId),
             'address' => $this->safe_string($transaction, 'address'),
             'addressTo' => null,
             'addressFrom' => null,
@@ -8221,7 +8407,7 @@ class huobi extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'contract_code');
         $timestamp = $this->safe_integer($liquidation, 'created_at');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'volume'),
@@ -8231,6 +8417,6 @@ class huobi extends Exchange {
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 }

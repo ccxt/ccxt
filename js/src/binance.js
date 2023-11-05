@@ -718,6 +718,7 @@ export default class binance extends Exchange {
                         'topLongShortPositionRatio': 1,
                         'globalLongShortAccountRatio': 1,
                         'takerlongshortRatio': 1,
+                        'basis': 1,
                     },
                 },
                 'fapiPrivate': {
@@ -5148,13 +5149,13 @@ export default class binance extends Exchange {
          * @description cancel multiple orders
          * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-multiple-orders-trade
          * @see https://binance-docs.github.io/apidocs/delivery/en/#cancel-multiple-orders-trade
-         * @param {[string]} ids order ids
+         * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {[string]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-         * @param {[int]} [params.recvWindow]
+         * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+         * @param {int[]} [params.recvWindow]
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredSymbol('cancelOrders', symbol);
@@ -9517,7 +9518,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString(liquidation, 'symbol');
         const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'updateTime');
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.safeNumber(liquidation, 'executedQty'),
@@ -9527,6 +9528,6 @@ export default class binance extends Exchange {
             'quoteValue': this.safeNumber(liquidation, 'cumQuote'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
 }

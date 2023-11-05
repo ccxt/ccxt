@@ -275,6 +275,7 @@ class phemex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // not documented
+                    '401' => '\\ccxt\\AuthenticationError', // array("code":"401","msg":"401 Failed to load API KEY.")
                     '412' => '\\ccxt\\BadRequest', // array("code":412,"msg":"Missing parameter - resolution","data":null)
                     '6001' => '\\ccxt\\BadRequest', // array("error":array("code":6001,"message":"invalid argument"),"id":null,"result":null)
                     // documented
@@ -1072,7 +1073,7 @@ class phemex extends Exchange {
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -1967,6 +1968,9 @@ class phemex extends Exchange {
             'Filled' => 'closed',
             'Canceled' => 'canceled',
             '1' => 'open',
+            '2' => 'canceled',
+            '3' => 'closed',
+            '4' => 'canceled',
             '5' => 'open',
             '6' => 'open',
             '7' => 'closed',
@@ -2290,7 +2294,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $isSwap = $this->safe_value($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {
@@ -3577,17 +3581,18 @@ class phemex extends Exchange {
             // 'limit' => 20, // Page size default 20, max 200
             // 'offset' => 0, // Page start default 0
         );
-        if ($limit > 200) {
-            throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
-        }
         if ($limit !== null) {
+            if ($limit > 200) {
+                throw new BadRequest($this->id . ' fetchFundingHistory() $limit argument cannot exceed 200');
+            }
             $request['limit'] = $limit;
         }
-        $method = 'privateGetApiDataFuturesFundingFees';
+        $response = null;
         if ($market['settle'] === 'USDT') {
-            $method = 'privateGetApiDataGFuturesFundingFees';
+            $response = $this->privateGetApiDataGFuturesFundingFees (array_merge($request, $params));
+        } else {
+            $response = $this->privateGetApiDataFuturesFundingFees (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => 0,
