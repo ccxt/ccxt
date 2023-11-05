@@ -1492,20 +1492,23 @@ export default class coinlist extends Exchange {
             'side': side,
             'size': this.amountToPrecision (symbol, amount),
         };
+        let isMarket = false;
         if ((type === 'limit') || (type === 'stop_limit') || (type === 'take_limit')) {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            isMarket = true;
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let postOnly = undefined;
+        [ postOnly, params ] = this.handlePostOnly (isMarket, false, params);
         if (postOnly) {
-            params = this.omit (params, 'postOnly');
             request['post_only'] = true;
         }
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'trigger_price', 'stopPrice', 'stop_price' ]);
         if (triggerPrice !== undefined) {
-            params = this.omit (params, 'triggerPrice', 'trigger_price', 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'trigger_price', 'stopPrice' ]);
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             if (type === 'market') {
                 request['type'] = 'stop_market';
@@ -1515,10 +1518,10 @@ export default class coinlist extends Exchange {
         } else if ((type === 'stop_market') || (type === 'stop_limit') || (type === 'take_market') || (type === 'take_limit')) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
-        const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'client_order_id', 'clientId' ]);
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId', 'client_order_id', 'clientId');
+            params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
         }
         const response = await this.privatePostV1Orders (this.extend (request, params));
         //
@@ -1924,7 +1927,7 @@ export default class coinlist extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        params = this.omit (params, 'trader_id', 'traderId');
+        params = this.omit (params, [ 'trader_id', 'traderId' ]);
         const response = await this.privateGetV1AccountsTraderIdWalletLedger (this.extend (request, params));
         //
         //     [
@@ -2109,7 +2112,7 @@ export default class coinlist extends Exchange {
             params = this.omit (params, [ 'till', 'until' ]);
             request['end_time'] = this.iso8601 (until);
         }
-        params = this.omit (params, 'trader_id', 'traderId');
+        params = this.omit (params, [ 'trader_id', 'traderId' ]);
         const response = await this.privateGetV1AccountsTraderIdLedger (this.extend (request, params));
         //
         //     {
@@ -2327,6 +2330,16 @@ export default class coinlist extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
+            // In some cases the exchange returns 202 Accepted for bad orders.
+            // The body of that response contains order_id of the order.
+            // Some bad orders will get status 'rejected' and could be fetched later (by using fetchOrders() or fetchOrder(order_id)).
+            // While others don't get any status, they simply disappear, but the response is still 202 Accepted and contains their order_id.
+            // When using fechOrder(order_id) for such disappeared orders, the exchange returns an empty response with code 404.
+            if ((code === 404) && (url.indexOf ('/orders/') >= 0) && (method === 'GET')) {
+                const parts = url.split ('/orders/');
+                const orderId = this.safeString (parts, 1);
+                throw new OrderNotFound (this.id + ' order ' + orderId + ' not found (or rejected on the exchange side)');
+            }
             return undefined;
         }
         const responseCode = this.safeString (response, 'status');
