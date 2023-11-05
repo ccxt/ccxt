@@ -92,8 +92,11 @@ public partial class Exchange
     public object timeout { get; set; } = 10000;
 
     public object last_response_headers { get; set; }
+    public object last_request_headers { get; set; }
     public object last_json_response { get; set; }
     public object last_http_response { get; set; }
+    public object last_request_body { get; set; }
+    public object last_request_url { get; set; }
 
     public object name { get; set; }
 
