@@ -1,5 +1,7 @@
 using ccxt;
 
+using Newtonsoft.Json;
+
 using System.Globalization;
 using System.Reflection;
 namespace Tests;
@@ -71,6 +73,16 @@ public partial class testMainClass : BaseTest
                 testFiles[methodName] = testMethod;
             }
         }
+    }
+
+    public object jsonStringify(object a)
+    {
+        return JsonConvert.SerializeObject(a);
+    }
+
+    public object jsonParse(object a)
+    {
+        return JsonConvert.DeserializeObject<dict>((string)a);
     }
 
     void initEnv()
@@ -148,9 +160,9 @@ public partial class testMainClass : BaseTest
         exchange.GetType().GetProperty("httpProxy").SetValue(exchange, proxy);
     }
 
-    public static void exitScript()
+    public static void exitScript(int exit = 0)
     {
-        Environment.Exit(0);
+        Environment.Exit(exit);
     }
 
     public static object getExchangeProp(object exchange, object prop, object defaultValue = null)
