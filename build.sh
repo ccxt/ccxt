@@ -59,7 +59,6 @@ build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run test-base
-    npm run static-tests
     npm run test-base-ws
     run_tests
   fi
@@ -155,8 +154,8 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-# run static tests:
-npm run static-tests
+# run base tests (base js,py,php, brokerId and static-tests)
+npm run test-base
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"
