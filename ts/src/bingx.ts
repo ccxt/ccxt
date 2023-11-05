@@ -1652,16 +1652,16 @@ export default class bingx extends Exchange {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);
                         const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                        request['quoteOrderQty'] = this.parseNumber (this.priceToPrecision (symbol, cost));
+                        request['quoteOrderQty'] = parseFloat (this.priceToPrecision (symbol, cost));
                     }
                 } else {
-                    request['quoteOrderQty'] = this.parseNumber (this.priceToPrecision (symbol, amount));
+                    request['quoteOrderQty'] = parseFloat (this.priceToPrecision (symbol, amount));
                 }
             } else {
-                request['quantity'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+                request['quantity'] = parseFloat (this.amountToPrecision (symbol, amount));
             }
             if (!isMarketOrder) {
-                request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             }
         } else {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'PostOnly', params);
@@ -1673,7 +1673,7 @@ export default class bingx extends Exchange {
                 request['timeInForce'] = 'FOK';
             }
             if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) {
-                request['price'] = this.parseNumber (this.priceToPrecision (symbol, price));
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
             }
             const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
@@ -1682,7 +1682,7 @@ export default class bingx extends Exchange {
             const isStopLossPriceOrder = stopLossPrice !== undefined;
             const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
             if (isTriggerOrder) {
-                request['stopPrice'] = this.parseNumber (this.priceToPrecision (symbol, triggerPrice));
+                request['stopPrice'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
                 if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
                     request['type'] = 'TRIGGER_MARKET';
                 } else if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT')) {
@@ -1691,14 +1691,14 @@ export default class bingx extends Exchange {
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
                 if (isStopLossPriceOrder) {
-                    request['stopPrice'] = this.parseNumber (this.priceToPrecision (symbol, stopLossPrice));
+                    request['stopPrice'] = parseFloat (this.priceToPrecision (symbol, stopLossPrice));
                     if (isMarketOrder || (type === 'STOP_MARKET')) {
                         request['type'] = 'STOP_MARKET';
                     } else if ((type === 'LIMIT') || (type === 'STOP')) {
                         request['type'] = 'STOP';
                     }
                 } else if (isTakeProfitPriceOrder) {
-                    request['stopPrice'] = this.parseNumber (this.priceToPrecision (symbol, takeProfitPrice));
+                    request['stopPrice'] = parseFloat (this.priceToPrecision (symbol, takeProfitPrice));
                     if (isMarketOrder || (type === 'TAKE_PROFIT_MARKET')) {
                         request['type'] = 'TAKE_PROFIT_MARKET';
                     } else if ((type === 'LIMIT') || (type === 'TAKE_PROFIT')) {
@@ -1714,7 +1714,7 @@ export default class bingx extends Exchange {
                 positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = this.parseNumber (this.amountToPrecision (symbol, amount));
+            request['quantity'] = parseFloat (this.amountToPrecision (symbol, amount));
             params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         }
         return this.extend (request, params);
