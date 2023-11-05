@@ -1030,7 +1030,6 @@ export default class testMainClass extends baseMainTestClass {
 
     async testBinance () {
         const binance = this.initOfflineExchange ('binance');
-        // spot test
         const spotId = 'x-R4BD3S82';
         let spotOrderRequest = undefined;
         try {
@@ -1040,19 +1039,16 @@ export default class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         assert (clientOrderId.startsWith (spotId), 'spot clientOrderId does not start with spotId');
-        // swap test
         const swapId = 'x-xcKtGhcu';
         let swapOrderRequest = undefined;
         try {
             await binance.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             swapOrderRequest = this.urlencodedToDict (binance.last_request_body);
         }
         let swapInverseOrderRequest = undefined;
         try {
             await binance.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             swapInverseOrderRequest = this.urlencodedToDict (binance.last_request_body);
         }
@@ -1067,21 +1063,17 @@ export default class testMainClass extends baseMainTestClass {
         const okx = this.initOfflineExchange ('okx');
         const id = 'e847386590ce4dBC';
         let spotOrderRequest = undefined;
-        // spot test
         try {
             await okx.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             spotOrderRequest = jsonParse (okx.last_request_body);
         }
         const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
         assert (clientOrderId.startsWith (id), 'spot clientOrderId does not start with id');
         assert (spotOrderRequest[0]['tag'] === id, 'id different from spot tag');
-        // swap test
         let swapOrderRequest = undefined;
         try {
             await okx.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             swapOrderRequest = jsonParse (okx.last_request_body);
         }
@@ -1095,11 +1087,9 @@ export default class testMainClass extends baseMainTestClass {
         const cryptocom = this.initOfflineExchange ('cryptocom');
         const id = 'CCXT';
         await cryptocom.loadMarkets ();
-        // spot test
         let request = undefined;
         try {
             await cryptocom.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             request = jsonParse (cryptocom.last_request_body);
         }
@@ -1158,7 +1148,6 @@ export default class testMainClass extends baseMainTestClass {
         try {
             await bitget.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
         } catch (e) {
-            // we expect an error here, we're only interested in the headers
             reqHeaders = bitget.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
@@ -1194,14 +1183,12 @@ export default class testMainClass extends baseMainTestClass {
         let swapOrderRequest = undefined;
         try {
             await huobi.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             swapOrderRequest = jsonParse (huobi.last_request_body);
         }
         let swapInverseOrderRequest = undefined;
         try {
             await huobi.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
-
         } catch (e) {
             swapInverseOrderRequest = jsonParse (huobi.last_request_body);
         }
@@ -1228,7 +1215,6 @@ export default class testMainClass extends baseMainTestClass {
         let stopOrderRequest = undefined;
         try {
             await woo.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
-
         } catch (e) {
             stopOrderRequest = jsonParse (woo.last_request_body);
         }
