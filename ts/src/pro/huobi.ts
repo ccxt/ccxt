@@ -1392,7 +1392,7 @@ export default class huobi extends huobiRest {
         //     }
         //
         const channel = this.safeString (message, 'ch');
-        const data = this.safeValue (message, 'data');
+        const data = this.safeValue (message, 'data', []);
         const timestamp = this.safeInteger (data, 'changeTime', this.safeInteger (message, 'ts'));
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
@@ -1409,7 +1409,6 @@ export default class huobi extends huobiRest {
             client.resolve (this.balance, channel);
         } else {
             // contract balance
-            const data = this.safeValue (message, 'data', []);
             const dataLength = data.length;
             if (dataLength === 0) {
                 return;
