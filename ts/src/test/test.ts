@@ -1094,7 +1094,7 @@ export default class testMainClass extends baseMainTestClass {
             request = jsonParse (cryptocom.last_request_body);
         }
         assert (request['params']['broker_id'] === id, 'id different from  broker_id');
-        await cryptocom.close ();
+        await close (cryptocom);
     }
 
     async testBybit () {
