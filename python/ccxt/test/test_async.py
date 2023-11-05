@@ -985,7 +985,7 @@ class testMainClass(baseMainTestClass):
         assert clientOrderIdSpot.startswith(swapId), 'swap clientOrderId does not start with swapId'
         clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId']
         assert clientOrderIdInverse.startswith(swapId), 'swap clientOrderIdInverse does not start with swapId'
-        await binance.close()
+        await close(binance)
 
     async def test_okx(self):
         okx = self.init_offline_exchange('okx')
@@ -1006,7 +1006,7 @@ class testMainClass(baseMainTestClass):
         clientOrderIdSpot = swapOrderRequest[0]['clOrdId']
         assert clientOrderIdSpot.startswith(id), 'swap clientOrderId does not start with id'
         assert swapOrderRequest[0]['tag'] == id, 'id different from swap tag'
-        await okx.close()
+        await close(okx)
 
     async def test_cryptocom(self):
         cryptocom = self.init_offline_exchange('cryptocom')
@@ -1018,7 +1018,7 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             request = json_parse(cryptocom.last_request_body)
         assert request['params']['broker_id'] == id, 'id different from  broker_id'
-        await cryptocom.close()
+        await close(cryptocom)
 
     async def test_bybit(self):
         bybit = self.init_offline_exchange('bybit')
@@ -1026,11 +1026,12 @@ class testMainClass(baseMainTestClass):
         id = 'CCXT'
         assert bybit.options['brokerId'] == id, 'id not in options'
         try:
-            await bybit.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+            await bybit.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             reqHeaders = bybit.last_request_headers
         assert reqHeaders['Referer'] == id, 'id not in headers'
+        await close(bybit)
 
     async def test_kucoin(self):
         kucoin = self.init_offline_exchange('kucoin')
@@ -1038,12 +1039,13 @@ class testMainClass(baseMainTestClass):
         assert kucoin.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
         assert kucoin.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
         try:
-            await kucoin.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+            await kucoin.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
             reqHeaders = kucoin.last_request_headers
         id = 'ccxt'
         assert reqHeaders['KC-API-PARTNER'] == id, 'id not in headers'
+        await close(kucoin)
 
     async def test_kucoinfutures(self):
         kucoin = self.init_offline_exchange('kucoinfutures')
@@ -1052,10 +1054,11 @@ class testMainClass(baseMainTestClass):
         assert kucoin.options['partner']['future']['id'] == id, 'id not in options'
         assert kucoin.options['partner']['future']['key'] == '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options'
         try:
-            await kucoin.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+            await kucoin.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             reqHeaders = kucoin.last_request_headers
         assert reqHeaders['KC-API-PARTNER'] == id, 'id not in headers'
+        await close(kucoin)
 
     async def test_bitget(self):
         bitget = self.init_offline_exchange('bitget')
@@ -1063,10 +1066,11 @@ class testMainClass(baseMainTestClass):
         id = 'p4sve'
         assert bitget.options['broker'] == id, 'id not in options'
         try:
-            await bitget.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+            await bitget.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             reqHeaders = bitget.last_request_headers
         assert reqHeaders['X-CHANNEL-API-CODE'] == id, 'id not in headers'
+        await close(bitget)
 
     async def test_mexc(self):
         mexc = self.init_offline_exchange('mexc')
@@ -1075,10 +1079,11 @@ class testMainClass(baseMainTestClass):
         assert mexc.options['broker'] == id, 'id not in options'
         await mexc.load_markets()
         try:
-            await mexc.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+            await mexc.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             reqHeaders = mexc.last_request_headers
         assert reqHeaders['source'] == id, 'id not in headers'
+        await close(mexc)
 
     async def test_huobi(self):
         huobi = self.init_offline_exchange('huobi')
@@ -1106,7 +1111,7 @@ class testMainClass(baseMainTestClass):
         assert clientOrderIdSpot.startswith(id), 'swap channel_code does not start with id'
         clientOrderIdInverse = swapInverseOrderRequest['channel_code']
         assert clientOrderIdInverse.startswith(id), 'swap inverse channel_code does not start with id'
-        await huobi.close()
+        await close(huobi)
 
     async def test_woo(self):
         woo = self.init_offline_exchange('woo')
@@ -1127,7 +1132,7 @@ class testMainClass(baseMainTestClass):
             stopOrderRequest = json_parse(woo.last_request_body)
         clientOrderIdSpot = stopOrderRequest['brokerId']
         assert clientOrderIdSpot.startswith(id), 'brokerId does not start with id'
-        await woo.close()
+        await close(woo)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

@@ -1131,7 +1131,7 @@ class testMainClass extends baseMainTestClass {
             assert (str_starts_with($clientOrderIdSpot, $swapId), 'swap $clientOrderId does not start with swapId');
             $clientOrderIdInverse = $swapInverseOrderRequest['newClientOrderId'];
             assert (str_starts_with($clientOrderIdInverse, $swapId), 'swap $clientOrderIdInverse does not start with swapId');
-            Async\await($binance->close ());
+            Async\await(close ($binance));
         }) ();
     }
 
@@ -1157,7 +1157,7 @@ class testMainClass extends baseMainTestClass {
             $clientOrderIdSpot = $swapOrderRequest[0]['clOrdId'];
             assert (str_starts_with($clientOrderIdSpot, $id), 'swap $clientOrderId does not start with id');
             assert ($swapOrderRequest[0]['tag'] === $id, 'id different from swap tag');
-            Async\await($okx->close ());
+            Async\await(close ($okx));
         }) ();
     }
 
@@ -1173,7 +1173,7 @@ class testMainClass extends baseMainTestClass {
                 $request = json_parse ($cryptocom->last_request_body);
             }
             assert ($request['params']['broker_id'] === $id, 'id different from  broker_id');
-            Async\await($cryptocom->close ());
+            Async\await(close ($cryptocom));
         }) ();
     }
 
@@ -1184,12 +1184,13 @@ class testMainClass extends baseMainTestClass {
             $id = 'CCXT';
             assert ($bybit->options['brokerId'] === $id, 'id not in options');
             try {
-                Async\await($bybit->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, $reqHeaders));
+                Async\await($bybit->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch (Exception $e) {
                 // we expect an error here, we're only interested in the headers
                 $reqHeaders = $bybit->last_request_headers;
             }
             assert ($reqHeaders['Referer'] === $id, 'id not in headers');
+            Async\await(close ($bybit));
         }) ();
     }
 
@@ -1200,13 +1201,14 @@ class testMainClass extends baseMainTestClass {
             assert ($kucoin->options['partner']['spot']['id'] === 'ccxt', 'id not in options');
             assert ($kucoin->options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
             try {
-                Async\await($kucoin->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, $reqHeaders));
+                Async\await($kucoin->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch (Exception $e) {
                 // we expect an error here, we're only interested in the headers
                 $reqHeaders = $kucoin->last_request_headers;
             }
             $id = 'ccxt';
             assert ($reqHeaders['KC-API-PARTNER'] === $id, 'id not in headers');
+            Async\await(close ($kucoin));
         }) ();
     }
 
@@ -1218,11 +1220,12 @@ class testMainClass extends baseMainTestClass {
             assert ($kucoin->options['partner']['future']['id'] === $id, 'id not in options');
             assert ($kucoin->options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
             try {
-                Async\await($kucoin->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, $reqHeaders));
+                Async\await($kucoin->create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000));
             } catch (Exception $e) {
                 $reqHeaders = $kucoin->last_request_headers;
             }
             assert ($reqHeaders['KC-API-PARTNER'] === $id, 'id not in headers');
+            Async\await(close ($kucoin));
         }) ();
     }
 
@@ -1233,11 +1236,12 @@ class testMainClass extends baseMainTestClass {
             $id = 'p4sve';
             assert ($bitget->options['broker'] === $id, 'id not in options');
             try {
-                Async\await($bitget->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, $reqHeaders));
+                Async\await($bitget->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch (Exception $e) {
                 $reqHeaders = $bitget->last_request_headers;
             }
             assert ($reqHeaders['X-CHANNEL-API-CODE'] === $id, 'id not in headers');
+            Async\await(close ($bitget));
         }) ();
     }
 
@@ -1249,11 +1253,12 @@ class testMainClass extends baseMainTestClass {
             assert ($mexc->options['broker'] === $id, 'id not in options');
             Async\await($mexc->load_markets());
             try {
-                Async\await($mexc->create_order('BTC/USDT', 'limit', 'buy', 1, 20000, $reqHeaders));
+                Async\await($mexc->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
             } catch (Exception $e) {
                 $reqHeaders = $mexc->last_request_headers;
             }
             assert ($reqHeaders['source'] === $id, 'id not in headers');
+            Async\await(close ($mexc));
         }) ();
     }
 
@@ -1287,7 +1292,7 @@ class testMainClass extends baseMainTestClass {
             assert (str_starts_with($clientOrderIdSpot, $id), 'swap channel_code does not start with id');
             $clientOrderIdInverse = $swapInverseOrderRequest['channel_code'];
             assert (str_starts_with($clientOrderIdInverse, $id), 'swap inverse channel_code does not start with id');
-            Async\await($huobi->close ());
+            Async\await(close ($huobi));
         }) ();
     }
 
@@ -1313,7 +1318,7 @@ class testMainClass extends baseMainTestClass {
             }
             $clientOrderIdSpot = $stopOrderRequest['brokerId'];
             assert (str_starts_with($clientOrderIdSpot, $id), 'brokerId does not start with id');
-            Async\await($woo->close ());
+            Async\await(close ($woo));
         }) ();
     }
 }
