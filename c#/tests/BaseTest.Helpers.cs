@@ -27,6 +27,11 @@ public partial class testMainClass : BaseTest
     public static string ext = ".cs";
     public bool loadKeys = false;
 
+    public bool staticTestsFailed = false;
+    public bool staticTests = false;
+
+    public string lang = "C#";
+
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
@@ -105,6 +110,13 @@ public partial class testMainClass : BaseTest
         return JsonHelper.Deserialize(text);
     }
 
+    public static object ioDirRead(object path2)
+    {
+        var path = path2 as string;
+        var filesInDir = System.IO.Directory.GetFiles(path);
+        return filesInDir;
+    }
+
     public async Task<object> callMethod(object testFiles2, object methodName, object exchange, params object[] args)
     {
         var argsWithExchange = new List<object> { exchange };
@@ -123,6 +135,12 @@ public partial class testMainClass : BaseTest
         var res = method.Invoke(exchange, argsWithExchange.ToArray());
         await ((Task)res);
         return null;
+    }
+
+    public async Task<object> callExchangeMethodDynamically(object exchange, object methodName, params object[] args)
+    {
+        var res = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(exchange, args);
+        return await ((Task<object>)res);
     }
 
     public static void addProxy(object exchange, object proxy)
