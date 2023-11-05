@@ -1056,7 +1056,7 @@ export default class testMainClass extends baseMainTestClass {
         assert (clientOrderIdSpot.startsWith (swapId), 'swap clientOrderId does not start with swapId');
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (swapId), 'swap clientOrderIdInverse does not start with swapId');
-        await binance.close ();
+        await close (binance);
     }
 
     async testOkx () {
@@ -1080,7 +1080,7 @@ export default class testMainClass extends baseMainTestClass {
         const clientOrderIdSpot = swapOrderRequest[0]['clOrdId'];
         assert (clientOrderIdSpot.startsWith (id), 'swap clientOrderId does not start with id');
         assert (swapOrderRequest[0]['tag'] === id, 'id different from swap tag');
-        await okx.close ();
+        await close (okx);
     }
 
     async testCryptocom () {
@@ -1109,6 +1109,7 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = bybit.last_request_headers;
         }
         assert (reqHeaders['Referer'] === id, 'id not in headers');
+        await close (bybit);
     }
 
     async testKucoin () {
@@ -1124,6 +1125,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         const id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+        await close (kucoin);
     }
 
     async testKucoinfutures () {
@@ -1138,6 +1140,7 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = kucoin.last_request_headers;
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+        await close (kucoin);
     }
 
     async testBitget () {
@@ -1151,6 +1154,7 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = bitget.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
+        await close (bitget);
     }
 
     async testMexc () {
@@ -1165,6 +1169,7 @@ export default class testMainClass extends baseMainTestClass {
             reqHeaders = mexc.last_request_headers;
         }
         assert (reqHeaders['source'] === id, 'id not in headers');
+        await close (mexc);
     }
 
     async testHuobi () {
@@ -1196,7 +1201,7 @@ export default class testMainClass extends baseMainTestClass {
         assert (clientOrderIdSpot.startsWith (id), 'swap channel_code does not start with id');
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
         assert (clientOrderIdInverse.startsWith (id), 'swap inverse channel_code does not start with id');
-        await huobi.close ();
+        await close (huobi);
     }
 
     async testWoo () {
@@ -1220,7 +1225,7 @@ export default class testMainClass extends baseMainTestClass {
         }
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
         assert (clientOrderIdSpot.startsWith (id), 'brokerId does not start with id');
-        await woo.close ();
+        await close (woo);
     }
 }
 // ***** AUTO-TRANSPILER-END *****
