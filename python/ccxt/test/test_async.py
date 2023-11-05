@@ -25,6 +25,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 class Argv(object):
+    idTests = False
     staticTests = False
     token_bucket = False
     sandbox = False
@@ -47,6 +48,7 @@ parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
+parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -218,6 +220,7 @@ from ccxt.base.errors import AuthenticationError
 class testMainClass(baseMainTestClass):
 
     def parse_cli_args(self):
+        self.idTests = get_cli_arg_value('--idTests')
         self.staticTests = get_cli_arg_value('--static')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
@@ -229,7 +232,11 @@ class testMainClass(baseMainTestClass):
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
         if self.staticTests:
-            return await self.run_static_tests()
+            await self.run_static_tests()
+            return
+        if self.idTests:
+            await self.run_broker_id_tests()
+            return
         symbolStr = symbol is not symbol if None else 'all'
         dump('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
         exchangeArgs = {
@@ -882,10 +889,13 @@ class testMainClass(baseMainTestClass):
             errorMessage = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump(errorMessage)
 
-    async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
+    def init_offline_exchange(self, exchangeName: str):
         markets = self.load_markets_from_file(exchangeName)
+        return init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+
+    async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
-        exchange = init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+        exchange = self.init_offline_exchange(exchangeName)
         methods = exchange.safe_value(exchangeData, 'methods', {})
         methodsNames = list(methods.keys())
         for i in range(0, len(methodsNames)):
@@ -928,6 +938,196 @@ class testMainClass(baseMainTestClass):
             successMessage = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static tests passed.'
             dump(successMessage)
             exit_script(0)
+
+    async def run_broker_id_tests(self):
+        #  -----------------------------------------------------------------------------
+        #  --- Init of brokerId tests functions-----------------------------------------
+        #  -----------------------------------------------------------------------------
+        promises = [
+            self.test_binance(),
+            self.test_okx(),
+            self.test_cryptocom(),
+            self.test_bybit(),
+            self.test_kucoin(),
+            self.test_kucoinfutures(),
+            self.test_bitget(),
+            self.test_mexc(),
+            self.test_huobi(),
+            self.test_woo()
+        ]
+        await asyncio.gather(*promises)
+        successMessage = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
+        dump(successMessage)
+        exit_script(0)
+
+    async def test_binance(self):
+        binance = self.init_offline_exchange('binance')
+        spotId = 'x-R4BD3S82'
+        spotOrderRequest = None
+        try:
+            await binance.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = self.urlencoded_to_dict(binance.last_request_body)
+        clientOrderId = spotOrderRequest['newClientOrderId']
+        assert clientOrderId.startswith(spotId), 'spot clientOrderId does not start with spotId'
+        swapId = 'x-xcKtGhcu'
+        swapOrderRequest = None
+        try:
+            await binance.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapOrderRequest = self.urlencoded_to_dict(binance.last_request_body)
+        swapInverseOrderRequest = None
+        try:
+            await binance.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapInverseOrderRequest = self.urlencoded_to_dict(binance.last_request_body)
+        clientOrderIdSpot = swapOrderRequest['newClientOrderId']
+        assert clientOrderIdSpot.startswith(swapId), 'swap clientOrderId does not start with swapId'
+        clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId']
+        assert clientOrderIdInverse.startswith(swapId), 'swap clientOrderIdInverse does not start with swapId'
+        await binance.close()
+
+    async def test_okx(self):
+        okx = self.init_offline_exchange('okx')
+        id = 'e847386590ce4dBC'
+        spotOrderRequest = None
+        try:
+            await okx.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(okx.last_request_body)
+        clientOrderId = spotOrderRequest[0]['clOrdId']  # returns order inside array
+        assert clientOrderId.startswith(id), 'spot clientOrderId does not start with id'
+        assert spotOrderRequest[0]['tag'] == id, 'id different from spot tag'
+        swapOrderRequest = None
+        try:
+            await okx.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapOrderRequest = json_parse(okx.last_request_body)
+        clientOrderIdSpot = swapOrderRequest[0]['clOrdId']
+        assert clientOrderIdSpot.startswith(id), 'swap clientOrderId does not start with id'
+        assert swapOrderRequest[0]['tag'] == id, 'id different from swap tag'
+        await okx.close()
+
+    async def test_cryptocom(self):
+        cryptocom = self.init_offline_exchange('cryptocom')
+        id = 'CCXT'
+        await cryptocom.load_markets()
+        request = None
+        try:
+            await cryptocom.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(cryptocom.last_request_body)
+        assert request['params']['broker_id'] == id, 'id different from  broker_id'
+        await cryptocom.close()
+
+    async def test_bybit(self):
+        bybit = self.init_offline_exchange('bybit')
+        reqHeaders = None
+        id = 'CCXT'
+        assert bybit.options['brokerId'] == id, 'id not in options'
+        try:
+            await bybit.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            reqHeaders = bybit.last_request_headers
+        assert reqHeaders['Referer'] == id, 'id not in headers'
+
+    async def test_kucoin(self):
+        kucoin = self.init_offline_exchange('kucoin')
+        reqHeaders = None
+        assert kucoin.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
+        assert kucoin.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
+        try:
+            await kucoin.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            reqHeaders = kucoin.last_request_headers
+        id = 'ccxt'
+        assert reqHeaders['KC-API-PARTNER'] == id, 'id not in headers'
+
+    async def test_kucoinfutures(self):
+        kucoin = self.init_offline_exchange('kucoinfutures')
+        reqHeaders = None
+        id = 'ccxtfutures'
+        assert kucoin.options['partner']['future']['id'] == id, 'id not in options'
+        assert kucoin.options['partner']['future']['key'] == '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options'
+        try:
+            await kucoin.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+        except Exception as e:
+            reqHeaders = kucoin.last_request_headers
+        assert reqHeaders['KC-API-PARTNER'] == id, 'id not in headers'
+
+    async def test_bitget(self):
+        bitget = self.init_offline_exchange('bitget')
+        reqHeaders = None
+        id = 'p4sve'
+        assert bitget.options['broker'] == id, 'id not in options'
+        try:
+            await bitget.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+        except Exception as e:
+            reqHeaders = bitget.last_request_headers
+        assert reqHeaders['X-CHANNEL-API-CODE'] == id, 'id not in headers'
+
+    async def test_mexc(self):
+        mexc = self.init_offline_exchange('mexc')
+        reqHeaders = None
+        id = 'CCXT'
+        assert mexc.options['broker'] == id, 'id not in options'
+        await mexc.load_markets()
+        try:
+            await mexc.create_order('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders)
+        except Exception as e:
+            reqHeaders = mexc.last_request_headers
+        assert reqHeaders['source'] == id, 'id not in headers'
+
+    async def test_huobi(self):
+        huobi = self.init_offline_exchange('huobi')
+        # spot test
+        id = 'AA03022abc'
+        spotOrderRequest = None
+        try:
+            await huobi.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(huobi.last_request_body)
+        clientOrderId = spotOrderRequest['client-order-id']
+        assert clientOrderId.startswith(id), 'spot clientOrderId does not start with id'
+        # swap test
+        swapOrderRequest = None
+        try:
+            await huobi.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapOrderRequest = json_parse(huobi.last_request_body)
+        swapInverseOrderRequest = None
+        try:
+            await huobi.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapInverseOrderRequest = json_parse(huobi.last_request_body)
+        clientOrderIdSpot = swapOrderRequest['channel_code']
+        assert clientOrderIdSpot.startswith(id), 'swap channel_code does not start with id'
+        clientOrderIdInverse = swapInverseOrderRequest['channel_code']
+        assert clientOrderIdInverse.startswith(id), 'swap inverse channel_code does not start with id'
+        await huobi.close()
+
+    async def test_woo(self):
+        woo = self.init_offline_exchange('woo')
+        # spot test
+        id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+        spotOrderRequest = None
+        try:
+            await woo.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = self.urlencoded_to_dict(woo.last_request_body)
+        brokerId = spotOrderRequest['broker_id']
+        assert brokerId.startswith(id), 'broker_id does not start with id'
+        # swap test
+        stopOrderRequest = None
+        try:
+            await woo.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {'stopPrice': 30000})
+        except Exception as e:
+            stopOrderRequest = json_parse(woo.last_request_body)
+        clientOrderIdSpot = stopOrderRequest['brokerId']
+        assert clientOrderIdSpot.startswith(id), 'brokerId does not start with id'
+        await woo.close()
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
