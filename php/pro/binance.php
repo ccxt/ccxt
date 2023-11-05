@@ -2572,6 +2572,15 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_ws_error(Client $client, $message) {
+        //
+        //    {
+        //        "error" => array(
+        //            "code" => 2,
+        //            "msg" => "Invalid request => invalid stream"
+        //        ),
+        //        "id" => 1
+        //    }
+        //
         $id = $this->safe_string($message, 'id');
         $rejected = false;
         $error = $this->safe_value($message, 'error', array());
@@ -2581,7 +2590,17 @@ class binance extends \ccxt\async\binance {
             $this->handle_errors($code, $msg, $client->url, null, null, $this->json($error), $error, null, null);
         } catch (Exception $e) {
             $rejected = true;
+            // private endpoint uses $id
             $client->reject ($e, $id);
+            // public endpoint stores messageHash in subscriptios
+            $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($subscriptionKeys); $i++) {
+                $subscriptionHash = $subscriptionKeys[$i];
+                $subscriptionId = $this->safe_string($client->subscriptions[$subscriptionHash], 'id');
+                if ($id === $subscriptionId) {
+                    $client->reject ($e, $subscriptionHash);
+                }
+            }
         }
         if (!$rejected) {
             $client->reject ($message, $id);
@@ -2595,7 +2614,8 @@ class binance extends \ccxt\async\binance {
     public function handle_message(Client $client, $message) {
         // handle WebSocketAPI
         $status = $this->safe_string($message, 'status');
-        if ($status !== null && $status !== '200') {
+        $error = $this->safe_value($message, 'error');
+        if (($error !== null) || ($status !== null && $status !== '200')) {
             return $this->handle_ws_error($client, $message);
         }
         $id = $this->safe_string($message, 'id');
