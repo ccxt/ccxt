@@ -1103,7 +1103,7 @@ export default class testMainClass extends baseMainTestClass {
         const id = 'CCXT';
         assert (bybit.options['brokerId'] === id, 'id not in options');
         try {
-            await bybit.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+            await bybit.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
             reqHeaders = bybit.last_request_headers;
@@ -1117,7 +1117,7 @@ export default class testMainClass extends baseMainTestClass {
         assert (kucoin.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
         assert (kucoin.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
         try {
-            await kucoin.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+            await kucoin.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
             reqHeaders = kucoin.last_request_headers;
@@ -1133,7 +1133,7 @@ export default class testMainClass extends baseMainTestClass {
         assert (kucoin.options['partner']['future']['id'] === id, 'id not in options');
         assert (kucoin.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
         try {
-            await kucoin.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+            await kucoin.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = kucoin.last_request_headers;
         }
@@ -1146,7 +1146,7 @@ export default class testMainClass extends baseMainTestClass {
         const id = 'p4sve';
         assert (bitget.options['broker'] === id, 'id not in options');
         try {
-            await bitget.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+            await bitget.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = bitget.last_request_headers;
         }
@@ -1160,7 +1160,7 @@ export default class testMainClass extends baseMainTestClass {
         assert (mexc.options['broker'] === id, 'id not in options');
         await mexc.loadMarkets ();
         try {
-            await mexc.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000, reqHeaders);
+            await mexc.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             reqHeaders = mexc.last_request_headers;
         }
