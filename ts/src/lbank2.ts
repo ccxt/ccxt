@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -425,6 +425,7 @@ export default class lbank2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -522,6 +523,7 @@ export default class lbank2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -602,8 +604,8 @@ export default class lbank2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap']) {
-            const response = await this.fetchTickers ([ market['symbol'] ], params);
-            return this.safeValue (response, market['symbol']);
+            const responseForSwap = await this.fetchTickers ([ market['symbol'] ], params);
+            return this.safeValue (responseForSwap, market['symbol']) as Ticker;
         }
         const request = {
             'symbol': market['id'],
@@ -926,7 +928,7 @@ export default class lbank2 extends Exchange {
             request['time'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min (limit, 600);
         } else {
             request['size'] = 600; // max
         }
@@ -957,7 +959,7 @@ export default class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //   [
         //     1482311500, // timestamp
@@ -1374,7 +1376,7 @@ export default class lbank2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrderSupplement (private)
         //
@@ -1517,8 +1519,10 @@ export default class lbank2 extends Exchange {
             const options = this.safeValue (this.options, 'fetchOrder', {});
             method = this.safeString (options, 'method', 'fetchOrderSupplement');
         }
-        const result = await this[method] (id, symbol, params);
-        return result;
+        if (method === 'fetchOrderSupplement') {
+            return await this.fetchOrderSupplement (id, symbol, params);
+        }
+        return await this.fetchOrderDefault (id, symbol, params);
     }
 
     async fetchOrderSupplement (id: string, symbol: string = undefined, params = {}) {
@@ -1590,12 +1594,13 @@ export default class lbank2 extends Exchange {
         if (numOrders === 1) {
             return this.parseOrder (result[0]);
         } else {
-            const parsedOrders = [];
-            for (let i = 0; i < numOrders; i++) {
-                const parsedOrder = this.parseOrder (result[i]);
-                parsedOrders.push (parsedOrder);
-            }
-            return parsedOrders;
+            // const parsedOrders = [];
+            // for (let i = 0; i < numOrders; i++) {
+            //     const parsedOrder = this.parseOrder (result[i]);
+            //     parsedOrders.push (parsedOrder);
+            // }
+            // return parsedOrders;
+            throw new BadRequest (this.id + ' fetchOrder() can only fetch one order at a time');
         }
     }
 

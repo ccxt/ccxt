@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -466,6 +465,7 @@ class bitso(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maximum_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }, fee))
         return result
@@ -667,7 +667,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_value(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "bucket_start_time":1648219140000,
@@ -743,13 +743,19 @@ class bitso(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         marketId = self.safe_string(trade, 'book')
         symbol = self.safe_symbol(marketId, market, '_')
-        side = self.safe_string_2(trade, 'side', 'maker_side')
+        side = self.safe_string(trade, 'side')
         makerSide = self.safe_string(trade, 'maker_side')
         takerOrMaker = None
-        if side == makerSide:
-            takerOrMaker = 'maker'
+        if side is not None:
+            if side == makerSide:
+                takerOrMaker = 'maker'
+            else:
+                takerOrMaker = 'taker'
         else:
-            takerOrMaker = 'taker'
+            if makerSide == 'buy':
+                side = 'sell'
+            else:
+                side = 'buy'
         amount = self.safe_string_2(trade, 'amount', 'major')
         if amount is not None:
             amount = Precise.string_abs(amount)
@@ -1007,7 +1013,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #
         # canceledOrder
@@ -1235,7 +1241,7 @@ class bitso(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://bitso.com/api_info#fees
+        :see: https://bitso.com/api_info#fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitso api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1322,7 +1328,7 @@ class bitso(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://bitso.com/api_info#fees
+        :see: https://bitso.com/api_info#fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitso api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

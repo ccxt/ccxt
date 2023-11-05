@@ -67,6 +67,7 @@ interface Exchange {
     publicGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotGridMinInvestment (params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting (params?: {}): Promise<implicitReturnType>;
+    publicGetAssetExchangeList (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory (params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts (params?: {}): Promise<implicitReturnType>;
@@ -86,6 +87,7 @@ interface Exchange {
     privateGetTradeOrdersHistoryArchive (params?: {}): Promise<implicitReturnType>;
     privateGetTradeFills (params?: {}): Promise<implicitReturnType>;
     privateGetTradeFillsHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetTradeFillsArchive (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradeOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
@@ -148,6 +150,12 @@ interface Exchange {
     privateGetTradingBotGridOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridSubOrders (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotGridPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotGridAiParam (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotPublicRsiBackTesting (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalPositions (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalSubOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetTradingBotSignalEventHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotRecurringOrdersAlgoPending (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotRecurringOrdersAlgoHistory (params?: {}): Promise<implicitReturnType>;
     privateGetTradingBotRecurringOrdersAlgoDetails (params?: {}): Promise<implicitReturnType>;
@@ -189,6 +197,7 @@ interface Exchange {
     privatePostSprdOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSprdCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSprdMassCancel (params?: {}): Promise<implicitReturnType>;
+    privatePostSprdAmendOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelOrder (params?: {}): Promise<implicitReturnType>;
@@ -196,6 +205,7 @@ interface Exchange {
     privatePostTradeAmendOrder (params?: {}): Promise<implicitReturnType>;
     privatePostTradeAmendBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostTradeClosePosition (params?: {}): Promise<implicitReturnType>;
+    privatePostTradeFillsArchive (params?: {}): Promise<implicitReturnType>;
     privatePostTradeOrderAlgo (params?: {}): Promise<implicitReturnType>;
     privatePostTradeCancelAlgos (params?: {}): Promise<implicitReturnType>;
     privatePostTradeAmendAlgos (params?: {}): Promise<implicitReturnType>;
@@ -263,6 +273,7 @@ interface Exchange {
     privatePostBrokerNdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
     privatePostFinanceSfpDcdQuote (params?: {}): Promise<implicitReturnType>;
     privatePostFinanceSfpDcdOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostBrokerNdReportSubaccountIp (params?: {}): Promise<implicitReturnType>;
     privatePostBrokerFdRebatePerOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

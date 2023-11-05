@@ -64,5 +64,6 @@ export default class bittrex extends bittrexRest {
     handleSystemStatusHelper(): Promise<void>;
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
 }

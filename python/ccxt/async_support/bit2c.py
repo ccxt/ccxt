@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -127,10 +126,10 @@ class bit2c(Exchange, ImplicitAPI):
                 },
             },
             'markets': {
-                'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
-                'USDC/NIS': {'id': 'UsdcNis', 'symbol': 'USDC/NIS', 'base': 'USDC', 'quote': 'NIS', 'baseId': 'Usdc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True},
+                'BTC/NIS': self.safe_market_structure({'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS', 'baseId': 'Btc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
+                'ETH/NIS': self.safe_market_structure({'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS', 'baseId': 'Eth', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
+                'LTC/NIS': self.safe_market_structure({'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS', 'baseId': 'Ltc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
+                'USDC/NIS': self.safe_market_structure({'id': 'UsdcNis', 'symbol': 'USDC/NIS', 'base': 'USDC', 'quote': 'NIS', 'baseId': 'Usdc', 'quoteId': 'Nis', 'type': 'spot', 'spot': True}),
             },
             'fees': {
                 'trading': {
@@ -487,7 +486,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #      createOrder
         #      {

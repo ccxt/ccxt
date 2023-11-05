@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -73,9 +72,11 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMyLiquidations': True,
                 'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -98,6 +99,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
+                'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
@@ -433,7 +435,7 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://docs.deribit.com/#public-get_currencies
+        :see: https://docs.deribit.com/#public-get_currencies
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -804,6 +806,7 @@ class deribit(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
+                    'created': self.safe_integer(market, 'creation_timestamp'),
                     'info': market,
                 })
         return result
@@ -1125,7 +1128,7 @@ class deribit(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(result[i])
             symbol = ticker['symbol']
             tickers[symbol] = ticker
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1268,7 +1271,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.deribit.com/#private-get_user_trades_by_currency
+        :see: https://docs.deribit.com/#private-get_user_trades_by_currency
         get the list of most recent trades for a particular symbol.
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1286,7 +1289,7 @@ class deribit(Exchange, ImplicitAPI):
         if since is not None:
             request['start_timestamp'] = since
         if limit is not None:
-            request['count'] = limit  # default 10
+            request['count'] = min(limit, 1000)  # default 10
         response = getattr(self, method)(self.extend(request, params))
         #
         #      {
@@ -1516,7 +1519,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(orderTypes, orderType, orderType)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1654,7 +1657,7 @@ class deribit(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://docs.deribit.com/#private-buy
+        :see: https://docs.deribit.com/#private-buy
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2370,7 +2373,7 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_volatility_history(self, code: str, params={}):
         """
         fetch the historical volatility of an option market based on an underlying asset
-        see https://docs.deribit.com/#public-get_historical_volatility
+        :see: https://docs.deribit.com/#public-get_historical_volatility
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict[]: a list of `volatility history objects <https://github.com/ccxt/ccxt/wiki/Manual#volatility-structure>`
@@ -2416,12 +2419,12 @@ class deribit(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
-            volatility = self.safe_number(volatilityResult[i], 1)
+            volatilityObj = self.safe_number(volatilityResult[i], 1)
             result.append({
-                'info': volatility,
+                'info': volatilityObj,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
-                'volatility': volatility,
+                'volatility': volatilityObj,
             })
         return result
 
@@ -2619,7 +2622,7 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.deribit.com/#public-get_currencies
+        :see: https://docs.deribit.com/#public-get_currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2654,7 +2657,7 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
-        see https://docs.deribit.com/#public-get_funding_rate_value
+        :see: https://docs.deribit.com/#public-get_funding_rate_value
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param int [params.start_timestamp]: fetch funding rate starting from self timestamp
@@ -2685,14 +2688,19 @@ class deribit(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the current funding rate
-        see https://docs.deribit.com/#public-get_funding_rate_history
+        :see: https://docs.deribit.com/#public-get_funding_rate_history
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 720)
         time = self.milliseconds()
         month = 30 * 24 * 60 * 60 * 1000
         if since is None:
@@ -2767,6 +2775,154 @@ class deribit(Exchange, ImplicitAPI):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the public liquidations of a trading pair
+        :see: https://docs.deribit.com/#public-get_last_settlements_by_currency
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the deribit api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchLiquidations', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchLiquidations', symbol, since, limit, params, 'continuation', 'continuation', None)
+        market = self.market(symbol)
+        if market['spot']:
+            raise NotSupported(self.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets')
+        request = {
+            'instrument_name': market['id'],
+            'type': 'bankruptcy',
+        }
+        if since is not None:
+            request['search_start_timestamp'] = since
+        if limit is not None:
+            request['count'] = limit
+        response = self.publicGetGetLastSettlementsByInstrument(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "settlements": [
+        #                 {
+        #                     "type": "bankruptcy",
+        #                     "timestamp": 1696579200041,
+        #                     "funded": 10000.0,
+        #                     "session_bankrupcy": 10000.0
+        #                     "session_profit_loss": 112951.68715857354,
+        #                     "session_tax": 0.15,
+        #                     "session_tax_rate": 0.0015,
+        #                     "socialized": 0.001,
+        #                 },
+        #             ],
+        #             "continuation": "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+        #         },
+        #         "usIn": 1696652052254890,
+        #         "usOut": 1696652052255733,
+        #         "usDiff": 843,
+        #         "testnet": False
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        cursor = self.safe_string(result, 'continuation')
+        settlements = self.safe_value(result, 'settlements', [])
+        settlementsWithCursor = self.add_pagination_cursor_to_result(cursor, settlements)
+        return self.parse_liquidations(settlementsWithCursor, market, since, limit)
+
+    def add_pagination_cursor_to_result(self, cursor, data):
+        if cursor is not None:
+            dataLength = len(data)
+            if dataLength > 0:
+                first = data[0]
+                last = data[dataLength - 1]
+                first['continuation'] = cursor
+                last['continuation'] = cursor
+                data[0] = first
+                data[dataLength - 1] = last
+        return data
+
+    def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        retrieves the users liquidated positions
+        :see: https://docs.deribit.com/#private-get_settlement_history_by_instrument
+        :param str symbol: unified CCXT market symbol
+        :param int [since]: the earliest time in ms to fetch liquidations for
+        :param int [limit]: the maximum number of liquidation structures to retrieve
+        :param dict [params]: exchange specific parameters for the deribit api endpoint
+        :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
+        """
+        self.check_required_symbol('fetchMyLiquidations', symbol)
+        self.load_markets()
+        market = self.market(symbol)
+        if market['spot']:
+            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets')
+        request = {
+            'instrument_name': market['id'],
+            'type': 'bankruptcy',
+        }
+        if since is not None:
+            request['search_start_timestamp'] = since
+        if limit is not None:
+            request['count'] = limit
+        response = self.privateGetGetSettlementHistoryByInstrument(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "settlements": [
+        #                 {
+        #                     "type": "bankruptcy",
+        #                     "timestamp": 1696579200041,
+        #                     "funded": 10000.0,
+        #                     "session_bankrupcy": 10000.0
+        #                     "session_profit_loss": 112951.68715857354,
+        #                     "session_tax": 0.15,
+        #                     "session_tax_rate": 0.0015,
+        #                     "socialized": 0.001,
+        #                 },
+        #             ],
+        #             "continuation": "5dHzoGyD8Hs8KURoUhfgXgHpJTA5oyapoudSmNeAfEftqRbjNE6jNNUpo2oCu1khnZL9ao"
+        #         },
+        #         "usIn": 1696652052254890,
+        #         "usOut": 1696652052255733,
+        #         "usDiff": 843,
+        #         "testnet": False
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        settlements = self.safe_value(result, 'settlements', [])
+        return self.parse_liquidations(settlements, market, since, limit)
+
+    def parse_liquidation(self, liquidation, market=None):
+        #
+        #     {
+        #         "type": "bankruptcy",
+        #         "timestamp": 1696579200041,
+        #         "funded": 1,
+        #         "session_bankrupcy": 0.001,
+        #         "session_profit_loss": 0.001,
+        #         "session_tax": 0.0015,
+        #         "session_tax_rate": 0.0015,
+        #         "socialized": 0.001,
+        #     }
+        #
+        timestamp = self.safe_integer(liquidation, 'timestamp')
+        return self.safe_liquidation({
+            'info': liquidation,
+            'symbol': self.safe_symbol(None, market),
+            'contracts': None,
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'price': None,
+            'baseValue': self.safe_number(liquidation, 'session_bankrupcy'),
+            'quoteValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
 
     def nonce(self):
         return self.milliseconds()

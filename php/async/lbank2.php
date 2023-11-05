@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\lbank2 as Exchange;
+use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
@@ -423,6 +424,7 @@ class lbank2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -522,6 +524,7 @@ class lbank2 extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -602,8 +605,8 @@ class lbank2 extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if ($market['swap']) {
-                $response = Async\await($this->fetch_tickers([ $market['symbol'] ], $params));
-                return $this->safe_value($response, $market['symbol']);
+                $responseForSwap = Async\await($this->fetch_tickers([ $market['symbol'] ], $params));
+                return $this->safe_value($responseForSwap, $market['symbol']);
             }
             $request = array(
                 'symbol' => $market['id'],
@@ -926,7 +929,7 @@ class lbank2 extends Exchange {
                 $request['time'] = $since;
             }
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $request['size'] = min ($limit, 600);
             } else {
                 $request['size'] = 600; // max
             }
@@ -958,7 +961,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //     1482311500, // timestamp
@@ -1375,7 +1378,7 @@ class lbank2 extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrderSupplement (private)
         //
@@ -1517,8 +1520,10 @@ class lbank2 extends Exchange {
                 $options = $this->safe_value($this->options, 'fetchOrder', array());
                 $method = $this->safe_string($options, 'method', 'fetchOrderSupplement');
             }
-            $result = Async\await($this->$method ($id, $symbol, $params));
-            return $result;
+            if ($method === 'fetchOrderSupplement') {
+                return Async\await($this->fetch_order_supplement($id, $symbol, $params));
+            }
+            return Async\await($this->fetch_order_default($id, $symbol, $params));
         }) ();
     }
 
@@ -1594,12 +1599,13 @@ class lbank2 extends Exchange {
             if ($numOrders === 1) {
                 return $this->parse_order($result[0]);
             } else {
-                $parsedOrders = array();
-                for ($i = 0; $i < $numOrders; $i++) {
-                    $parsedOrder = $this->parse_order($result[$i]);
-                    $parsedOrders[] = $parsedOrder;
-                }
-                return $parsedOrders;
+                // $parsedOrders = array();
+                // for ($i = 0; $i < $numOrders; $i++) {
+                //     $parsedOrder = $this->parse_order($result[$i]);
+                //     $parsedOrders[] = $parsedOrder;
+                // }
+                // return $parsedOrders;
+                throw new BadRequest($this->id . ' fetchOrder() can only fetch one order at a time');
             }
         }) ();
     }

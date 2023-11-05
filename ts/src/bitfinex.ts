@@ -6,7 +6,7 @@ import { NotSupported, RateLimitExceeded, AuthenticationError, PermissionDenied,
 import { Precise } from './base/Precise.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -658,6 +658,7 @@ export default class bitfinex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -870,7 +871,7 @@ export default class bitfinex extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -932,14 +933,6 @@ export default class bitfinex extends Exchange {
         //          "amount":"261.38",
         //          "exchange":"bitfinex",
         //          "type":"sell"
-        //     }
-        //
-        //     {    "timestamp":1637258238,
-        //          "tid":894452800,
-        //          "price":"0.99958",
-        //          "amount":"261.90514",
-        //          "exchange":"bitfinex",
-        //          "type":"buy"
         //     }
         //
         // fetchMyTrades (private) v1
@@ -1021,6 +1014,18 @@ export default class bitfinex extends Exchange {
             request['timestamp'] = this.parseToInt (since / 1000);
         }
         const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "timestamp": "1694284565",
+        //            "tid": "1415415034",
+        //            "price": "25862.0",
+        //            "amount": "0.00020685",
+        //            "exchange": "bitfinex",
+        //            "type": "buy"
+        //        },
+        //    ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1150,7 +1155,7 @@ export default class bitfinex extends Exchange {
         return await this.privatePostOrderCancelAll (params);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //           id: 57334010955,
@@ -1290,7 +1295,7 @@ export default class bitfinex extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,

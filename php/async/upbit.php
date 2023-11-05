@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\upbit as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\AddressPending;
 use ccxt\Precise;
@@ -478,6 +479,7 @@ class upbit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -736,7 +738,7 @@ class upbit extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -939,7 +941,7 @@ class upbit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         $market => "BTC-ETH",
@@ -989,17 +991,18 @@ class upbit extends Exchange {
                 'timeframe' => $timeframeValue,
                 'count' => $limit,
             );
-            $method = 'publicGetCandlesTimeframe';
-            if ($timeframeValue === 'minutes') {
-                $numMinutes = (int) round($timeframePeriod / 60);
-                $request['unit'] = $numMinutes;
-                $method .= 'Unit';
-            }
+            $response = null;
             if ($since !== null) {
                 // convert `$since` to `to` value
                 $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($timeframeValue === 'minutes') {
+                $numMinutes = (int) round($timeframePeriod / 60);
+                $request['unit'] = $numMinutes;
+                $response = Async\await($this->publicGetCandlesTimeframeUnit (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetCandlesTimeframe (array_merge($request, $params)));
+            }
             //
             //     array(
             //         array(
@@ -1052,7 +1055,7 @@ class upbit extends Exchange {
                 if ($side === 'buy') {
                     if ($this->options['createMarketBuyOrderRequiresPrice']) {
                         if ($price === null) {
-                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the cost in the $amount argument (the exchange-specific behaviour)');
                         } else {
                             $amount = $amount * $price;
                         }
@@ -1339,7 +1342,7 @@ class upbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1756,12 +1759,20 @@ class upbit extends Exchange {
             );
             $method = 'privatePostWithdraws';
             if ($code !== 'KRW') {
+                // 2023-05-23 Change to required parameters for digital assets
+                $network = $this->safe_string_upper_2($params, 'network', 'net_type');
+                if ($network === null) {
+                    throw new ArgumentsRequired($this->id . ' withdraw() requires a $network argument');
+                }
+                $params = $this->omit($params, array( 'network' ));
+                $request['net_type'] = $network;
                 $method .= 'Coin';
                 $request['currency'] = $currency['id'];
                 $request['address'] = $address;
                 if ($tag !== null) {
                     $request['secondary_address'] = $tag;
                 }
+                $params = $this->omit($params, 'network');
             } else {
                 $method .= 'Krw';
             }

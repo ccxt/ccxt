@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -121,42 +120,43 @@ class bitopro(Exchange, ImplicitAPI):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'order-book/{pair}',
-                        'tickers',
-                        'tickers/{pair}',
-                        'trades/{pair}',
-                        'provisioning/currencies',
-                        'provisioning/trading-pairs',
-                        'provisioning/limitations-and-fees',
-                        'trading-history/{pair}',
-                    ],
+                    'get': {
+                        'order-book/{pair}': 1,
+                        'tickers': 1,
+                        'tickers/{pair}': 1,
+                        'trades/{pair}': 1,
+                        'provisioning/currencies': 1,
+                        'provisioning/trading-pairs': 1,
+                        'provisioning/limitations-and-fees': 1,
+                        'trading-history/{pair}': 1,
+                        'price/otc/{currency}': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts/balance',
-                        'orders/history',
-                        'orders/all/{pair}',
-                        'orders/trades/{pair}',
-                        'orders/{pair}/{orderId}',
-                        'wallet/withdraw/{currency}/{serial}',
-                        'wallet/withdraw/{currency}/id/{id}',
-                        'wallet/depositHistory/{currency}',
-                        'wallet/withdrawHistory/{currency}',
-                    ],
-                    'post': [
-                        'orders/{pair}',
-                        'orders/batch',
-                        'wallet/withdraw/{currency}',
-                    ],
-                    'put': [
-                        'orders',
-                    ],
-                    'delete': [
-                        'orders/{pair}/{id}',
-                        'orders/all',
-                        'orders/{pair}',
-                    ],
+                    'get': {
+                        'accounts/balance': 1,
+                        'orders/history': 1,
+                        'orders/all/{pair}': 1,
+                        'orders/trades/{pair}': 1,
+                        'orders/{pair}/{orderId}': 1,
+                        'wallet/withdraw/{currency}/{serial}': 1,
+                        'wallet/withdraw/{currency}/id/{id}': 1,
+                        'wallet/depositHistory/{currency}': 1,
+                        'wallet/withdrawHistory/{currency}': 1,
+                    },
+                    'post': {
+                        'orders/{pair}': 1 / 2,  # 1200/m => 20/s => 10/20 = 1/2
+                        'orders/batch': 20 / 3,  # 90/m => 1.5/s => 10/1.5 = 20/3
+                        'wallet/withdraw/{currency}': 10,  # 60/m => 1/s => 10/1 = 10
+                    },
+                    'put': {
+                        'orders': 5,  # 2/s => 10/2 = 5
+                    },
+                    'delete': {
+                        'orders/{pair}/{id}': 2 / 3,  # 900/m => 15/s => 10/15 = 2/3
+                        'orders/all': 5,  # 2/s => 10/2 = 5
+                        'orders/{pair}': 5,  # 2/s => 10/2 = 5
+                    },
                 },
             },
             'fees': {
@@ -220,6 +220,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -279,6 +280,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitopro
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trading_pair_info.md
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -364,6 +366,7 @@ class bitopro(Exchange, ImplicitAPI):
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
                 },
                 'active': active,
+                'created': None,
                 'info': market,
             })
         return result
@@ -409,6 +412,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -438,6 +442,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -465,6 +470,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_orderbook_data.md
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitopro api endpoint
@@ -582,6 +588,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trades_data.md
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -612,6 +619,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -695,7 +703,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -708,6 +716,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ohlc_data.md
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -818,6 +827,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_account_balance.md
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -851,7 +861,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #         {
@@ -941,6 +951,7 @@ class bitopro(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_order.md
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -993,6 +1004,7 @@ class bitopro(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_an_order.md
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitopro api endpoint
@@ -1021,6 +1033,7 @@ class bitopro(Exchange, ImplicitAPI):
     def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
         """
         cancel multiple orders
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_batch_orders.md
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the bitopro api endpoint
@@ -1049,6 +1062,7 @@ class bitopro(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1057,13 +1071,13 @@ class bitopro(Exchange, ImplicitAPI):
         request = {
             # 'pair': market['id'],  # optional
         }
-        # privateDeleteOrdersAll or privateDeleteOrdersPair
-        method = self.safe_string(self.options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll')
+        response = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method = 'privateDeleteOrdersPair'
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateDeleteOrdersPair(self.extend(request, params))
+        else:
+            response = self.privateDeleteOrdersAll(self.extend(request, params))
         result = self.safe_value(response, 'data', {})
         #
         #     {
@@ -1080,6 +1094,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1121,6 +1136,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple orders made by the user
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -1183,6 +1199,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches information on multiple closed orders made by the user
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
@@ -1197,6 +1214,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_trades_data.md
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1330,6 +1348,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_deposit_invoices_data.md
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1376,6 +1395,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_withdraw_invoices_data.md
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1421,6 +1441,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_withdraw_invoice_data.md
         :param str id: withdrawal id
         :param str code: unified currency code of the currency withdrawn, default is None
         :param dict [params]: extra parameters specific to the bitopro api endpoint
@@ -1457,6 +1478,7 @@ class bitopro(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/create_an_withdraw_invoice.md
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1527,7 +1549,7 @@ class bitopro(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/open/currencies.md
+        :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_currency_info.md
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

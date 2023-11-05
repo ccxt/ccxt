@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -72,6 +71,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -268,6 +268,7 @@ class whitebit(Exchange, ImplicitAPI):
                     '422': OrderNotFound,  # {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
+                    'This action is unauthorized': PermissionDenied,  # {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Total is less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'fee must be no less than': InvalidOrder,  # {"code":0,"message":"Validation failed","errors":{"amount":["Total amount + fee must be no less than 5.05505"]}}
@@ -280,7 +281,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for whitebit
-        see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
+        :see: https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -294,13 +295,14 @@ class whitebit(Exchange, ImplicitAPI):
         #          "stockPrec": "3",          # Stock currency precision
         #          "moneyPrec": "2",          # Precision of money currency
         #          "feePrec": "4",            # Fee precision
-        #          "makerFee": "0.001",       # Default maker fee ratio
-        #          "takerFee": "0.001",       # Default taker fee ratio
+        #          "makerFee": "0.1",         # Default maker fee ratio
+        #          "takerFee": "0.1",         # Default taker fee ratio
         #          "minAmount": "0.001",      # Minimal amount of stock to trade
         #          "minTotal": "0.001",       # Minimal amount of money to trade
         #          "tradesEnabled": True,     # Is trading enabled
         #          "isCollateral": True,      # Is margin trading enabled
-        #          "type": "spot"             # Market type. Possible values: "spot", "futures"
+        #          "type": "spot",            # Market type. Possible values: "spot", "futures"
+        #          "maxTotal": "1000000000"   # Maximum total(amount * price) of money to trade
         #        },
         #        {
         #          ...
@@ -340,6 +342,10 @@ class whitebit(Exchange, ImplicitAPI):
                 inverse = False
             else:
                 type = 'spot'
+            takerFeeRate = self.safe_string(market, 'takerFee')
+            taker = Precise.string_div(takerFeeRate, '100')
+            makerFeeRate = self.safe_string(market, 'makerFee')
+            maker = Precise.string_div(makerFeeRate, '100')
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -359,8 +365,8 @@ class whitebit(Exchange, ImplicitAPI):
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': self.safe_number(market, 'makerFee'),
-                'maker': self.safe_number(market, 'takerFee'),
+                'taker': self.parse_number(taker),
+                'maker': self.parse_number(maker),
                 'contractSize': contractSize,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -385,9 +391,10 @@ class whitebit(Exchange, ImplicitAPI):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minTotal'),
-                        'max': None,
+                        'max': self.safe_number(market, 'maxTotal'),
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -800,10 +807,11 @@ class whitebit(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(response[marketId], market)
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
+        :see: https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -816,7 +824,7 @@ class whitebit(Exchange, ImplicitAPI):
             'market': market['id'],
         }
         if limit is not None:
-            request['depth'] = limit  # default = 50, maximum = 100
+            request['limit'] = limit  # default = 100, maximum = 100
         response = await self.v4PublicGetOrderbookMarket(self.extend(request, params))
         #
         #      {
@@ -837,7 +845,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          ]
         #      }
         #
-        timestamp = self.parse_number(Precise.string_mul(self.safe_string(response, 'timestamp'), '1000'))
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
@@ -1036,10 +1044,7 @@ class whitebit(Exchange, ImplicitAPI):
                 limit = maxLimit
             limit = min(limit, maxLimit)
             start = self.parse_to_int(since / 1000)
-            duration = self.parse_timeframe(timeframe)
-            end = self.sum(start, duration * limit)
             request['start'] = start
-            request['end'] = end
         if limit is not None:
             request['limit'] = min(limit, 1440)
         response = await self.v1PublicGetKline(self.extend(request, params))
@@ -1057,7 +1062,7 @@ class whitebit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591488000,
@@ -1363,7 +1368,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder, fetchOpenOrders
         #
@@ -1586,7 +1591,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
+        :see: https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from - main, spot, collateral
@@ -1873,7 +1878,7 @@ class whitebit(Exchange, ImplicitAPI):
     async def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
+        :see: https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-trade-v4.md#open-positions
         :param str code: unified currency code
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -1949,7 +1954,7 @@ class whitebit(Exchange, ImplicitAPI):
 
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
-        see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+        :see: https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the whitebit api endpoint
@@ -1962,7 +1967,7 @@ class whitebit(Exchange, ImplicitAPI):
 
     async def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
         """
-        see https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
+        :see: https://whitebit-exchange.github.io/api-docs/public/http-v4/#available-futures-markets-list
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the whitebit api endpoint

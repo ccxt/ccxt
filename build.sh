@@ -59,6 +59,7 @@ build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run test-base
+    npm run static-tests
     npm run test-base-ws
     run_tests
   fi
@@ -73,7 +74,7 @@ if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[
 fi
 
 ##### DETECT CHANGES #####
-# in appveyor, there is no origin/master locally, so we need to fetch it
+# in appveyor, there is no origin/master locally, so we need to fetch it.
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   git remote set-branches origin 'master'
   git fetch --depth=1 --no-tags
@@ -83,6 +84,7 @@ diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
+diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
@@ -117,6 +119,8 @@ done
 # faster version of pre-transpile (without bundle and atomic linting)
 npm run export-exchanges && npm run tsBuild && npm run emitAPI
 
+# check return types
+npm run validate-types ${REST_EXCHANGES[*]}
 
 echo "$msgPrefix REST_EXCHANGES TO BE TRANSPILED: ${REST_EXCHANGES[@]}"
 PYTHON_FILES=()
@@ -134,7 +138,12 @@ for exchange in "${WS_EXCHANGES[@]}"; do
 done
 # faster version of post-transpile
 npm run check-php-syntax
-cd python && tox -e qa -- ${PYTHON_FILES[*]} && cd ..
+
+# only run the python linter if exchange related files are changed
+if [ ${#PYTHON_FILES[@]} -gt 0 ]; then
+  echo "$msgPrefix Linting python files: ${PYTHON_FILES[@]}"
+  ruff ${PYTHON_FILES[*]}
+fi
 
 
 ### RUN SPECIFIC TESTS (ONLY IN TRAVIS) ###
@@ -145,6 +154,9 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   echo "$msgPrefix no exchanges to test, exiting"
   exit
 fi
+
+# run static tests:
+npm run static-tests
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"

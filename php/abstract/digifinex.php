@@ -199,6 +199,9 @@ abstract class digifinex extends \ccxt\Exchange {
     public function private_swap_get_account_transfer_record($params = array()) {
         return $this->request('account/transfer_record', array('private', 'swap'), 'GET', $params, null, null, array());
     }
+    public function private_swap_get_account_funding_fee($params = array()) {
+        return $this->request('account/funding_fee', array('private', 'swap'), 'GET', $params, null, null, array());
+    }
     public function private_swap_get_trade_history_orders($params = array()) {
         return $this->request('trade/history_orders', array('private', 'swap'), 'GET', $params, null, null, array());
     }
@@ -214,6 +217,12 @@ abstract class digifinex extends \ccxt\Exchange {
     public function private_swap_post_account_leverage($params = array()) {
         return $this->request('account/leverage', array('private', 'swap'), 'POST', $params, null, null, array());
     }
+    public function private_swap_post_account_position_mode($params = array()) {
+        return $this->request('account/position_mode', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_account_position_margin($params = array()) {
+        return $this->request('account/position_margin', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
     public function private_swap_post_trade_batch_cancel_order($params = array()) {
         return $this->request('trade/batch_cancel_order', array('private', 'swap'), 'POST', $params, null, null, array());
     }
@@ -225,6 +234,39 @@ abstract class digifinex extends \ccxt\Exchange {
     }
     public function private_swap_post_trade_order_place($params = array()) {
         return $this->request('trade/order_place', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_sponsor_order($params = array()) {
+        return $this->request('follow/sponsor_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_close_order($params = array()) {
+        return $this->request('follow/close_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_cancel_order($params = array()) {
+        return $this->request('follow/cancel_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_user_center_current($params = array()) {
+        return $this->request('follow/user_center_current', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_user_center_history($params = array()) {
+        return $this->request('follow/user_center_history', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_expert_current_open_order($params = array()) {
+        return $this->request('follow/expert_current_open_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_add_algo($params = array()) {
+        return $this->request('follow/add_algo', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_cancel_algo($params = array()) {
+        return $this->request('follow/cancel_algo', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_account_available($params = array()) {
+        return $this->request('follow/account_available', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_plan_task($params = array()) {
+        return $this->request('follow/plan_task', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function private_swap_post_follow_instrument_list($params = array()) {
+        return $this->request('follow/instrument_list', array('private', 'swap'), 'POST', $params, null, null, array());
     }
     public function publicSpotGetMarketSymbols($params = array()) {
         return $this->request('{market}/symbols', array('public', 'spot'), 'GET', $params, null, null, array());
@@ -418,6 +460,9 @@ abstract class digifinex extends \ccxt\Exchange {
     public function privateSwapGetAccountTransferRecord($params = array()) {
         return $this->request('account/transfer_record', array('private', 'swap'), 'GET', $params, null, null, array());
     }
+    public function privateSwapGetAccountFundingFee($params = array()) {
+        return $this->request('account/funding_fee', array('private', 'swap'), 'GET', $params, null, null, array());
+    }
     public function privateSwapGetTradeHistoryOrders($params = array()) {
         return $this->request('trade/history_orders', array('private', 'swap'), 'GET', $params, null, null, array());
     }
@@ -433,6 +478,12 @@ abstract class digifinex extends \ccxt\Exchange {
     public function privateSwapPostAccountLeverage($params = array()) {
         return $this->request('account/leverage', array('private', 'swap'), 'POST', $params, null, null, array());
     }
+    public function privateSwapPostAccountPositionMode($params = array()) {
+        return $this->request('account/position_mode', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostAccountPositionMargin($params = array()) {
+        return $this->request('account/position_margin', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
     public function privateSwapPostTradeBatchCancelOrder($params = array()) {
         return $this->request('trade/batch_cancel_order', array('private', 'swap'), 'POST', $params, null, null, array());
     }
@@ -444,5 +495,38 @@ abstract class digifinex extends \ccxt\Exchange {
     }
     public function privateSwapPostTradeOrderPlace($params = array()) {
         return $this->request('trade/order_place', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowSponsorOrder($params = array()) {
+        return $this->request('follow/sponsor_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowCloseOrder($params = array()) {
+        return $this->request('follow/close_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowCancelOrder($params = array()) {
+        return $this->request('follow/cancel_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowUserCenterCurrent($params = array()) {
+        return $this->request('follow/user_center_current', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowUserCenterHistory($params = array()) {
+        return $this->request('follow/user_center_history', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowExpertCurrentOpenOrder($params = array()) {
+        return $this->request('follow/expert_current_open_order', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowAddAlgo($params = array()) {
+        return $this->request('follow/add_algo', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowCancelAlgo($params = array()) {
+        return $this->request('follow/cancel_algo', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowAccountAvailable($params = array()) {
+        return $this->request('follow/account_available', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowPlanTask($params = array()) {
+        return $this->request('follow/plan_task', array('private', 'swap'), 'POST', $params, null, null, array());
+    }
+    public function privateSwapPostFollowInstrumentList($params = array()) {
+        return $this->request('follow/instrument_list', array('private', 'swap'), 'POST', $params, null, null, array());
     }
 }

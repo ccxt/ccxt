@@ -5,7 +5,7 @@ import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -436,6 +436,7 @@ export default class bitpanda extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -694,7 +695,7 @@ export default class bitpanda extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -781,7 +782,7 @@ export default class bitpanda extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -1393,7 +1394,7 @@ export default class bitpanda extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //

@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -345,6 +345,7 @@ export default class blockchaincom extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
             });
         }
         return result;
@@ -480,7 +481,7 @@ export default class blockchaincom extends Exchange {
         return this.safeString (states, state, state);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         clOrdId: '00001',

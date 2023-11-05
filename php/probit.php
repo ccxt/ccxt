@@ -331,6 +331,7 @@ class probit extends Exchange {
                         'max' => $this->safe_number($market, 'max_cost'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -415,8 +416,8 @@ class probit extends Exchange {
             $networkList = array();
             for ($j = 0; $j < count($platformsByPriority); $j++) {
                 $network = $platformsByPriority[$j];
-                $id = $this->safe_string($network, 'id');
-                $networkCode = $this->network_id_to_code($id);
+                $networkId = $this->safe_string($network, 'id');
+                $networkCode = $this->network_id_to_code($networkId);
                 $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                 $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                 $currentDeposit = !$currentDepositSuspended;
@@ -427,14 +428,14 @@ class probit extends Exchange {
                 }
                 $precision = $this->parse_precision($this->safe_string($network, 'precision'));
                 $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
-                $fee = $this->safe_value($withdrawFee, 0, array());
+                $networkfee = $this->safe_value($withdrawFee, 0, array());
                 $networkList[$networkCode] = array(
-                    'id' => $id,
+                    'id' => $networkId,
                     'network' => $networkCode,
                     'active' => $currentActive,
                     'deposit' => $currentDeposit,
                     'withdraw' => $currentWithdraw,
-                    'fee' => $this->safe_number($fee, 'amount'),
+                    'fee' => $this->safe_number($networkfee, 'amount'),
                     'precision' => $this->parse_number($precision),
                     'limits' => array(
                         'withdraw' => array(
@@ -765,7 +766,7 @@ class probit extends Exchange {
             $request['start_time'] = $this->iso8601($since);
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min ($limit, 10000);
         }
         $response = $this->publicGetTrade (array_merge($request, $params));
         //
@@ -978,7 +979,7 @@ class probit extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1095,7 +1096,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         $id,
@@ -1209,7 +1210,7 @@ class probit extends Exchange {
                             $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
                         }
                     } elseif ($cost === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total $cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total $cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
                     }
                 } else {
                     $cost = ($cost === null) ? $amount : $cost;
@@ -1472,6 +1473,8 @@ class probit extends Exchange {
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
+        } else {
+            $request['limit'] = 100;
         }
         $response = $this->privateGetTransferPayment (array_merge($request, $params));
         //
@@ -1673,7 +1676,7 @@ class probit extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $currency['code']);
             $withdrawalFees = $this->safe_value($network, 'withdrawal_fee', array());
             $withdrawFee = $this->safe_number($withdrawalFees[0], 'amount');
-            if (strlen($withdrawalFees) > 0) {
+            if (strlen($withdrawalFees)) {
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,

@@ -289,6 +289,7 @@ class coinmate extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -365,7 +366,7 @@ class coinmate extends Exchange {
             $ticker = $this->safe_value($response, 'data');
             $timestamp = $this->safe_timestamp($ticker, 'timestamp');
             $last = $this->safe_number($ticker, 'last');
-            return array(
+            return $this->safe_ticker(array(
                 'symbol' => $market['symbol'],
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -386,7 +387,7 @@ class coinmate extends Exchange {
                 'baseVolume' => $this->safe_number($ticker, 'amount'),
                 'quoteVolume' => null,
                 'info' => $ticker,
-            );
+            ), $market);
         }) ();
     }
 
@@ -788,7 +789,7 @@ class coinmate extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // limit sell
         //

@@ -221,7 +221,8 @@ class lykke extends Exchange {
             $id = $this->safe_string($currency, 'assetId');
             $code = $this->safe_string($currency, 'symbol');
             $name = $this->safe_string($currency, 'name');
-            $type = $this->safe_string($currency, 'type');
+            $rawType = $this->safe_string($currency, 'type');
+            $type = ($rawType === 'erc20Token') ? 'crypto' : 'other';
             $deposit = $this->safe_value($currency, 'blockchainDepositEnabled');
             $withdraw = $this->safe_value($currency, 'blockchainWithdrawal');
             $isDisabled = $this->safe_value($currency, 'isDisabled');
@@ -307,7 +308,6 @@ class lykke extends Exchange {
                 'option' => false,
                 'contract' => false,
                 'active' => true,
-                'info' => $market,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
@@ -337,6 +337,8 @@ class lykke extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
+                'info' => $market,
             );
         }
         return $result;
@@ -701,7 +703,7 @@ class lykke extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -805,7 +807,7 @@ class lykke extends Exchange {
         if ($type === 'market') {
             $price = $this->safe_number($payload, 'price');
         }
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'info' => $result,
             'clientOrderId' => null,
@@ -824,7 +826,7 @@ class lykke extends Exchange {
             'status' => null,
             'fee' => null,
             'trades' => null,
-        );
+        ), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitforex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -34,29 +33,48 @@ class bitforex(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
+                'swap': False,  # bitforex has swap contracts, but no swap api
                 'future': False,
                 'option': False,
+                'addMargin': False,
+                'borrowMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTrades': True,
@@ -65,6 +83,12 @@ class bitforex(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
+                'reduceMargin': False,
+                'repayMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -165,6 +189,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bitforex
+        :see: https://apidoc.bitforex.com/#exchange-information
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -238,6 +263,7 @@ class bitforex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -252,14 +278,6 @@ class bitforex(Exchange, ImplicitAPI):
         #          "time":1637329685322,
         #          "direction":1,
         #          "tid":"1131019666"
-        #      }
-        #
-        #      {
-        #          "price":57591.33,
-        #          "amount":0.002,
-        #          "time":1637329685322,
-        #          "direction":1,
-        #          "tid":"1131019639"
         #      }
         #
         # fetchMyTrades(private)
@@ -322,6 +340,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        :see: https://apidoc.bitforex.com/#recent-trades-list
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -357,7 +376,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        see https://apidoc.bitforex.com/#spot-account-trade
+        :see: https://apidoc.bitforex.com/#spot-account-trade
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -425,6 +444,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://apidoc.bitforex.com/#user-all-asset-information-user_data
         :param dict [params]: extra parameters specific to the bitforex api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -472,6 +492,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://apidoc.bitforex.com/#exchange-information
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the bitforex api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -500,7 +521,7 @@ class bitforex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "close":0.02505143,
@@ -524,6 +545,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://apidoc.bitforex.com/#kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -557,6 +579,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://apidoc.bitforex.com/#order-book
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the bitforex api endpoint
@@ -592,7 +615,7 @@ class bitforex(Exchange, ImplicitAPI):
         else:
             return None
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_number(order, 'createTime')
         lastTradeTimestamp = self.safe_number(order, 'lastTime')
@@ -639,6 +662,7 @@ class bitforex(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://apidoc.bitforex.com/#order-information-user_data
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitforex api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -696,6 +720,7 @@ class bitforex(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://apidoc.bitforex.com/#new-order-trade
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -727,6 +752,7 @@ class bitforex(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
+        :see: https://apidoc.bitforex.com/#cancel-order-trade
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitforex api endpoint

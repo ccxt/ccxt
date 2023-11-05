@@ -101,7 +101,7 @@ class paymium extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/EUR' => array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'type' => 'spot', 'spot' => true ),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'type' => 'spot', 'spot' => true )),
             ),
             'fees' => array(
                 'trading' => array(

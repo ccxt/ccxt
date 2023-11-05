@@ -58,7 +58,7 @@ class probit(ccxt.async_support.probit):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs-en.probit.com/reference/balance-1
+        :see: https://docs-en.probit.com/reference/balance-1
         :param dict [params]: extra parameters specific to the probit api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -120,7 +120,7 @@ class probit(ccxt.async_support.probit):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs-en.probit.com/reference/marketdata
+        :see: https://docs-en.probit.com/reference/marketdata
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the probit api endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
@@ -161,7 +161,7 @@ class probit(ccxt.async_support.probit):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs-en.probit.com/reference/trade_history
+        :see: https://docs-en.probit.com/reference/trade_history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -264,7 +264,8 @@ class probit(ccxt.async_support.probit):
         #     }
         #
         rawTrades = self.safe_value(message, 'data', [])
-        if len(rawTrades) == 0:
+        length = len(rawTrades)
+        if length == 0:
             return
         reset = self.safe_value(message, 'reset', False)
         messageHash = 'myTrades'
@@ -289,7 +290,7 @@ class probit(ccxt.async_support.probit):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on an order made by the user
-        see https://docs-en.probit.com/reference/open_order
+        :see: https://docs-en.probit.com/reference/open_order
         :param str symbol: unified symbol of the market the order was made in
         :param int [since]: timestamp in ms of the earliest order to watch
         :param int [limit]: the maximum amount of orders to watch
@@ -342,7 +343,8 @@ class probit(ccxt.async_support.probit):
         #     }
         #
         rawOrders = self.safe_value(message, 'data', [])
-        if len(rawOrders) == 0:
+        length = len(rawOrders)
+        if length == 0:
             return
         messageHash = 'orders'
         reset = self.safe_value(message, 'reset', False)
@@ -367,7 +369,7 @@ class probit(ccxt.async_support.probit):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs-en.probit.com/reference/marketdata
+        :see: https://docs-en.probit.com/reference/marketdata
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the probit api endpoint
@@ -484,10 +486,10 @@ class probit(ccxt.async_support.probit):
         if ticker is not None:
             self.handle_ticker(client, message)
         trades = self.safe_value(message, 'recent_trades', [])
-        if len(trades) > 0:
+        if len(trades):
             self.handle_trades(client, message)
         orderBook = self.safe_value_n(message, ['order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4'], [])
-        if len(orderBook) > 0:
+        if len(orderBook):
             self.handle_order_book(client, message, orderBook)
 
     def handle_message(self, client: Client, message):

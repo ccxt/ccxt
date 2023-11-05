@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcmarkets import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -307,13 +306,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         tagTo = tag
         addressFrom = None
         tagFrom = None
-        fee = self.safe_number(transaction, 'fee')
+        fee = self.safe_string(transaction, 'fee')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         currencyId = self.safe_string(transaction, 'assetName')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         if fee:
-            amount -= fee
+            amount = Precise.string_sub(amount, fee)
         return {
             'id': self.safe_string(transaction, 'id'),
             'txid': txid,
@@ -327,14 +326,14 @@ class btcmarkets(Exchange, ImplicitAPI):
             'tagTo': tagTo,
             'tagFrom': tagFrom,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': lastUpdate,
             'comment': None,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': self.parse_number(fee),
                 'rate': None,
             },
             'info': transaction,
@@ -424,6 +423,7 @@ class btcmarkets(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -464,7 +464,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         response = await self.privateGetAccountsMeBalances(params)
         return self.parse_balance(response)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         "2020-09-12T18:30:00.000000Z",
@@ -883,7 +883,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #

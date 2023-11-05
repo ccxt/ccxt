@@ -1,6 +1,6 @@
 import Exchange from './abstract/wavesexchange.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 /**
  * @class wavesexchange
  * @extends Exchange
@@ -17,7 +17,7 @@ export default class wavesexchange extends Exchange {
     }>;
     getQuotes(): Promise<any>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderBookSide(bookSide: any, market?: any, limit?: Int): any[];
     checkRequiredKeys(): void;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
@@ -30,9 +30,9 @@ export default class wavesexchange extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     filterFutureCandles(ohlcvs: any): any[];
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         address: string;
         code: string;
@@ -53,7 +53,7 @@ export default class wavesexchange extends Exchange {
     priceFromPrecision(symbol: any, price: any): string;
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
         info: any;
         id: string;
@@ -74,13 +74,13 @@ export default class wavesexchange extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
     getSymbolFromAssetPair(assetPair: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrder(order: any, market?: any): Order;
     getWavesAddress(): Promise<any>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;

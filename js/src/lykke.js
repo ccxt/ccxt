@@ -226,7 +226,8 @@ export default class lykke extends Exchange {
             const id = this.safeString(currency, 'assetId');
             const code = this.safeString(currency, 'symbol');
             const name = this.safeString(currency, 'name');
-            const type = this.safeString(currency, 'type');
+            const rawType = this.safeString(currency, 'type');
+            const type = (rawType === 'erc20Token') ? 'crypto' : 'other';
             const deposit = this.safeValue(currency, 'blockchainDepositEnabled');
             const withdraw = this.safeValue(currency, 'blockchainWithdrawal');
             const isDisabled = this.safeValue(currency, 'isDisabled');
@@ -313,7 +314,6 @@ export default class lykke extends Exchange {
                 'option': false,
                 'contract': false,
                 'active': true,
-                'info': market,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -343,6 +343,8 @@ export default class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
+                'info': market,
             });
         }
         return result;
@@ -812,7 +814,7 @@ export default class lykke extends Exchange {
         if (type === 'market') {
             price = this.safeNumber(payload, 'price');
         }
-        return {
+        return this.safeOrder({
             'id': id,
             'info': result,
             'clientOrderId': undefined,
@@ -831,7 +833,7 @@ export default class lykke extends Exchange {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

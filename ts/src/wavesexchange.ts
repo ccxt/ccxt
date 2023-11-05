@@ -5,8 +5,7 @@ import Exchange from './abstract/wavesexchange.js';
 import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { eddsa } from './base/functions/crypto.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -583,6 +582,7 @@ export default class wavesexchange extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -616,7 +616,7 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        } as any;
+        } as OrderBook;
     }
 
     parseOrderBookSide (bookSide, market = undefined, limit: Int = undefined) {
@@ -754,7 +754,7 @@ export default class wavesexchange extends Exchange {
             const messageHex = this.binaryToBase16 (this.encode (message));
             const payload = prefix + messageHex;
             const hexKey = this.binaryToBase16 (this.base58ToBinary (this.secret));
-            const signature = eddsa (payload, hexKey, ed25519);
+            const signature = this.axolotl (payload, hexKey, ed25519);
             const request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -1028,7 +1028,7 @@ export default class wavesexchange extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         __type: 'candle',
@@ -1260,7 +1260,8 @@ export default class wavesexchange extends Exchange {
     toPrecision (amount, scale) {
         const amountString = this.numberToString (amount);
         const precise = new Precise (amountString);
-        precise.decimals = Precise.stringSub (precise.decimals, scale);
+        // precise.decimals should be integer
+        precise.decimals = this.parseToInt (Precise.stringSub (this.numberToString (precise.decimals), this.numberToString (scale)));
         precise.reduce ();
         return precise;
     }
@@ -1434,7 +1435,7 @@ export default class wavesexchange extends Exchange {
         if ((serializedOrder[0] === '"') && (serializedOrder[(serializedOrder.length - 1)] === '"')) {
             serializedOrder = serializedOrder.slice (1, serializedOrder.length - 1);
         }
-        const signature = eddsa (this.binaryToBase16 (this.base58ToBinary (serializedOrder)), this.binaryToBase16 (this.base58ToBinary (this.secret)), ed25519);
+        const signature = this.axolotl (this.binaryToBase16 (this.base58ToBinary (serializedOrder)), this.binaryToBase16 (this.base58ToBinary (this.secret)), ed25519);
         body['signature'] = signature;
         //
         //     {
@@ -1550,7 +1551,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
-        const signature = eddsa (this.binaryToBase16 (binary), hexSecret, ed25519);
+        const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
         const request = {
             'Timestamp': timestamp.toString (),
             'Signature': signature,
@@ -1586,7 +1587,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
-        const signature = eddsa (this.binaryToBase16 (binary), hexSecret, ed25519);
+        const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
         const request = {
             'Accept': 'application/json',
             'Timestamp': timestamp.toString (),
@@ -1703,7 +1704,7 @@ export default class wavesexchange extends Exchange {
         return this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -1954,7 +1955,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
-        const signature = eddsa (this.binaryToBase16 (binary), hexSecret, ed25519);
+        const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
         const matcherRequest = {
             'publicKey': this.apiKey,
             'signature': signature,
@@ -2339,7 +2340,8 @@ export default class wavesexchange extends Exchange {
             const entry = depositWithdrawFees[code];
             const networks = this.safeValue (entry, 'networks');
             const networkKeys = Object.keys (networks);
-            if (networkKeys.length === 1) {
+            const networkKeysLength = networkKeys.length;
+            if (networkKeysLength === 1) {
                 const network = this.safeValue (networks, networkKeys[0]);
                 depositWithdrawFees[code]['withdraw'] = this.safeValue (network, 'withdraw');
                 depositWithdrawFees[code]['deposit'] = this.safeValue (network, 'deposit');
@@ -2484,7 +2486,8 @@ export default class wavesexchange extends Exchange {
         let isErc20 = true;
         const noPrefix = this.remove0xPrefix (address);
         const lower = noPrefix.toLowerCase ();
-        for (let i = 0; i < lower.length; i++) {
+        const stringLength = lower.length * 1;
+        for (let i = 0; i < stringLength; i++) {
             const character = lower[i];
             if (!(character in set)) {
                 isErc20 = false;
@@ -2552,7 +2555,7 @@ export default class wavesexchange extends Exchange {
         ];
         const binary = this.binaryConcatArray (byteArray);
         const hexSecret = this.binaryToBase16 (this.base58ToBinary (this.secret));
-        const signature = eddsa (this.binaryToBase16 (binary), hexSecret, ed25519);
+        const signature = this.axolotl (this.binaryToBase16 (binary), hexSecret, ed25519);
         const request = {
             'senderPublicKey': this.apiKey,
             'amount': amountInteger,

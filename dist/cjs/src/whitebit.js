@@ -57,6 +57,7 @@ class whitebit extends whitebit$1 {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -253,6 +254,7 @@ class whitebit extends whitebit$1 {
                     '422': errors.OrderNotFound, // {"response":null,"status":422,"errors":{"orderId":["Finished order id 1295772653 not found on your account"]},"notification":null,"warning":"Finished order id 1295772653 not found on your account","_token":null}
                 },
                 'broad': {
+                    'This action is unauthorized': errors.PermissionDenied,
                     'Given amount is less than min amount': errors.InvalidOrder,
                     'Total is less than': errors.InvalidOrder,
                     'fee must be no less than': errors.InvalidOrder,
@@ -281,13 +283,14 @@ class whitebit extends whitebit$1 {
         //          "stockPrec": "3",          // Stock currency precision
         //          "moneyPrec": "2",          // Precision of money currency
         //          "feePrec": "4",            // Fee precision
-        //          "makerFee": "0.001",       // Default maker fee ratio
-        //          "takerFee": "0.001",       // Default taker fee ratio
+        //          "makerFee": "0.1",         // Default maker fee ratio
+        //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
-        //          "type": "spot"             // Market type. Possible values: "spot", "futures"
+        //          "type": "spot",            // Market type. Possible values: "spot", "futures"
+        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
         //        },
         //        {
         //          ...
@@ -329,6 +332,10 @@ class whitebit extends whitebit$1 {
             else {
                 type = 'spot';
             }
+            const takerFeeRate = this.safeString(market, 'takerFee');
+            const taker = Precise["default"].stringDiv(takerFeeRate, '100');
+            const makerFeeRate = this.safeString(market, 'makerFee');
+            const maker = Precise["default"].stringDiv(makerFeeRate, '100');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -348,8 +355,8 @@ class whitebit extends whitebit$1 {
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': this.safeNumber(market, 'makerFee'),
-                'maker': this.safeNumber(market, 'takerFee'),
+                'taker': this.parseNumber(taker),
+                'maker': this.parseNumber(maker),
                 'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -374,9 +381,10 @@ class whitebit extends whitebit$1 {
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minTotal'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -812,12 +820,13 @@ class whitebit extends whitebit$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderBook
+         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -830,7 +839,7 @@ class whitebit extends whitebit$1 {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit; // default = 50, maximum = 100
+            request['limit'] = limit; // default = 100, maximum = 100
         }
         const response = await this.v4PublicGetOrderbookMarket(this.extend(request, params));
         //
@@ -852,7 +861,7 @@ class whitebit extends whitebit$1 {
         //          ]
         //      }
         //
-        const timestamp = this.parseNumber(Precise["default"].stringMul(this.safeString(response, 'timestamp'), '1000'));
+        const timestamp = this.safeTimestamp(response, 'timestamp');
         return this.parseOrderBook(response, symbol, timestamp);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -1064,10 +1073,7 @@ class whitebit extends whitebit$1 {
             }
             limit = Math.min(limit, maxLimit);
             const start = this.parseToInt(since / 1000);
-            const duration = this.parseTimeframe(timeframe);
-            const end = this.sum(start, duration * limit);
             request['start'] = start;
-            request['end'] = end;
         }
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1440);

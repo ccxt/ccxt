@@ -546,7 +546,6 @@ class coinsph extends Exchange {
                 $quoteId = $this->safe_string($market, 'quoteAsset');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $isActive = $this->safe_string($market, 'status') === 'TRADING';
                 $limits = $this->index_by($this->safe_value($market, 'filters'), 'filterType');
                 $amountLimits = $this->safe_value($limits, 'LOT_SIZE', array());
                 $priceLimits = $this->safe_value($limits, 'PRICE_FILTER', array());
@@ -566,7 +565,7 @@ class coinsph extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => $isActive,
+                    'active' => $this->safe_string_lower($market, 'status') === 'trading',
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
@@ -599,6 +598,7 @@ class coinsph extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -826,7 +826,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1293,7 +1293,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1890,16 +1890,16 @@ class coinsph extends Exchange {
 
     public function url_encode_query($query = array ()) {
         $encodedArrayParams = '';
-        $keys = is_array($query) ? array_keys($query) : $array();
+        $keys = is_array($query) ? array_keys($query) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             if (gettype($query[$key]) === 'array' && array_keys($query[$key]) === array_keys(array_keys($query[$key]))) {
                 if ($i !== 0) {
                     $encodedArrayParams .= '&';
                 }
-                $array = $query[$key];
+                $innerArray = $query[$key];
                 $query = $this->omit($query, $key);
-                $encodedArrayParam = $this->parse_array_param($array, $key);
+                $encodedArrayParam = $this->parse_array_param($innerArray, $key);
                 $encodedArrayParams .= $encodedArrayParam;
             }
         }

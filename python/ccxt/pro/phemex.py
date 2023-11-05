@@ -29,10 +29,10 @@ class phemex(ccxt.async_support.phemex):
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://testnet.phemex.com/ws',
+                    'ws': 'wss://testnet-api.phemex.com/ws',
                 },
                 'api': {
-                    'ws': 'wss://phemex.com/ws',
+                    'ws': 'wss://ws.phemex.com',
                 },
             },
             'options': {
@@ -286,9 +286,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_balance(self, params={}):
         """
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-account-order-position-aop
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-wallet-order-messages
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-account-order-position-aop
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-wallet-order-messages
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :param str [params.settle]: set to USDT to use hedged perpetual api
@@ -470,9 +470,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_ticker(self, symbol: str, params={}):
         """
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-24-hours-ticker
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-24-hours-ticker
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-24-hours-ticker
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the phemex api endpoint
@@ -500,9 +500,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-trade
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-trade
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-trade
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-trade
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-trade
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-trade
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -535,9 +535,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -567,9 +567,9 @@ class phemex(ccxt.async_support.phemex):
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-kline
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-kline
-        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-kline
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-kline
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-kline
+        :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-kline
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1065,8 +1065,8 @@ class phemex(ccxt.async_support.phemex):
             marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
-            messageHash = 'orders' + ':' + keys[i]
-            client.resolve(self.orders, messageHash)
+            currentMessageHash = 'orders' + ':' + keys[i]
+            client.resolve(self.orders, currentMessageHash)
         # resolve generic subscription(spot or swap)
         messageHash = 'orders:' + type
         client.resolve(self.orders, messageHash)
@@ -1343,8 +1343,8 @@ class phemex(ccxt.async_support.phemex):
             del client.subscriptions[id]
             if method is not True:
                 return method(client, message)
-        method = self.safe_string(message, 'method', '')
-        if ('market24h' in message) or ('spot_market24h' in message) or (method.find('perp_market24h_pack_p') >= 0):
+        methodName = self.safe_string(message, 'method', '')
+        if ('market24h' in message) or ('spot_market24h' in message) or (methodName.find('perp_market24h_pack_p') >= 0):
             return self.handle_ticker(client, message)
         elif ('trades' in message) or ('trades_p' in message):
             return self.handle_trades(client, message)

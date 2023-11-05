@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, Pe
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -102,10 +102,10 @@ export default class btcbox extends Exchange {
                 },
             },
             'markets': {
-                'BTC/JPY': { 'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0005'), 'maker': this.parseNumber ('0.0005'), 'type': 'spot', 'spot': true },
-                'ETH/JPY': { 'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0010'), 'maker': this.parseNumber ('0.0010'), 'type': 'spot', 'spot': true },
-                'LTC/JPY': { 'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0010'), 'maker': this.parseNumber ('0.0010'), 'type': 'spot', 'spot': true },
-                'BCH/JPY': { 'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0010'), 'maker': this.parseNumber ('0.0010'), 'type': 'spot', 'spot': true },
+                'BTC/JPY': this.safeMarketStructure ({ 'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0005'), 'maker': this.parseNumber ('0.0005'), 'type': 'spot', 'spot': true }),
+                'ETH/JPY': this.safeMarketStructure ({ 'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0010'), 'maker': this.parseNumber ('0.0010'), 'type': 'spot', 'spot': true }),
+                'LTC/JPY': this.safeMarketStructure ({ 'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0010'), 'maker': this.parseNumber ('0.0010'), 'type': 'spot', 'spot': true }),
+                'BCH/JPY': this.safeMarketStructure ({ 'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': this.parseNumber ('0.0010'), 'maker': this.parseNumber ('0.0010'), 'type': 'spot', 'spot': true }),
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -363,7 +363,7 @@ export default class btcbox extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "id":11,

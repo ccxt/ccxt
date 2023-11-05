@@ -6,7 +6,7 @@ import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadReq
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -471,6 +471,7 @@ export default class bitso extends Exchange {
                         'max': this.safeNumber (market, 'maximum_value'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             }, fee));
         }
@@ -691,7 +692,7 @@ export default class bitso extends Exchange {
         return this.parseOHLCVs (payload, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "bucket_start_time":1648219140000,
@@ -768,13 +769,21 @@ export default class bitso extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const marketId = this.safeString (trade, 'book');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const side = this.safeString2 (trade, 'side', 'maker_side');
+        let side = this.safeString (trade, 'side');
         const makerSide = this.safeString (trade, 'maker_side');
         let takerOrMaker = undefined;
-        if (side === makerSide) {
-            takerOrMaker = 'maker';
+        if (side !== undefined) {
+            if (side === makerSide) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
         } else {
-            takerOrMaker = 'taker';
+            if (makerSide === 'buy') {
+                side = 'sell';
+            } else {
+                side = 'buy';
+            }
         }
         let amount = this.safeString2 (trade, 'amount', 'major');
         if (amount !== undefined) {
@@ -1068,7 +1077,7 @@ export default class bitso extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //
         // canceledOrder

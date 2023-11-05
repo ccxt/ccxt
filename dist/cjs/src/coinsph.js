@@ -540,7 +540,6 @@ class coinsph extends coinsph$1 {
             const quoteId = this.safeString(market, 'quoteAsset');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const isActive = this.safeString(market, 'status') === 'TRADING';
             const limits = this.indexBy(this.safeValue(market, 'filters'), 'filterType');
             const amountLimits = this.safeValue(limits, 'LOT_SIZE', {});
             const priceLimits = this.safeValue(limits, 'PRICE_FILTER', {});
@@ -560,7 +559,7 @@ class coinsph extends coinsph$1 {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': isActive,
+                'active': this.safeStringLower(market, 'status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -593,6 +592,7 @@ class coinsph extends coinsph$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1865,9 +1865,9 @@ class coinsph extends coinsph$1 {
                 if (i !== 0) {
                     encodedArrayParams += '&';
                 }
-                const array = query[key];
+                const innerArray = query[key];
                 query = this.omit(query, key);
-                const encodedArrayParam = this.parseArrayParam(array, key);
+                const encodedArrayParam = this.parseArrayParam(innerArray, key);
                 encodedArrayParams += encodedArrayParam;
             }
         }

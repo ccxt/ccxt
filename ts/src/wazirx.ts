@@ -3,7 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 /**
  * @class wazirx
@@ -21,18 +21,27 @@ export default class wazirx extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
@@ -44,7 +53,11 @@ export default class wazirx extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
@@ -54,7 +67,10 @@ export default class wazirx extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -67,6 +83,12 @@ export default class wazirx extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'reduceMargin': false,
+                'repayMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -261,6 +283,7 @@ export default class wazirx extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -308,7 +331,7 @@ export default class wazirx extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    [1669014300,1402001,1402001,1402001,1402001,0],
         //
@@ -429,7 +452,7 @@ export default class wazirx extends Exchange {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -450,7 +473,7 @@ export default class wazirx extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min (limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString (this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method] (this.extend (request, params));
@@ -600,7 +623,7 @@ export default class wazirx extends Exchange {
     }
 
     parseBalance (response) {
-        const result = { };
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString (balance, 'asset');
@@ -826,6 +849,7 @@ export default class wazirx extends Exchange {
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             request['type'] = 'stop_limit';
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
         // {
@@ -843,7 +867,7 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         // {
         //     "id":1949417813,
         //     "symbol":"ltcusdt",

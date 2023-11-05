@@ -369,6 +369,7 @@ export default class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'createdAt')),
                 'info': market,
             });
         }
@@ -476,11 +477,24 @@ export default class bittrex extends Exchange {
             const precision = this.parseNumber('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber(currency, 'txFee'); // todo: redesign
             const isActive = this.safeString(currency, 'status');
+            const coinType = this.safeString(currency, 'coinType');
+            let type = undefined;
+            if (coinType === 'FIAT') {
+                type = 'fiat';
+            }
+            else if (coinType === 'Award') {
+                // these are exchange credits
+                type = 'other';
+            }
+            else {
+                // all others are cryptos
+                type = 'crypto';
+            }
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'type': this.safeString(currency, 'coinType'),
+                'type': type,
                 'name': this.safeString(currency, 'name'),
                 'active': (isActive === 'ONLINE'),
                 'deposit': undefined,
@@ -600,7 +614,7 @@ export default class bittrex extends Exchange {
             const ticker = this.parseTicker(response[i]);
             tickers.push(ticker);
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -895,8 +909,14 @@ export default class bittrex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const reverseId = market['baseId'] + '-' + market['quoteId'];
@@ -1883,8 +1903,8 @@ export default class bittrex extends Exchange {
             request['marketSymbol'] = market['id'];
         }
         const response = await this.privateGetExecutions(this.extend(request, params));
-        const trades = this.parseTrades(response, market);
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        const trades = this.parseTrades(response, market, since, limit);
+        return trades;
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

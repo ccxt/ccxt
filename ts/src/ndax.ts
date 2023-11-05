@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -362,7 +362,12 @@ export default class ndax extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'ProductId');
             const name = this.safeString (currency, 'ProductFullName');
-            const type = this.safeString (currency, 'ProductType');
+            const ProductType = this.safeString (currency, 'ProductType');
+            let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+            if (ProductType === 'Unknown') {
+                // such currency is just a blanket entry
+                type = 'other';
+            }
             const code = this.safeCurrencyCode (this.safeString (currency, 'Product'));
             const isDisabled = this.safeValue (currency, 'IsDisabled');
             const active = !isDisabled;
@@ -510,6 +515,7 @@ export default class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -550,7 +556,7 @@ export default class ndax extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         result['nonce'] = nonce;
-        return result as any;
+        return result as OrderBook;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
@@ -715,7 +721,7 @@ export default class ndax extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1501603632000, // 0 DateTime
@@ -1230,7 +1236,7 @@ export default class ndax extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //

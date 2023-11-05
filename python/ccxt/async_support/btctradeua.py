@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btctradeua import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -102,23 +101,23 @@ class btctradeua(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'markets': {
-                'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': self.parse_number('1e-1')}, 'limits': {'amount': {'min': self.parse_number('1e-10')}}, 'type': 'spot', 'spot': True},
-                'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
-                'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
-                'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH', 'baseId': 'doge', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH', 'baseId': 'iti', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'KRB/UAH': {'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH', 'baseId': 'krb', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
-                'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH', 'baseId': 'ltc', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'NVC/BTC': {'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC', 'baseId': 'nvc', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
-                'NVC/UAH': {'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH', 'baseId': 'nvc', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'PPC/BTC': {'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC', 'baseId': 'ppc', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
-                'SIB/UAH': {'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH', 'baseId': 'sib', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'XMR/UAH': {'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH', 'baseId': 'xmr', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'ZEC/UAH': {'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH', 'baseId': 'zec', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
+                'BCH/UAH': self.safe_market_structure({'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'BTC/UAH': self.safe_market_structure({'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': self.parse_number('1e-1')}, 'limits': {'amount': {'min': self.parse_number('1e-10')}}, 'type': 'spot', 'spot': True}),
+                'DASH/BTC': self.safe_market_structure({'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
+                'DASH/UAH': self.safe_market_structure({'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'DOGE/BTC': self.safe_market_structure({'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
+                'DOGE/UAH': self.safe_market_structure({'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH', 'baseId': 'doge', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'ETH/UAH': self.safe_market_structure({'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'ITI/UAH': self.safe_market_structure({'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH', 'baseId': 'iti', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'KRB/UAH': self.safe_market_structure({'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH', 'baseId': 'krb', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'LTC/BTC': self.safe_market_structure({'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
+                'LTC/UAH': self.safe_market_structure({'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH', 'baseId': 'ltc', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'NVC/BTC': self.safe_market_structure({'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC', 'baseId': 'nvc', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
+                'NVC/UAH': self.safe_market_structure({'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH', 'baseId': 'nvc', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'PPC/BTC': self.safe_market_structure({'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC', 'baseId': 'ppc', 'quoteId': 'btc', 'type': 'spot', 'spot': True}),
+                'SIB/UAH': self.safe_market_structure({'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH', 'baseId': 'sib', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'XMR/UAH': self.safe_market_structure({'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH', 'baseId': 'xmr', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
+                'ZEC/UAH': self.safe_market_structure({'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH', 'baseId': 'zec', 'quoteId': 'uah', 'type': 'spot', 'spot': True}),
             },
             'fees': {
                 'trading': {
@@ -337,6 +336,21 @@ class btctradeua(Exchange, ImplicitAPI):
         return timestamp - 10800000
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {
+        #         "amnt_base": "2220.1204701750",
+        #         "order_id": 247644861,
+        #         "unixtime": 1694340398,
+        #         "price": "1019739.3229211044",
+        #         "amnt_trade": "0.0021771451",
+        #         "user": "Vasily1989",
+        #         "type": "sell",
+        #         "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        #         "id": 7498807
+        #     }
+        #
         timestamp = self.parse_exchange_specific_datetime(self.safe_string(trade, 'pub_date'))
         id = self.safe_string(trade, 'id')
         type = 'limit'
@@ -375,6 +389,21 @@ class btctradeua(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = await self.publicGetDealsSymbol(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "amnt_base": "2220.1204701750",
+        #            "order_id": 247644861,
+        #            "unixtime": 1694340398,
+        #            "price": "1019739.3229211044",
+        #            "amnt_trade": "0.0021771451",
+        #            "user": "Vasily1989",
+        #            "type": "sell",
+        #            "pub_date": "Sept. 10, 2023, 1:06 p.m.",
+        #            "id": 7498807
+        #        },
+        #    ]
+        #
         # they report each trade twice(once for both of the two sides of the fill)
         # deduplicate trades for that reason
         trades = []
@@ -421,7 +450,7 @@ class btctradeua(Exchange, ImplicitAPI):
         }
         return await self.privatePostRemoveOrderId(self.extend(request, params))
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         side = self.safe_string(order, 'type')

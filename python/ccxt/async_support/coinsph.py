@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -547,7 +546,6 @@ class coinsph(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            isActive = self.safe_string(market, 'status') == 'TRADING'
             limits = self.index_by(self.safe_value(market, 'filters'), 'filterType')
             amountLimits = self.safe_value(limits, 'LOT_SIZE', {})
             priceLimits = self.safe_value(limits, 'PRICE_FILTER', {})
@@ -567,7 +565,7 @@ class coinsph(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': isActive,
+                'active': self.safe_string_lower(market, 'status') == 'trading',
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -600,6 +598,7 @@ class coinsph(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         self.set_markets(result)
@@ -805,7 +804,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1214,7 +1213,7 @@ class coinsph(Exchange, ImplicitAPI):
         response = await self.privateDeleteOpenapiV1OpenOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder POST /openapi/v1/order
         #     {
@@ -1448,7 +1447,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal to coins_ph account
-        see https://coins-docs.github.io/rest-api/#withdrawuser_data
+        :see: https://coins-docs.github.io/rest-api/#withdrawuser_data
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: not used by coinsph withdraw()
@@ -1506,7 +1505,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+        :see: https://coins-docs.github.io/rest-api/#deposit-history-user_data
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1558,7 +1557,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all withdrawals made from an account
-        see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+        :see: https://coins-docs.github.io/rest-api/#withdraw-history-user_data
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1713,7 +1712,7 @@ class coinsph(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+        :see: https://coins-docs.github.io/rest-api/#deposit-address-user_data
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the bitget api endpoint
         :param str [params.network]: network for fetch deposit address
@@ -1766,9 +1765,9 @@ class coinsph(Exchange, ImplicitAPI):
             if isinstance(query[key], list):
                 if i != 0:
                     encodedArrayParams += '&'
-                array = query[key]
+                innerArray = query[key]
                 query = self.omit(query, key)
-                encodedArrayParam = self.parse_array_param(array, key)
+                encodedArrayParam = self.parse_array_param(innerArray, key)
                 encodedArrayParams += encodedArrayParam
         encodedQuery = self.urlencode(query)
         if len(encodedQuery) != 0:

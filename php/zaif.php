@@ -233,6 +233,7 @@ class zaif extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -487,7 +488,7 @@ class zaif extends Exchange {
         return $this->privatePostCancelOrder (array_merge($request, $params));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",

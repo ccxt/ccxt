@@ -222,6 +222,7 @@ class btcalpha extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -301,7 +302,8 @@ class btcalpha extends Exchange {
         //        sell => '22521.11'
         //    }
         //
-        $timestamp = $this->safe_integer_product($ticker, 'timestamp', 1000000);
+        $timestampStr = $this->safe_string($ticker, 'timestamp');
+        $timestamp = intval(Precise::string_mul($timestampStr, '1000000'));
         $marketId = $this->safe_string($ticker, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
         $last = $this->safe_string($ticker, 'last');
@@ -331,6 +333,7 @@ class btcalpha extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#get-orderbook
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -549,7 +552,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "time":1591296000,
@@ -637,7 +640,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -712,15 +715,19 @@ class btcalpha extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#create-$order
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the btcalpha api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
+        if ($type === 'market') {
+            throw new InvalidOrder($this->id . ' only limits orders are supported');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -736,13 +743,13 @@ class btcalpha extends Exchange {
         $order = $this->parse_order($response, $market);
         $orderAmount = (string) $order['amount'];
         $amount = Precise::string_gt($orderAmount, '0') ? $order['amount'] : $amount;
-        return array_merge($order, array(
-            'amount' => $this->parse_number($amount),
-        ));
+        $order['amount'] = $this->parse_number($amount);
+        return $order;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#cancel-order
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
@@ -758,6 +765,7 @@ class btcalpha extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#retrieve-single-$order
          * fetches information on an $order made by the user
          * @param {string} $symbol not used by btcalpha fetchOrder
          * @param {array} [$params] extra parameters specific to the btcalpha api endpoint
@@ -773,6 +781,7 @@ class btcalpha extends Exchange {
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         * @see https://btc-alpha.github.io/api-docs/#list-own-$orders
          * fetches information on multiple $orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for

@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -337,6 +337,7 @@ export default class probit extends Exchange {
                         'max': this.safeNumber (market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -423,8 +424,8 @@ export default class probit extends Exchange {
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
-                const id = this.safeString (network, 'id');
-                const networkCode = this.networkIdToCode (id);
+                const networkId = this.safeString (network, 'id');
+                const networkCode = this.networkIdToCode (networkId);
                 const currentDepositSuspended = this.safeValue (network, 'deposit_suspended');
                 const currentWithdrawalSuspended = this.safeValue (network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
@@ -435,14 +436,14 @@ export default class probit extends Exchange {
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
                 const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
-                const fee = this.safeValue (withdrawFee, 0, {});
+                const networkfee = this.safeValue (withdrawFee, 0, {});
                 networkList[networkCode] = {
-                    'id': id,
+                    'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': this.safeNumber (fee, 'amount'),
+                    'fee': this.safeNumber (networkfee, 'amount'),
                     'precision': this.parseNumber (precision),
                     'limits': {
                         'withdraw': {
@@ -785,7 +786,7 @@ export default class probit extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 10000);
         }
         const response = await this.publicGetTrade (this.extend (request, params));
         //
@@ -1002,7 +1003,7 @@ export default class probit extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1125,7 +1126,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         id,
@@ -1241,7 +1242,7 @@ export default class probit extends Exchange {
                             cost = this.parseNumber (Precise.stringMul (amountString, priceString));
                         }
                     } else if (cost === undefined) {
-                        throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' extra parameter (the exchange-specific behaviour)");
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument or in the "cost" extra parameter (the exchange-specific behaviour)');
                     }
                 } else {
                     cost = (cost === undefined) ? amount : cost;
@@ -1518,6 +1519,8 @@ export default class probit extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTransferPayment (this.extend (request, params));
         //
@@ -1721,7 +1724,7 @@ export default class probit extends Exchange {
             const networkCode = this.networkIdToCode (networkId, currency['code']);
             const withdrawalFees = this.safeValue (network, 'withdrawal_fee', {});
             const withdrawFee = this.safeNumber (withdrawalFees[0], 'amount');
-            if (withdrawalFees.length > 0) {
+            if (withdrawalFees.length) {
                 const withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,

@@ -20,6 +20,7 @@ class gate extends \ccxt\async\gate {
                 'watchTicker' => true,
                 'watchTickers' => true, // for now
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchBalance' => true,
@@ -404,6 +405,34 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the $market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $market = $this->market($symbols[0]);
+            $messageType = $this->get_type_by_market($market);
+            $channel = $messageType . '.trades';
+            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $url = $this->get_url_by_market($market);
+            $trades = Async\await($this->subscribe_public($url, $messageHash, $marketIds, $channel, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
     public function handle_trades(Client $client, $message) {
         //
         // {
@@ -438,6 +467,7 @@ class gate extends \ccxt\async\gate {
             $cachedTrades->append ($trade);
             $hash = 'trades:' . $symbol;
             $client->resolve ($cachedTrades, $hash);
+            $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $cachedTrades);
         }
     }
 
@@ -501,15 +531,17 @@ class gate extends \ccxt\async\gate {
             $subscription = $this->safe_string($ohlcv, 'n', '');
             $parts = explode('_', $subscription);
             $timeframe = $this->safe_string($parts, 0);
+            $timeframeId = $this->find_timeframe($timeframe);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
-            $stored = $this->safe_value($this->ohlcvs, $symbol);
+            $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol] = $stored;
+                $this->ohlcvs[$symbol][$timeframeId] = $stored;
             }
             $stored->append ($parsed);
             $marketIds[$symbol] = $timeframe;
@@ -520,7 +552,7 @@ class gate extends \ccxt\async\gate {
             $timeframe = $marketIds[$symbol];
             $interval = $this->find_timeframe($timeframe);
             $hash = 'candles' . ':' . $interval . ':' . $symbol;
-            $stored = $this->safe_value($this->ohlcvs, $symbol);
+            $stored = $this->safe_value($this->ohlcvs[$symbol], $interval);
             $client->resolve ($stored, $hash);
         }
     }
@@ -831,14 +863,17 @@ class gate extends \ccxt\async\gate {
         $parsedOrders = $this->parse_orders($orders);
         for ($i = 0; $i < count($parsedOrders); $i++) {
             $parsed = $parsedOrders[$i];
-            // inject order status
+            // inject order $status
             $info = $this->safe_value($parsed, 'info');
             $event = $this->safe_string($info, 'event');
             if ($event === 'put' || $event === 'update') {
                 $parsed['status'] = 'open';
             } elseif ($event === 'finish') {
-                $left = $this->safe_number($info, 'left');
-                $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
+                $status = $this->safe_string($parsed, 'status');
+                if ($status === null) {
+                    $left = $this->safe_number($info, 'left');
+                    $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
+                }
             }
             $stored->append ($parsed);
             $symbol = $parsed['symbol'];

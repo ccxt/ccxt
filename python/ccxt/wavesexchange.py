@@ -6,10 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -584,6 +584,7 @@ class wavesexchange(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
@@ -727,7 +728,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             messageHex = self.binary_to_base16(self.encode(message))
             payload = prefix + messageHex
             hexKey = self.binary_to_base16(self.base58_to_binary(self.secret))
-            signature = self.eddsa(payload, hexKey, 'ed25519')
+            signature = self.axolotl(payload, hexKey, 'ed25519')
             request = {
                 'grant_type': 'password',
                 'scope': 'general',
@@ -982,7 +983,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             result.append(ohlcvs[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         __type: 'candle',
@@ -1192,7 +1193,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     def to_precision(self, amount, scale):
         amountString = self.number_to_string(amount)
         precise = Precise(amountString)
-        precise.decimals = Precise.string_sub(precise.decimals, scale)
+        # precise.decimals should be integer
+        precise.decimals = self.parse_to_int(Precise.string_sub(self.number_to_string(precise.decimals), self.number_to_string(scale)))
         precise.reduce()
         return precise
 
@@ -1345,7 +1347,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         serializedOrder = self.matcherPostMatcherOrdersSerialize(body)
         if (serializedOrder[0] == '"') and (serializedOrder[(len(serializedOrder) - 1)] == '"'):
             serializedOrder = serializedOrder[1:len(serializedOrder) - 1]
-        signature = self.eddsa(self.binary_to_base16(self.base58_to_binary(serializedOrder)), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(self.base58_to_binary(serializedOrder)), self.binary_to_base16(self.base58_to_binary(self.secret)), 'ed25519')
         body['signature'] = signature
         #
         #     {
@@ -1453,7 +1455,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Timestamp': str(timestamp),
             'Signature': signature,
@@ -1485,7 +1487,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'Accept': 'application/json',
             'Timestamp': str(timestamp),
@@ -1591,7 +1593,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         quoteId = self.safe_string(assetPair, 'priceAsset', 'WAVES')
         return self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1825,7 +1827,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         matcherRequest = {
             'publicKey': self.apiKey,
             'signature': signature,
@@ -2131,7 +2133,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Optional[List[str]] = None, currencyIdKey=None) -> Any:
         depositWithdrawFees = {}
         codes = self.market_codes(codes)
         for i in range(0, len(response)):
@@ -2187,7 +2189,8 @@ class wavesexchange(Exchange, ImplicitAPI):
             entry = depositWithdrawFees[code]
             networks = self.safe_value(entry, 'networks')
             networkKeys = list(networks.keys())
-            if len(networkKeys) == 1:
+            networkKeysLength = len(networkKeys)
+            if networkKeysLength == 1:
                 network = self.safe_value(networks, networkKeys[0])
                 depositWithdrawFees[code]['withdraw'] = self.safe_value(network, 'withdraw')
                 depositWithdrawFees[code]['deposit'] = self.safe_value(network, 'deposit')
@@ -2196,8 +2199,8 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.wx.network/en/api/gateways/deposit/currencies
-        see https://docs.wx.network/en/api/gateways/withdraw/currencies
+        :see: https://docs.wx.network/en/api/gateways/deposit/currencies
+        :see: https://docs.wx.network/en/api/gateways/withdraw/currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the wavesexchange api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2315,7 +2318,8 @@ class wavesexchange(Exchange, ImplicitAPI):
         isErc20 = True
         noPrefix = self.remove0x_prefix(address)
         lower = noPrefix.lower()
-        for i in range(0, len(lower)):
+        stringLength = len(lower) * 1
+        for i in range(0, stringLength):
             character = lower[i]
             if not (character in set):
                 isErc20 = False
@@ -2379,7 +2383,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         ]
         binary = self.binary_concat_array(byteArray)
         hexSecret = self.binary_to_base16(self.base58_to_binary(self.secret))
-        signature = self.eddsa(self.binary_to_base16(binary), hexSecret, 'ed25519')
+        signature = self.axolotl(self.binary_to_base16(binary), hexSecret, 'ed25519')
         request = {
             'senderPublicKey': self.apiKey,
             'amount': amountInteger,

@@ -270,13 +270,13 @@ export default class bitfinex2 extends bitfinex2Rest {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        const array = this.myTrades;
-        array.append(trade);
-        this.myTrades = array;
+        const tradesArray = this.myTrades;
+        tradesArray.append(trade);
+        this.myTrades = tradesArray;
         // generic subscription
-        client.resolve(array, name);
+        client.resolve(tradesArray, name);
         // specific subscription
-        client.resolve(array, messageHash);
+        client.resolve(tradesArray, messageHash);
     }
     handleTrades(client, message, subscription) {
         //
@@ -577,7 +577,6 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageHash = channel + ':' + marketId;
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
-        const id = this.safeString(message, 0);
         // if it is an initial snapshot
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -598,9 +597,9 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const size = (delta[2] < 0) ? -delta[2] : delta[2];
                     const side = (delta[2] < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    const id = this.safeString(delta, 0);
+                    const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, id);
+                    bookside.store(price, size, idString);
                 }
             }
             else {
@@ -616,19 +615,21 @@ export default class bitfinex2 extends bitfinex2Rest {
                     bookside.store(price, size, counter);
                 }
             }
+            orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
             const deltas = message[1];
-            const orderbook = this.orderbooks[symbol];
+            const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
                 const price = this.safeString(deltas, 1);
                 const size = (deltas[2] < 0) ? -deltas[2] : deltas[2];
                 const side = (deltas[2] < 0) ? 'asks' : 'bids';
-                const bookside = orderbook[side];
+                const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt(price, '0') ? size : '0';
-                bookside.store(this.parseNumber(price), this.parseNumber(amount), id);
+                const idString = this.safeString(deltas, 0);
+                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
             }
             else {
                 const amount = this.safeString(deltas, 2);
@@ -636,7 +637,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const price = this.safeString(deltas, 0);
                 const size = Precise.stringLt(amount, '0') ? Precise.stringNeg(amount) : amount;
                 const side = Precise.stringLt(amount, '0') ? 'asks' : 'bids';
-                const bookside = orderbook[side];
+                const bookside = orderbookItem[side];
                 bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
             }
             client.resolve(orderbook, messageHash);
@@ -658,16 +659,19 @@ export default class bitfinex2 extends bitfinex2Rest {
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
+        const prec = this.safeString(subscription, 'prec', 'P0');
+        const isRaw = (prec === 'R0');
+        const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
             const bid = this.safeValue(bids, i);
             const ask = this.safeValue(asks, i);
             if (bid !== undefined) {
-                stringArray.push(this.numberToString(bids[i][0]));
+                stringArray.push(this.numberToString(bids[i][idToCheck]));
                 stringArray.push(this.numberToString(bids[i][1]));
             }
             if (ask !== undefined) {
-                stringArray.push(this.numberToString(asks[i][0]));
+                stringArray.push(this.numberToString(asks[i][idToCheck]));
                 stringArray.push(this.numberToString(-asks[i][1]));
             }
         }

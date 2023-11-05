@@ -19,6 +19,7 @@ export default class gate extends gateRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchBalance': true,
@@ -397,6 +398,33 @@ export default class gate extends gateRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const market = this.market(symbols[0]);
+        const messageType = this.getTypeByMarket(market);
+        const channel = messageType + '.trades';
+        const messageHash = 'multipleTrades::' + symbols.join(',');
+        const url = this.getUrlByMarket(market);
+        const trades = await this.subscribePublic(url, messageHash, marketIds, channel, params);
+        if (this.newUpdates) {
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
+        }
+        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+    }
     handleTrades(client, message) {
         //
         // {
@@ -431,6 +459,7 @@ export default class gate extends gateRest {
             cachedTrades.append(trade);
             const hash = 'trades:' + symbol;
             client.resolve(cachedTrades, hash);
+            this.resolvePromiseIfMessagehashMatches(client, 'multipleTrades::', symbol, cachedTrades);
         }
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -492,15 +521,17 @@ export default class gate extends gateRest {
             const subscription = this.safeString(ohlcv, 'n', '');
             const parts = subscription.split('_');
             const timeframe = this.safeString(parts, 0);
+            const timeframeId = this.findTimeframe(timeframe);
             const prefix = timeframe + '_';
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV(ohlcv);
-            let stored = this.safeValue(this.ohlcvs, symbol);
+            this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol] = stored;
+                this.ohlcvs[symbol][timeframeId] = stored;
             }
             stored.append(parsed);
             marketIds[symbol] = timeframe;
@@ -511,7 +542,7 @@ export default class gate extends gateRest {
             const timeframe = marketIds[symbol];
             const interval = this.findTimeframe(timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
-            const stored = this.safeValue(this.ohlcvs, symbol);
+            const stored = this.safeValue(this.ohlcvs[symbol], interval);
             client.resolve(stored, hash);
         }
     }
@@ -823,8 +854,11 @@ export default class gate extends gateRest {
                 parsed['status'] = 'open';
             }
             else if (event === 'finish') {
-                const left = this.safeNumber(info, 'left');
-                parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                const status = this.safeString(parsed, 'status');
+                if (status === undefined) {
+                    const left = this.safeNumber(info, 'left');
+                    parsed['status'] = (left === 0) ? 'closed' : 'canceled';
+                }
             }
             stored.append(parsed);
             const symbol = parsed['symbol'];

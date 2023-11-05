@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -100,6 +99,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,   # ?last=COUNT(max 50)
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -111,6 +111,8 @@ class btcturk(Exchange, ImplicitAPI):
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -263,6 +265,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
@@ -511,7 +514,7 @@ class btcturk(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        'timestamp': 1661990400,
@@ -534,7 +537,7 @@ class btcturk(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://docs.btcturk.com/public-endpoints/get-kline-data
+        :see: https://docs.btcturk.com/public-endpoints/get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -739,7 +742,7 @@ class btcturk(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrders / fetchOpenOrders
         #     {

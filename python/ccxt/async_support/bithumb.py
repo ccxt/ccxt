@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -93,15 +92,14 @@ class bithumb(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': [
-                        'ticker/{currency}',
-                        'ticker/all',
-                        'ticker/ALL_BTC',
-                        'ticker/ALL_KRW',
-                        'orderbook/{currency}',
-                        'orderbook/all',
-                        'transaction_history/{currency}',
-                        'transaction_history/all',
-                        'candlestick/{currency}/{interval}',
+                        'ticker/ALL_{quoteId}',
+                        'ticker/{baseId}_{quoteId}',
+                        'orderbook/ALL_{quoteId}',
+                        'orderbook/{baseId}_{quoteId}',
+                        'transaction_history/{baseId}_{quoteId}',
+                        'assetsstatus/ALL',
+                        'assetsstatus/{baseId}',
+                        'candlestick/{baseId}_{quoteId}/{interval}',
                     ],
                 },
                 'private': {
@@ -120,6 +118,7 @@ class bithumb(Exchange, ImplicitAPI):
                         'trade/krw_withdrawal',
                         'trade/market_buy',
                         'trade/market_sell',
+                        'trade/stop_limit',
                     ],
                 },
             },
@@ -206,8 +205,10 @@ class bithumb(Exchange, ImplicitAPI):
             quote = quotes[i]
             quoteId = quote
             extension = self.safe_value(quoteCurrencies, quote, {})
-            method = 'publicGetTickerALL' + quote
-            response = await getattr(self, method)(params)
+            request = {
+                'quoteId': quoteId,
+            }
+            response = await self.publicGetTickerALLQuoteId(self.extend(request, params))
             data = self.safe_value(response, 'data')
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
@@ -264,6 +265,7 @@ class bithumb(Exchange, ImplicitAPI):
                         },
                         'cost': {},  # set via options
                     },
+                    'created': None,
                     'info': market,
                 }, extension)
                 result.append(entry)
@@ -308,11 +310,12 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'] + '_' + market['quote'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
         if limit is not None:
             request['count'] = limit  # default 30, max 30
-        response = await self.publicGetOrderbookCurrency(self.extend(request, params))
+        response = await self.publicGetOrderbookBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -398,8 +401,11 @@ class bithumb(Exchange, ImplicitAPI):
         quotes = list(quoteCurrencies.keys())
         for i in range(0, len(quotes)):
             quote = quotes[i]
-            method = 'publicGetTickerALL' + quote
-            response = await getattr(self, method)(params)
+            quoteId = quote
+            request = {
+                'quoteId': quoteId,
+            }
+            response = await self.publicGetTickerALLQuoteId(self.extend(request, params))
             #
             #     {
             #         "status":"0000",
@@ -433,7 +439,7 @@ class bithumb(Exchange, ImplicitAPI):
                 market = self.safe_market(symbol)
                 ticker['date'] = timestamp
                 result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
@@ -445,9 +451,10 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
-        response = await self.publicGetTickerCurrency(self.extend(request, params))
+        response = await self.publicGetTickerBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -470,7 +477,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1576823400000,  # 기준 시간
@@ -503,10 +510,11 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        response = await self.publicGetCandlestickCurrencyInterval(self.extend(request, params))
+        response = await self.publicGetCandlestickBaseIdQuoteIdInterval(self.extend(request, params))
         #
         #     {
         #         'status': '0000',
@@ -617,11 +625,12 @@ class bithumb(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         }
         if limit is not None:
             request['count'] = limit  # default 20, max 100
-        response = await self.publicGetTransactionHistoryCurrency(self.extend(request, params))
+        response = await self.publicGetTransactionHistoryBaseIdQuoteId(self.extend(request, params))
         #
         #     {
         #         "status":"0000",
@@ -731,7 +740,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #
         # fetchOrder

@@ -353,7 +353,12 @@ class ndax extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'ProductId');
             $name = $this->safe_string($currency, 'ProductFullName');
-            $type = $this->safe_string($currency, 'ProductType');
+            $ProductType = $this->safe_string($currency, 'ProductType');
+            $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
+            if ($ProductType === 'Unknown') {
+                // such $currency is just a blanket entry
+                $type = 'other';
+            }
             $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
             $isDisabled = $this->safe_value($currency, 'IsDisabled');
             $active = !$isDisabled;
@@ -499,6 +504,7 @@ class ndax extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -700,7 +706,7 @@ class ndax extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1501603632000, // 0 DateTime
@@ -1205,7 +1211,7 @@ class ndax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

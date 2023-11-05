@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimi
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -291,6 +291,7 @@ export default class coinmate extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -367,7 +368,7 @@ export default class coinmate extends Exchange {
         const ticker = this.safeValue (response, 'data');
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -388,7 +389,7 @@ export default class coinmate extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'amount'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -789,7 +790,7 @@ export default class coinmate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // limit sell
         //
