@@ -396,8 +396,8 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
-            const failedMsg = errors ? (' | Failed methods : ' + errors.join (', ')) : '';
-            dump (this.addPadding ('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
+            const failedMsg = errors ? errors.join (', ') : undefined;
+            dump (this.addPadding ('[INFO:PUBLIC_TESTS_END] ' + market['type'] + (errors ? (' | Failed methods : ' + failedMsg) : ''), 25), exchange.id);
         }
     }
 
