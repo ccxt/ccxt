@@ -876,6 +876,7 @@ export default class testMainClass extends baseMainTestClass {
             const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
             this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
         }
+        return undefined; // c# requ
     }
 
     assertStaticOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
