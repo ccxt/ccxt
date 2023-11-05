@@ -459,7 +459,7 @@ public partial class Exchange
         return count;
     }
 
-    public static object axolotl(object a, object b, object c)
+    public object axolotl(object a, object b, object c)
     {
         return ""; // to be implemented
     }
