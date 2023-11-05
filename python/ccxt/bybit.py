@@ -3118,11 +3118,11 @@ class bybit(Exchange):
             if trade_cost:
                 cost += trade_cost
             trade_fee = trade['fee']
-            _fee_cost = self.safe_float(trade_fee, 'cost')
+            _fee_cost = self.safe_string(trade_fee, 'cost')
             if _fee_cost is not None:
                 _fee_currency = trade_fee['currency']
                 fees[_fee_currency]['currency'] = _fee_currency
-                fees[_fee_currency]['cost'] += _fee_cost
+                fees[_fee_currency]['cost'] = float(Precise.string_add(str(fees[_fee_currency]['cost']), _fee_cost))
 
         if fees:
             base_currency = self.get_currency(symbol)
