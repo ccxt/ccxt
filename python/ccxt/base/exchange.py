@@ -1024,10 +1024,11 @@ class Exchange(object):
 
     @staticmethod
     def urlencode(params={}, doseq=False):
+        newParams = params.copy()
         for key, value in params.items():
             if isinstance(value, bool):
-                params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params, doseq, quote_via=_urlencode.quote)
+                newParams[key] = 'true' if value else 'false'
+        return _urlencode.urlencode(newParams, doseq, quote_via=_urlencode.quote)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
