@@ -1248,20 +1248,20 @@ export default class binance extends binanceRest {
         const time = this.milliseconds ();
         let query = undefined;
         let type = undefined;
-        [ query, type ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
+        [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('authenticate', undefined, query);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
+        [ marginMode, query ] = this.handleMarginModeAndParams ('authenticate', query);
         const isIsolatedMargin = (marginMode === 'isolated');
         const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
-        const symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, 'symbol');
+        const symbol = this.safeString (query, 'symbol');
+        query = this.omit (query, 'symbol');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
@@ -1280,7 +1280,7 @@ export default class binance extends binanceRest {
                     throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId (symbol);
-                params = this.extend (params, { 'symbol': marketId });
+                query = this.extend (query, { 'symbol': marketId });
             }
             const response = await this[method] (query);
             this.options[type] = this.extend (options, {
