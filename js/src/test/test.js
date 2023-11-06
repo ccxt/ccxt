@@ -23,13 +23,11 @@ process.on('unhandledRejection', (e) => {
 });
 const [processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
 const AuthenticationError = ccxt.AuthenticationError;
-const RateLimitExceeded = ccxt.RateLimitExceeded;
-const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
-const NetworkError = ccxt.NetworkError;
-const DDoSProtection = ccxt.DDoSProtection;
-const OnMaintenance = ccxt.OnMaintenance;
-const RequestTimeout = ccxt.RequestTimeout;
 const NotSupported = ccxt.NotSupported;
+const NetworkError = ccxt.NetworkError;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const OperationFailed = ccxt.OperationFailed;
+const OnMaintenance = ccxt.OnMaintenance;
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     constructor() {
@@ -147,7 +145,7 @@ export default class testMainClass extends baseMainTestClass {
     async init(exchangeId, symbol) {
         this.parseCliArgs();
         if (this.staticTests) {
-            await this.runStaticTests();
+            await this.runStaticTests(exchangeId, symbol); // symbol here is the testname
             return;
         }
         if (this.idTests) {
@@ -298,12 +296,11 @@ export default class testMainClass extends baseMainTestClass {
             }
             catch (e) {
                 const isAuthError = (e instanceof AuthenticationError);
-                const isRateLimitExceeded = (e instanceof RateLimitExceeded);
-                const isNetworkError = (e instanceof NetworkError);
-                const isDDoSProtection = (e instanceof DDoSProtection);
-                const isRequestTimeout = (e instanceof RequestTimeout);
                 const isNotSupported = (e instanceof NotSupported);
-                const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
+                const isNetworkError = (e instanceof NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                const isOnMaintenance = (e instanceof OnMaintenance);
+                const tempFailure = isNetworkError && (!isExchangeNotAvailable || isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
@@ -785,10 +782,15 @@ export default class testMainClass extends baseMainTestClass {
         const content = ioFileRead(filename);
         return content;
     }
-    loadStaticData() {
+    loadStaticData(targetExchange = undefined) {
         const folder = './ts/src/test/static/data/';
-        const files = ioDirRead(folder);
         const result = {};
+        if (targetExchange) {
+            // read a single exchange
+            result[targetExchange] = ioFileRead(folder + targetExchange + '.json');
+            return result;
+        }
+        const files = ioDirRead(folder);
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const exchangeName = file.replace('.json', '');
@@ -932,7 +934,7 @@ export default class testMainClass extends baseMainTestClass {
         const markets = this.loadMarketsFromFile(exchangeName);
         return initExchange(exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false } });
     }
-    async testExchangeStatically(exchangeName, exchangeData) {
+    async testExchangeStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange(exchangeName);
         const methods = exchange.safeValue(exchangeData, 'methods', {});
@@ -942,6 +944,10 @@ export default class testMainClass extends baseMainTestClass {
             const results = methods[method];
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
+                const description = exchange.safeValue(result, 'description');
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
                 const type = exchange.safeString(exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
                 await this.testMethodStatically(exchange, method, result, type, skipKeys);
@@ -961,18 +967,24 @@ export default class testMainClass extends baseMainTestClass {
         }
         return sum;
     }
-    async runStaticTests() {
-        const staticData = this.loadStaticData();
+    async runStaticTests(targetExchange = undefined, testName = undefined) {
+        const staticData = this.loadStaticData(targetExchange);
         const exchanges = Object.keys(staticData);
         const exchange = initExchange('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
         let sum = 0;
+        if (targetExchange) {
+            dump("Exchange to test: " + targetExchange);
+        }
+        if (testName) {
+            dump("Testing only: " + testName);
+        }
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
             const numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData);
             sum = exchange.sum(sum, numberOfTests);
-            promises.push(this.testExchangeStatically(exchangeName, exchangeData));
+            promises.push(this.testExchangeStatically(exchangeName, exchangeData, testName));
         }
         await Promise.all(promises);
         if (this.staticTestsFailed) {
