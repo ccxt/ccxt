@@ -67,13 +67,8 @@ async function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcv
             }
         }
         // if this is the last bar, then check if it's <= now
-        if (!('compareTimestampToLimit' in skippedProperties)) {
-            if (i === barsLength - 1 && limit !== undefined) {
-                const minActrualTs = ohlcvs[0][0];
-                const maxActualTs = ohlcvs[barsLength - 1][0];
-                const maxExpectedTs = minActrualTs + durationMs * limit;
-                assert (maxActualTs <= maxExpectedTs, 'Returned bars maximum timestamp (' + maxActualTs.toString () + ') is greater than expected limit timestamp (' + maxExpectedTs.toString () + ')' + logText);
-            }
+        if (i === barsLength - 1) {
+            assert (barTs <= now, 'Returned bars latest timestamp (' + barTs.toString () + ') is after than current timestamp (' + now.toString () + ')' + logText);
         }
         // we do compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
         if (!('compareDuration' in skippedProperties)) {
