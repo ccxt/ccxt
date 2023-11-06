@@ -93,6 +93,7 @@ class krakenfutures extends krakenfutures$1 {
             'api': {
                 'public': {
                     'get': [
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -102,6 +103,7 @@ class krakenfutures extends krakenfutures$1 {
                 },
                 'private': {
                     'get': [
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -140,11 +142,6 @@ class krakenfutures extends krakenfutures$1 {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ],
-                },
-                'feeschedules': {
-                    'get': [
-                        'volumes',
                     ],
                 },
             },

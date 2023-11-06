@@ -2556,14 +2556,14 @@ class mexc(Exchange, ImplicitAPI):
         self.load_markets()
         request = {}
         market = None
+        marketType = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
+            request['symbol'] = market['id']
             method = 'spotPrivateGetOpenOrders'
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             if marginMode is not None:
@@ -2652,7 +2652,6 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
         marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrdersByState() is not supported for ' + marketType)

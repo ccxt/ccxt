@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.37'
+__version__ = '4.1.40'
 
 # -----------------------------------------------------------------------------
 
@@ -394,6 +394,7 @@ class Exchange(object):
     last_response_headers = None
     last_request_body = None
     last_request_url = None
+    last_request_headers = None
 
     requiresEddsa = False
     base58_encoder = None
@@ -1023,10 +1024,11 @@ class Exchange(object):
 
     @staticmethod
     def urlencode(params={}, doseq=False):
+        newParams = params.copy()
         for key, value in params.items():
             if isinstance(value, bool):
-                params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params, doseq, quote_via=_urlencode.quote)
+                newParams[key] = 'true' if value else 'false'
+        return _urlencode.urlencode(newParams, doseq, quote_via=_urlencode.quote)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
@@ -4530,7 +4532,11 @@ class Exchange(object):
                     if cursorIncrement is not None:
                         cursorValue = self.parseToInt(cursorValue) + cursorIncrement
                     params[cursorSent] = cursorValue
-                response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                response = None
+                if method == 'fetchAccounts':
+                    response = getattr(self, method)(params)
+                else:
+                    response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

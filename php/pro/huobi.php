@@ -1413,13 +1413,13 @@ class huobi extends \ccxt\async\huobi {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
-        $timestamp = $this->safe_integer($message, 'ts');
+        $data = $this->safe_value($message, 'data', array());
+        $timestamp = $this->safe_integer($data, 'changeTime', $this->safe_integer($message, 'ts'));
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
-        $this->balance['info'] = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         if ($channel !== null) {
             // spot $balance
-            $data = $this->safe_value($message, 'data', array());
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1430,7 +1430,6 @@ class huobi extends \ccxt\async\huobi {
             $client->resolve ($this->balance, $channel);
         } else {
             // contract $balance
-            $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength === 0) {
                 return;

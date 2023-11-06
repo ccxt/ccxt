@@ -323,6 +323,7 @@ export default class coinbase extends Exchange {
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
         const method = this.safeString (this.options, 'fetchAccounts', 'fetchAccountsV3');
@@ -334,6 +335,11 @@ export default class coinbase extends Exchange {
 
     async fetchAccountsV2 (params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
+        }
         const request = {
             'limit': 100,
         };
@@ -383,11 +389,25 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        const pagination = this.safeValue (response, 'pagination', {});
+        const cursor = this.safeString (pagination, 'next_starting_after');
+        const accounts = this.safeValue (response, 'data', []);
+        const lastIndex = accounts.length - 1;
+        const last = this.safeValue (accounts, lastIndex);
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['next_starting_after'] = cursor;
+            accounts[lastIndex] = last;
+        }
         return this.parseAccounts (data, params);
     }
 
     async fetchAccountsV3 (params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 100);
+        }
         const request = {
             'limit': 100,
         };
@@ -422,8 +442,15 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        const data = this.safeValue (response, 'accounts', []);
-        return this.parseAccounts (data, params);
+        const accounts = this.safeValue (response, 'accounts', []);
+        const lastIndex = accounts.length - 1;
+        const last = this.safeValue (accounts, lastIndex);
+        const cursor = this.safeString (response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['cursor'] = cursor;
+            accounts[lastIndex] = last;
+        }
+        return this.parseAccounts (accounts, params);
     }
 
     parseAccount (account) {

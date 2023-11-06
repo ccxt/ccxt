@@ -258,6 +258,7 @@ class ImplicitAPI:
     private_get_v5_user_query_api = privateGetV5UserQueryApi = Entry('v5/user/query-api', 'private', 'GET', {'cost': 5})
     private_get_v5_user_get_member_type = privateGetV5UserGetMemberType = Entry('v5/user/get-member-type', 'private', 'GET', {'cost': 5})
     private_get_v5_user_aff_customer_info = privateGetV5UserAffCustomerInfo = Entry('v5/user/aff-customer-info', 'private', 'GET', {'cost': 5})
+    private_get_v5_user_del_submember = privateGetV5UserDelSubmember = Entry('v5/user/del-submember', 'private', 'GET', {'cost': 5})
     private_get_v5_spot_lever_token_order_record = privateGetV5SpotLeverTokenOrderRecord = Entry('v5/spot-lever-token/order-record', 'private', 'GET', {'cost': 1})
     private_get_v5_spot_margin_trade_state = privateGetV5SpotMarginTradeState = Entry('v5/spot-margin-trade/state', 'private', 'GET', {'cost': 5})
     private_get_v5_spot_cross_margin_trade_loan_info = privateGetV5SpotCrossMarginTradeLoanInfo = Entry('v5/spot-cross-margin-trade/loan-info', 'private', 'GET', {'cost': 1})

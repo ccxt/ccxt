@@ -775,6 +775,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_user_aff_customer_info($params = array()) {
         return $this->request('v5/user/aff-customer-info', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_user_del_submember($params = array()) {
+        return $this->request('v5/user/del-submember', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_spot_lever_token_order_record($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2148,6 +2151,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5UserAffCustomerInfo($params = array()) {
         return $this->request('v5/user/aff-customer-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5UserDelSubmember($params = array()) {
+        return $this->request('v5/user/del-submember', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5SpotLeverTokenOrderRecord($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));

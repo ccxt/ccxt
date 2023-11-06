@@ -767,6 +767,9 @@ class bitget extends \ccxt\async\bitget {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#order-$channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#order-$channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#plan-order-$channel
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -777,7 +780,9 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $market = null;
             $marketId = null;
-            $messageHash = 'order';
+            $isStop = $this->safe_value($params, 'stop', false);
+            $params = $this->omit($params, 'stop');
+            $messageHash = ($isStop) ? 'triggerOrder' : 'order';
             $subscriptionHash = 'order:trades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -785,8 +790,6 @@ class bitget extends \ccxt\async\bitget {
                 $marketId = $market['id'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, 'stop');
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             if (($type === 'spot') && ($symbol === null)) {
@@ -806,6 +809,9 @@ class bitget extends \ccxt\async\bitget {
                 } else {
                     $instType = 'SUMCBL';
                 }
+            }
+            if ($isStop) {
+                $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop $orders
             }
             $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $channel = $isStop ? 'ordersAlgo' : 'orders';
@@ -828,7 +834,7 @@ class bitget extends \ccxt\async\bitget {
         // spot $order
         //    {
         //        action => 'snapshot',
-        //        $arg => array( $instType => 'spbl', channel => 'orders', instId => 'LTCUSDT_SPBL' // instId='default' for contracts ),
+        //        $arg => array( $instType => 'spbl', $channel => 'orders', instId => 'LTCUSDT_SPBL' // instId='default' for contracts ),
         //        $data => array(
         //          {
         //            instId => 'LTCUSDT_SPBL',
@@ -850,7 +856,42 @@ class bitget extends \ccxt\async\bitget {
         //        )
         //    }
         //
+        //    {
+        //        action => 'snapshot',
+        //        $arg => array( $instType => 'umcbl', $channel => 'ordersAlgo', instId => 'default' ),
+        //        $data => array(
+        //          {
+        //            actualPx => '55.000000000',
+        //            actualSz => '0.000000000',
+        //            cOid => '1104372235724890112',
+        //            cTime => '1699028779917',
+        //            eps => 'web',
+        //            hM => 'double_hold',
+        //            id => '1104372235724890113',
+        //            instId => 'BTCUSDT_UMCBL',
+        //            key => '1104372235724890113',
+        //            ordPx => '55.000000000',
+        //            ordType => 'limit',
+        //            planType => 'pl',
+        //            posSide => 'long',
+        //            side => 'buy',
+        //            state => 'not_trigger',
+        //            sz => '3.557000000',
+        //            tS => 'open_long',
+        //            tgtCcy => 'USDT',
+        //            triggerPx => '55.000000000',
+        //            triggerPxType => 'last',
+        //            triggerTime => '1699028779917',
+        //            uTime => '1699028779917',
+        //            userId => '3704614084',
+        //            version => 1104372235586478100
+        //          }
+        //        ),
+        //        ts => 1699028780327
+        //    }
+        //
         $arg = $this->safe_value($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel');
         $instType = $this->safe_string($arg, 'instType');
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $isContractUpdate = (!$sandboxMode) ? ($instType === 'umcbl') : ($instType === 'sumcbl');
@@ -858,8 +899,10 @@ class bitget extends \ccxt\async\bitget {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->triggerOrders = new ArrayCacheBySymbolById ($limit);
         }
-        $stored = $this->orders;
+        $stored = ($channel === 'ordersAlgo') ? $this->triggerOrders : $this->orders;
+        $messageHash = ($channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
@@ -876,10 +919,10 @@ class bitget extends \ccxt\async\bitget {
         $keys = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
-            $messageHash = 'order:' . $symbol;
-            $client->resolve ($stored, $messageHash);
+            $innerMessageHash = $messageHash . ':' . $symbol;
+            $client->resolve ($stored, $innerMessageHash);
         }
-        $client->resolve ($stored, 'order');
+        $client->resolve ($stored, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
