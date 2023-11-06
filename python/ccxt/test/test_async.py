@@ -25,6 +25,8 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 class Argv(object):
+    idTests = False
+    staticTests = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -45,6 +47,8 @@ parser.add_argument('--privateOnly', action='store_true', help='run private test
 parser.add_argument('--private', action='store_true', help='run private tests')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--info', action='store_true', help='enable info output')
+parser.add_argument('--static', action='store_true', help='run static tests')
+parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -80,6 +84,8 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 class baseMainTestClass():
+    lang = 'PY'
+    staticTestsFailed = False
     skippedMethods = {}
     checkedPublicTests = {}
     testFiles = {}
@@ -98,6 +104,14 @@ ext = 'py'
 
 def dump(*args):
     print(' '.join([str(arg) for arg in args]))
+
+
+def json_parse(elem):
+    return json.loads(elem)
+
+
+def json_stringify(elem):
+    return json.dumps(elem)
 
 
 def get_cli_arg_value(arg):
@@ -129,8 +143,16 @@ def io_file_read(path, decode=True):
         return content
 
 
+def io_dir_read(path):
+    return os.listdir(path)
+
+
 async def call_method(testFiles, methodName, exchange, skippedProperties, args):
     return await getattr(testFiles[methodName], methodName)(exchange, skippedProperties, *args)
+
+
+async def call_exchange_method_dynamically(exchange, methodName, args):
+    return await getattr(exchange, methodName)(*args)
 
 
 def exception_message(exc):
@@ -141,8 +163,8 @@ def exception_message(exc):
     return message
 
 
-def exit_script():
-    exit(0)
+def exit_script(code=0):
+    exit(code)
 
 
 def get_exchange_prop(exchange, prop, defaultValue=None):
@@ -185,6 +207,7 @@ async def close(exchange):
 
 
 import asyncio
+from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
@@ -197,6 +220,8 @@ from ccxt.base.errors import AuthenticationError
 class testMainClass(baseMainTestClass):
 
     def parse_cli_args(self):
+        self.idTests = get_cli_arg_value('--idTests')
+        self.staticTests = get_cli_arg_value('--static')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -206,6 +231,12 @@ class testMainClass(baseMainTestClass):
 
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
+        if self.staticTests:
+            await self.run_static_tests()
+            return
+        if self.idTests:
+            await self.run_broker_id_tests()
+            return
         symbolStr = symbol is not symbol if None else 'all'
         dump('\nTESTING ', ext, {'exchange': exchangeId, 'symbol': symbolStr}, '\n')
         exchangeArgs = {
@@ -404,11 +435,13 @@ class testMainClass(baseMainTestClass):
                 if not results[i]:
                     errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
-            failedMsg = ''
-            errorsLength = len(errors)
-            if errorsLength > 0:
-                failedMsg = ' | Failed methods : ' + ', '.join(errors)
-            dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
+            failedMsg = ', '.join(errors) if errors else None
+            errorsInMessage = ''
+            if errors is not None:
+                errorsInMessage = ' | Failed methods : ' + failedMsg
+            messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage
+            messageWithPadding = self.add_padding(messageContent, 25)
+            dump(messageWithPadding, exchange.id)
 
     async def load_exchange(self, exchange):
         result = await self.test_safe('loadMarkets', exchange, [], True)
@@ -723,6 +756,385 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             await close(exchange)
             raise e
+
+    def assert_static_error(self, cond: bool, message: str, calculatedOutput, storedOutput):
+        #  -----------------------------------------------------------------------------
+        #  --- Init of static tests functions------------------------------------------
+        #  -----------------------------------------------------------------------------
+        calculatedString = json_stringify(calculatedOutput)
+        outputString = json_stringify(storedOutput)
+        errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString
+        assert cond, errorMessage
+
+    def load_markets_from_file(self, id: str):
+        # load markets from file
+        # to make self test
+        # and basically independent from the exchange
+        # so we can run it offline
+        filename = './ts/src/test/static/markets/' + id + '.json'
+        content = io_file_read(filename)
+        return content
+
+    def load_static_data(self):
+        folder = './ts/src/test/static/data/'
+        files = io_dir_read(folder)
+        result = {}
+        for i in range(0, len(files)):
+            file = files[i]
+            exchangeName = file.replace('.json', '')
+            content = io_file_read(folder + file)
+            result[exchangeName] = content
+        return result
+
+    def remove_hostnamefrom_url(self, url: str):
+        if url is None:
+            return None
+        urlParts = url.split('/')
+        res = ''
+        for i in range(0, len(urlParts)):
+            if i > 2:
+                current = urlParts[i]
+                if current.find('?') > -1:
+                    # handle urls like self: /v1/account/accounts?AccessK
+                    currentParts = current.split('?')
+                    res += '/'
+                    res += currentParts[0]
+                    break
+                res += '/'
+                res += current
+        return res
+
+    def urlencoded_to_dict(self, url: str):
+        result = {}
+        parts = url.split('&')
+        for i in range(0, len(parts)):
+            part = parts[i]
+            keyValue = part.split('=')
+            key = keyValue[0]
+            value = keyValue[1]
+            result[key] = value
+        return result
+
+    def assert_new_and_stored_output(self, exchange, skipKeys: List[str], newOutput: object, storedOutput: object):
+        storedOutputKeys = list(storedOutput.keys())
+        newOutputKeys = list(newOutput.keys())
+        storedLenght = len(storedOutputKeys)
+        newLength = len(newOutputKeys)
+        self.assert_static_error(storedLenght == newLength, 'output length mismatch', storedOutput, newOutput)
+        for i in range(0, len(storedOutputKeys)):
+            key = storedOutputKeys[i]
+            if exchange.in_array(key, skipKeys):
+                continue
+            if not (exchange.in_array(key, newOutputKeys)):
+                self.assert_static_error(False, 'output key missing: ' + key, storedOutput, newOutput)
+            storedValue = storedOutput[key]
+            newValue = newOutput[key]
+            if isinstance(storedValue, dict):
+                if isinstance(newValue, dict):
+                    # recursive objects
+                    return self.assert_new_and_stored_output(exchange, skipKeys, newValue, storedValue)
+            messageError = 'output value mismatch for: ' + key + ' : ' + str(storedValue) + ' != ' + str(newValue)
+            self.assert_static_error(storedValue == newValue, messageError, storedOutput, newOutput)
+
+    def assert_static_output(self, exchange, type: str, skipKeys: List[str], storedUrl: str, requestUrl: str, storedOutput, newOutput):
+        if storedUrl != requestUrl:
+            # remove the host part from the url
+            firstPath = self.remove_hostnamefrom_url(storedUrl)
+            secondPath = self.remove_hostnamefrom_url(requestUrl)
+            self.assert_static_error(firstPath == secondPath, 'url mismatch', firstPath, secondPath)
+        # body(aka storedOutput and newOutput) is not defined and information is in the url
+        # example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if (storedOutput is None) and (newOutput is None):
+            if (storedUrl is not None) and (requestUrl is not None):
+                storedUrlParts = storedUrl.split('?')
+                newUrlParts = requestUrl.split('?')
+                storedUrlParams = self.urlencoded_to_dict(storedUrlParts[1])
+                newUrlParams = self.urlencoded_to_dict(newUrlParts[1])
+                self.assert_new_and_stored_output(exchange, skipKeys, newUrlParams, storedUrlParams)
+                return
+        # body is defined
+        if type == 'json':
+            if isinstance(storedOutput, str):
+                storedOutput = json_parse(storedOutput)
+            if isinstance(newOutput, str):
+                newOutput = json_parse(newOutput)
+        elif type == 'urlencoded':
+            storedOutput = self.urlencoded_to_dict(storedOutput)
+            newOutput = self.urlencoded_to_dict(newOutput)
+        if isinstance(storedOutput, list):
+            if not isinstance(newOutput, list):
+                self.assert_static_error(False, 'output type mismatch', storedOutput, newOutput)
+            for i in range(0, len(storedOutput)):
+                storedItem = storedOutput[i]
+                newItem = newOutput[i]
+                self.assert_new_and_stored_output(exchange, skipKeys, newItem, storedItem)
+        else:
+            self.assert_new_and_stored_output(exchange, skipKeys, newOutput, storedOutput)
+
+    async def test_method_statically(self, exchange, method: str, data: object, type: str, skipKeys: List[str]):
+        output = None
+        requestUrl = None
+        try:
+            await call_exchange_method_dynamically(exchange, method, data['input'])
+        except Exception as e:
+            if not (isinstance(e, NetworkError)):
+                # if it's not a network error, it means our request was not created succesfully
+                # so we might have an error in the request creation
+                raise e
+            output = exchange.last_request_body
+            requestUrl = exchange.last_request_url
+        try:
+            callOutput = exchange.safe_value(data, 'output')
+            self.assert_static_output(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output)
+        except Exception as e:
+            self.staticTestsFailed = True
+            errorMessage = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            dump(errorMessage)
+
+    def init_offline_exchange(self, exchangeName: str):
+        markets = self.load_markets_from_file(exchangeName)
+        return init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+
+    async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
+        # instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        exchange = self.init_offline_exchange(exchangeName)
+        methods = exchange.safe_value(exchangeData, 'methods', {})
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                type = exchange.safe_string(exchangeData, 'outputType')
+                skipKeys = exchange.safe_value(exchangeData, 'skipKeys', [])
+                await self.test_method_statically(exchange, method, result, type, skipKeys)
+        await close(exchange)
+
+    def get_number_of_tests_from_exchange(self, exchange, exchangeData: object):
+        sum = 0
+        methods = exchangeData['methods']
+        methodsNames = list(methods.keys())
+        for i in range(0, len(methodsNames)):
+            method = methodsNames[i]
+            results = methods[method]
+            resultsLength = len(results)
+            sum = exchange.sum(sum, resultsLength)
+        return sum
+
+    async def run_static_tests(self):
+        staticData = self.load_static_data()
+        exchanges = list(staticData.keys())
+        exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling self code
+        promises = []
+        sum = 0
+        for i in range(0, len(exchanges)):
+            exchangeName = exchanges[i]
+            exchangeData = staticData[exchangeName]
+            numberOfTests = self.get_number_of_tests_from_exchange(exchange, exchangeData)
+            sum = exchange.sum(sum, numberOfTests)
+            promises.append(self.test_exchange_statically(exchangeName, exchangeData))
+        await asyncio.gather(*promises)
+        if self.staticTestsFailed:
+            exit_script(1)
+        else:
+            successMessage = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static tests passed.'
+            dump(successMessage)
+            exit_script(0)
+
+    async def run_broker_id_tests(self):
+        #  -----------------------------------------------------------------------------
+        #  --- Init of brokerId tests functions-----------------------------------------
+        #  -----------------------------------------------------------------------------
+        promises = [
+            self.test_binance(),
+            self.test_okx(),
+            self.test_cryptocom(),
+            self.test_bybit(),
+            self.test_kucoin(),
+            self.test_kucoinfutures(),
+            self.test_bitget(),
+            self.test_mexc(),
+            self.test_huobi(),
+            self.test_woo()
+        ]
+        await asyncio.gather(*promises)
+        successMessage = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
+        dump(successMessage)
+        exit_script(0)
+
+    async def test_binance(self):
+        binance = self.init_offline_exchange('binance')
+        spotId = 'x-R4BD3S82'
+        spotOrderRequest = None
+        try:
+            await binance.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = self.urlencoded_to_dict(binance.last_request_body)
+        clientOrderId = spotOrderRequest['newClientOrderId']
+        assert clientOrderId.startswith(spotId), 'spot clientOrderId does not start with spotId'
+        swapId = 'x-xcKtGhcu'
+        swapOrderRequest = None
+        try:
+            await binance.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapOrderRequest = self.urlencoded_to_dict(binance.last_request_body)
+        swapInverseOrderRequest = None
+        try:
+            await binance.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapInverseOrderRequest = self.urlencoded_to_dict(binance.last_request_body)
+        clientOrderIdSpot = swapOrderRequest['newClientOrderId']
+        assert clientOrderIdSpot.startswith(swapId), 'swap clientOrderId does not start with swapId'
+        clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId']
+        assert clientOrderIdInverse.startswith(swapId), 'swap clientOrderIdInverse does not start with swapId'
+        await close(binance)
+
+    async def test_okx(self):
+        okx = self.init_offline_exchange('okx')
+        id = 'e847386590ce4dBC'
+        spotOrderRequest = None
+        try:
+            await okx.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(okx.last_request_body)
+        clientOrderId = spotOrderRequest[0]['clOrdId']  # returns order inside array
+        assert clientOrderId.startswith(id), 'spot clientOrderId does not start with id'
+        assert spotOrderRequest[0]['tag'] == id, 'id different from spot tag'
+        swapOrderRequest = None
+        try:
+            await okx.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapOrderRequest = json_parse(okx.last_request_body)
+        clientOrderIdSpot = swapOrderRequest[0]['clOrdId']
+        assert clientOrderIdSpot.startswith(id), 'swap clientOrderId does not start with id'
+        assert swapOrderRequest[0]['tag'] == id, 'id different from swap tag'
+        await close(okx)
+
+    async def test_cryptocom(self):
+        cryptocom = self.init_offline_exchange('cryptocom')
+        id = 'CCXT'
+        await cryptocom.load_markets()
+        request = None
+        try:
+            await cryptocom.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            request = json_parse(cryptocom.last_request_body)
+        assert request['params']['broker_id'] == id, 'id different from  broker_id'
+        await close(cryptocom)
+
+    async def test_bybit(self):
+        bybit = self.init_offline_exchange('bybit')
+        reqHeaders = None
+        id = 'CCXT'
+        assert bybit.options['brokerId'] == id, 'id not in options'
+        try:
+            await bybit.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            reqHeaders = bybit.last_request_headers
+        assert reqHeaders['Referer'] == id, 'id not in headers'
+        await close(bybit)
+
+    async def test_kucoin(self):
+        kucoin = self.init_offline_exchange('kucoin')
+        reqHeaders = None
+        assert kucoin.options['partner']['spot']['id'] == 'ccxt', 'id not in options'
+        assert kucoin.options['partner']['spot']['key'] == '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options'
+        try:
+            await kucoin.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            reqHeaders = kucoin.last_request_headers
+        id = 'ccxt'
+        assert reqHeaders['KC-API-PARTNER'] == id, 'id not in headers'
+        await close(kucoin)
+
+    async def test_kucoinfutures(self):
+        kucoin = self.init_offline_exchange('kucoinfutures')
+        reqHeaders = None
+        id = 'ccxtfutures'
+        assert kucoin.options['partner']['future']['id'] == id, 'id not in options'
+        assert kucoin.options['partner']['future']['key'] == '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options'
+        try:
+            await kucoin.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            reqHeaders = kucoin.last_request_headers
+        assert reqHeaders['KC-API-PARTNER'] == id, 'id not in headers'
+        await close(kucoin)
+
+    async def test_bitget(self):
+        bitget = self.init_offline_exchange('bitget')
+        reqHeaders = None
+        id = 'p4sve'
+        assert bitget.options['broker'] == id, 'id not in options'
+        try:
+            await bitget.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            reqHeaders = bitget.last_request_headers
+        assert reqHeaders['X-CHANNEL-API-CODE'] == id, 'id not in headers'
+        await close(bitget)
+
+    async def test_mexc(self):
+        mexc = self.init_offline_exchange('mexc')
+        reqHeaders = None
+        id = 'CCXT'
+        assert mexc.options['broker'] == id, 'id not in options'
+        await mexc.load_markets()
+        try:
+            await mexc.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            reqHeaders = mexc.last_request_headers
+        assert reqHeaders['source'] == id, 'id not in headers'
+        await close(mexc)
+
+    async def test_huobi(self):
+        huobi = self.init_offline_exchange('huobi')
+        # spot test
+        id = 'AA03022abc'
+        spotOrderRequest = None
+        try:
+            await huobi.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(huobi.last_request_body)
+        clientOrderId = spotOrderRequest['client-order-id']
+        assert clientOrderId.startswith(id), 'spot clientOrderId does not start with id'
+        # swap test
+        swapOrderRequest = None
+        try:
+            await huobi.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapOrderRequest = json_parse(huobi.last_request_body)
+        swapInverseOrderRequest = None
+        try:
+            await huobi.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            swapInverseOrderRequest = json_parse(huobi.last_request_body)
+        clientOrderIdSpot = swapOrderRequest['channel_code']
+        assert clientOrderIdSpot.startswith(id), 'swap channel_code does not start with id'
+        clientOrderIdInverse = swapInverseOrderRequest['channel_code']
+        assert clientOrderIdInverse.startswith(id), 'swap inverse channel_code does not start with id'
+        await close(huobi)
+
+    async def test_woo(self):
+        woo = self.init_offline_exchange('woo')
+        # spot test
+        id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad'
+        spotOrderRequest = None
+        try:
+            await woo.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = self.urlencoded_to_dict(woo.last_request_body)
+        brokerId = spotOrderRequest['broker_id']
+        assert brokerId.startswith(id), 'broker_id does not start with id'
+        # swap test
+        stopOrderRequest = None
+        try:
+            await woo.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {'stopPrice': 30000})
+        except Exception as e:
+            stopOrderRequest = json_parse(woo.last_request_body)
+        clientOrderIdSpot = stopOrderRequest['brokerId']
+        assert clientOrderIdSpot.startswith(id), 'brokerId does not start with id'
+        await close(woo)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

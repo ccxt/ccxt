@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.23'
+__version__ = '4.1.40'
 
 # -----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade
+from ccxt.base.types import Balance, IndexType, OrderSide, OrderType, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -392,6 +392,9 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+    last_request_body = None
+    last_request_url = None
+    last_request_headers = None
 
     requiresEddsa = False
     base58_encoder = None
@@ -988,8 +991,8 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+    def sort_by(array, key, descending=False, default=0):
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else default, reverse=descending)
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
@@ -1362,6 +1365,11 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519'):
+        private_key = load_pem_private_key(Exchange.encode(secret), None)
+        return Exchange.binary_to_base64(private_key.sign(request))
+
+    @staticmethod
+    def axolotl(request, secret, curve='ed25519'):
         random = b'\x00' * 64
         request = base64.b16decode(request, casefold=True)
         secret = base64.b16decode(secret, casefold=True)
@@ -2140,7 +2148,7 @@ class Exchange(object):
         self.markets_by_id = {}
         # handle marketId conflicts
         # we insert spot markets first
-        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True, True)
         for i in range(0, len(marketValues)):
             value = marketValues[i]
             if value['id'] in self.markets_by_id:
@@ -2183,8 +2191,8 @@ class Exchange(object):
                         'precision': self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     })
                     quoteCurrencies.append(currency)
-            baseCurrencies = self.sort_by(baseCurrencies, 'code')
-            quoteCurrencies = self.sort_by(quoteCurrencies, 'code')
+            baseCurrencies = self.sort_by(baseCurrencies, 'code', False, '')
+            quoteCurrencies = self.sort_by(quoteCurrencies, 'code', False, '')
             self.baseCurrencies = self.index_by(baseCurrencies, 'code')
             self.quoteCurrencies = self.index_by(quoteCurrencies, 'code')
             allCurrencies = self.array_concat(baseCurrencies, quoteCurrencies)
@@ -2530,6 +2538,23 @@ class Exchange(object):
             'cost': self.parse_number(cost),
         }
 
+    def safe_liquidation(self, liquidation: object, market: Optional[object] = None):
+        contracts = self.safe_string(liquidation, 'contracts')
+        contractSize = self.safe_string(market, 'contractSize')
+        price = self.safe_string(liquidation, 'price')
+        baseValue = self.safe_string(liquidation, 'baseValue')
+        quoteValue = self.safe_string(liquidation, 'quoteValue')
+        if (baseValue is None) and (contracts is not None) and (contractSize is not None) and (price is not None):
+            baseValue = Precise.string_mul(contracts, contractSize)
+        if (quoteValue is None) and (baseValue is not None) and (price is not None):
+            quoteValue = Precise.string_mul(baseValue, price)
+        liquidation['contracts'] = self.parse_number(contracts)
+        liquidation['contractSize'] = self.parse_number(contractSize)
+        liquidation['price'] = self.parse_number(price)
+        liquidation['baseValue'] = self.parse_number(baseValue)
+        liquidation['quoteValue'] = self.parse_number(quoteValue)
+        return liquidation
+
     def safe_trade(self, trade: object, market: Optional[object] = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')
@@ -2866,7 +2891,7 @@ class Exchange(object):
                 result.append(objects[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         if isinstance(ohlcv, list):
             return [
                 self.safe_integer(ohlcv, 0),  # timestamp
@@ -3151,6 +3176,9 @@ class Exchange(object):
             self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
+        self.last_request_headers = request['headers']
+        self.last_request_body = request['body']
+        self.last_request_url = request['url']
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
 
     def request(self, path, api: Any = 'public', method='GET', params={}, headers: Optional[Any] = None, body: Optional[Any] = None, config={}):
@@ -3586,6 +3614,9 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' createOrders() is not supported yet')
+
     def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Optional[float] = None, params={}):
         raise NotSupported(self.id + ' createOrderWs() is not supported yet')
 
@@ -3665,6 +3696,9 @@ class Exchange(object):
 
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported yet')
+
+    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
 
     def parse_last_price(self, price, market=None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
@@ -3878,6 +3912,10 @@ class Exchange(object):
 
     def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
+
+    def filter_by_symbols_since_limit(self, array, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        result = self.filter_by_array(array, 'symbol', symbols, False)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
     def parse_last_prices(self, pricesData, symbols: Optional[List[str]] = None, params={}):
         #

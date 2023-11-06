@@ -230,6 +230,23 @@ export interface Liquidation {
     baseValue?: number;
     quoteValue?: number;
 }
+export interface OrderRequest {
+    symbol: string;
+    type: string;
+    side: string;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
+}
+export interface FundingHistory {
+    info: any;
+    symbol: string;
+    code: string;
+    timestamp?: number;
+    datetime?: string;
+    id: string;
+    amount: number;
+}
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [number, number, number, number, number, number];
 /** [ timestamp, open, high, low, close, volume, count ] */

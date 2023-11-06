@@ -408,7 +408,7 @@ class ace extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "changeRate" => 0,
@@ -498,7 +498,7 @@ class ace extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -1034,7 +1034,7 @@ class ace extends Exchange {
                 'timeStamp' => $nonce,
             ), $params);
             $dataKeys = is_array($data) ? array_keys($data) : array();
-            $sortedDataKeys = $this->sort_by($dataKeys, 0);
+            $sortedDataKeys = $this->sort_by($dataKeys, 0, false, '');
             for ($i = 0; $i < count($sortedDataKeys); $i++) {
                 $key = $sortedDataKeys[$i];
                 $auth .= $this->safe_string($data, $key);

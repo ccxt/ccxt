@@ -5,19 +5,21 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
+/* eslint-disable max-classes-per-file */
 import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
+import assert from 'assert';
 import ccxt from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 // js specific codes //
 const DIR_NAME = fileURLToPath(new URL('.', import.meta.url));
 process.on('uncaughtException', (e) => {
-    exceptionMessage(e);
-    process.exit(1);
+    throw new Error(exceptionMessage(e));
+    // process.exit (1);
 });
 process.on('unhandledRejection', (e) => {
-    exceptionMessage(e);
-    process.exit(1);
+    throw new Error(exceptionMessage(e));
+    // process.exit (1);
 });
 const [processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined] = process.argv.filter((x) => !x.startsWith('--'));
 const AuthenticationError = ccxt.AuthenticationError;
@@ -31,6 +33,10 @@ const NotSupported = ccxt.NotSupported;
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
     constructor() {
+        this.lang = 'JS';
+        this.idTests = false;
+        this.staticTestsFailed = false;
+        this.staticTests = false;
         this.info = false;
         this.verbose = false;
         this.debug = false;
@@ -51,6 +57,12 @@ const ext = import.meta.url.split('.')[1];
 function dump(...args) {
     console.log(...args);
 }
+function jsonParse(elem) {
+    return JSON.parse(elem);
+}
+function jsonStringify(elem) {
+    return JSON.stringify(elem);
+}
 function getCliArgValue(arg) {
     return process.argv.includes(arg) || false;
 }
@@ -64,14 +76,23 @@ function ioFileRead(path, decode = true) {
     const content = fs.readFileSync(path, 'utf8');
     return decode ? JSON.parse(content) : content;
 }
+function ioDirRead(path) {
+    const files = fs.readdirSync(path);
+    return files;
+}
 async function callMethod(testFiles, methodName, exchange, skippedProperties, args) {
+    // used for calling methods from test files
     return await testFiles[methodName](exchange, skippedProperties, ...args);
+}
+async function callExchangeMethodDynamically(exchange, methodName, args) {
+    // used for calling actual exchange methods
+    return await exchange[methodName](...args);
 }
 function exceptionMessage(exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, LOG_CHARS_LENGTH);
 }
-function exitScript() {
-    process.exit(0);
+function exitScript(code = 0) {
+    process.exit(code);
 }
 function getExchangeProp(exchange, prop, defaultValue = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
@@ -114,6 +135,8 @@ async function close(exchange) {
 // ***** AUTO-TRANSPILER-START *****
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs() {
+        this.idTests = getCliArgValue('--idTests');
+        this.staticTests = getCliArgValue('--static');
         this.info = getCliArgValue('--info');
         this.verbose = getCliArgValue('--verbose');
         this.debug = getCliArgValue('--debug');
@@ -123,6 +146,14 @@ export default class testMainClass extends baseMainTestClass {
     }
     async init(exchangeId, symbol) {
         this.parseCliArgs();
+        if (this.staticTests) {
+            await this.runStaticTests();
+            return;
+        }
+        if (this.idTests) {
+            await this.runBrokerIdTests();
+            return;
+        }
         const symbolStr = symbol !== undefined ? symbol : 'all';
         dump('\nTESTING ', ext, { 'exchange': exchangeId, 'symbol': symbolStr }, '\n');
         const exchangeArgs = {
@@ -359,12 +390,14 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
-            let failedMsg = '';
-            const errorsLength = errors.length;
-            if (errorsLength > 0) {
-                failedMsg = ' | Failed methods : ' + errors.join(', ');
+            const failedMsg = errors ? errors.join(', ') : undefined;
+            let errorsInMessage = '';
+            if (errors !== undefined) {
+                errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
-            dump(this.addPadding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
+            const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
+            const messageWithPadding = this.addPadding(messageContent, 25);
+            dump(messageWithPadding, exchange.id);
         }
     }
     async loadExchange(exchange) {
@@ -733,6 +766,450 @@ export default class testMainClass extends baseMainTestClass {
             await close(exchange);
             throw e;
         }
+    }
+    assertStaticError(cond, message, calculatedOutput, storedOutput) {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of static tests functions------------------------------------------
+        //  -----------------------------------------------------------------------------
+        const calculatedString = jsonStringify(calculatedOutput);
+        const outputString = jsonStringify(storedOutput);
+        const errorMessage = message + ' expected ' + outputString + ' received: ' + calculatedString;
+        assert(cond, errorMessage);
+    }
+    loadMarketsFromFile(id) {
+        // load markets from file
+        // to make this test as fast as possible
+        // and basically independent from the exchange
+        // so we can run it offline
+        const filename = './ts/src/test/static/markets/' + id + '.json';
+        const content = ioFileRead(filename);
+        return content;
+    }
+    loadStaticData() {
+        const folder = './ts/src/test/static/data/';
+        const files = ioDirRead(folder);
+        const result = {};
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const exchangeName = file.replace('.json', '');
+            const content = ioFileRead(folder + file);
+            result[exchangeName] = content;
+        }
+        return result;
+    }
+    removeHostnamefromUrl(url) {
+        if (url === undefined) {
+            return undefined;
+        }
+        const urlParts = url.split('/');
+        let res = '';
+        for (let i = 0; i < urlParts.length; i++) {
+            if (i > 2) {
+                const current = urlParts[i];
+                if (current.indexOf('?') > -1) {
+                    // handle urls like this: /v1/account/accounts?AccessK
+                    const currentParts = current.split('?');
+                    res += '/';
+                    res += currentParts[0];
+                    break;
+                }
+                res += '/';
+                res += current;
+            }
+        }
+        return res;
+    }
+    urlencodedToDict(url) {
+        const result = {};
+        const parts = url.split('&');
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const keyValue = part.split('=');
+            const key = keyValue[0];
+            const value = keyValue[1];
+            result[key] = value;
+        }
+        return result;
+    }
+    assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput) {
+        const storedOutputKeys = Object.keys(storedOutput);
+        const newOutputKeys = Object.keys(newOutput);
+        const storedLenght = storedOutputKeys.length;
+        const newLength = newOutputKeys.length;
+        this.assertStaticError(storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
+        for (let i = 0; i < storedOutputKeys.length; i++) {
+            const key = storedOutputKeys[i];
+            if (exchange.inArray(key, skipKeys)) {
+                continue;
+            }
+            if (!(exchange.inArray(key, newOutputKeys))) {
+                this.assertStaticError(false, 'output key missing: ' + key, storedOutput, newOutput);
+            }
+            const storedValue = storedOutput[key];
+            const newValue = newOutput[key];
+            if (typeof storedValue === 'object') {
+                if (typeof newValue === 'object') {
+                    // recursive objects
+                    return this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue);
+                }
+            }
+            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString() + ' != ' + newValue.toString();
+            this.assertStaticError(storedValue === newValue, messageError, storedOutput, newOutput);
+        }
+    }
+    assertStaticOutput(exchange, type, skipKeys, storedUrl, requestUrl, storedOutput, newOutput) {
+        if (storedUrl !== requestUrl) {
+            // remove the host part from the url
+            const firstPath = this.removeHostnamefromUrl(storedUrl);
+            const secondPath = this.removeHostnamefromUrl(requestUrl);
+            this.assertStaticError(firstPath === secondPath, 'url mismatch', firstPath, secondPath);
+        }
+        // body (aka storedOutput and newOutput) is not defined and information is in the url
+        // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
+        if ((storedOutput === undefined) && (newOutput === undefined)) {
+            if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
+                const storedUrlParts = storedUrl.split('?');
+                const newUrlParts = requestUrl.split('?');
+                const storedUrlParams = this.urlencodedToDict(storedUrlParts[1]);
+                const newUrlParams = this.urlencodedToDict(newUrlParts[1]);
+                this.assertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams);
+                return;
+            }
+            // body is defined
+        }
+        if (type === 'json') {
+            if (typeof storedOutput === 'string') {
+                storedOutput = jsonParse(storedOutput);
+            }
+            if (typeof newOutput === 'string') {
+                newOutput = jsonParse(newOutput);
+            }
+        }
+        else if (type === 'urlencoded') {
+            storedOutput = this.urlencodedToDict(storedOutput);
+            newOutput = this.urlencodedToDict(newOutput);
+        }
+        if (Array.isArray(storedOutput)) {
+            if (!Array.isArray(newOutput)) {
+                this.assertStaticError(false, 'output type mismatch', storedOutput, newOutput);
+            }
+            for (let i = 0; i < storedOutput.length; i++) {
+                const storedItem = storedOutput[i];
+                const newItem = newOutput[i];
+                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem);
+            }
+        }
+        else {
+            this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
+        }
+    }
+    async testMethodStatically(exchange, method, data, type, skipKeys) {
+        let output = undefined;
+        let requestUrl = undefined;
+        try {
+            await callExchangeMethodDynamically(exchange, method, data['input']);
+        }
+        catch (e) {
+            if (!(e instanceof NetworkError)) {
+                // if it's not a network error, it means our request was not created succesfully
+                // so we might have an error in the request creation
+                throw e;
+            }
+            output = exchange.last_request_body;
+            requestUrl = exchange.last_request_url;
+        }
+        try {
+            const callOutput = exchange.safeValue(data, 'output');
+            this.assertStaticOutput(exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
+        }
+        catch (e) {
+            this.staticTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            dump(errorMessage);
+        }
+    }
+    initOfflineExchange(exchangeName) {
+        const markets = this.loadMarketsFromFile(exchangeName);
+        return initExchange(exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false } });
+    }
+    async testExchangeStatically(exchangeName, exchangeData) {
+        // instantiate the exchange and make sure that we sink the requests to avoid an actual request
+        const exchange = this.initOfflineExchange(exchangeName);
+        const methods = exchange.safeValue(exchangeData, 'methods', {});
+        const methodsNames = Object.keys(methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const type = exchange.safeString(exchangeData, 'outputType');
+                const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
+                await this.testMethodStatically(exchange, method, result, type, skipKeys);
+            }
+        }
+        await close(exchange);
+    }
+    getNumberOfTestsFromExchange(exchange, exchangeData) {
+        let sum = 0;
+        const methods = exchangeData['methods'];
+        const methodsNames = Object.keys(methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            const resultsLength = results.length;
+            sum = exchange.sum(sum, resultsLength);
+        }
+        return sum;
+    }
+    async runStaticTests() {
+        const staticData = this.loadStaticData();
+        const exchanges = Object.keys(staticData);
+        const exchange = initExchange('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
+        const promises = [];
+        let sum = 0;
+        for (let i = 0; i < exchanges.length; i++) {
+            const exchangeName = exchanges[i];
+            const exchangeData = staticData[exchangeName];
+            const numberOfTests = this.getNumberOfTestsFromExchange(exchange, exchangeData);
+            sum = exchange.sum(sum, numberOfTests);
+            promises.push(this.testExchangeStatically(exchangeName, exchangeData));
+        }
+        await Promise.all(promises);
+        if (this.staticTestsFailed) {
+            exitScript(1);
+        }
+        else {
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString() + ' static tests passed.';
+            dump(successMessage);
+            exitScript(0);
+        }
+    }
+    async runBrokerIdTests() {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of brokerId tests functions-----------------------------------------
+        //  -----------------------------------------------------------------------------
+        const promises = [
+            this.testBinance(),
+            this.testOkx(),
+            this.testCryptocom(),
+            this.testBybit(),
+            this.testKucoin(),
+            this.testKucoinfutures(),
+            this.testBitget(),
+            this.testMexc(),
+            this.testHuobi(),
+            this.testWoo()
+        ];
+        await Promise.all(promises);
+        const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
+        dump(successMessage);
+        exitScript(0);
+    }
+    async testBinance() {
+        const binance = this.initOfflineExchange('binance');
+        const spotId = 'x-R4BD3S82';
+        let spotOrderRequest = undefined;
+        try {
+            await binance.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = this.urlencodedToDict(binance.last_request_body);
+        }
+        const clientOrderId = spotOrderRequest['newClientOrderId'];
+        assert(clientOrderId.startsWith(spotId), 'spot clientOrderId does not start with spotId');
+        const swapId = 'x-xcKtGhcu';
+        let swapOrderRequest = undefined;
+        try {
+            await binance.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            swapOrderRequest = this.urlencodedToDict(binance.last_request_body);
+        }
+        let swapInverseOrderRequest = undefined;
+        try {
+            await binance.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            swapInverseOrderRequest = this.urlencodedToDict(binance.last_request_body);
+        }
+        const clientOrderIdSpot = swapOrderRequest['newClientOrderId'];
+        assert(clientOrderIdSpot.startsWith(swapId), 'swap clientOrderId does not start with swapId');
+        const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
+        assert(clientOrderIdInverse.startsWith(swapId), 'swap clientOrderIdInverse does not start with swapId');
+        await close(binance);
+    }
+    async testOkx() {
+        const okx = this.initOfflineExchange('okx');
+        const id = 'e847386590ce4dBC';
+        let spotOrderRequest = undefined;
+        try {
+            await okx.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = jsonParse(okx.last_request_body);
+        }
+        const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
+        assert(clientOrderId.startsWith(id), 'spot clientOrderId does not start with id');
+        assert(spotOrderRequest[0]['tag'] === id, 'id different from spot tag');
+        let swapOrderRequest = undefined;
+        try {
+            await okx.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            swapOrderRequest = jsonParse(okx.last_request_body);
+        }
+        const clientOrderIdSpot = swapOrderRequest[0]['clOrdId'];
+        assert(clientOrderIdSpot.startsWith(id), 'swap clientOrderId does not start with id');
+        assert(swapOrderRequest[0]['tag'] === id, 'id different from swap tag');
+        await close(okx);
+    }
+    async testCryptocom() {
+        const cryptocom = this.initOfflineExchange('cryptocom');
+        const id = 'CCXT';
+        await cryptocom.loadMarkets();
+        let request = undefined;
+        try {
+            await cryptocom.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            request = jsonParse(cryptocom.last_request_body);
+        }
+        assert(request['params']['broker_id'] === id, 'id different from  broker_id');
+        await close(cryptocom);
+    }
+    async testBybit() {
+        const bybit = this.initOfflineExchange('bybit');
+        let reqHeaders = undefined;
+        const id = 'CCXT';
+        assert(bybit.options['brokerId'] === id, 'id not in options');
+        try {
+            await bybit.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = bybit.last_request_headers;
+        }
+        assert(reqHeaders['Referer'] === id, 'id not in headers');
+        await close(bybit);
+    }
+    async testKucoin() {
+        const kucoin = this.initOfflineExchange('kucoin');
+        let reqHeaders = undefined;
+        assert(kucoin.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
+        assert(kucoin.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
+        try {
+            await kucoin.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = kucoin.last_request_headers;
+        }
+        const id = 'ccxt';
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+        await close(kucoin);
+    }
+    async testKucoinfutures() {
+        const kucoin = this.initOfflineExchange('kucoinfutures');
+        let reqHeaders = undefined;
+        const id = 'ccxtfutures';
+        assert(kucoin.options['partner']['future']['id'] === id, 'id not in options');
+        assert(kucoin.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+        try {
+            await kucoin.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = kucoin.last_request_headers;
+        }
+        assert(reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
+        await close(kucoin);
+    }
+    async testBitget() {
+        const bitget = this.initOfflineExchange('bitget');
+        let reqHeaders = undefined;
+        const id = 'p4sve';
+        assert(bitget.options['broker'] === id, 'id not in options');
+        try {
+            await bitget.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = bitget.last_request_headers;
+        }
+        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
+        await close(bitget);
+    }
+    async testMexc() {
+        const mexc = this.initOfflineExchange('mexc');
+        let reqHeaders = undefined;
+        const id = 'CCXT';
+        assert(mexc.options['broker'] === id, 'id not in options');
+        await mexc.loadMarkets();
+        try {
+            await mexc.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = mexc.last_request_headers;
+        }
+        assert(reqHeaders['source'] === id, 'id not in headers');
+        await close(mexc);
+    }
+    async testHuobi() {
+        const huobi = this.initOfflineExchange('huobi');
+        // spot test
+        const id = 'AA03022abc';
+        let spotOrderRequest = undefined;
+        try {
+            await huobi.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = jsonParse(huobi.last_request_body);
+        }
+        const clientOrderId = spotOrderRequest['client-order-id'];
+        assert(clientOrderId.startsWith(id), 'spot clientOrderId does not start with id');
+        // swap test
+        let swapOrderRequest = undefined;
+        try {
+            await huobi.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            swapOrderRequest = jsonParse(huobi.last_request_body);
+        }
+        let swapInverseOrderRequest = undefined;
+        try {
+            await huobi.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            swapInverseOrderRequest = jsonParse(huobi.last_request_body);
+        }
+        const clientOrderIdSpot = swapOrderRequest['channel_code'];
+        assert(clientOrderIdSpot.startsWith(id), 'swap channel_code does not start with id');
+        const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
+        assert(clientOrderIdInverse.startsWith(id), 'swap inverse channel_code does not start with id');
+        await close(huobi);
+    }
+    async testWoo() {
+        const woo = this.initOfflineExchange('woo');
+        // spot test
+        const id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+        let spotOrderRequest = undefined;
+        try {
+            await woo.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = this.urlencodedToDict(woo.last_request_body);
+        }
+        const brokerId = spotOrderRequest['broker_id'];
+        assert(brokerId.startsWith(id), 'broker_id does not start with id');
+        // swap test
+        let stopOrderRequest = undefined;
+        try {
+            await woo.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
+        }
+        catch (e) {
+            stopOrderRequest = jsonParse(woo.last_request_body);
+        }
+        const clientOrderIdSpot = stopOrderRequest['brokerId'];
+        assert(clientOrderIdSpot.startsWith(id), 'brokerId does not start with id');
+        await close(woo);
     }
 }
 // ***** AUTO-TRANSPILER-END *****

@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -711,7 +710,7 @@ class oceanex(Exchange, ImplicitAPI):
             result = self.array_concat(result, parsedOrders)
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # [
         #    1559232000,
         #    8889.22,
@@ -754,7 +753,7 @@ class oceanex(Exchange, ImplicitAPI):
         ohlcvs = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "created_at": "2019-01-18T00:38:18Z",
@@ -815,18 +814,6 @@ class oceanex(Exchange, ImplicitAPI):
             'cancel': 'canceled',
         }
         return self.safe_string(statuses, status, status)
-
-    def create_orders(self, symbol: str, orders, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            'orders': orders,
-        }
-        # orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        response = self.privatePostOrdersMulti(self.extend(request, params))
-        data = response['data']
-        return self.parse_orders(data)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

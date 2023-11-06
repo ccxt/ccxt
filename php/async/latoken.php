@@ -23,8 +23,8 @@ class latoken extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
-                'future' => null,
+                'swap' => false,
+                'future' => false,
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -974,7 +974,7 @@ class latoken extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

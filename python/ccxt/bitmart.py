@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1420,7 +1419,7 @@ class bitmart(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         # spot
         #
@@ -1680,7 +1679,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trades(data, None, since, limit)
 
-    def custom_parse_balance(self, response, marketType):
+    def custom_parse_balance(self, response, marketType) -> Balances:
         data = self.safe_value(response, 'data', {})
         wallet = None
         if marketType == 'swap':
@@ -1895,7 +1894,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_trading_fee(data)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -3804,7 +3803,7 @@ class bitmart(Exchange, ImplicitAPI):
         priceString = self.safe_string(liquidation, 'deal_avg_price')
         baseValueString = Precise.string_mul(contractsString, contractSizeString)
         quoteValueString = Precise.string_mul(baseValueString, priceString)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
@@ -3814,7 +3813,7 @@ class bitmart(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(quoteValueString),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def nonce(self):
         return self.milliseconds()

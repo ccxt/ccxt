@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Market, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest } from './base/types.js';
 /**
  * @class binance
  * @extends Exchange
@@ -10,8 +10,51 @@ export default class binance extends Exchange {
     isLinear(type: any, subType?: any): boolean;
     setSandboxMode(enable: any): void;
     convertExpireDate(date: any): string;
-    createExpiredOptionMarket(symbol: any): Market;
-    market(symbol: any): Market;
+    createExpiredOptionMarket(symbol: any): {
+        id: string;
+        symbol: string;
+        base: any;
+        quote: string;
+        baseId: any;
+        quoteId: string;
+        active: any;
+        type: string;
+        linear: any;
+        inverse: any;
+        spot: boolean;
+        swap: boolean;
+        future: boolean;
+        option: boolean;
+        margin: boolean;
+        contract: boolean;
+        contractSize: any;
+        expiry: number;
+        expiryDatetime: string;
+        optionType: string;
+        strike: number;
+        settle: string;
+        settleId: string;
+        precision: {
+            amount: any;
+            price: any;
+        };
+        limits: {
+            amount: {
+                min: any;
+                max: any;
+            };
+            price: {
+                min: any;
+                max: any;
+            };
+            cost: {
+                min: any;
+                max: any;
+            };
+        };
+        info: any;
+    };
+    market(symbol: any): any;
     safeMarket(marketId?: any, market?: any, delimiter?: any, marketType?: any): any;
     costToPrecision(symbol: any, cost: any): any;
     currencyToPrecision(code: any, fee: any, networkCode?: any): any;
@@ -97,7 +140,7 @@ export default class binance extends Exchange {
         info: any;
     };
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: any): Trade | {
         id: any;
@@ -124,6 +167,7 @@ export default class binance extends Exchange {
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
@@ -374,7 +418,7 @@ export default class binance extends Exchange {
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchAccountPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     setMarginMode(marginMode: string, symbol?: string, params?: {}): Promise<any>;
     setPositionMode(hedged: any, symbol?: string, params?: {}): Promise<any>;
@@ -498,15 +542,5 @@ export default class binance extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: any): OpenInterest;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
-    parseLiquidation(liquidation: any, market?: any): {
-        info: any;
-        symbol: any;
-        contracts: number;
-        contractSize: number;
-        price: number;
-        baseValue: number;
-        quoteValue: number;
-        timestamp: number;
-        datetime: string;
-    };
+    parseLiquidation(liquidation: any, market?: any): Liquidation;
 }

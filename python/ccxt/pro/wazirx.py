@@ -428,7 +428,7 @@ class wazirx(ccxt.async_support.wazirx):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "E":1631683058904,      Event time

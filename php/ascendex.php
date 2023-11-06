@@ -26,7 +26,7 @@ class ascendex extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => true,
+                'future' => false,
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
@@ -48,7 +48,7 @@ class ascendex extends Exchange {
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
@@ -262,7 +262,6 @@ class ascendex extends Exchange {
                 'accountsByType' => array(
                     'spot' => 'cash',
                     'swap' => 'futures',
-                    'future' => 'futures',
                     'margin' => 'margin',
                 ),
                 'transfer' => array(
@@ -1053,7 +1052,7 @@ class ascendex extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "m":"bar",
@@ -1222,7 +1221,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -2737,22 +2736,21 @@ class ascendex extends Exchange {
     public function set_leverage($leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-$leverage
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setLeverage', $symbol);
         if (($leverage < 1) || ($leverage > 100)) {
             throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
         }
         $this->load_markets();
         $this->load_accounts();
         $market = $this->market($symbol);
-        if ($market['type'] !== 'future') {
-            throw new BadSymbol($this->id . ' setLeverage() supports futures contracts only');
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
         }
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
@@ -2767,11 +2765,13 @@ class ascendex extends Exchange {
     public function set_margin_mode($marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the ascendex api endpoint
          * @return {array} response from the exchange
          */
+        $this->check_required_symbol('setMarginMode', $symbol);
         $marginMode = strtolower($marginMode);
         if ($marginMode === 'cross') {
             $marginMode = 'crossed';
@@ -2787,10 +2787,10 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
             'symbol' => $market['id'],
-            'marginMode' => $marginMode,
+            'marginType' => $marginMode,
         );
-        if ($market['type'] !== 'future') {
-            throw new BadSymbol($this->id . ' setMarginMode() supports futures contracts only');
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
         return $this->v2PrivateAccountGroupPostFuturesMarginType (array_merge($request, $params));
     }
@@ -2970,7 +2970,7 @@ class ascendex extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if ($fromId !== 'cash' && $toId !== 'cash') {
-            throw new ExchangeError($this->id . ' $transfer() only supports direct balance $transfer between spot and future, spot and margin');
+            throw new ExchangeError($this->id . ' $transfer() only supports direct balance $transfer between spot and swap, spot and margin');
         }
         $request = array(
             'account-group' => $accountGroup,
@@ -3020,6 +3020,83 @@ class ascendex extends Exchange {
             return 'ok';
         }
         return 'failed';
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this $account
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the ascendex api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
+         */
+        $this->load_markets();
+        $this->load_accounts();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 25);
+        }
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $request = array(
+            'account-group' => $accountGroup,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->v2PrivateAccountGroupGetFuturesFundingPayments (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "data" => array(
+        //                 array(
+        //                     "timestamp" => 1640476800000,
+        //                     "symbol" => "BTC-PERP",
+        //                     "paymentInUSDT" => "-0.013991178",
+        //                     "fundingRate" => "0.000173497"
+        //                 ),
+        //             ),
+        //             "page" => 1,
+        //             "pageSize" => 3,
+        //             "hasNext" => true
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $rows = $this->safe_value($data, 'data', array());
+        return $this->parse_incomes($rows, $market, $since, $limit);
+    }
+
+    public function parse_income($income, $market = null) {
+        //
+        //     {
+        //         "timestamp" => 1640476800000,
+        //         "symbol" => "BTC-PERP",
+        //         "paymentInUSDT" => "-0.013991178",
+        //         "fundingRate" => "0.000173497"
+        //     }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $timestamp = $this->safe_integer($income, 'timestamp');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
+            'code' => 'USDT',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => null,
+            'amount' => $this->safe_number($income, 'paymentInUSDT'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

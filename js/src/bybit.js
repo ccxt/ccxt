@@ -38,6 +38,7 @@ export default class bybit extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -231,35 +232,35 @@ export default class bybit extends Exchange {
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
                         // v5
-                        'v5/announcements/index': 2.5,
+                        'v5/announcements/index': 5,
                         // market
-                        'v5/market/time': 2.5,
-                        'v5/market/kline': 2.5,
-                        'v5/market/mark-price-kline': 2.5,
-                        'v5/market/index-price-kline': 2.5,
-                        'v5/market/premium-index-price-kline': 2.5,
-                        'v5/market/instruments-info': 2.5,
-                        'v5/market/orderbook': 2.5,
-                        'v5/market/tickers': 2.5,
-                        'v5/market/funding/history': 2.5,
-                        'v5/market/recent-trade': 2.5,
-                        'v5/market/open-interest': 2.5,
-                        'v5/market/historical-volatility': 2.5,
-                        'v5/market/insurance': 2.5,
-                        'v5/market/risk-limit': 2.5,
-                        'v5/market/delivery-price': 2.5,
-                        'v5/market/account-ratio': 2.5,
+                        'v5/market/time': 5,
+                        'v5/market/kline': 5,
+                        'v5/market/mark-price-kline': 5,
+                        'v5/market/index-price-kline': 5,
+                        'v5/market/premium-index-price-kline': 5,
+                        'v5/market/instruments-info': 5,
+                        'v5/market/orderbook': 5,
+                        'v5/market/tickers': 5,
+                        'v5/market/funding/history': 5,
+                        'v5/market/recent-trade': 5,
+                        'v5/market/open-interest': 5,
+                        'v5/market/historical-volatility': 5,
+                        'v5/market/insurance': 5,
+                        'v5/market/risk-limit': 5,
+                        'v5/market/delivery-price': 5,
+                        'v5/market/account-ratio': 5,
                         // spot leverage token
-                        'v5/spot-lever-token/info': 2.5,
-                        'v5/spot-lever-token/reference': 2.5,
+                        'v5/spot-lever-token/info': 5,
+                        'v5/spot-lever-token/reference': 5,
                         // spot margin trade
-                        'v5/spot-margin-trade/data': 2.5,
-                        'v5/spot-cross-margin-trade/data': 2.5,
-                        'v5/spot-cross-margin-trade/pledge-token': 2.5,
-                        'v5/spot-cross-margin-trade/borrow-token': 2.5,
+                        'v5/spot-margin-trade/data': 5,
+                        'v5/spot-cross-margin-trade/data': 5,
+                        'v5/spot-cross-margin-trade/pledge-token': 5,
+                        'v5/spot-cross-margin-trade/borrow-token': 5,
                         // institutional lending
-                        'v5/ins-loan/product-infos': 2.5,
-                        'v5/ins-loan/ensure-tokens-convert': 2.5,
+                        'v5/ins-loan/product-infos': 5,
+                        'v5/ins-loan/ensure-tokens-convert': 5,
                     },
                 },
                 'private': {
@@ -328,11 +329,11 @@ export default class bybit extends Exchange {
                         'spot/v3/private/margin-ltv': 10,
                         // account
                         'asset/v1/private/transfer/list': 50,
-                        'asset/v3/private/transfer/inter-transfer/list/query': 0.84,
+                        'asset/v3/private/transfer/inter-transfer/list/query': 50,
                         'asset/v1/private/sub-member/transfer/list': 50,
-                        'asset/v3/private/transfer/sub-member/list/query': 0.84,
-                        'asset/v3/private/transfer/sub-member-transfer/list/query': 0.84,
-                        'asset/v3/private/transfer/universal-transfer/list/query': 0.84,
+                        'asset/v3/private/transfer/sub-member/list/query': 50,
+                        'asset/v3/private/transfer/sub-member-transfer/list/query': 50,
+                        'asset/v3/private/transfer/universal-transfer/list/query': 25,
                         'asset/v1/private/sub-member/member-ids': 50,
                         'asset/v1/private/deposit/record/query': 50,
                         'asset/v1/private/withdraw/record/query': 25,
@@ -340,11 +341,11 @@ export default class bybit extends Exchange {
                         'asset/v3/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
-                        'asset/v3/private/deposit/address/query': 0.17,
+                        'asset/v3/private/deposit/address/query': 10,
                         'asset/v1/private/universal/transfer/list': 50,
-                        'contract/v3/private/copytrading/order/list': 1,
-                        'contract/v3/private/copytrading/position/list': 1,
-                        'contract/v3/private/copytrading/wallet/balance': 1,
+                        'contract/v3/private/copytrading/order/list': 30,
+                        'contract/v3/private/copytrading/position/list': 40,
+                        'contract/v3/private/copytrading/wallet/balance': 25,
                         'contract/v3/private/position/limit-info': 25,
                         'contract/v3/private/order/unfilled-orders': 1,
                         'contract/v3/private/order/list': 1,
@@ -371,43 +372,43 @@ export default class bybit extends Exchange {
                         'user/v3/private/query-sub-members': 5,
                         'user/v3/private/query-api': 5,
                         'user/v3/private/get-member-type': 1,
-                        'asset/v3/private/transfer/transfer-coin/list/query': 0.84,
-                        'asset/v3/private/transfer/account-coin/balance/query': 0.84,
-                        'asset/v3/private/transfer/account-coins/balance/query': 50,
-                        'asset/v3/private/transfer/asset-info/query': 0.84,
+                        'asset/v3/private/transfer/transfer-coin/list/query': 50,
+                        'asset/v3/private/transfer/account-coin/balance/query': 50,
+                        'asset/v3/private/transfer/account-coins/balance/query': 25,
+                        'asset/v3/private/transfer/asset-info/query': 50,
                         'asset/v3/public/deposit/allowed-deposit-list/query': 0.17,
-                        'asset/v3/private/deposit/record/query': 0.17,
-                        'asset/v3/private/withdraw/record/query': 0.17,
+                        'asset/v3/private/deposit/record/query': 10,
+                        'asset/v3/private/withdraw/record/query': 10,
                         // v5
                         // trade
                         'v5/order/realtime': 5,
                         'v5/order/history': 5,
-                        'v5/order/spot-borrow-check': 2.5,
+                        'v5/order/spot-borrow-check': 1,
                         // position
                         'v5/position/list': 5,
                         'v5/execution/list': 5,
                         'v5/position/closed-pnl': 5,
                         // pre-upgrade
-                        'v5/pre-upgrade/order/history': 2.5,
-                        'v5/pre-upgrade/execution/list': 2.5,
-                        'v5/pre-upgrade/position/closed-pnl': 2.5,
-                        'v5/pre-upgrade/account/transaction-log': 2.5,
-                        'v5/pre-upgrade/asset/delivery-record': 2.5,
-                        'v5/pre-upgrade/asset/settlement-record': 2.5,
+                        'v5/pre-upgrade/order/history': 5,
+                        'v5/pre-upgrade/execution/list': 5,
+                        'v5/pre-upgrade/position/closed-pnl': 5,
+                        'v5/pre-upgrade/account/transaction-log': 5,
+                        'v5/pre-upgrade/asset/delivery-record': 5,
+                        'v5/pre-upgrade/asset/settlement-record': 5,
                         // account
-                        'v5/account/wallet-balance': 5,
-                        'v5/account/borrow-history': 2.5,
-                        'v5/account/set-collateral-switch': 2.5,
-                        'v5/account/collateral-info': 2.5,
-                        'v5/asset/coin-greeks': 2.5,
-                        'v5/account/fee-rate': 5,
-                        'v5/account/info': 2.5,
-                        'v5/account/transaction-log': 2.5,
-                        'v5/account/mmp-state': 2.5,
+                        'v5/account/wallet-balance': 1,
+                        'v5/account/borrow-history': 1,
+                        'v5/account/set-collateral-switch': 5,
+                        'v5/account/collateral-info': 1,
+                        'v5/asset/coin-greeks': 1,
+                        'v5/account/fee-rate': 10,
+                        'v5/account/info': 5,
+                        'v5/account/transaction-log': 1,
+                        'v5/account/mmp-state': 5,
                         // asset
                         'v5/asset/exchange/order-record': 5,
-                        'v5/asset/delivery-record': 2.5,
-                        'v5/asset/settlement-record': 2.5,
+                        'v5/asset/delivery-record': 5,
+                        'v5/asset/settlement-record': 5,
                         'v5/asset/transfer/query-asset-info': 50,
                         'v5/asset/transfer/query-account-coins-balance': 25,
                         'v5/asset/transfer/query-account-coin-balance': 50,
@@ -415,38 +416,39 @@ export default class bybit extends Exchange {
                         'v5/asset/transfer/query-inter-transfer-list': 50,
                         'v5/asset/transfer/query-sub-member-list': 50,
                         'v5/asset/transfer/query-universal-transfer-list': 25,
-                        'v5/asset/deposit/query-allowed-list': 2.5,
+                        'v5/asset/deposit/query-allowed-list': 5,
                         'v5/asset/deposit/query-record': 10,
                         'v5/asset/deposit/query-sub-member-record': 10,
-                        'v5/asset/deposit/query-internal-record': 2.5,
+                        'v5/asset/deposit/query-internal-record': 5,
                         'v5/asset/deposit/query-address': 10,
                         'v5/asset/deposit/query-sub-member-address': 10,
                         'v5/asset/coin/query-info': 25,
                         'v5/asset/withdraw/query-record': 10,
-                        'v5/asset/withdraw/withdrawable-amount': 2.5,
+                        'v5/asset/withdraw/withdrawable-amount': 5,
                         // user
                         'v5/user/query-sub-members': 5,
                         'v5/user/query-api': 5,
-                        'v5/user/get-member-type': 2.5,
-                        'v5/user/aff-customer-info': 2.5,
+                        'v5/user/get-member-type': 5,
+                        'v5/user/aff-customer-info': 5,
+                        'v5/user/del-submember': 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record': 1,
                         // spot margin trade
-                        'v5/spot-margin-trade/state': 2.5,
+                        'v5/spot-margin-trade/state': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
                         'v5/spot-cross-margin-trade/repay-history': 1,
                         // institutional lending
-                        'v5/ins-loan/loan-order': 2.5,
-                        'v5/ins-loan/repaid-history': 2.5,
-                        'v5/ins-loan/ltv-convert': 2.5,
+                        'v5/ins-loan/loan-order': 5,
+                        'v5/ins-loan/repaid-history': 5,
+                        'v5/ins-loan/ltv-convert': 5,
                         // c2c lending
-                        'v5/lending/info': 2.5,
-                        'v5/lending/history-order': 2.5,
-                        'v5/lending/account': 2.5,
+                        'v5/lending/info': 5,
+                        'v5/lending/history-order': 5,
+                        'v5/lending/account': 5,
                         // broker
-                        'v5/broker/earning-record': 2.5,
+                        'v5/broker/earning-record': 5,
                     },
                     'post': {
                         // inverse swap
@@ -512,17 +514,17 @@ export default class bybit extends Exchange {
                         'spot/v3/private/cross-margin-repay': 10,
                         // account
                         'asset/v1/private/transfer': 150,
-                        'asset/v3/private/transfer/inter-transfer': 2.5,
+                        'asset/v3/private/transfer/inter-transfer': 150,
                         'asset/v1/private/sub-member/transfer': 150,
                         'asset/v1/private/withdraw': 50,
-                        'asset/v3/private/withdraw/create': 1,
+                        'asset/v3/private/withdraw/create': 300,
                         'asset/v1/private/withdraw/cancel': 50,
-                        'asset/v3/private/withdraw/cancel': 0.84,
+                        'asset/v3/private/withdraw/cancel': 50,
                         'asset/v1/private/transferable-subs/save': 3000,
                         'asset/v1/private/universal/transfer': 1500,
-                        'asset/v3/private/transfer/sub-member-transfer': 2.5,
-                        'asset/v3/private/transfer/transfer-sub-member-save': 2.5,
-                        'asset/v3/private/transfer/universal-transfer': 2.5,
+                        'asset/v3/private/transfer/sub-member-transfer': 150,
+                        'asset/v3/private/transfer/transfer-sub-member-save': 150,
+                        'asset/v3/private/transfer/universal-transfer': 10,
                         'user/v3/private/create-sub-member': 10,
                         'user/v3/private/create-sub-api': 10,
                         'user/v3/private/update-api': 10,
@@ -561,12 +563,12 @@ export default class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
                         'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
-                        'contract/v3/private/copytrading/order/create': 2.5,
-                        'contract/v3/private/copytrading/order/cancel': 2.5,
-                        'contract/v3/private/copytrading/order/close': 2.5,
-                        'contract/v3/private/copytrading/position/close': 2.5,
-                        'contract/v3/private/copytrading/position/set-leverage': 2.5,
-                        'contract/v3/private/copytrading/wallet/transfer': 2.5,
+                        'contract/v3/private/copytrading/order/create': 30,
+                        'contract/v3/private/copytrading/order/cancel': 30,
+                        'contract/v3/private/copytrading/order/close': 30,
+                        'contract/v3/private/copytrading/position/close': 40,
+                        'contract/v3/private/copytrading/position/set-leverage': 40,
+                        'contract/v3/private/copytrading/wallet/transfer': 25,
                         'contract/v3/private/copytrading/order/trading-stop': 2.5,
                         'contract/v3/private/order/create': 1,
                         'contract/v3/private/order/cancel': 1,
@@ -581,13 +583,13 @@ export default class bybit extends Exchange {
                         'contract/v3/private/position/set-risk-limit': 1,
                         'contract/v3/private/account/setMarginMode': 1,
                         // derivative
-                        'unified/v3/private/order/create': 2.5,
-                        'unified/v3/private/order/replace': 2.5,
-                        'unified/v3/private/order/cancel': 2.5,
-                        'unified/v3/private/order/create-batch': 2.5,
-                        'unified/v3/private/order/replace-batch': 2.5,
-                        'unified/v3/private/order/cancel-batch': 2.5,
-                        'unified/v3/private/order/cancel-all': 2.5,
+                        'unified/v3/private/order/create': 30,
+                        'unified/v3/private/order/replace': 30,
+                        'unified/v3/private/order/cancel': 30,
+                        'unified/v3/private/order/create-batch': 30,
+                        'unified/v3/private/order/replace-batch': 30,
+                        'unified/v3/private/order/cancel-batch': 30,
+                        'unified/v3/private/order/cancel-all': 30,
                         'unified/v3/private/position/set-leverage': 2.5,
                         'unified/v3/private/position/tpsl/switch-mode': 2.5,
                         'unified/v3/private/position/set-risk-limit': 2.5,
@@ -601,33 +603,34 @@ export default class bybit extends Exchange {
                         'fht/compliance/tax/v3/private/url': 50,
                         // v5
                         // trade
-                        'v5/order/create': 5,
+                        'v5/order/create': 2.5,
                         'v5/order/amend': 5,
-                        'v5/order/cancel': 5,
-                        'v5/order/cancel-all': 5,
+                        'v5/order/cancel': 2.5,
+                        'v5/order/cancel-all': 50,
                         'v5/order/create-batch': 5,
                         'v5/order/amend-batch': 5,
                         'v5/order/cancel-batch': 5,
-                        'v5/order/disconnected-cancel-all': 2.5,
+                        'v5/order/disconnected-cancel-all': 5,
                         // position
                         'v5/position/set-leverage': 5,
-                        'v5/position/switch-isolated': 2.5,
+                        'v5/position/switch-isolated': 5,
                         'v5/position/set-tpsl-mode': 5,
-                        'v5/position/switch-mode': 2.5,
+                        'v5/position/switch-mode': 5,
                         'v5/position/set-risk-limit': 5,
                         'v5/position/trading-stop': 5,
-                        'v5/position/set-auto-add-margin': 2.5,
-                        'v5/position/add-margin': 2.5,
+                        'v5/position/set-auto-add-margin': 5,
+                        'v5/position/add-margin': 5,
+                        'v5/position/confirm-pending-mmr': 5,
                         // account
-                        'v5/account/upgrade-to-uta': 2.5,
-                        'v5/account/set-margin-mode': 2.5,
-                        'v5/account/mmp-modify': 2.5,
-                        'v5/account/mmp-reset': 2.5,
+                        'v5/account/upgrade-to-uta': 5,
+                        'v5/account/set-margin-mode': 5,
+                        'v5/account/mmp-modify': 5,
+                        'v5/account/mmp-reset': 5,
                         // asset
                         'v5/asset/transfer/inter-transfer': 150,
                         'v5/asset/transfer/save-transfer-sub-member': 150,
                         'v5/asset/transfer/universal-transfer': 10,
-                        'v5/asset/deposit/deposit-to-account': 2.5,
+                        'v5/asset/deposit/deposit-to-account': 5,
                         'v5/asset/withdraw/create': 300,
                         'v5/asset/withdraw/cancel': 50,
                         // user
@@ -642,15 +645,15 @@ export default class bybit extends Exchange {
                         'v5/spot-lever-token/purchase': 2.5,
                         'v5/spot-lever-token/redeem': 2.5,
                         // spot margin trade
-                        'v5/spot-margin-trade/switch-mode': 2.5,
-                        'v5/spot-margin-trade/set-leverage': 2.5,
+                        'v5/spot-margin-trade/switch-mode': 5,
+                        'v5/spot-margin-trade/set-leverage': 5,
                         'v5/spot-cross-margin-trade/loan': 2.5,
                         'v5/spot-cross-margin-trade/repay': 2.5,
                         'v5/spot-cross-margin-trade/switch': 2.5,
                         // c2c lending
-                        'v5/lending/purchase': 2.5,
-                        'v5/lending/redeem': 2.5,
-                        'v5/lending/redeem-cancel': 2.5,
+                        'v5/lending/purchase': 5,
+                        'v5/lending/redeem': 5,
+                        'v5/lending/redeem-cancel': 5,
                     },
                     'delete': {
                         // spot
@@ -1199,9 +1202,6 @@ export default class bybit extends Exchange {
                     'deposit': {},
                 },
             },
-            'commonCurrencies': {
-                'GAS': 'GASDAO',
-            },
         });
     }
     nonce() {
@@ -1453,7 +1453,7 @@ export default class bybit extends Exchange {
         }
         return super.safeMarket(marketId, market, delimiter, marketType);
     }
-    getBybitType(method, market, params) {
+    getBybitType(method, market, params = {}) {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams(method, market, params);
         let subType = undefined;
@@ -3191,8 +3191,11 @@ export default class bybit extends Exchange {
         //         "time": 1672125441042
         //     }
         //
+        const timestamp = this.safeInteger(response, 'time');
         const result = {
             'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
         const responseResult = this.safeValue(response, 'result', {});
         const currencyList = this.safeValueN(responseResult, ['loanAccountList', 'list', 'balance']);
@@ -3516,7 +3519,31 @@ export default class bybit extends Exchange {
         //         "createdTime": "1684476068369",
         //         "updatedTime": "1684476068372"
         //     }
+        // createOrders failed order
+        //    {
+        //        category: 'linear',
+        //        symbol: 'LTCUSDT',
+        //        orderId: '',
+        //        orderLinkId: '',
+        //        createAt: '',
+        //        code: '10001',
+        //        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        //    }
         //
+        const code = this.safeString(order, 'code');
+        if (code !== undefined) {
+            if (code !== '0') {
+                const category = this.safeString(order, 'category');
+                const inferedMarketType = (category === 'spot') ? 'spot' : 'contract';
+                return this.safeOrder({
+                    'info': order,
+                    'status': 'rejected',
+                    'id': this.safeString(order, 'orderId'),
+                    'clientOrderId': this.safeString(order, 'orderLinkId'),
+                    'symbol': this.safeSymbol(this.safeString(order, 'symbol'), undefined, undefined, inferedMarketType),
+                });
+            }
+        }
         const marketId = this.safeString(order, 'symbol');
         const isContract = ('tpslMode' in order);
         let marketType = undefined;
@@ -3676,13 +3703,32 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        symbol = market['symbol'];
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
         if (isUsdcSettled && !isUnifiedAccount) {
             return await this.createUsdcOrder(symbol, type, side, amount, price, params);
         }
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const response = await this.privatePostV5OrderCreate(orderRequest); // already extended inside createOrderRequest
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "1321003749386327552",
+        //             "orderLinkId": "spot-test-postonly"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672211918471
+        //     }
+        //
+        const order = this.safeValue(response, 'result', {});
+        return this.parseOrder(order, market);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
+        symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase();
         if ((price === undefined) && (lowerCaseType === 'limit')) {
             throw new ArgumentsRequired(this.id + ' createOrder requires a price argument for limit orders');
@@ -3824,21 +3870,94 @@ export default class bybit extends Exchange {
             request['orderLinkId'] = this.uuid16();
         }
         params = this.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit']);
-        const response = await this.privatePostV5OrderCreate(this.extend(request, params));
+        return this.extend(request, params);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bybit#createOrders
+         * @description create a list of trade orders
+         * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        const orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            orderSymbols.push(marketId);
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
+        let category = undefined;
+        [category, params] = this.getBybitType('createOrders', market, params);
+        if ((category === 'spot') || (category === 'inverse')) {
+            throw new NotSupported(this.id + ' createOrders does not allow spot or inverse orders');
+        }
+        const request = {
+            'category': category,
+            'request': ordersRequests,
+        };
+        const response = await this.privatePostV5OrderCreateBatch(this.extend(request, params));
+        const result = this.safeValue(response, 'result', {});
+        const data = this.safeValue(result, 'list', []);
+        const retInfo = this.safeValue(response, 'retExtInfo', {});
+        const codes = this.safeValue(retInfo, 'list', []);
+        // extend the error with the unsuccessful orders
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const retCode = this.safeInteger(code, 'code');
+            if (retCode !== 0) {
+                data[i] = this.extend(data[i], code);
+            }
+        }
         //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "1321003749386327552",
-        //             "orderLinkId": "spot-test-postonly"
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672211918471
-        //     }
+        // {
+        //     "retCode":0,
+        //     "retMsg":"OK",
+        //     "result":{
+        //        "list":[
+        //           {
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"",
+        //              "orderLinkId":"",
+        //              "createAt":""
+        //           },
+        //           {
+        //              "category":"linear",
+        //              "symbol":"LTCUSDT",
+        //              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+        //              "orderLinkId":"",
+        //              "createAt":"1698075516029"
+        //           }
+        //        ]
+        //     },
+        //     "retExtInfo":{
+        //        "list":[
+        //           {
+        //              "code":10001,
+        //              "msg":"The number of contracts exceeds maximum limit allowed: too large"
+        //           },
+        //           {
+        //              "code":0,
+        //              "msg":"OK"
+        //           }
+        //        ]
+        //     },
+        //     "time":1698075516029
+        // }
         //
-        const order = this.safeValue(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrders(data);
     }
     async createUsdcOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -4073,7 +4192,10 @@ export default class bybit extends Exchange {
             // Valid for option only.
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
-        if (market['linear']) {
+        if (market['spot']) {
+            request['category'] = 'spot';
+        }
+        else if (market['linear']) {
             request['category'] = 'linear';
         }
         else if (market['inverse']) {

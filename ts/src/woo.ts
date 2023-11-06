@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -125,7 +125,10 @@ export default class woo extends Exchange {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
+                'referral': {
+                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'discount': 0.35,
+                },
             },
             'api': {
                 'v1': {
@@ -242,6 +245,7 @@ export default class woo extends Exchange {
                 },
             },
             'options': {
+                'sandboxMode': false,
                 'createMarketBuyOrderRequiresPrice': true,
                 // these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
@@ -945,26 +949,24 @@ export default class woo extends Exchange {
         if (stopPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ]);
         const isStop = (stopPrice !== undefined) || (this.safeValue (params, 'childOrders') !== undefined);
-        let method = undefined;
+        let response = undefined;
         if (isByClientOrder) {
+            request['client_order_id'] = clientOrderIdExchangeSpecific;
             if (isStop) {
-                method = 'v3PrivatePutAlgoOrderClientClientOrderId';
-                request['oid'] = id;
+                response = await this.v3PrivatePutAlgoOrderClientClientOrderId (this.extend (request, params));
             } else {
-                method = 'v3PrivatePutOrderClientClientOrderId';
-                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                response = await this.v3PrivatePutOrderClientClientOrderId (this.extend (request, params));
             }
         } else {
-            if (isStop) {
-                method = 'v3PrivatePutAlgoOrderOid';
-            } else {
-                method = 'v3PrivatePutOrderOid';
-            }
             request['oid'] = id;
+            if (isStop) {
+                response = await this.v3PrivatePutAlgoOrderOid (this.extend (request, params));
+            } else {
+                response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+            }
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice' ]);
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -1001,30 +1003,29 @@ export default class woo extends Exchange {
             this.checkRequiredSymbol ('cancelOrder', symbol);
         }
         await this.loadMarkets ();
-        const request = {};
-        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
-        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let method = undefined;
-        if (stop) {
-            method = 'v3PrivateDeleteAlgoOrderOrderId';
-            request['order_id'] = id;
-        } else if (isByClientOrder) {
-            method = 'v1PrivateDeleteClientOrder';
-            request['client_order_id'] = clientOrderIdExchangeSpecific;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        } else {
-            method = 'v1PrivateDeleteOrder';
-            request['order_id'] = id;
-        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if (!stop) {
+        const request = {};
+        const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
+        const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
+        const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
+        let response = undefined;
+        if (stop) {
+            request['order_id'] = id;
+            response = await this.v3PrivateDeleteAlgoOrderOrderId (this.extend (request, params));
+        } else {
             request['symbol'] = market['id'];
+            if (isByClientOrder) {
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+                response = await this.v1PrivateDeleteClientOrder (this.extend (request, params));
+            } else {
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteOrder (this.extend (request, params));
+            }
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -1089,18 +1090,17 @@ export default class woo extends Exchange {
         params = this.omit (params, 'stop');
         const request = {};
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        let method = undefined;
+        let response = undefined;
         if (stop) {
-            method = 'v3PrivateGetAlgoOrderOid';
             request['oid'] = id;
+            response = await this.v3PrivateGetAlgoOrderOid (this.extend (request, params));
         } else if (clientOrderId) {
-            method = 'v1PrivateGetClientOrderClientOrderId';
             request['client_order_id'] = clientOrderId;
+            response = await this.v1PrivateGetClientOrderClientOrderId (this.extend (request, params));
         } else {
-            method = 'v1PrivateGetOrderOid';
             request['oid'] = id;
+            response = await this.v1PrivateGetOrderOid (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -1226,7 +1226,7 @@ export default class woo extends Exchange {
         return this.safeString (timeInForces, timeInForce, undefined);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1453,7 +1453,7 @@ export default class woo extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // example response in fetchOHLCV
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
@@ -2174,13 +2174,16 @@ export default class woo extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
-                const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-                const brokerId = this.safeString (this.options, 'brokerId', applicationId);
-                const isStop = path.indexOf ('algo') > -1;
-                if (isStop) {
-                    params['brokerId'] = brokerId;
-                } else {
-                    params['broker_id'] = brokerId;
+                const isSandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+                if (!isSandboxMode) {
+                    const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
+                    const brokerId = this.safeString (this.options, 'brokerId', applicationId);
+                    const isStop = path.indexOf ('algo') > -1;
+                    if (isStop) {
+                        params['brokerId'] = brokerId;
+                    } else {
+                        params['broker_id'] = brokerId;
+                    }
                 }
                 params = this.keysort (params);
             }
@@ -2644,5 +2647,10 @@ export default class woo extends Exchange {
         }
         // if it was not returned according to above options, then return the first network of currency
         return this.safeValue (networkKeys, 0);
+    }
+
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
     }
 }

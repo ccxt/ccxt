@@ -806,7 +806,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($response, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "time":"2020-03-02T20:00:00.000Z",
@@ -819,12 +819,12 @@ class hollaex extends Exchange {
         //     }
         //
         return array(
-            $this->parse8601($this->safe_string($response, 'time')),
-            $this->safe_number($response, 'open'),
-            $this->safe_number($response, 'high'),
-            $this->safe_number($response, 'low'),
-            $this->safe_number($response, 'close'),
-            $this->safe_number($response, 'volume'),
+            $this->parse8601($this->safe_string($ohlcv, 'time')),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
         );
     }
 
@@ -1070,7 +1070,7 @@ class hollaex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
         //

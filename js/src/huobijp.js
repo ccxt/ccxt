@@ -319,7 +319,6 @@ export default class huobijp extends Exchange {
                 'GET': 'Themis',
                 'GTC': 'Game.com',
                 'HIT': 'HitChain',
-                'HOT': 'Hydro Protocol',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
