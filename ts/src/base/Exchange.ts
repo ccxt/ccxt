@@ -1761,11 +1761,15 @@ export default class Exchange {
     }
 
     parseToNumeric (number) {
-        const stringifiedNumber = this.numberToString (number);
-        if (Number.isInteger (number)) {
-            return parseInt (stringifiedNumber);
+        const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf ('.') > 0) {
+            return parseFloat (stringVersion);
         }
-        return parseFloat (stringifiedNumber);
+        return parseInt (stringVersion);
     }
 
     afterConstruct () {
