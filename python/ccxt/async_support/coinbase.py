@@ -326,6 +326,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the coinbase api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
         """
         method = self.safe_string(self.options, 'fetchAccounts', 'fetchAccountsV3')
@@ -335,6 +336,10 @@ class coinbase(Exchange, ImplicitAPI):
 
     async def fetch_accounts_v2(self, params={}):
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'next_starting_after', 'starting_after', None, 100)
         request = {
             'limit': 100,
         }
@@ -384,10 +389,22 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        pagination = self.safe_value(response, 'pagination', {})
+        cursor = self.safe_string(pagination, 'next_starting_after')
+        accounts = self.safe_value(response, 'data', [])
+        lastIndex = len(accounts) - 1
+        last = self.safe_value(accounts, lastIndex)
+        if (cursor is not None) and (cursor != ''):
+            last['next_starting_after'] = cursor
+            accounts[lastIndex] = last
         return self.parse_accounts(data, params)
 
     async def fetch_accounts_v3(self, params={}):
         await self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
+        if paginate:
+            return await self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'cursor', 'cursor', None, 100)
         request = {
             'limit': 100,
         }
@@ -422,8 +439,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        data = self.safe_value(response, 'accounts', [])
-        return self.parse_accounts(data, params)
+        accounts = self.safe_value(response, 'accounts', [])
+        lastIndex = len(accounts) - 1
+        last = self.safe_value(accounts, lastIndex)
+        cursor = self.safe_string(response, 'cursor')
+        if (cursor is not None) and (cursor != ''):
+            last['cursor'] = cursor
+            accounts[lastIndex] = last
+        return self.parse_accounts(accounts, params)
 
     def parse_account(self, account):
         #

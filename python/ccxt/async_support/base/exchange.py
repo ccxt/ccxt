@@ -3320,7 +3320,11 @@ class Exchange(BaseExchange):
                     if cursorIncrement is not None:
                         cursorValue = self.parseToInt(cursorValue) + cursorIncrement
                     params[cursorSent] = cursorValue
-                response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                response = None
+                if method == 'fetchAccounts':
+                    response = await getattr(self, method)(params)
+                else:
+                    response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

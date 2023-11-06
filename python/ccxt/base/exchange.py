@@ -4531,7 +4531,11 @@ class Exchange(object):
                     if cursorIncrement is not None:
                         cursorValue = self.parseToInt(cursorValue) + cursorIncrement
                     params[cursorSent] = cursorValue
-                response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                response = None
+                if method == 'fetchAccounts':
+                    response = getattr(self, method)(params)
+                else:
+                    response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

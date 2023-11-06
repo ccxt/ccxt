@@ -5603,7 +5603,12 @@ class Exchange {
                     }
                     $params[$cursorSent] = $cursorValue;
                 }
-                $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
+                $response = null;
+                if ($method === 'fetchAccounts') {
+                    $response = $this->$method ($params);
+                } else {
+                    $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
+                }
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {
