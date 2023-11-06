@@ -2092,10 +2092,11 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let urlType = type;
         if (type === 'margin') {
-            type = 'spot'; // spot-margin shares the same stream as regular spot
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
@@ -2460,10 +2461,11 @@ export default class binance extends binanceRest {
             params = this.extend (params, { 'symbol': symbol });
         }
         await this.authenticate (params);
+        let urlType = type; // we don't change type because the listening key is different
         if (type === 'margin') {
-            type = 'spot'; // spot-margin shares the same stream as regular spot
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
