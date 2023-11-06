@@ -19,13 +19,11 @@ process.on ('unhandledRejection', (e: any) => {
 });
 const [ processPath, , exchangeIdFromArgv = null, exchangeSymbol = undefined ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const AuthenticationError = ccxt.AuthenticationError;
-const RateLimitExceeded = ccxt.RateLimitExceeded;
-const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
-const NetworkError = ccxt.NetworkError;
-const DDoSProtection = ccxt.DDoSProtection;
-const OnMaintenance = ccxt.OnMaintenance;
-const RequestTimeout = ccxt.RequestTimeout;
 const NotSupported = ccxt.NotSupported;
+const NetworkError = ccxt.NetworkError;
+const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
+const OperationFailed = ccxt.OperationFailed;
+const OnMaintenance = ccxt.OnMaintenance;
 
 // non-transpiled part, but shared names among langs
 class baseMainTestClass {
@@ -315,12 +313,11 @@ export default class testMainClass extends baseMainTestClass {
                 return true;
             } catch (e) {
                 const isAuthError = (e instanceof AuthenticationError);
-                const isRateLimitExceeded = (e instanceof RateLimitExceeded);
-                const isNetworkError = (e instanceof NetworkError);
-                const isDDoSProtection = (e instanceof DDoSProtection);
-                const isRequestTimeout = (e instanceof RequestTimeout);
                 const isNotSupported = (e instanceof NotSupported);
-                const tempFailure = (isRateLimitExceeded || isNetworkError || isDDoSProtection || isRequestTimeout);
+                const isNetworkError = (e instanceof NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                const isOnMaintenance = (e instanceof OnMaintenance);
+                const tempFailure = isNetworkError && (!isExchangeNotAvailable || isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {

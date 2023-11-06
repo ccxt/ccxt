@@ -136,7 +136,6 @@ function exception_message($exc) {
     return substr($message, 0, LOG_CHARS_LENGTH);
 }
 
-
 function exit_script($code = 0) {
     exit($code);
 }
@@ -191,10 +190,9 @@ function close($exchange) {
 
 use ccxt\NotSupported;
 use ccxt\NetworkError;
-use ccxt\DDoSProtection;
-use ccxt\RateLimitExceeded;
+use ccxt\ExchangeNotAvailable;
+use ccxt\OperationFailed;
 use ccxt\OnMaintenance;
-use ccxt\RequestTimeout;
 use ccxt\AuthenticationError;
 
 class testMainClass extends baseMainTestClass {
