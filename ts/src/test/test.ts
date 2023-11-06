@@ -805,7 +805,7 @@ export default class testMainClass extends baseMainTestClass {
     loadStaticData (targetExchange: string = undefined) {
         const folder = './ts/src/test/static/data/';
         const result = {};
-        if (targetExchange !== undefined) {
+        if (targetExchange) {
             // read a single exchange
             result[targetExchange] = ioFileRead (folder + targetExchange + '.json');
             return result;
@@ -999,10 +999,10 @@ export default class testMainClass extends baseMainTestClass {
         const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
         let sum = 0;
-        if (targetExchange !== undefined) {
+        if (targetExchange) {
             dump ("Exchange to test: " + targetExchange);
         }
-        if (testName !== undefined) {
+        if (testName) {
             dump ("Testing only: " + testName);
         }
         for (let i = 0; i < exchanges.length; i++) {
