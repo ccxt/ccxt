@@ -287,6 +287,7 @@ class digifinex extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'types' => array( 'spot', 'margin', 'otc' ),
+                'createMarketBuyOrderRequiresPrice' => true,
                 'accountsByType' => array(
                     'spot' => '1',
                     'margin' => '2',
@@ -1736,7 +1737,21 @@ class digifinex extends Exchange {
             }
             $request['type'] = $side . $suffix;
             // limit orders require the $amount in the base currency, $market orders require the $amount in the quote currency
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            $quantity = null;
+            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                    $quantity = $this->price_to_precision($symbol, $cost);
+                }
+            } else {
+                $quantity = $this->amount_to_precision($symbol, $amount);
+            }
+            $request['amount'] = $quantity;
         }
         if ($postOnly) {
             if ($postOnlyParsed) {

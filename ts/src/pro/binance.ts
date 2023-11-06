@@ -7,6 +7,9 @@ import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js'
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Int, OrderSide, OrderType } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { rsa } from '../base/functions/rsa.js';
+import { eddsa } from '../base/functions/crypto.js';
+import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import Client from '../base/ws/Client.js';
 
 // -----------------------------------------------------------------------------
@@ -1226,7 +1229,18 @@ export default class binance extends binanceRest {
             params['recvWindow'] = recvWindow;
         }
         extendedParams = this.keysort (extendedParams);
-        extendedParams['signature'] = this.hmac (this.encode (this.urlencode (extendedParams)), this.encode (this.secret), sha256);
+        const query = this.urlencode (extendedParams);
+        let signature = undefined;
+        if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+            if (this.secret.length > 120) {
+                signature = rsa (query, this.secret, sha256);
+            } else {
+                signature = eddsa (this.encode (query), this.secret, ed25519);
+            }
+        } else {
+            signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+        }
+        extendedParams['signature'] = signature;
         return extendedParams;
     }
 
@@ -2552,6 +2566,15 @@ export default class binance extends binanceRest {
     }
 
     handleWsError (client: Client, message) {
+        //
+        //    {
+        //        "error": {
+        //            "code": 2,
+        //            "msg": "Invalid request: invalid stream"
+        //        },
+        //        "id": 1
+        //    }
+        //
         const id = this.safeString (message, 'id');
         let rejected = false;
         const error = this.safeValue (message, 'error', {});
@@ -2561,7 +2584,17 @@ export default class binance extends binanceRest {
             this.handleErrors (code, msg, client.url, undefined, undefined, this.json (error), error, undefined, undefined);
         } catch (e) {
             rejected = true;
+            // private endpoint uses id as messageHash
             client.reject (e, id);
+            // public endpoint stores messageHash in subscriptios
+            const subscriptionKeys = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptionKeys.length; i++) {
+                const subscriptionHash = subscriptionKeys[i];
+                const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                if (id === subscriptionId) {
+                    client.reject (e, subscriptionHash);
+                }
+            }
         }
         if (!rejected) {
             client.reject (message, id);
@@ -2575,7 +2608,8 @@ export default class binance extends binanceRest {
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
         const status = this.safeString (message, 'status');
-        if (status !== undefined && status !== '200') {
+        const error = this.safeValue (message, 'error');
+        if ((error !== undefined) || (status !== undefined && status !== '200')) {
             return this.handleWsError (client, message);
         }
         const id = this.safeString (message, 'id');

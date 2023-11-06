@@ -1119,7 +1119,16 @@ class binance(ccxt.async_support.binance):
         if recvWindow is not None:
             params['recvWindow'] = recvWindow
         extendedParams = self.keysort(extendedParams)
-        extendedParams['signature'] = self.hmac(self.encode(self.urlencode(extendedParams)), self.encode(self.secret), hashlib.sha256)
+        query = self.urlencode(extendedParams)
+        signature = None
+        if self.secret.find('PRIVATE KEY') > -1:
+            if len(self.secret) > 120:
+                signature = self.rsa(query, self.secret, 'sha256')
+            else:
+                signature = self.eddsa(self.encode(query), self.secret, 'ed25519')
+        else:
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
+        extendedParams['signature'] = signature
         return extendedParams
 
     async def authenticate(self, params={}):
@@ -2329,6 +2338,15 @@ class binance(ccxt.async_support.binance):
             client.resolve(self.orders, messageHashSymbol)
 
     def handle_ws_error(self, client: Client, message):
+        #
+        #    {
+        #        "error": {
+        #            "code": 2,
+        #            "msg": "Invalid request: invalid stream"
+        #        },
+        #        "id": 1
+        #    }
+        #
         id = self.safe_string(message, 'id')
         rejected = False
         error = self.safe_value(message, 'error', {})
@@ -2338,7 +2356,15 @@ class binance(ccxt.async_support.binance):
             self.handle_errors(code, msg, client.url, None, None, self.json(error), error, None, None)
         except Exception as e:
             rejected = True
+            # private endpoint uses id
             client.reject(e, id)
+            # public endpoint stores messageHash in subscriptios
+            subscriptionKeys = list(client.subscriptions.keys())
+            for i in range(0, len(subscriptionKeys)):
+                subscriptionHash = subscriptionKeys[i]
+                subscriptionId = self.safe_string(client.subscriptions[subscriptionHash], 'id')
+                if id == subscriptionId:
+                    client.reject(e, subscriptionHash)
         if not rejected:
             client.reject(message, id)
         # reset connection if 5xx error
@@ -2348,7 +2374,8 @@ class binance(ccxt.async_support.binance):
     def handle_message(self, client: Client, message):
         # handle WebSocketAPI
         status = self.safe_string(message, 'status')
-        if status is not None and status != '200':
+        error = self.safe_value(message, 'error')
+        if (error is not None) or (status is not None and status != '200'):
             return self.handle_ws_error(client, message)
         id = self.safe_string(message, 'id')
         subscriptions = self.safe_value(client.subscriptions, id)
