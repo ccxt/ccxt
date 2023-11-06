@@ -1246,8 +1246,9 @@ export default class binance extends binanceRest {
 
     async authenticate (params = {}) {
         const time = this.milliseconds ();
-        let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
-        type = this.safeString (params, 'type', type);
+        let query = undefined;
+        let type = undefined;
+        [ query, type ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
         if (this.isLinear (type, subType)) {
@@ -1281,7 +1282,7 @@ export default class binance extends binanceRest {
                 const marketId = this.marketId (symbol);
                 params = this.extend (params, { 'symbol': marketId });
             }
-            const response = await this[method] (params);
+            const response = await this[method] (query);
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -2080,7 +2081,7 @@ export default class binance extends binanceRest {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params = this.extend (params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
+            params = this.extend (params, { 'type': market['type'], 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate (params);
         let type = undefined;
