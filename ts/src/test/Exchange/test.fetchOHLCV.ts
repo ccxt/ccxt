@@ -29,7 +29,7 @@ async function testFetchOHLCV (exchange, skippedProperties, symbol) {
     }
 }
 
-async function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, timeframe, limit, since) {
+function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, timeframe, limit, since) {
     const method = 'fetchOHLCV';
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
