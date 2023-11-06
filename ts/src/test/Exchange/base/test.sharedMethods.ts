@@ -334,6 +334,16 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
     }
 }
 
+// this method is similar to isInteger, but this also returns positive for `1.0`, while in other langs, `1.0` is not integer type
+function hasRoundedValue (value) {
+    const isNumeric = (typeof value === 'number');
+    if (isNumeric) {
+        return (value % 1) === 0;
+    } else {
+        return false;
+    }
+}
+
 export default {
     logTemplate,
     assertTimestamp,
@@ -354,4 +364,5 @@ export default {
     checkPrecisionAccuracy,
     assertValidCurrencyIdAndCode,
     assertType,
+    hasRoundedValue,
 };
