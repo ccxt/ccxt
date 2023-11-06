@@ -161,7 +161,7 @@ def exception_message(exc):
     return message
 
 
-def exit_script(code):
+def exit_script(code=0):
     exit(code)
 
 
