@@ -77,8 +77,8 @@ function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, tim
                 const diffBetweenCurrentAndPrevious = barTs - previousBarTs;
                 assert (diffBetweenCurrentAndPrevious > 0, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') should be positive' + logText);
                 // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
-                const isInteger = Number.isInteger (diffBetweenCurrentAndPrevious / durationMs);
-                assert (isInteger, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
+                const isRoundNumber = testSharedMethods.hasRoundedValue (diffBetweenCurrentAndPrevious / durationMs);
+                assert (isRoundNumber, 'Difference between current bar timestamp (' + barTs.toString () + ') and previous bar timestamp (' + previousBarTs.toString () + ') is not multiplier of duration (' + durationMs.toString () + ')' + logText);
             }
         }
     }
