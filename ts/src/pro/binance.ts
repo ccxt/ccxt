@@ -2092,6 +2092,9 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        if (type === 'margin') {
+            type = 'spot'; // spot-margin shares the same stream as regular spot
+        }
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
@@ -2436,10 +2439,15 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
@@ -2452,6 +2460,9 @@ export default class binance extends binanceRest {
             params = this.extend (params, { 'symbol': symbol });
         }
         await this.authenticate (params);
+        if (type === 'margin') {
+            type = 'spot'; // spot-margin shares the same stream as regular spot
+        }
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
