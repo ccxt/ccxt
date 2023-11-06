@@ -446,12 +446,14 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-$tests, see comments under 'testSafe' method
-            $failedMsg = '';
-            $errorsLength = count($errors);
-            if ($errorsLength > 0) {
-                $failedMsg = ' | Failed methods : ' . implode(', ', $errors);
+            $failedMsg = $errors ? implode(', ', $errors) : null;
+            $errorsInMessage = '';
+            if ($errors !== null) {
+                $errorsInMessage = ' | Failed methods : ' . $failedMsg;
             }
-            dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
+            $messageContent = '[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $errorsInMessage;
+            $messageWithPadding = $this->add_padding($messageContent, 25);
+            dump ($messageWithPadding, $exchange->id);
         }
     }
 
