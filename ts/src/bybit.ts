@@ -638,6 +638,7 @@ export default class bybit extends Exchange {
                         'v5/user/frozen-sub-member': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/update-api': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/update-sub-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/del-submember': 5,
                         'v5/user/delete-api': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/user/delete-sub-api': 10, // 5/s => cost = 50 / 5 = 10
                         // spot leverage token
