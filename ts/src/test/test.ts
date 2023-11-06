@@ -163,7 +163,7 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
         if (this.staticTests) {
-            await this.runStaticTests ();
+            await this.runStaticTests (exchangeId, symbol); // symbol here is the testname
             return;
         }
         if (this.idTests) {
@@ -802,10 +802,15 @@ export default class testMainClass extends baseMainTestClass {
         return content;
     }
 
-    loadStaticData () {
+    loadStaticData (targetExchange: string = undefined) {
         const folder = './ts/src/test/static/data/';
-        const files = ioDirRead (folder);
         const result = {};
+        if (targetExchange !== undefined) {
+            // read a single exchange
+            result[targetExchange] = ioFileRead (folder + targetExchange + '.json');
+            return result;
+        }
+        const files = ioDirRead (folder);
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const exchangeName = file.replace ('.json', '');
@@ -953,7 +958,7 @@ export default class testMainClass extends baseMainTestClass {
         return initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
     }
 
-    async testExchangeStatically (exchangeName: string, exchangeData: object) {
+    async testExchangeStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
@@ -963,6 +968,10 @@ export default class testMainClass extends baseMainTestClass {
             const results = methods[method];
             for (let j = 0; j < results.length; j++) {
                 const result = results[j];
+                const description = exchange.safeValue (result, 'description');
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testMethodStatically (exchange, method, result, type, skipKeys);
@@ -984,18 +993,24 @@ export default class testMainClass extends baseMainTestClass {
         return sum;
     }
 
-    async runStaticTests () {
-        const staticData = this.loadStaticData ();
+    async runStaticTests (targetExchange: string = undefined, testName: string = undefined) {
+        const staticData = this.loadStaticData (targetExchange);
         const exchanges = Object.keys (staticData);
         const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
         let sum = 0;
+        if (targetExchange !== undefined) {
+            dump ("Exchange to test: " + targetExchange);
+        }
+        if (testName !== undefined) {
+            dump ("Testing only: " + testName);
+        }
         for (let i = 0; i < exchanges.length; i++) {
             const exchangeName = exchanges[i];
             const exchangeData = staticData[exchangeName];
             const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData);
             sum = exchange.sum (sum, numberOfTests);
-            promises.push (this.testExchangeStatically (exchangeName, exchangeData));
+            promises.push (this.testExchangeStatically (exchangeName, exchangeData, testName));
         }
         await Promise.all (promises);
         if (this.staticTestsFailed) {
