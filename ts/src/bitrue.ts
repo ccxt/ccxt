@@ -310,6 +310,11 @@ export default class bitrue extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchMarkets': [
+                    'spot',
+                    'linear',
+                    'inverse',
+                ],
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -683,6 +688,89 @@ export default class bitrue extends Exchange {
         return result;
     }
 
+    parseMarket (market) {
+        let type = undefined;
+        const side = this.safeInteger (market, 'side'); // 1 linear, 0 inverse, undefined spot
+        if (side === undefined) {
+            type = 'spot';
+        } else {
+            type = 'future';
+        }
+        const id = this.safeString (market, 'symbol');
+        const lowercaseId = this.safeStringLower (market, 'symbol');
+        let baseId = this.safeString (market, 'baseAsset');
+        let quoteId = this.safeString (market, 'quoteAsset');
+        if (type === 'future') {
+            const symbolSplit = id.split ('-');
+            baseId = this.safeString (symbolSplit, 1);
+            quoteId = this.safeString (symbolSplit, 2);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const filters = this.safeValue (market, 'filters', []);
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const status = this.safeString (market, 'status');
+        const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+        const defaultPricePrecision = this.safeString (market, 'pricePrecision');
+        const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
+        const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
+        const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
+        const entry = {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': type,
+            'spot': (type === 'spot'),
+            'margin': false,
+            'swap': false,
+            'future': (type === 'future'),
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': (type !== 'spot'),
+            'linear': (side !== undefined && side === 1),
+            'inverse': (side !== undefined && side === 0),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                'price': this.parseNumber (this.parsePrecision (pricePrecision)),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (amountFilter, 'minQty', this.safeNumber (market, 'minOrderVolume')),
+                    'max': this.safeNumber (amountFilter, 'maxQty', this.safeNumber (market, 'maxMarketVolume')),
+                },
+                'price': {
+                    'min': this.safeNumber (priceFilter, 'minPrice', this.safeNumber (market, 'minOrderMoney')),
+                    'max': this.safeNumber (priceFilter, 'maxPrice', this.safeNumber (market, 'maxMarketMoney')),
+                },
+                'cost': {
+                    'min': this.safeNumber (amountFilter, 'minVal'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+        return entry;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -691,9 +779,29 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        // const response = await this.spotV1PublicGetExchangeInfo (params);
-        const response = await this.fapiV1PublicGetContracts (params);
-        // const response = await this.dapiV1PublicGetContracts (params);
+        const promisesRaw = [];
+        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const marketType = fetchMarkets[i];
+            if (marketType === 'spot') {
+                promisesRaw.push (this.spotV1PublicGetExchangeInfo (params));
+            } else if (marketType === 'linear') {
+                promisesRaw.push (this.fapiV1PublicGetContracts (params));
+            } else if (marketType === 'inverse') {
+                promisesRaw.push (this.dapiV1PublicGetContracts (params));
+            } else {
+                throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
+            }
+        }
+        const promises = await Promise.all (promisesRaw);
+        const spotMarkets = this.safeValue (this.safeValue (promises, 0), 'symbols', []);
+        const futureMarkets = this.safeValue (promises, 1);
+        const deliveryMarkets = this.safeValue (promises, 2);
+        let markets = spotMarkets;
+        markets = this.arrayConcat (markets, futureMarkets);
+        markets = this.arrayConcat (markets, deliveryMarkets);
+        //
+        // spot
         //
         //     {
         //         "timezone":"CTT",
@@ -735,81 +843,34 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
+        //
+        // swap
+        //
+        //     [
+        //         {
+        //           "symbol": "H-HT-USDT",
+        //           "pricePrecision": 8,
+        //           "side": 1,
+        //           "maxMarketVolume": 100000,
+        //           "multiplier": 6,
+        //           "minOrderVolume": 1,
+        //           "maxMarketMoney": 10000000,
+        //           "type": "H",
+        //           "maxLimitVolume": 1000000,
+        //           "maxValidOrder": 20,
+        //           "multiplierCoin": "HT",
+        //           "minOrderMoney": 0.001,
+        //           "maxLimitMoney": 1000000,
+        //           "status": 1
+        //         }
+        //     ]
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const filters = this.safeValue (market, 'filters', []);
-            const filtersByType = this.indexBy (filters, 'filterType');
-            const status = this.safeString (market, 'status');
-            const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-            const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-            const defaultPricePrecision = this.safeString (market, 'pricePrecision');
-            const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
-            const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
-            const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'TRADING'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
-                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (amountFilter, 'minQty'),
-                        'max': this.safeNumber (amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (priceFilter, 'minPrice'),
-                        'max': this.safeNumber (priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (amountFilter, 'minVal'),
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            };
-            result.push (entry);
+            result.push (this.parseMarket (markets[i]));
         }
         return result;
     }
