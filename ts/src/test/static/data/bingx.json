@@ -29,6 +29,17 @@
             ]
           },
           {
+            "description": "Swap market buy order",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quantity=0.1&side=BUY&symbol=LTC-USDT&timestamp=1699295761502&type=MARKET&signature=f060bcc332d11056fe031ddfee894c40d7493a5c856bf8ea84d7e0aa612bdc6b",
+            "input": [
+              "LTC/USDT:USDT",
+              "market",
+              "buy",
+              0.1
+            ]
+          },
+          {
             "description": "Swap limit buy order",
             "method": "createOrder",
             "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=25000&quantity=0.0001&side=BUY&symbol=BTC-USDT&timestamp=1699069372440&type=LIMIT&signature=a275f322f3af34d0c7a2b25c5a58e8f76912d9d7c10734209989b4c46cb0e924",
@@ -38,6 +49,21 @@
               "buy",
               0.0001,
               25000
+            ]
+          },
+          {
+            "description": "Spot market buy with triggerPrice",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1699295636428&triggerPrice=100&type=MARKET&signature=c16f14821fa39a0f17ff0650168b99c7f04fe72e96d808a9674fc0d3c0f697e5",
+            "input": [
+              "LTC/USDT",
+              "market",
+              "buy",
+              0.1,
+              50,
+              {
+                "triggerPrice": 100
+              }
             ]
           }
         ],
