@@ -131,6 +131,38 @@
                   100
                 ],
                 "output": "timestamp=1699114065223&symbol=LTCUSDT&side=SELL&newClientOrderId=x-xcKtGhcu6e4e96867ac345ee9151b9&newOrderRespType=RESULT&type=LIMIT&quantity=0.2&price=100&timeInForce=GTC&recvWindow=10000&signature=057d2e77971840b5e2726b88a7a1e2fc740c032437bc4ea38c89e6d1c2968b9a"
+              },
+              {
+                "description": "Swap limit sell with takeProfitPrice (type 2)",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.2,
+                  100,
+                  {
+                    "takeProfitPrice": 105
+                  }
+                ],
+                "output": "timestamp=1699285858348&symbol=LTCUSDT&side=SELL&newClientOrderId=x-xcKtGhcu2784a323f70a4bdf8b1725&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=0.2&price=100&stopPrice=105&recvWindow=10000&signature=6434d52fc670894917cac2b03407eac0646f81ce4bcff3b640c11d4c8c2d4ab1"
+              },
+              {
+                "description": "Swap limit buy with stopLossPrice (type 2)",
+                "method": "createOrder",
+                "url": "https://testnet.binancefuture.com/fapi/v1/order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  0.2,
+                  49,
+                  {
+                    "stopLossPrice": 50
+                  }
+                ],
+                "output": "timestamp=1699285907701&symbol=LTCUSDT&side=SELL&newClientOrderId=x-xcKtGhcuc8a51b6fd0a344069c2703&newOrderRespType=RESULT&type=STOP&quantity=0.2&price=49&stopPrice=50&recvWindow=10000&signature=4a09fa15b8c91f1215f7175b163080853291f5e316bd25025ddefd5b5688508a"
               }
         ]
     }
