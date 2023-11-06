@@ -2,8 +2,9 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/p2b.js';
-import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable } from './base/errors.js';
+import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -27,8 +28,18 @@ export default class p2b extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'fetchMarkets': true,
+                'fetchTickers': true,
+                'fetchTicker': true,
+                'fetchOrderBook': true,
+                'fetchTrades': true,
+                'fetchOHLCV': true,
             },
-            'timeframes': undefined,
+            'timeframes': {
+                '1m': '1m',
+                '1h': '1h',
+                '1d': '1d',
+            },
             'urls': {
                 'extension': '.json',
                 'referral': '',  // TODO
@@ -256,6 +267,355 @@ export default class p2b extends Exchange {
             result.push (entry);
         }
         return result;
+    }
+
+    async fetchTickers (symbols: string[] = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetTickers (params);
+        //
+        //    {
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: {
+        //            KNOLIX_BTC: {
+        //                at: '1699252631',
+        //                ticker: {
+        //                    bid: '0.0000332',
+        //                    ask: '0.0000333',
+        //                    low: '0.0000301',
+        //                    high: '0.0000338',
+        //                    last: '0.0000333',
+        //                    vol: '15.66',
+        //                    deal: '0.000501828',
+        //                    change: '10.63'
+        //                }
+        //            },
+        //            ...
+        //        },
+        //        cache_time: '1699252631.103631',
+        //        current_time: '1699252644.487566'
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTickers (result, symbols);
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name p2b#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //    {
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: {
+        //            bid: '0.342',
+        //            ask: '0.3421',
+        //            open: '0.3317',
+        //            high: '0.3499',
+        //            low: '0.3311',
+        //            last: '0.3421',
+        //            volume: '17855383.1',
+        //            deal: '6107478.3423',
+        //            change: '3.13'
+        //        },
+        //        cache_time: '1699252953.832795',
+        //        current_time: '1699252958.859391'
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const timestamp = this.safeIntegerProduct (response, 'cache_time', 1000);
+        return this.extend (
+            { 'timestamp': timestamp, 'datetime': this.iso8601 (timestamp) },
+            this.parseTicker (result, market)
+        );
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        // parseTickers
+        //
+        //    {
+        //        at: '1699252631',
+        //        ticker: {
+        //            bid: '0.0000332',
+        //            ask: '0.0000333',
+        //            low: '0.0000301',
+        //            high: '0.0000338',
+        //            last: '0.0000333',
+        //            vol: '15.66',
+        //            deal: '0.000501828',
+        //            change: '10.63'
+        //        }
+        //    }
+        //
+        // parseTicker
+        //
+        //    {
+        //        bid: '0.342',
+        //        ask: '0.3421',
+        //        open: '0.3317',
+        //        high: '0.3499',
+        //        low: '0.3311',
+        //        last: '0.3421',
+        //        volume: '17855383.1',
+        //        deal: '6107478.3423',
+        //        change: '3.13'
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
+        if ('ticker' in ticker) {
+            ticker = this.safeValue (ticker, 'ticker');
+        }
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'change'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString2 (ticker, 'vol', 'volume'),
+            'quoteVolume': this.safeString (ticker, 'deal'),
+            'info': ticker,
+        }, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2bfutures#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the p2bfutures api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetBook (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "asks": [
+        //                [
+        //                    "4.53",     // Price
+        //                    "523.95"    // Amount
+        //                ],
+        //                ...
+        //            ],
+        //            "bids": [
+        //                [
+        //                    "4.51",
+        //                    "244.75"
+        //                ],
+        //                ...
+        //            ]
+        //        },
+        //        "cache_time": 1698733470.469175,
+        //        "current_time": 1698733470.469274
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const timestamp = this.safeIntegerProduct (response, 'current_time', 1000);
+        return this.parseOrderBook (result, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] 1-100, default=50
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         *
+         * @param {int} params.lastId order id
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         */
+        await this.loadMarkets ();
+        const lastId = this.safeInteger (params, 'lastId');
+        if (lastId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades () requires an extra parameter params["lastId"]');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'lastId': lastId,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetHistory (this.extend (request, params));
+        //
+        //    {
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: [
+        //            {
+        //                id: '7495738622',
+        //                type: 'sell',
+        //                time: '1699255565.445418',
+        //                amount: '252.6',
+        //                price: '0.3422'
+        //            },
+        //            ...
+        //        ],
+        //        cache_time: '1699255571.413633',
+        //        current_time: '1699255571.413828'
+        //    }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        //    {
+        //        id: '7495738622',
+        //        type: 'sell',
+        //        time: '1699255565.445418',
+        //        amount: '252.6',
+        //        price: '0.3422'
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct (trade, 'time', 1000);
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeString (market, 'symbol'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeString (trade, 'type'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'amount'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe 1m, 1h, or 1d
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] 1-500, default=50
+         * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
+         *
+         * @param {int} [params.offset] default=0, with this value the last candles are returned
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'interval': timeframe,
+        };
+        const response = await this.publicGetMarketKline (this.extend (request, params));
+        //
+        //    {
+        //        success: true,
+        //        errorCode: '',
+        //        message: '',
+        //        result: [
+        //            [
+        //                1699253400,       // Kline open time
+        //                '0.3429',         // Open price
+        //                '0.3427',         // Close price
+        //                '0.3429',         // Highest price
+        //                '0.3427',         // Lowest price
+        //                '1900.4',         // Volume for stock currency
+        //                '651.46278',      // Volume for money currency
+        //                'ADA_USDT'        // Market name
+        //            ],
+        //            ...
+        //        ],
+        //        cache_time: '1699256375.030292',
+        //        current_time: '1699256375.030494'
+        //    }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //    [
+        //        1699253400,       // Kline open time
+        //        '0.3429',         // Open price
+        //        '0.3427',         // Close price
+        //        '0.3429',         // Highest price
+        //        '0.3427',         // Lowest price
+        //        '1900.4',         // Volume for stock currency
+        //        '651.46278',      // Volume for money currency
+        //        'ADA_USDT'        // Market name
+        //    ],
+        //
+        return [
+            this.safeIntegerProduct (ohlcv, 0, 1000),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
