@@ -136,7 +136,6 @@ function exception_message($exc) {
     return substr($message, 0, LOG_CHARS_LENGTH);
 }
 
-
 function exit_script($code = 0) {
     exit($code);
 }
@@ -191,10 +190,8 @@ function close($exchange) {
 
 use ccxt\NotSupported;
 use ccxt\NetworkError;
-use ccxt\DDoSProtection;
-use ccxt\RateLimitExceeded;
+use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
-use ccxt\RequestTimeout;
 use ccxt\AuthenticationError;
 
 class testMainClass extends baseMainTestClass {
@@ -214,7 +211,7 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () use ($exchangeId, $symbol) {
             $this->parse_cli_args();
             if ($this->staticTests) {
-                Async\await($this->run_static_tests());
+                Async\await($this->run_static_tests($exchangeId, $symbol)); // $symbol here is the testname
                 return;
             }
             if ($this->idTests) {
@@ -372,12 +369,11 @@ class testMainClass extends baseMainTestClass {
                     return true;
                 } catch (Exception $e) {
                     $isAuthError = ($e instanceof AuthenticationError);
-                    $isRateLimitExceeded = ($e instanceof RateLimitExceeded);
-                    $isNetworkError = ($e instanceof NetworkError);
-                    $isDDoSProtection = ($e instanceof DDoSProtection);
-                    $isRequestTimeout = ($e instanceof RequestTimeout);
                     $isNotSupported = ($e instanceof NotSupported);
-                    $tempFailure = ($isRateLimitExceeded || $isNetworkError || $isDDoSProtection || $isRequestTimeout);
+                    $isNetworkError = ($e instanceof NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                    $isExchangeNotAvailable = ($e instanceof ExchangeNotAvailable);
+                    $isOnMaintenance = ($e instanceof OnMaintenance);
+                    $tempFailure = $isNetworkError && (!$isExchangeNotAvailable || $isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                     if ($tempFailure) {
                         // if last retry was gone with same `$tempFailure` error, then let's eventually return false
                         if ($i === $maxRetries - 1) {
@@ -462,12 +458,14 @@ class testMainClass extends baseMainTestClass {
                     }
                 }
                 // we don't throw exception for public-$tests, see comments under 'testSafe' method
-                $failedMsg = '';
-                $errorsLength = count($errors);
-                if ($errorsLength > 0) {
-                    $failedMsg = ' | Failed methods : ' . implode(', ', $errors);
+                $failedMsg = $errors ? implode(', ', $errors) : null;
+                $errorsInMessage = '';
+                if ($errors !== null) {
+                    $errorsInMessage = ' | Failed methods : ' . $failedMsg;
                 }
-                dump ($this->add_padding('[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $failedMsg, 25), $exchange->id);
+                $messageContent = '[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $errorsInMessage;
+                $messageWithPadding = $this->add_padding($messageContent, 25);
+                dump ($messageWithPadding, $exchange->id);
             }
         }) ();
     }
@@ -868,10 +866,15 @@ class testMainClass extends baseMainTestClass {
         return $content;
     }
 
-    public function load_static_data() {
+    public function load_static_data(?string $targetExchange = null) {
         $folder = './ts/src/test/static/data/';
-        $files = io_dir_read ($folder);
         $result = array();
+        if ($targetExchange) {
+            // read a single exchange
+            $result[$targetExchange] = io_file_read ($folder . $targetExchange . '.json');
+            return $result;
+        }
+        $files = io_dir_read ($folder);
         for ($i = 0; $i < count($files); $i++) {
             $file = $files[$i];
             $exchangeName = str_replace('.json', '', $file);
@@ -1020,8 +1023,8 @@ class testMainClass extends baseMainTestClass {
         return init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
     }
 
-    public function test_exchange_statically(string $exchangeName, array $exchangeData) {
-        return Async\async(function () use ($exchangeName, $exchangeData) {
+    public function test_exchange_statically(string $exchangeName, array $exchangeData, ?string $testName = null) {
+        return Async\async(function () use ($exchangeName, $exchangeData, $testName) {
             // instantiate the $exchange and make sure that we sink the requests to avoid an actual request
             $exchange = $this->init_offline_exchange($exchangeName);
             $methods = $exchange->safe_value($exchangeData, 'methods', array());
@@ -1031,6 +1034,10 @@ class testMainClass extends baseMainTestClass {
                 $results = $methods[$method];
                 for ($j = 0; $j < count($results); $j++) {
                     $result = $results[$j];
+                    $description = $exchange->safe_value($result, 'description');
+                    if (($testName !== null) && ($testName !== $description)) {
+                        continue;
+                    }
                     $type = $exchange->safe_string($exchangeData, 'outputType');
                     $skipKeys = $exchange->safe_value($exchangeData, 'skipKeys', array());
                     Async\await($this->test_method_statically($exchange, $method, $result, $type, $skipKeys));
@@ -1053,19 +1060,25 @@ class testMainClass extends baseMainTestClass {
         return $sum;
     }
 
-    public function run_static_tests() {
-        return Async\async(function ()  {
-            $staticData = $this->load_static_data();
+    public function run_static_tests(?string $targetExchange = null, ?string $testName = null) {
+        return Async\async(function () use ($targetExchange, $testName) {
+            $staticData = $this->load_static_data($targetExchange);
             $exchanges = is_array($staticData) ? array_keys($staticData) : array();
             $exchange = init_exchange ('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
             $promises = array();
             $sum = 0;
+            if ($targetExchange) {
+                dump ("Exchange to test => " . $targetExchange);
+            }
+            if ($testName) {
+                dump ("Testing only => " . $testName);
+            }
             for ($i = 0; $i < count($exchanges); $i++) {
                 $exchangeName = $exchanges[$i];
                 $exchangeData = $staticData[$exchangeName];
                 $numberOfTests = $this->get_number_of_tests_from_exchange($exchange, $exchangeData);
                 $sum = $exchange->sum ($sum, $numberOfTests);
-                $promises[] = $this->test_exchange_statically($exchangeName, $exchangeData);
+                $promises[] = $this->test_exchange_statically($exchangeName, $exchangeData, $testName);
             }
             Async\await(Promise\all($promises));
             if ($this->staticTestsFailed) {

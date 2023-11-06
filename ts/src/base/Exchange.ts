@@ -4897,7 +4897,12 @@ export default class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method] (params);
+                } else {
+                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {

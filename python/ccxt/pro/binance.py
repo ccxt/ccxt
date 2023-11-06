@@ -1133,20 +1133,21 @@ class binance(ccxt.async_support.binance):
 
     async def authenticate(self, params={}):
         time = self.milliseconds()
-        type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
-        type = self.safe_string(params, 'type', type)
+        query = None
+        type = None
+        type, query = self.handle_market_type_and_params('authenticate', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('authenticate', None, params)
+        subType, query = self.handle_sub_type_and_params('authenticate', None, query)
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('authenticate', params)
+        marginMode, query = self.handle_margin_mode_and_params('authenticate', query)
         isIsolatedMargin = (marginMode == 'isolated')
         isCrossMargin = (marginMode == 'cross') or (marginMode is None)
-        symbol = self.safe_string(params, 'symbol')
-        params = self.omit(params, 'symbol')
+        symbol = self.safe_string(query, 'symbol')
+        query = self.omit(query, 'symbol')
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
@@ -1164,8 +1165,8 @@ class binance(ccxt.async_support.binance):
                 if symbol is None:
                     raise ArgumentsRequired(self.id + ' authenticate() requires a symbol argument for isolated margin mode')
                 marketId = self.market_id(symbol)
-                params = self.extend(params, {'symbol': marketId})
-            response = await getattr(self, method)(params)
+                query = self.extend(query, {'symbol': marketId})
+            response = await getattr(self, method)(query)
             self.options[type] = self.extend(options, {
                 'listenKey': self.safe_string(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1176,8 +1177,8 @@ class binance(ccxt.async_support.binance):
         # https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         type = self.safe_string_2(self.options, 'defaultType', 'authenticate', 'spot')
         type = self.safe_string(params, 'type', type)
-        subType = None
-        subType, params = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
+        subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
+        subType = subTypeInfo[0]
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
@@ -1896,7 +1897,7 @@ class binance(ccxt.async_support.binance):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-            params = self.extend(params, {'symbol': symbol})  # needed inside authenticate for isolated margin
+            params = self.extend(params, {'type': market['type'], 'symbol': symbol})  # needed inside authenticate for isolated margin
         await self.authenticate(params)
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
@@ -1906,7 +1907,10 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        urlType = type
+        if type == 'margin':
+            urlType = 'spot'  # spot-margin shares the same stream spot
+        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
         message = None
@@ -2230,10 +2234,14 @@ class binance(ccxt.async_support.binance):
         :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'watchMyTrades', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('watchMyTrades', None, params)
+        subType, params = self.handle_sub_type_and_params('watchMyTrades', market, params)
         if self.isLinear(type, subType):
             type = 'future'
         elif self.isInverse(type, subType):
@@ -2242,9 +2250,12 @@ class binance(ccxt.async_support.binance):
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-            params = self.extend(params, {'symbol': symbol})
+            params = self.extend(params, {'type': market['type'], 'symbol': symbol})
         await self.authenticate(params)
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        urlType = type  # we don't change type because the listening key is different
+        if type == 'margin':
+            urlType = 'spot'  # spot-margin shares the same stream spot
+        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
         message = None

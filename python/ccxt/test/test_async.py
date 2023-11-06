@@ -207,13 +207,12 @@ async def close(exchange):
 
 
 import asyncio
+from typing import Optional
 from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
-from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import AuthenticationError
 
 
@@ -232,7 +231,7 @@ class testMainClass(baseMainTestClass):
     async def init(self, exchangeId, symbol):
         self.parse_cli_args()
         if self.staticTests:
-            await self.run_static_tests()
+            await self.run_static_tests(exchangeId, symbol)  # symbol here is the testname
             return
         if self.idTests:
             await self.run_broker_id_tests()
@@ -360,12 +359,11 @@ class testMainClass(baseMainTestClass):
                 return True
             except Exception as e:
                 isAuthError = (isinstance(e, AuthenticationError))
-                isRateLimitExceeded = (isinstance(e, RateLimitExceeded))
-                isNetworkError = (isinstance(e, NetworkError))
-                isDDoSProtection = (isinstance(e, DDoSProtection))
-                isRequestTimeout = (isinstance(e, RequestTimeout))
                 isNotSupported = (isinstance(e, NotSupported))
-                tempFailure = (isRateLimitExceeded or isNetworkError or isDDoSProtection or isRequestTimeout)
+                isNetworkError = (isinstance(e, NetworkError))  # includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                isExchangeNotAvailable = (isinstance(e, ExchangeNotAvailable))
+                isOnMaintenance = (isinstance(e, OnMaintenance))
+                tempFailure = isNetworkError and (not isExchangeNotAvailable or isOnMaintenance)  # we do not mute specifically "ExchangeNotAvailable" excetpion(but its subtype "OnMaintenance" can be muted)
                 if tempFailure:
                     # if last retry was gone with same `tempFailure` error, then let's eventually return False
                     if i == maxRetries - 1:
@@ -435,11 +433,13 @@ class testMainClass(baseMainTestClass):
                 if not results[i]:
                     errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
-            failedMsg = ''
-            errorsLength = len(errors)
-            if errorsLength > 0:
-                failedMsg = ' | Failed methods : ' + ', '.join(errors)
-            dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
+            failedMsg = ', '.join(errors) if errors else None
+            errorsInMessage = ''
+            if errors is not None:
+                errorsInMessage = ' | Failed methods : ' + failedMsg
+            messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage
+            messageWithPadding = self.add_padding(messageContent, 25)
+            dump(messageWithPadding, exchange.id)
 
     async def load_exchange(self, exchange):
         result = await self.test_safe('loadMarkets', exchange, [], True)
@@ -773,10 +773,14 @@ class testMainClass(baseMainTestClass):
         content = io_file_read(filename)
         return content
 
-    def load_static_data(self):
+    def load_static_data(self, targetExchange: Optional[str] = None):
         folder = './ts/src/test/static/data/'
-        files = io_dir_read(folder)
         result = {}
+        if targetExchange:
+            # read a single exchange
+            result[targetExchange] = io_file_read(folder + targetExchange + '.json')
+            return result
+        files = io_dir_read(folder)
         for i in range(0, len(files)):
             file = files[i]
             exchangeName = file.replace('.json', '')
@@ -893,7 +897,7 @@ class testMainClass(baseMainTestClass):
         markets = self.load_markets_from_file(exchangeName)
         return init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
 
-    async def test_exchange_statically(self, exchangeName: str, exchangeData: object):
+    async def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: Optional[str] = None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchangeName)
         methods = exchange.safe_value(exchangeData, 'methods', {})
@@ -903,6 +907,9 @@ class testMainClass(baseMainTestClass):
             results = methods[method]
             for j in range(0, len(results)):
                 result = results[j]
+                description = exchange.safe_value(result, 'description')
+                if (testName is not None) and (testName != description):
+                    continue
                 type = exchange.safe_string(exchangeData, 'outputType')
                 skipKeys = exchange.safe_value(exchangeData, 'skipKeys', [])
                 await self.test_method_statically(exchange, method, result, type, skipKeys)
@@ -919,18 +926,22 @@ class testMainClass(baseMainTestClass):
             sum = exchange.sum(sum, resultsLength)
         return sum
 
-    async def run_static_tests(self):
-        staticData = self.load_static_data()
+    async def run_static_tests(self, targetExchange: Optional[str] = None, testName: Optional[str] = None):
+        staticData = self.load_static_data(targetExchange)
         exchanges = list(staticData.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling self code
         promises = []
         sum = 0
+        if targetExchange:
+            dump("Exchange to test: " + targetExchange)
+        if testName:
+            dump("Testing only: " + testName)
         for i in range(0, len(exchanges)):
             exchangeName = exchanges[i]
             exchangeData = staticData[exchangeName]
             numberOfTests = self.get_number_of_tests_from_exchange(exchange, exchangeData)
             sum = exchange.sum(sum, numberOfTests)
-            promises.append(self.test_exchange_statically(exchangeName, exchangeData))
+            promises.append(self.test_exchange_statically(exchangeName, exchangeData, testName))
         await asyncio.gather(*promises)
         if self.staticTestsFailed:
             exit_script(1)
