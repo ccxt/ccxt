@@ -2459,7 +2459,7 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
-            params = this.extend (params, { 'symbol': symbol });
+            params = this.extend (params, { 'type': market['type'], 'symbol': symbol });
         }
         await this.authenticate (params);
         let urlType = type; // we don't change type because the listening key is different
