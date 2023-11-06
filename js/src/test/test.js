@@ -18,7 +18,6 @@ process.on('uncaughtException', (e) => {
     // process.exit (1);
 });
 process.on('unhandledRejection', (e) => {
-    exceptionMessage(e);
     throw new Error(exceptionMessage(e));
     // process.exit (1);
 });
@@ -391,12 +390,14 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
-            let failedMsg = '';
-            const errorsLength = errors.length;
-            if (errorsLength > 0) {
-                failedMsg = ' | Failed methods : ' + errors.join(', ');
+            const failedMsg = errors ? errors.join(', ') : undefined;
+            let errorsInMessage = '';
+            if (errors !== undefined) {
+                errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
-            dump(this.addPadding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id);
+            const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
+            const messageWithPadding = this.addPadding(messageContent, 25);
+            dump(messageWithPadding, exchange.id);
         }
     }
     async loadExchange(exchange) {

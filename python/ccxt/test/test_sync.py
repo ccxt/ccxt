@@ -434,11 +434,13 @@ class testMainClass(baseMainTestClass):
                 if not results[i]:
                     errors.append(testNames[i])
             # we don't raise exception for public-tests, see comments under 'testSafe' method
-            failedMsg = ''
-            errorsLength = len(errors)
-            if errorsLength > 0:
-                failedMsg = ' | Failed methods : ' + ', '.join(errors)
-            dump(self.add_padding('[INFO:PUBLIC_TESTS_END] ' + market['type'] + failedMsg, 25), exchange.id)
+            failedMsg = ', '.join(errors) if errors else None
+            errorsInMessage = ''
+            if errors is not None:
+                errorsInMessage = ' | Failed methods : ' + failedMsg
+            messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage
+            messageWithPadding = self.add_padding(messageContent, 25)
+            dump(messageWithPadding, exchange.id)
 
     def load_exchange(self, exchange):
         result = self.test_safe('loadMarkets', exchange, [], True)
