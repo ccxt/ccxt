@@ -1295,8 +1295,8 @@ export default class binance extends binanceRest {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
+        const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
+        const subType = subTypeInfo[0];
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
