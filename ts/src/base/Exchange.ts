@@ -1760,6 +1760,14 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
+    parseToNumeric (number) {
+        const stringifiedNumber = this.numberToString (number);
+        if (Number.isInteger (number)) {
+            return parseInt (stringifiedNumber);
+        }
+        return parseFloat (stringifiedNumber);
+    }
+
     afterConstruct () {
         this.createNetworksByIdObject ();
     }
