@@ -96,14 +96,6 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
-function compareExceptionType (exc, exceptionType) {
-    // we want to avoid "instanceof" because it also checks subclasses and we want to check only exact class
-    // return exc.constructor === exceptionType;
-    //
-    // update: for now we check the exception and it's inheritances
-    return exc instanceof exceptionType;
-}
-
 function exitScript (code) {
     process.exit (code);
 }
@@ -314,11 +306,11 @@ export default class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             } catch (e) {
-                const isAuthError = compareExceptionType (e, AuthenticationError);
-                const isNotSupported = compareExceptionType (e, NotSupported);
-                const isNetworkError = compareExceptionType (e, NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
-                const isExchangeNotAvailable = compareExceptionType (e, ExchangeNotAvailable);
-                const isOnMaintenance = compareExceptionType (e, OnMaintenance);
+                const isAuthError = (e instanceof AuthenticationError);
+                const isNotSupported = (e instanceof NotSupported);
+                const isNetworkError = (e instanceof NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
+                const isOnMaintenance = (e instanceof OnMaintenance);
                 const tempFailure = isNetworkError && (!isExchangeNotAvailable || isOnMaintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                 if (tempFailure) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -329,7 +321,7 @@ export default class testMainClass extends baseMainTestClass {
                         await exchange.sleep (i * 1000); // increase wait seconds on every retry
                         continue;
                     }
-                } else if (compareExceptionType (e, OnMaintenance)) {
+                } else if (e instanceof OnMaintenance) {
                     // in case of maintenance, skip exchange (don't fail the test)
                     dump ('[TEST_WARNING] Exchange is on maintenance', exchange.id);
                 }

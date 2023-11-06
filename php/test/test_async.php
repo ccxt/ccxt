@@ -135,14 +135,6 @@ function exception_message($exc) {
     return substr($message, 0, LOG_CHARS_LENGTH);
 }
 
-function compare_exception_type($exc, $exceptionType) {
-    // $classFullName = '\\' . get_class($exc);
-    // return $classFullName === $exceptionType; (`$exceptionType` is string here)
-    //
-    // update: for now we check the exception and it's inheritances
-    return ($exc instanceof $exceptionType);
-}
-
 function exit_script($code = 0) {
     exit($code);
 }

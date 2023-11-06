@@ -161,13 +161,6 @@ def exception_message(exc):
     return message
 
 
-def compare_exception_type(exc, exceptionType):
-    # return type(exc) == exceptionType
-    #
-    # update: for now we check the exception and it's inheritances
-    return isinstance(exc, exceptionType)
-
-
 def exit_script(code):
     exit(code)
 
