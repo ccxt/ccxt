@@ -1222,6 +1222,9 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
+            },
+            "fetchOHLCV": {
+                "compareAmountToZero": "sometimes zero amount returned"
             }
         }
     },
@@ -1367,6 +1370,13 @@
             "fetchTickers": {
                 "quoteVolume": "same",
                 "baseVolume": "same"
+            }
+        }
+    },
+    "poloniexfutures": {
+        "skipMethods": {
+            "fetchOHLCV": {
+                "compareAmountToZero": "sometimes zero amount returned"
             }
         }
     },
