@@ -1,5 +1,7 @@
+import { Exchange } from '../../ccxt.js';
 declare class baseMainTestClass {
     lang: string;
+    idTests: boolean;
     staticTestsFailed: boolean;
     staticTests: boolean;
     info: boolean;
@@ -38,8 +40,20 @@ export default class testMainClass extends baseMainTestClass {
     assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: object, storedOutput: object): any;
     assertStaticOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
     testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
+    initOfflineExchange(exchangeName: string): Exchange;
     testExchangeStatically(exchangeName: string, exchangeData: object): Promise<void>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
     runStaticTests(): Promise<void>;
+    runBrokerIdTests(): Promise<void>;
+    testBinance(): Promise<void>;
+    testOkx(): Promise<void>;
+    testCryptocom(): Promise<void>;
+    testBybit(): Promise<void>;
+    testKucoin(): Promise<void>;
+    testKucoinfutures(): Promise<void>;
+    testBitget(): Promise<void>;
+    testMexc(): Promise<void>;
+    testHuobi(): Promise<void>;
+    testWoo(): Promise<void>;
 }
 export {};

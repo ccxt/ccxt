@@ -96,6 +96,7 @@ export default class krakenfutures extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -105,6 +106,7 @@ export default class krakenfutures extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -143,11 +145,6 @@ export default class krakenfutures extends Exchange {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ],
-                },
-                'feeschedules': {
-                    'get': [
-                        'volumes',
                     ],
                 },
             },

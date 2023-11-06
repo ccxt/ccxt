@@ -58,7 +58,58 @@
               10
             ],
             "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"qty\":\"10\"}"
+          },
+          {
+            "description": "Swap limit buy with trigger price",
+            "method": "createOrder",
+            "url": "https://api-testnet.bybit.com/v5/order/create",
+            "input": [
+              "LTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.1,
+              55,
+              {
+                "triggerPrice": 100
+              }
+            ],
+            "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"55\",\"triggerDirection\":1,\"triggerPrice\":\"100\"}"
+          },
+          {
+            "description": "Spot limit buy with postOnly",
+            "method": "createOrder",
+            "url": "https://api-testnet.bybit.com/v5/order/create",
+            "input": [
+              "LTC/USDT",
+              "limit",
+              "buy",
+              0.1,
+              60,
+              {
+                "postOnly": true
+              }
+            ],
+            "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"spot\",\"qty\":\"0.1\",\"price\":\"60\",\"timeInForce\":\"PostOnly\"}"
           }
         ]
-    }
+    },
+    "disabled": [
+        {
+          "description": "Swap limit sell with reduceOnly and postOnly",
+          "method": "createOrder",
+          "url": "https://api-testnet.bybit.com/v5/order/create",
+          "input": [
+            "LTC/USDT:USDT",
+            "limit",
+            "sell",
+            0.1,
+            100,
+            {
+              "reduceOnly": true,
+              "postOnly": true
+            }
+          ],
+          "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"100\",\"timeInForce\":\"PostOnly\",\"reduceOnly\":true}"
+        }
+    ]
 }

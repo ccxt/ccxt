@@ -108,6 +108,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': [
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -117,6 +118,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': [
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -155,11 +157,6 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ],
-                },
-                'feeschedules': {
-                    'get': [
-                        'volumes',
                     ],
                 },
             },
