@@ -96,7 +96,7 @@ function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
 
-function exitScript (code) {
+function exitScript (code = 0) {
     process.exit (code);
 }
 
