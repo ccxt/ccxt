@@ -1064,7 +1064,7 @@ export default class bitrue extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
         let response = undefined;
-        if (this.isLinear (type, subType)) {
+        if (market['future']) {
             const request = {
                 'contractName': market['id'],
             };
@@ -1074,18 +1074,11 @@ export default class bitrue extends Exchange {
                 }
                 request['limit'] = limit; // default 100, max 1000, see https://www.bitrue.com/api-docs#order-book
             }
-            response = await this.fapiV1PublicGetDepth (this.extend (request, params));
-        } else if (this.isInverse (type, subType)) {
-            const request = {
-                'contractName': market['id'],
-            };
-            if (limit !== undefined) {
-                if (limit > 100) {
-                    limit = 100;
-                }
-                request['limit'] = limit; // default 100, max 1000, see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV1PublicGetDepth (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV1PublicGetDepth (this.extend (request, params));
             }
-            response = await this.dapiV1PublicGetDepth (this.extend (request, params));
         } else {
             const request = {
                 'symbol': market['id'],
@@ -1166,16 +1159,23 @@ export default class bitrue extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeString (ticker, 'lastPrice');
+        const last = this.safeString2 (ticker, 'lastPrice', 'last');
+        const timestamp = this.safeInteger (ticker, 'time');
+        let percentage = undefined;
+        if (market['future']) {
+            percentage = Precise.stringMul (this.safeString (ticker, 'rose'), '100');
+        } else {
+            percentage = this.safeString (ticker, 'priceChangePercent');
+        }
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': this.safeString (ticker, 'highPrice'),
-            'low': this.safeString (ticker, 'lowPrice'),
-            'bid': this.safeString (ticker, 'bidPrice'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString2 (ticker, 'highPrice', 'high'),
+            'low': this.safeString2 (ticker, 'lowPrice', 'low'),
+            'bid': this.safeString2 (ticker, 'bidPrice', 'buy'),
             'bidVolume': this.safeString (ticker, 'bidQty'),
-            'ask': this.safeString (ticker, 'askPrice'),
+            'ask': this.safeString2 (ticker, 'askPrice', 'sell'),
             'askVolume': this.safeString (ticker, 'askQty'),
             'vwap': this.safeString (ticker, 'weightedAvgPrice'),
             'open': this.safeString (ticker, 'openPrice'),
@@ -1183,9 +1183,9 @@ export default class bitrue extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString (ticker, 'priceChange'),
-            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
+            'baseVolume': this.safeString2 (ticker, 'volume', 'vol'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
@@ -1202,10 +1202,31 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        let data = undefined;
+        if (market['future']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV1PublicGetTicker (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV1PublicGetTicker (this.extend (request, params));
+            }
+            data = response;
+        } else {
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+            data = this.safeValue (response, 0, {});
+        }
+        //
+        // spot
         //
         //     [{
         //         symbol: 'BTCUSDT',
@@ -1229,7 +1250,19 @@ export default class bitrue extends Exchange {
         //         count: '0'
         //     }]
         //
-        const data = this.safeValue (response, 0, {});
+        // future
+        //
+        //     {
+        //         "high": "35296",
+        //         "vol": "779308354",
+        //         "last": "34884.1",
+        //         "low": "34806.7",
+        //         "buy": 34883.9,
+        //         "sell": 34884,
+        //         "rose": "-0.0027957315",
+        //         "time": 1699348013000
+        //     }
+        //
         return this.parseTicker (data, market);
     }
 
