@@ -2713,7 +2713,7 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
         if (isSpotTrade) {
             return this.parseSpotTrade (trade, market);

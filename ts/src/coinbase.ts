@@ -791,7 +791,7 @@ export default class coinbase extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchMyBuys, fetchMySells
         //

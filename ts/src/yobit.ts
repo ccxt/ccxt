@@ -609,7 +609,7 @@ export default class yobit extends Exchange {
         return tickers[symbol] as Ticker;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //

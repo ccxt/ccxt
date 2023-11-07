@@ -1161,7 +1161,7 @@ export default class exmo extends Exchange {
         return this.parseTicker (response[market['id']], market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //

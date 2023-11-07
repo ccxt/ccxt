@@ -1073,7 +1073,7 @@ export default class kraken extends Exchange {
         return items[0];
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //

@@ -913,8 +913,8 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/ ]
-        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory' ]
+        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Trade/ ]
+        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Trade' ]
         const matches = []
         let match
         const listRegex = /: List\[(\w+)\]/g
@@ -1563,6 +1563,7 @@ class Transpiler {
                 'OHLCV': 'array',
                 'Order': 'array',
                 'FundingHistory[]': 'array',
+                'Trade': 'array',
             }
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
@@ -1601,7 +1602,6 @@ class Transpiler {
                 'Int': 'int',
                 'string[]': 'List[str]',
                 'OHLCV': 'list',
-                'Order': 'Order',
                 'FundingHistory[]': 'List[FundingHistory]',
             }
             let pythonArgs = args.map (x => {

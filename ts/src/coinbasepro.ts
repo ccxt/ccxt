@@ -713,7 +713,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         //     {
         //         type: 'match',
