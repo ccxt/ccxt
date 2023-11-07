@@ -415,9 +415,9 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
-            const failedMsg = errors ? errors.join (', ') : undefined;
             let errorsInMessage = '';
-            if (errors !== undefined) {
+            if (errors) {
+                const failedMsg = errors.join (', ');
                 errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
             const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
@@ -990,7 +990,7 @@ export default class testMainClass extends baseMainTestClass {
 
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
-        return initExchange (exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
+        return initExchange (exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false }});
     }
 
     async testExchangeStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {

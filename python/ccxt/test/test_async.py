@@ -897,7 +897,7 @@ class testMainClass(baseMainTestClass):
 
     def init_offline_exchange(self, exchangeName: str):
         markets = self.load_markets_from_file(exchangeName)
-        return init_exchange(exchangeName, {'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
+        return init_exchange(exchangeName, {'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False}})
 
     async def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: Optional[str] = None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request

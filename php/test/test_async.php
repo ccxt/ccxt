@@ -1022,7 +1022,7 @@ class testMainClass extends baseMainTestClass {
 
     public function init_offline_exchange(string $exchangeName) {
         $markets = $this->load_markets_from_file($exchangeName);
-        return init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
+        return init_exchange ($exchangeName, array( 'markets' => $markets, 'rateLimit' => 1, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
     }
 
     public function test_exchange_statically(string $exchangeName, array $exchangeData, ?string $testName = null) {

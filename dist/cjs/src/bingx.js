@@ -30,6 +30,7 @@ class bingx extends bingx$1 {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createOrders': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -1588,31 +1589,22 @@ class bingx extends bingx$1 {
             'takeProfitPrice': undefined,
         });
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name bingx#createOrder
-         * @description create a trade order
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+         * @ignore
+         * @name bingx#createOrderRequest
+         * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {bool} [params.postOnly] true to place a post only order
-         * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
-         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
-         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
-         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
-         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} request to be sent to the exchange
          */
-        await this.loadMarkets();
         const market = this.market(symbol);
         let postOnly = undefined;
-        let response = undefined;
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
         type = type.toUpperCase();
@@ -1642,20 +1634,19 @@ class bingx extends bingx$1 {
                         const amountString = this.numberToString(amount);
                         const priceString = this.numberToString(price);
                         const cost = this.parseNumber(Precise["default"].stringMul(amountString, priceString));
-                        request['quoteOrderQty'] = this.priceToPrecision(symbol, cost);
+                        request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, cost));
                     }
                 }
                 else {
-                    request['quoteOrderQty'] = this.priceToPrecision(symbol, amount);
+                    request['quoteOrderQty'] = this.parseToNumeric(this.priceToPrecision(symbol, amount));
                 }
             }
             else {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
+                request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
             }
             if (!isMarketOrder) {
-                request['price'] = this.priceToPrecision(symbol, price);
+                request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
-            response = await this.spotV1PrivatePostTradeOrder(this.extend(request, params));
         }
         else {
             [postOnly, params] = this.handlePostOnly(isMarketOrder, timeInForce === 'PostOnly', params);
@@ -1669,7 +1660,7 @@ class bingx extends bingx$1 {
                 request['timeInForce'] = 'FOK';
             }
             if ((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) {
-                request['price'] = this.priceToPrecision(symbol, price);
+                request['price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
             const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
@@ -1677,8 +1668,9 @@ class bingx extends bingx$1 {
             const isTriggerOrder = triggerPrice !== undefined;
             const isStopLossPriceOrder = stopLossPrice !== undefined;
             const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
+            let reduceOnly = this.safeValue(params, 'reduceOnly', false);
             if (isTriggerOrder) {
-                request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
+                request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
                 if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
                     request['type'] = 'TRIGGER_MARKET';
                 }
@@ -1688,8 +1680,9 @@ class bingx extends bingx$1 {
             }
             else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
+                reduceOnly = true;
                 if (isStopLossPriceOrder) {
-                    request['stopPrice'] = this.priceToPrecision(symbol, stopLossPrice);
+                    request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                     if (isMarketOrder || (type === 'STOP_MARKET')) {
                         request['type'] = 'STOP_MARKET';
                     }
@@ -1698,7 +1691,7 @@ class bingx extends bingx$1 {
                     }
                 }
                 else if (isTakeProfitPriceOrder) {
-                    request['stopPrice'] = this.priceToPrecision(symbol, takeProfitPrice);
+                    request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
                     if (isMarketOrder || (type === 'TAKE_PROFIT_MARKET')) {
                         request['type'] = 'TAKE_PROFIT_MARKET';
                     }
@@ -1707,7 +1700,6 @@ class bingx extends bingx$1 {
                     }
                 }
             }
-            const reduceOnly = this.safeValue(params, 'reduceOnly', false);
             let positionSide = undefined;
             if (reduceOnly) {
                 positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
@@ -1716,9 +1708,41 @@ class bingx extends bingx$1 {
                 positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
             }
             request['positionSide'] = positionSide;
-            request['quantity'] = this.amountToPrecision(symbol, amount);
+            request['quantity'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
             params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
-            response = await this.swapV2PrivatePostTradeOrder(this.extend(request, params));
+        }
+        return this.extend(request, params);
+    }
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bingx#createOrder
+         * @description create a trade order
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Create%20an%20Order
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Trade%20order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {bool} [params.postOnly] true to place a post only order
+         * @param {string} [params.timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
+         * @param {bool} [params.reduceOnly] *swap only* true or false whether the order is reduce only
+         * @param {float} [params.triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss order will be triggered
+         * @param {float} [params.stopLossPrice] *swap only* stop loss trigger price
+         * @param {float} [params.takeProfitPrice] *swap only* take profit trigger price
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.swapV2PrivatePostTradeOrder(request);
+        }
+        else {
+            response = await this.spotV1PrivatePostTradeOrder(request);
         }
         //
         // spot
@@ -1762,6 +1786,99 @@ class bingx extends bingx$1 {
         const order = this.safeValue(data, 'order', data);
         return this.parseOrder(order, market);
     }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name bingx#createOrders
+         * @description create a list of trade orders
+         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
+         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        let symbol = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const market = this.market(symbol);
+        const request = {};
+        let response = undefined;
+        if (market['swap']) {
+            request['batchOrders'] = this.json(ordersRequests);
+            response = await this.swapV2PrivatePostTradeBatchOrders(request);
+        }
+        else {
+            request['data'] = this.json(ordersRequests);
+            response = await this.spotV1PrivatePostTradeBatchOrders(request);
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "debugMsg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "BTC-USDT",
+        //                     "orderId": 1720661389564968960,
+        //                     "transactTime": 1699072618272,
+        //                     "price": "25000",
+        //                     "origQty": "0.0002",
+        //                     "executedQty": "0",
+        //                     "cummulativeQuoteQty": "0",
+        //                     "status": "PENDING",
+        //                     "type": "LIMIT",
+        //                     "side": "BUY"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "BTC-USDT",
+        //                     "orderId": 1720657081994006528,
+        //                     "side": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "type": "LIMIT",
+        //                     "clientOrderID": "",
+        //                     "workingType": ""
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const result = this.safeValue(data, 'orders', []);
+        return this.parseOrders(result, market);
+    }
     parseOrderSide(side) {
         const sides = {
             'BUY': 'buy',
@@ -1774,7 +1891,7 @@ class bingx extends bingx$1 {
     parseOrder(order, market = undefined) {
         //
         // spot
-        // createOrder, cancelOrder
+        // createOrder, createOrders, cancelOrder
         //
         //    {
         //        "symbol": "XRP-USDT",
@@ -1827,7 +1944,7 @@ class bingx extends bingx$1 {
         //
         //
         // swap
-        // createOrder
+        // createOrder, createOrders
         //
         //    {
         //      "symbol": "BTC-USDT",

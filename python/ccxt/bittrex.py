@@ -510,6 +510,7 @@ class bittrex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
