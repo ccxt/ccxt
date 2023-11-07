@@ -119,7 +119,7 @@ export default class coinlist extends Exchange {
                 '30m': '30m',
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/281108917-eff2ae1d-ce8a-4b2a-950d-8678b12da965.jpg',
                 'api': {
                     'public': 'https://trade-api.coinlist.co',
                     'private': 'https://trade-api.coinlist.co',
