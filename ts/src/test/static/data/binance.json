@@ -259,6 +259,19 @@
             ]
           }
         ],
+        "cancelOrders": [
+          {
+            "description": "Swap cancelOrders",
+            "method": "cancelOrders",
+            "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=[652511506]&origclientorderidlist=[]&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
+            "input": [
+              [
+                "652511506"
+              ],
+              "LTC/USDT:USDT"
+            ]
+          }
+        ],
         "cancelAllOrders": [
           {
             "description": "Spot cancelAllOrders",
@@ -275,6 +288,20 @@
             "input": [
               "LTC/USDT:USDT"
             ]
+          }
+        ],
+        "fetchBalance": [
+          {
+            "description": "Spot fetch balance",
+            "method": "fetchBalance",
+            "url": "https://api.binance.com/api/v3/account?timestamp=1699384807806&recvWindow=10000&signature=63f0c698cb014312107449ed70b52c6e684ef8d18cba7b62fb378716f043534d",
+            "input": []
+          },
+          {
+            "description": "Swap fetch balance",
+            "method": "fetchBalance",
+            "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1699384838614&recvWindow=10000&signature=ba3638c079e75529783c9ae424e8a611a67584e9817d424e944eec841595d746",
+            "input": []
           }
         ],
         "fetchMyTrades": [
@@ -448,6 +475,56 @@
                 "subType": "inverse"
               }
             ]
+          }
+        ],
+        "transfer": [
+          {
+            "description": "Transfer from cross to spot",
+            "method": "transfer",
+            "url": "https://api.binance.com/sapi/v1/asset/transfer",
+            "input": [
+              "USDT",
+              1,
+              "cross",
+              "spot"
+            ],
+            "output": "timestamp=1699384664075&asset=USDT&amount=1&type=MARGIN_MAIN&recvWindow=10000&signature=1d4479f2e7df920f0b14af126ef2c753738e6e6945a28c2fdbd69bc841009e64"
+          },
+          {
+            "description": "Transfer from spot to linear",
+            "method": "transfer",
+            "url": "https://api.binance.com/sapi/v1/asset/transfer",
+            "input": [
+              "USDT",
+              1,
+              "spot",
+              "linear"
+            ],
+            "output": "timestamp=1699384712566&asset=USDT&amount=1&type=MAIN_UMFUTURE&recvWindow=10000&signature=33c61a7570d7a2c9c99ddd57edb5b5c2574351b9e485512e9f6382d5b5f1804f"
+          },
+          {
+            "description": "Transfer from spot to funding",
+            "method": "transfer",
+            "url": "https://api.binance.com/sapi/v1/asset/transfer",
+            "input": [
+              "USDT",
+              1,
+              "spot",
+              "funding"
+            ],
+            "output": "timestamp=1699384737453&asset=USDT&amount=1&type=MAIN_FUNDING&recvWindow=10000&signature=5418d03fb525c32e4a1c4e1a874abcda635bad6ba7763fc82c0b164eeebd7523"
+          },
+          {
+            "description": "Transfer from funding to spot",
+            "method": "transfer",
+            "url": "https://api.binance.com/sapi/v1/asset/transfer",
+            "input": [
+              "USDT",
+              1,
+              "funding",
+              "spot"
+            ],
+            "output": "timestamp=1699384759972&asset=USDT&amount=1&type=FUNDING_MAIN&recvWindow=10000&signature=4e43d89ac545361e50c2b7df44b91f6c168c99dab114acc6bad382a4c51aa34b"
           }
         ]
     }
