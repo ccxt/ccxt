@@ -5249,7 +5249,7 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        symbols = this.marketSymbols (symbols, undefined, undefined, true, true);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
