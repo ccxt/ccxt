@@ -30,6 +30,26 @@
             ],
             "output": "{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"50\"}"
           }
+        ],
+        "fetchPositions": [
+          {
+            "description": "Fetch positions without parameters (all usdt positions)",
+            "method": "fetchPositions",
+            "url": "https://api.gateio.ws/api/v4/futures/usdt/positions",
+            "input": []
+          },
+          {
+            "description": "Fetch USDT delivery futures",
+            "method": "fetchPositions",
+            "url": "https://api.gateio.ws/api/v4/delivery/usdt/positions",
+            "input": [
+              [],
+              {
+                "type": "future",
+                "settle": "USDT"
+              }
+            ]
+          }
         ]
     }
 }
