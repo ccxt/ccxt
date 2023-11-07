@@ -1518,11 +1518,11 @@ export default class probit extends Exchange {
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
         } else {
-            request['start_time'] = this.iso8601(1);
+            request['start_time'] = this.iso8601 (1);
         }
         const until = this.safeInteger2 (params, 'till', 'until');
         if (until !== undefined) {
-            request['end_time'] = this.iso8601(until);
+            request['end_time'] = this.iso8601 (until);
             params = this.omit (params, [ 'until', 'till' ]);
         } else {
             request['end_time'] = this.iso8601 (this.milliseconds ());
