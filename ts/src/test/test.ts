@@ -923,11 +923,28 @@ export default class testMainClass extends baseMainTestClass {
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
+    sanitizeDataInput (input) {
+        // remove nulls and replace with unefined instead
+        if (input === undefined) {
+            return undefined;
+        }
+        const newInput = [];
+        for (let i = 0; i < input.length; i++) {
+            const current = input[i];
+            if (current === null) {
+                newInput.push (undefined);
+            } else {
+                newInput.push (current);
+            }
+        }
+        return newInput;
+    }
+
     async testMethodStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            await callExchangeMethodDynamically (exchange, method, data['input']);
+            await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
         } catch (e) {
             if (!(e instanceof NetworkError)) {
                 // if it's not a network error, it means our request was not created succesfully
