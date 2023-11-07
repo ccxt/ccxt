@@ -858,8 +858,14 @@ class testMainClass(baseMainTestClass):
             if (storedUrl is not None) and (requestUrl is not None):
                 storedUrlParts = storedUrl.split('?')
                 newUrlParts = requestUrl.split('?')
-                storedUrlParams = self.urlencoded_to_dict(storedUrlParts[1])
-                newUrlParams = self.urlencoded_to_dict(newUrlParts[1])
+                storedUrlQuery = exchange.safe_value(storedUrlParts, 1)
+                newUrlQuery = exchange.safe_value(newUrlParts, 1)
+                if (storedUrlQuery is None) and (newUrlQuery is None):
+                    # might be a get request without any query parameters
+                    # example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return
+                storedUrlParams = self.urlencoded_to_dict(storedUrlQuery)
+                newUrlParams = self.urlencoded_to_dict(newUrlQuery)
                 self.assert_new_and_stored_output(exchange, skipKeys, newUrlParams, storedUrlParams)
                 return
         # body is defined
