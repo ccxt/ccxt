@@ -1060,13 +1060,46 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        params = this.omit (params, 'type');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (limit !== undefined) {
+                if (limit > 100) {
+                    limit = 100;
+                }
+                request['limit'] = limit; // default 100, max 1000, see https://www.bitrue.com/api-docs#order-book
+            }
+            response = await this.fapiV1PublicGetDepth (this.extend (request, params));
+        } else if (this.isInverse (type, subType)) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (limit !== undefined) {
+                if (limit > 100) {
+                    limit = 100;
+                }
+                request['limit'] = limit; // default 100, max 1000, see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+            }
+            response = await this.dapiV1PublicGetDepth (this.extend (request, params));
+        } else {
+            const request = {
+                'symbol': market['id'],
+            };
+            if (limit !== undefined) {
+                if (limit > 1000) {
+                    limit = 1000;
+                }
+                request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
+            }
+            response = await this.spotV1PublicGetDepth (this.extend (request, params));
         }
-        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId":1635474910177,
@@ -1082,7 +1115,8 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const orderbook = this.parseOrderBook (response, symbol);
+        const timestamp = this.safeInteger (response, 'time');
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
