@@ -67,15 +67,16 @@ async function testProxyForExceptions (exchange, skippedProperties) {
                 const proxySecond = possibleOptionsArray[j];
                 exchange.setProperty (exchange, proxyFirst, '0.0.0.0'); // actual value does not matter
                 exchange.setProperty (exchange, proxySecond, '0.0.0.0'); // actual value does not matter
+                let exceptionCaught = false;
                 try {
                     await exchange.fetch ('http://example.com'); // url does not matter, it will not be called
-                    assert (false, exchange.id + ' ' + method + ' test failed. No exception was thrown, while ' + proxyFirst + ' and ' + proxySecond + ' were set together');
                 } catch (e) {
-                    // reset to undefined
-                    exchange.setProperty (exchange, proxyFirst, undefined);
-                    exchange.setProperty (exchange, proxySecond, undefined);
-                    continue;
+                    exceptionCaught = true;
                 }
+                assert (exceptionCaught, exchange.id + ' ' + method + ' test failed. No exception was thrown, while ' + proxyFirst + ' and ' + proxySecond + ' were set together');
+                // reset to undefined
+                exchange.setProperty (exchange, proxyFirst, undefined);
+                exchange.setProperty (exchange, proxySecond, undefined);
             }
         }
     }
