@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.41'
+__version__ = '4.1.43'
 
 # -----------------------------------------------------------------------------
 
@@ -103,6 +103,7 @@ from ccxt.async_support.coinbasepro import coinbasepro                          
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                            # noqa: F401
+from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
@@ -210,6 +211,7 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
+    'coinlist',
     'coinmate',
     'coinone',
     'coinsph',

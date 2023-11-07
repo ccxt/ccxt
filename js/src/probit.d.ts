@@ -48,7 +48,7 @@ export default class probit extends Exchange {
         id: string;
         currency: any;
         amount: number;
-        network: any;
+        network: string;
         addressFrom: any;
         address: string;
         addressTo: string;
@@ -71,7 +71,7 @@ export default class probit extends Exchange {
         id: string;
         currency: any;
         amount: number;
-        network: any;
+        network: string;
         addressFrom: any;
         address: string;
         addressTo: string;
