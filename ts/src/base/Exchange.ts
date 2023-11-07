@@ -950,19 +950,18 @@ export default class Exchange {
         headers = this.extend (this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
+        let isHttpAgentNeeded = false;
         if (proxyUrl !== undefined) {
             // in node we need to set header to *
             if (isNode) {
                 headers = this.extend ({ 'Origin': this.origin }, headers);
-                if (proxyUrl.substring(0, 5) === 'https') {
-                    this.agent = this.httpsAgent;
-                } else {
+                if (proxyUrl.substring(0, 5) !== 'https') {
                     // for `http://` protocol proxy-urls, we need to load `http` module only on first call
                     if (!this.httpAgent) {
                         const httpModule = await import (/* webpackIgnore: true */'node:http')
                         this.httpAgent = new httpModule.Agent ();
                     }
-                    this.agent = this.httpAgent;
+                    isHttpAgentNeeded = true;
                 }
             }
             url = proxyUrl + url;
@@ -971,7 +970,7 @@ export default class Exchange {
         const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url, method, headers, body);
         this.checkConflictingProxies (httpProxy || httpsProxy || socksProxy, proxyUrl);
         if (!this.proxyModulesLoaded) {
-            await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method
+            await this.loadProxyModules (); // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
         }
         this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         // user-agent
@@ -1012,6 +1011,10 @@ export default class Exchange {
         const params = { method, headers, body, timeout: this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
+            // here is correct place to change it, if "http" proxy url is being used, so we don't overwrite `this.agent` itself
+            if (isHttpAgentNeeded) {
+                params['agent'] = this.httpAgent;
+            }
         }
         const controller = new AbortController ()
         params['signal'] = controller.signal
