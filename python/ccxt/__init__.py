@@ -64,6 +64,7 @@ from ccxt.base.errors import NotSupported                   # noqa: F401
 from ccxt.base.errors import NetworkError                   # noqa: F401
 from ccxt.base.errors import DDoSProtection                 # noqa: F401
 from ccxt.base.errors import RateLimitExceeded              # noqa: F401
+from ccxt.base.errors import AccountRateLimitExceeded       # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
 from ccxt.base.errors import OnMaintenance                  # noqa: F401
 from ccxt.base.errors import InvalidNonce                   # noqa: F401

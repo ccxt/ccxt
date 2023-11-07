@@ -22,6 +22,7 @@ from ccxt import CancelPending              # noqa: F401
 from ccxt import NetworkError               # noqa: F401
 from ccxt import DDoSProtection             # noqa: F401
 from ccxt import RateLimitExceeded          # noqa: F401
+from ccxt import AccountRateLimitExceeded   # noqa: F401
 from ccxt import RequestTimeout             # noqa: F401
 from ccxt import ExchangeNotAvailable       # noqa: F401
 from ccxt import OnMaintenance              # noqa: F401
