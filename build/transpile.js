@@ -296,6 +296,7 @@ class Transpiler {
             [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
+            [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -1300,7 +1301,7 @@ class Transpiler {
         const sync = syncFilePath
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
-        const syncBody = his.transpileAsyncPHPToSyncPHP (fileContents)
+        const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
 
         const phpTestRegexes = [
             [ /Async\\coroutine\(\$main\)/, '\$main()' ],

@@ -1322,13 +1322,13 @@ class huobi(ccxt.async_support.huobi):
         #     }
         #
         channel = self.safe_string(message, 'ch')
-        timestamp = self.safe_integer(message, 'ts')
+        data = self.safe_value(message, 'data', [])
+        timestamp = self.safe_integer(data, 'changeTime', self.safe_integer(message, 'ts'))
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
-        self.balance['info'] = self.safe_value(message, 'data')
+        self.balance['info'] = data
         if channel is not None:
             # spot balance
-            data = self.safe_value(message, 'data', {})
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1339,7 +1339,6 @@ class huobi(ccxt.async_support.huobi):
             client.resolve(self.balance, channel)
         else:
             # contract balance
-            data = self.safe_value(message, 'data', [])
             dataLength = len(data)
             if dataLength == 0:
                 return

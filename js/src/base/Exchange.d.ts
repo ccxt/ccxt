@@ -575,6 +575,7 @@ export default class Exchange {
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
+    parseToNumeric(number: any): number;
     afterConstruct(): void;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.37'
+__version__ = '4.1.41'
 
 # -----------------------------------------------------------------------------
 
@@ -394,6 +394,7 @@ class Exchange(object):
     last_response_headers = None
     last_request_body = None
     last_request_url = None
+    last_request_headers = None
 
     requiresEddsa = False
     base58_encoder = None
@@ -1023,10 +1024,11 @@ class Exchange(object):
 
     @staticmethod
     def urlencode(params={}, doseq=False):
+        newParams = params.copy()
         for key, value in params.items():
             if isinstance(value, bool):
-                params[key] = 'true' if value else 'false'
-        return _urlencode.urlencode(params, doseq, quote_via=_urlencode.quote)
+                newParams[key] = 'true' if value else 'false'
+        return _urlencode.urlencode(newParams, doseq, quote_via=_urlencode.quote)
 
     @staticmethod
     def urlencode_with_array_repeat(params={}):
@@ -1984,6 +1986,16 @@ class Exchange(object):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
+
+    def parse_to_numeric(self, number):
+        stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        # keep self in mind:
+        # in JS: 1 == 1.0 is True
+        # in Python: 1 == 1.0 is True
+        # in PHP 1 == 1.0 is False
+        if stringVersion.find('.') > 0:
+            return float(stringVersion)
+        return int(stringVersion)
 
     def after_construct(self):
         self.create_networks_by_id_object()
@@ -4530,7 +4542,11 @@ class Exchange(object):
                     if cursorIncrement is not None:
                         cursorValue = self.parseToInt(cursorValue) + cursorIncrement
                     params[cursorSent] = cursorValue
-                response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                response = None
+                if method == 'fetchAccounts':
+                    response = getattr(self, method)(params)
+                else:
+                    response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

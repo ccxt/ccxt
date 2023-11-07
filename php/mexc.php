@@ -2664,16 +2664,16 @@ class mexc extends Exchange {
         $this->load_markets();
         $request = array();
         $market = null;
+        $marketType = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
         }
-        $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
             }
+            $request['symbol'] = $market['id'];
             $method = 'spotPrivateGetOpenOrders';
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             if ($marginMode !== null) {
@@ -2768,7 +2768,6 @@ class mexc extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
         }
         list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
         if ($marketType === 'spot') {
