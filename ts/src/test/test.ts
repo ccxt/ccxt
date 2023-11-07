@@ -117,7 +117,7 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-const supportedProxyTests = [ 'proxyUrl', 'httpProxy' ]; // todo: , 'httpsProxy', 'socksProxy'
+const supportedProxyTests = [ 'proxies' ];
 
 async function setTestFiles (holderClass, properties) {
     // exchange tests
