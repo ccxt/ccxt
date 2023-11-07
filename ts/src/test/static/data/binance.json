@@ -213,6 +213,70 @@
                 "output": "timestamp=1699380695835&symbol=LTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu392bafca1fb740208ee8d3&newOrderRespType=RESULT&type=LIMIT&quantity=0.2&price=50&timeInForce=GTX&recvWindow=10000&signature=27dfce7c02d210d4d88f029e34550f153283e849b34bbf80aebbc7f860937b84"
               }
         ],
+        "createOrders": [
+          {
+            "description": "Swap createOrders",
+            "method": "createOrders",
+            "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders",
+            "input": [
+              [
+                {
+                  "symbol": "LTC/USDT:USDT",
+                  "amount": 0.1,
+                  "side": "buy",
+                  "type": "limit",
+                  "price": 60
+                },
+                {
+                  "symbol": "LTC/USDT:USDT",
+                  "amount": 0.11,
+                  "side": "buy",
+                  "type": "limit",
+                  "price": 61
+                }
+              ]
+            ],
+            "output": "timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcub371e14dda9e4fda804421\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"60\",\"timeInForce\":\"GTC\"},{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcu2b5cffec484a42138cdf8e\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\",\"price\":\"61\",\"timeInForce\":\"GTC\"}]&recvWindow=10000&signature=ce06633e6e16101cf7b4c3fd0f6a1afa3901206050382fafae81deddc1867f92"
+          }
+        ],
+        "cancelOrder": [
+          {
+            "description": "Swap cancelOrder",
+            "method": "cancelOrder",
+            "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699382897679&symbol=LTCUSDT&orderId=652509009&recvWindow=10000&signature=02d0287d26b9b0603902e299840941f6738f9fbb3f497390b29d7077c42c318b",
+            "input": [
+              652509009,
+              "LTC/USDT:USDT"
+            ]
+          },
+          {
+            "description": "Spot cancelOrder",
+            "method": "cancelOrder",
+            "url": "https://testnet.binance.vision/api/v3/order?timestamp=1699384031574&symbol=LTCUSDT&orderId=464950&recvWindow=10000&signature=548084e744d32adc2172c498ead0f621cd1920ac788ff7b4038fffa5dd139d42",
+            "input": [
+              464950,
+              "LTC/USDT"
+            ]
+          }
+        ],
+        "cancelAllOrders": [
+          {
+            "description": "Spot cancelAllOrders",
+            "method": "cancelAllOrders",
+            "url": "https://testnet.binance.vision/api/v3/openOrders?timestamp=1699384119652&symbol=LTCUSDT&recvWindow=10000&signature=0dbf34752013b284d4fb297b83583be92da868fe532282f98f8f90095b1fdc89",
+            "input": [
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "Swap cancelAllOrders",
+            "method": "cancelAllOrders",
+            "url": "https://testnet.binancefuture.com/fapi/v1/allOpenOrders?timestamp=1699384154326&symbol=LTCUSDT&recvWindow=10000&signature=6be9641d53bd8e041581dbbe9f9a10576253d6d661a755ccbced131b8dc3e56d",
+            "input": [
+              "LTC/USDT:USDT"
+            ]
+          }
+        ],
         "fetchMyTrades": [
           {
             "description": "Spot fetchMyTrades",
@@ -283,6 +347,26 @@
             ]
           }
         ],
+        "fetchOrder": [
+          {
+            "description": "Spot fetchOrder",
+            "method": "fetchOrder",
+            "url": "https://testnet.binance.vision/api/v3/order?timestamp=1699384269930&symbol=LTCUSDT&orderId=465138&recvWindow=10000&signature=3e56f68f7464d282deb93466f4a382886f216739cf0225e5ae32b13529bd7b84",
+            "input": [
+              465138,
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "Swap fetchOrder",
+            "method": "fetchOrder",
+            "url": "https://testnet.binancefuture.com/fapi/v1/order?timestamp=1699384317029&symbol=LTCUSDT&orderId=652124757&recvWindow=10000&signature=9f2120e58e884131b91f4193a94ea17a18ef4f3195b3e6f388d5f5e14e797414",
+            "input": [
+              652124757,
+              "LTC/USDT:USDT"
+            ]
+          }
+        ],
         "fetchOpenOrders": [
           {
             "description": "Swap open orders",
@@ -332,6 +416,18 @@
               {
                 "marginMode": "isolated"
               }
+            ]
+          }
+        ],
+        "fetchCanceledOrders":[
+          {
+            "description": "Spot canceled orders",
+            "method": "fetchCanceledOrders",
+            "url": "https://testnet.binance.vision/api/v3/allOrders?timestamp=1699384225531&symbol=LTCUSDT&recvWindow=10000&signature=542ec2f6763831d5a92d891174d744b77b3deb931c5787463fc99744f2bb34df",
+            "input": [
+              "LTC/USDT",
+              null,
+              1
             ]
           }
         ],
