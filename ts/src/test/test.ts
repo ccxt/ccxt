@@ -800,7 +800,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     loadStaticData (targetExchange: string = undefined) {
-        const folder = rootDir +  './ts/src/test/static/data/';
+        const folder = rootDir + './ts/src/test/static/data/';
         const result = {};
         if (targetExchange) {
             // read a single exchange
