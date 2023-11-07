@@ -239,6 +239,7 @@ export default class zaif extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }

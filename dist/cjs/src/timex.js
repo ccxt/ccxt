@@ -1234,6 +1234,7 @@ class timex extends timex$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }

@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -337,6 +337,7 @@ export default class probit extends Exchange {
                         'max': this.safeNumber (market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -423,8 +424,8 @@ export default class probit extends Exchange {
             const networkList = {};
             for (let j = 0; j < platformsByPriority.length; j++) {
                 const network = platformsByPriority[j];
-                const id = this.safeString (network, 'id');
-                const networkCode = this.networkIdToCode (id);
+                const networkId = this.safeString (network, 'id');
+                const networkCode = this.networkIdToCode (networkId);
                 const currentDepositSuspended = this.safeValue (network, 'deposit_suspended');
                 const currentWithdrawalSuspended = this.safeValue (network, 'withdrawal_suspended');
                 const currentDeposit = !currentDepositSuspended;
@@ -435,14 +436,14 @@ export default class probit extends Exchange {
                 }
                 const precision = this.parsePrecision (this.safeString (network, 'precision'));
                 const withdrawFee = this.safeValue (network, 'withdrawal_fee', []);
-                const fee = this.safeValue (withdrawFee, 0, {});
+                const networkfee = this.safeValue (withdrawFee, 0, {});
                 networkList[networkCode] = {
-                    'id': id,
+                    'id': networkId,
                     'network': networkCode,
                     'active': currentActive,
                     'deposit': currentDeposit,
                     'withdraw': currentWithdraw,
-                    'fee': this.safeNumber (fee, 'amount'),
+                    'fee': this.safeNumber (networkfee, 'amount'),
                     'precision': this.parseNumber (precision),
                     'limits': {
                         'withdraw': {
@@ -785,7 +786,7 @@ export default class probit extends Exchange {
             request['start_time'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 10000);
         }
         const response = await this.publicGetTrade (this.extend (request, params));
         //
@@ -1002,7 +1003,7 @@ export default class probit extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1125,7 +1126,7 @@ export default class probit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         id,
@@ -1503,6 +1504,7 @@ export default class probit extends Exchange {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
          * @param {int} [limit] the maximum number of transaction structures to retrieve
+         * @param {int} [params.until] the latest time in ms to fetch transactions for
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
@@ -1515,9 +1517,20 @@ export default class probit extends Exchange {
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
+        } else {
+            request['start_time'] = this.iso8601 (1);
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            request['end_time'] = this.iso8601 (until);
+            params = this.omit (params, [ 'until', 'till' ]);
+        } else {
+            request['end_time'] = this.iso8601 (this.milliseconds ());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTransferPayment (this.extend (request, params));
         //
@@ -1549,7 +1562,29 @@ export default class probit extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        //         "type": "deposit",
+        //         "status": "done",
+        //         "amount": "0.01",
+        //         "address": "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        //         "time": "2023-06-14T12:03:11.000Z",
+        //         "hash": "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        //         "currency_id": "ETH",
+        //         "confirmations":0,
+        //         "fee": "0",
+        //         "destination_tag": null,
+        //         "platform_id": "ETH",
+        //         "fee_currency_id": "ETH",
+        //         "payment_service_name":null,
+        //         "payment_service_display_name":null,
+        //         "crypto":null
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
+        const networkId = this.safeString (transaction, 'platform_id');
+        const networkCode = this.networkIdToCode (networkId);
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'destination_tag');
@@ -1571,7 +1606,7 @@ export default class probit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,

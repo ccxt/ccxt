@@ -340,6 +340,7 @@ class probit extends Exchange {
                             'max' => $this->safe_number($market, 'max_cost'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -426,8 +427,8 @@ class probit extends Exchange {
                 $networkList = array();
                 for ($j = 0; $j < count($platformsByPriority); $j++) {
                     $network = $platformsByPriority[$j];
-                    $id = $this->safe_string($network, 'id');
-                    $networkCode = $this->network_id_to_code($id);
+                    $networkId = $this->safe_string($network, 'id');
+                    $networkCode = $this->network_id_to_code($networkId);
                     $currentDepositSuspended = $this->safe_value($network, 'deposit_suspended');
                     $currentWithdrawalSuspended = $this->safe_value($network, 'withdrawal_suspended');
                     $currentDeposit = !$currentDepositSuspended;
@@ -438,14 +439,14 @@ class probit extends Exchange {
                     }
                     $precision = $this->parse_precision($this->safe_string($network, 'precision'));
                     $withdrawFee = $this->safe_value($network, 'withdrawal_fee', array());
-                    $fee = $this->safe_value($withdrawFee, 0, array());
+                    $networkfee = $this->safe_value($withdrawFee, 0, array());
                     $networkList[$networkCode] = array(
-                        'id' => $id,
+                        'id' => $networkId,
                         'network' => $networkCode,
                         'active' => $currentActive,
                         'deposit' => $currentDeposit,
                         'withdraw' => $currentWithdraw,
-                        'fee' => $this->safe_number($fee, 'amount'),
+                        'fee' => $this->safe_number($networkfee, 'amount'),
                         'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
@@ -788,7 +789,7 @@ class probit extends Exchange {
                 $request['start_time'] = $this->iso8601($since);
             }
             if ($limit !== null) {
-                $request['limit'] = $limit;
+                $request['limit'] = min ($limit, 10000);
             }
             $response = Async\await($this->publicGetTrade (array_merge($request, $params)));
             //
@@ -1006,7 +1007,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1129,7 +1130,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         $id,
@@ -1521,6 +1522,8 @@ class probit extends Exchange {
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
+            } else {
+                $request['limit'] = 100;
             }
             $response = Async\await($this->privateGetTransferPayment (array_merge($request, $params)));
             //

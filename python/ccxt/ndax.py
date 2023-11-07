@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -506,6 +505,7 @@ class ndax(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -698,7 +698,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1501603632000,  # 0 DateTime
@@ -1178,7 +1178,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1926,7 +1926,7 @@ class ndax(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all deposits made to an account
-        see https://apidoc.ndax.io/#getdeposits
+        :see: https://apidoc.ndax.io/#getdeposits
         :param str code: unified currency code
         :param int [since]: not used by ndax fetchDeposits
         :param int [limit]: the maximum number of deposits structures to retrieve

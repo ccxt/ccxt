@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -223,6 +223,7 @@ export default class gemini extends Exchange {
                     'InsufficientFunds': InsufficientFunds, // The order was rejected because of insufficient funds
                     'InvalidJson': BadRequest, // The JSON provided is invalid
                     'InvalidNonce': InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey': AuthenticationError, // Invalid API key
                     'InvalidOrderType': InvalidOrder, // An unknown order type was provided
                     'InvalidPrice': InvalidOrder, // For new orders, the price was invalid
                     'InvalidQuantity': InvalidOrder, // A negative or otherwise invalid quantity was specified
@@ -497,6 +498,7 @@ export default class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': row,
             });
         }
@@ -563,11 +565,10 @@ export default class gemini extends Exchange {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const method = 'publicGetV1SymbolsDetailsSymbol';
             const request = {
                 'symbol': marketId,
             };
-            promises.push (this[method] (this.extend (request, params)));
+            promises.push (this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params)));
             //
             //     {
             //         "symbol": "BTCUSD",
@@ -650,6 +651,7 @@ export default class gemini extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': response,
         };
     }
@@ -733,7 +735,7 @@ export default class gemini extends Exchange {
             'percentage': tickerB['percentage'],
             'average': tickerB['average'],
             'info': tickerB['info'],
-        });
+        }) as Ticker;
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -747,7 +749,13 @@ export default class gemini extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');
-        return await this[method] (symbol, params);
+        if (method === 'fetchTickerV1') {
+            return await this.fetchTickerV1 (symbol, params);
+        }
+        if (method === 'fetchTickerV2') {
+            return await this.fetchTickerV2 (symbol, params);
+        }
+        return await this.fetchTickerV1AndV2 (symbol, params);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1062,7 +1070,7 @@ export default class gemini extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder (private)
         //

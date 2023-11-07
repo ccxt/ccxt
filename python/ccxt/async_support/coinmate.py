@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinmate import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -295,6 +294,7 @@ class coinmate(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -359,7 +359,7 @@ class coinmate(Exchange, ImplicitAPI):
         ticker = self.safe_value(response, 'data')
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -380,7 +380,7 @@ class coinmate(Exchange, ImplicitAPI):
             'baseVolume': self.safe_number(ticker, 'amount'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -742,7 +742,7 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # limit sell
         #

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -235,6 +234,7 @@ class coinone(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': ticker,
             })
         return result
@@ -309,7 +309,7 @@ class coinone(Exchange, ImplicitAPI):
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
             result[symbol]['timestamp'] = timestamp
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
@@ -477,8 +477,8 @@ class coinone(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -556,7 +556,7 @@ class coinone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -603,10 +603,16 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'targetCurrency')
-        base = self.safe_currency_code(baseId, market['base'])
-        quote = self.safe_currency_code(quoteId, market['quote'])
-        symbol = base + '/' + quote
-        market = self.safe_market(symbol, market, '/')
+        base = None
+        quote = None
+        if baseId is not None:
+            base = self.safe_currency_code(baseId, self.safe_string(market, 'base'))
+        if quoteId is not None:
+            quote = self.safe_currency_code(quoteId, self.safe_string(market, 'quote'))
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            market = self.safe_market(symbol, market, '/')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'updatedAt')
         side = self.safe_string_2(order, 'type', 'side')
         if side == 'ask':
@@ -842,7 +848,7 @@ class coinone(Exchange, ImplicitAPI):
             payload = self.string_to_base64(json)
             body = payload
             secret = self.secret.upper()
-            signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
+            signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

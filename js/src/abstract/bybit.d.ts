@@ -96,6 +96,7 @@ interface Exchange {
     publicGetV5MarketInsurance(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketRiskLimit(params?: {}): Promise<implicitReturnType>;
     publicGetV5MarketDeliveryPrice(params?: {}): Promise<implicitReturnType>;
+    publicGetV5MarketAccountRatio(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenInfo(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotLeverTokenReference(params?: {}): Promise<implicitReturnType>;
     publicGetV5SpotMarginTradeData(params?: {}): Promise<implicitReturnType>;
@@ -256,6 +257,7 @@ interface Exchange {
     privateGetV5UserQueryApi(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserGetMemberType(params?: {}): Promise<implicitReturnType>;
     privateGetV5UserAffCustomerInfo(params?: {}): Promise<implicitReturnType>;
+    privateGetV5UserDelSubmember(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState(params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo(params?: {}): Promise<implicitReturnType>;
@@ -425,6 +427,7 @@ interface Exchange {
     privatePostV5PositionTradingStop(params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionSetAutoAddMargin(params?: {}): Promise<implicitReturnType>;
     privatePostV5PositionAddMargin(params?: {}): Promise<implicitReturnType>;
+    privatePostV5PositionConfirmPendingMmr(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountUpgradeToUta(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountSetMarginMode(params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify(params?: {}): Promise<implicitReturnType>;
@@ -451,6 +454,7 @@ interface Exchange {
     privatePostV5SpotCrossMarginTradeSwitch(params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeem(params?: {}): Promise<implicitReturnType>;
+    privatePostV5LendingRedeemCancel(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotV1Order(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotV1OrderFast(params?: {}): Promise<implicitReturnType>;
     privateDeleteSpotOrderBatchCancel(params?: {}): Promise<implicitReturnType>;

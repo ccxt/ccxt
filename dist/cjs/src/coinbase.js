@@ -319,6 +319,7 @@ class coinbase extends coinbase$1 {
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
         const method = this.safeString(this.options, 'fetchAccounts', 'fetchAccountsV3');
@@ -329,6 +330,11 @@ class coinbase extends coinbase$1 {
     }
     async fetchAccountsV2(params = {}) {
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchAccounts', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
+        }
         const request = {
             'limit': 100,
         };
@@ -378,10 +384,24 @@ class coinbase extends coinbase$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
+        const pagination = this.safeValue(response, 'pagination', {});
+        const cursor = this.safeString(pagination, 'next_starting_after');
+        const accounts = this.safeValue(response, 'data', []);
+        const lastIndex = accounts.length - 1;
+        const last = this.safeValue(accounts, lastIndex);
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['next_starting_after'] = cursor;
+            accounts[lastIndex] = last;
+        }
         return this.parseAccounts(data, params);
     }
     async fetchAccountsV3(params = {}) {
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchAccounts', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 100);
+        }
         const request = {
             'limit': 100,
         };
@@ -416,8 +436,15 @@ class coinbase extends coinbase$1 {
         //         "size": 9
         //     }
         //
-        const data = this.safeValue(response, 'accounts', []);
-        return this.parseAccounts(data, params);
+        const accounts = this.safeValue(response, 'accounts', []);
+        const lastIndex = accounts.length - 1;
+        const last = this.safeValue(accounts, lastIndex);
+        const cursor = this.safeString(response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['cursor'] = cursor;
+            accounts[lastIndex] = last;
+        }
+        return this.parseAccounts(accounts, params);
     }
     parseAccount(account) {
         //
@@ -1073,6 +1100,7 @@ class coinbase extends coinbase$1 {
                         'max': this.safeNumber(market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1216,7 +1244,7 @@ class coinbase extends coinbase$1 {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(rates[baseId], market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTickersV3(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1268,7 +1296,7 @@ class coinbase extends coinbase$1 {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(entry, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -1341,10 +1369,9 @@ class coinbase extends coinbase$1 {
         //
         const data = this.safeValue(response, 'trades', []);
         const ticker = this.parseTicker(data[0], market);
-        return this.extend(ticker, {
-            'bid': this.safeNumber(response, 'best_bid'),
-            'ask': this.safeNumber(response, 'best_ask'),
-        });
+        ticker['bid'] = this.safeNumber(response, 'best_bid');
+        ticker['ask'] = this.safeNumber(response, 'best_ask');
+        return ticker;
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -2400,9 +2427,16 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] the earliest time in ms to fetch orders
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2416,6 +2450,11 @@ class coinbase extends coinbase$1 {
         }
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
+        }
+        const until = this.safeValueN(params, ['until', 'till']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            request['end_date'] = this.iso8601(until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, params));
         //
@@ -2461,6 +2500,12 @@ class coinbase extends coinbase$1 {
         //     }
         //
         const orders = this.safeValue(response, 'orders', []);
+        const first = this.safeValue(orders, 0);
+        const cursor = this.safeString(response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            orders[0] = first;
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2482,6 +2527,11 @@ class coinbase extends coinbase$1 {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
+        const until = this.safeValueN(params, ['until', 'till']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            request['end_date'] = this.iso8601(until);
+        }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch(this.extend(request, params));
         //
         //     {
@@ -2526,6 +2576,12 @@ class coinbase extends coinbase$1 {
         //     }
         //
         const orders = this.safeValue(response, 'orders', []);
+        const first = this.safeValue(orders, 0);
+        const cursor = this.safeString(response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            orders[0] = first;
+        }
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2538,8 +2594,16 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+        }
         return await this.fetchOrdersByStatus('OPEN', symbol, since, limit, params);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2552,8 +2616,16 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of closed order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+        }
         return await this.fetchOrdersByStatus('FILLED', symbol, since, limit, params);
     }
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2581,24 +2653,40 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 299);
+        }
         const market = this.market(symbol);
-        const end = this.seconds().toString();
         const request = {
             'product_id': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
-            'end': end,
         };
+        const until = this.safeValueN(params, ['until', 'till', 'end']);
+        params = this.omit(params, ['until', 'till']);
+        const duration = this.parseTimeframe(timeframe);
+        const candles300 = 300 * duration;
+        let sinceString = undefined;
         if (since !== undefined) {
-            const sinceString = since.toString();
-            const timeframeToSeconds = Precise["default"].stringDiv(sinceString, '1000');
-            request['start'] = this.decimalToPrecision(timeframeToSeconds, number.TRUNCATE, 0, number.DECIMAL_PLACES);
+            sinceString = this.numberToString(this.parseToInt(since / 1000));
         }
         else {
-            request['start'] = Precise["default"].stringSub(end, '18000'); // default to 5h in seconds, max 300 candles
+            const now = this.seconds().toString();
+            sinceString = Precise["default"].stringSub(now, candles300.toString());
         }
+        request['start'] = sinceString;
+        let endString = this.numberToString(until);
+        if (until === undefined) {
+            // 300 candles max
+            endString = Precise["default"].stringAdd(sinceString, candles300.toString());
+        }
+        request['end'] = endString;
         const response = await this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, params));
         //
         //     {
@@ -2689,9 +2777,16 @@ class coinbase extends coinbase$1 {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of trade structures to fetch
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2705,6 +2800,11 @@ class coinbase extends coinbase$1 {
         }
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601(since);
+        }
+        const until = this.safeValueN(params, ['until', 'till']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            request['end_sequence_timestamp'] = this.iso8601(until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills(this.extend(request, params));
         //
@@ -2731,6 +2831,12 @@ class coinbase extends coinbase$1 {
         //     }
         //
         const trades = this.safeValue(response, 'fills', []);
+        const first = this.safeValue(trades, 0);
+        const cursor = this.safeString(response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            trades[0] = first;
+        }
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {

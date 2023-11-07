@@ -573,6 +573,7 @@ class currencycom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -947,7 +948,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1590971040000,
@@ -1098,7 +1099,7 @@ class currencycom extends Exchange {
                 // 'limit' => 500, // default 500, max 1000
             );
             if ($limit !== null) {
-                $request['limit'] = $limit; // default 500, max 1000
+                $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -1119,7 +1120,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

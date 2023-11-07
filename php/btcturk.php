@@ -89,6 +89,7 @@ class btcturk extends Exchange {
                         'orderbook' => 1,
                         'ticker' => 0.1,
                         'trades' => 1,   // ?last=COUNT (max 50)
+                        'ohlc' => 1,
                         'server/exchangeinfo' => 1,
                     ),
                 ),
@@ -100,6 +101,8 @@ class btcturk extends Exchange {
                         'users/transactions/trade' => 1,
                     ),
                     'post' => array(
+                        'users/transactions/crypto' => 1,
+                        'users/transactions/fiat' => 1,
                         'order' => 1,
                         'cancelOrder' => 1,
                     ),
@@ -255,6 +258,7 @@ class btcturk extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $entry,
             );
         }
@@ -516,7 +520,7 @@ class btcturk extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        'timestamp' => 1661990400,
@@ -762,7 +766,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrders / fetchOpenOrders
         //     {

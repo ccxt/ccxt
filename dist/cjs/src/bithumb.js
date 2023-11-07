@@ -80,15 +80,14 @@ class bithumb extends bithumb$1 {
             'api': {
                 'public': {
                     'get': [
-                        'ticker/{currency}',
-                        'ticker/all',
-                        'ticker/ALL_BTC',
-                        'ticker/ALL_KRW',
-                        'orderbook/{currency}',
-                        'orderbook/all',
-                        'transaction_history/{currency}',
-                        'transaction_history/all',
-                        'candlestick/{currency}/{interval}',
+                        'ticker/ALL_{quoteId}',
+                        'ticker/{baseId}_{quoteId}',
+                        'orderbook/ALL_{quoteId}',
+                        'orderbook/{baseId}_{quoteId}',
+                        'transaction_history/{baseId}_{quoteId}',
+                        'assetsstatus/ALL',
+                        'assetsstatus/{baseId}',
+                        'candlestick/{baseId}_{quoteId}/{interval}',
                     ],
                 },
                 'private': {
@@ -107,6 +106,7 @@ class bithumb extends bithumb$1 {
                         'trade/krw_withdrawal',
                         'trade/market_buy',
                         'trade/market_sell',
+                        'trade/stop_limit',
                     ],
                 },
             },
@@ -195,8 +195,10 @@ class bithumb extends bithumb$1 {
             const quote = quotes[i];
             const quoteId = quote;
             const extension = this.safeValue(quoteCurrencies, quote, {});
-            const method = 'publicGetTickerALL' + quote;
-            const response = await this[method](params);
+            const request = {
+                'quoteId': quoteId,
+            };
+            const response = await this.publicGetTickerALLQuoteId(this.extend(request, params));
             const data = this.safeValue(response, 'data');
             const currencyIds = Object.keys(data);
             for (let j = 0; j < currencyIds.length; j++) {
@@ -256,6 +258,7 @@ class bithumb extends bithumb$1 {
                         },
                         'cost': {}, // set via options
                     },
+                    'created': undefined,
                     'info': market,
                 }, extension);
                 result.push(entry);
@@ -307,12 +310,13 @@ class bithumb extends bithumb$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['base'] + '_' + market['quote'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 30, max 30
         }
-        const response = await this.publicGetOrderbookCurrency(this.extend(request, params));
+        const response = await this.publicGetOrderbookBaseIdQuoteId(this.extend(request, params));
         //
         //     {
         //         "status":"0000",
@@ -400,8 +404,11 @@ class bithumb extends bithumb$1 {
         const quotes = Object.keys(quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
-            const method = 'publicGetTickerALL' + quote;
-            const response = await this[method](params);
+            const quoteId = quote;
+            const request = {
+                'quoteId': quoteId,
+            };
+            const response = await this.publicGetTickerALLQuoteId(this.extend(request, params));
             //
             //     {
             //         "status":"0000",
@@ -437,7 +444,7 @@ class bithumb extends bithumb$1 {
                 result[symbol] = this.parseTicker(ticker, market);
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -451,9 +458,10 @@ class bithumb extends bithumb$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         };
-        const response = await this.publicGetTickerCurrency(this.extend(request, params));
+        const response = await this.publicGetTickerBaseIdQuoteId(this.extend(request, params));
         //
         //     {
         //         "status":"0000",
@@ -511,10 +519,11 @@ class bithumb extends bithumb$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['base'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const response = await this.publicGetCandlestickCurrencyInterval(this.extend(request, params));
+        const response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, params));
         //
         //     {
         //         'status': '0000',
@@ -633,12 +642,13 @@ class bithumb extends bithumb$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'currency': market['base'] + '_' + market['quote'],
+            'baseId': market['baseId'],
+            'quoteId': market['quoteId'],
         };
         if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
         }
-        const response = await this.publicGetTransactionHistoryCurrency(this.extend(request, params));
+        const response = await this.publicGetTransactionHistoryBaseIdQuoteId(this.extend(request, params));
         //
         //     {
         //         "status":"0000",

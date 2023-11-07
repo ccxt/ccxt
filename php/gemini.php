@@ -218,6 +218,7 @@ class gemini extends Exchange {
                     'InsufficientFunds' => '\\ccxt\\InsufficientFunds', // The order was rejected because of insufficient funds
                     'InvalidJson' => '\\ccxt\\BadRequest', // The JSON provided is invalid
                     'InvalidNonce' => '\\ccxt\\InvalidNonce', // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidApiKey' => '\\ccxt\\AuthenticationError', // Invalid API key
                     'InvalidOrderType' => '\\ccxt\\InvalidOrder', // An unknown order type was provided
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // For new orders, the price was invalid
                     'InvalidQuantity' => '\\ccxt\\InvalidOrder', // A negative or otherwise invalid quantity was specified
@@ -486,6 +487,7 @@ class gemini extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $row,
             );
         }
@@ -552,11 +554,10 @@ class gemini extends Exchange {
         }
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $method = 'publicGetV1SymbolsDetailsSymbol';
             $request = array(
                 'symbol' => $marketId,
             );
-            $promises[] = $this->$method (array_merge($request, $params));
+            $promises[] = $this->publicGetV1SymbolsDetailsSymbol (array_merge($request, $params));
             //
             //     {
             //         "symbol" => "BTCUSD",
@@ -639,6 +640,7 @@ class gemini extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $response,
         );
     }
@@ -732,7 +734,13 @@ class gemini extends Exchange {
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
-        return $this->$method ($symbol, $params);
+        if ($method === 'fetchTickerV1') {
+            return $this->fetch_ticker_v1($symbol, $params);
+        }
+        if ($method === 'fetchTickerV2') {
+            return $this->fetch_ticker_v2($symbol, $params);
+        }
+        return $this->fetch_ticker_v1_and_v2($symbol, $params);
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1039,7 +1047,7 @@ class gemini extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder (private)
         //

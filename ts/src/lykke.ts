@@ -5,7 +5,7 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, Order, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -316,7 +316,6 @@ export default class lykke extends Exchange {
                 'option': false,
                 'contract': false,
                 'active': true,
-                'info': market,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -346,6 +345,8 @@ export default class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
+                'info': market,
             });
         }
         return result;
@@ -720,7 +721,7 @@ export default class lykke extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -826,7 +827,7 @@ export default class lykke extends Exchange {
         if (type === 'market') {
             price = this.safeNumber (payload, 'price');
         }
-        return {
+        return this.safeOrder ({
             'id': id,
             'info': result,
             'clientOrderId': undefined,
@@ -845,7 +846,7 @@ export default class lykke extends Exchange {
             'status': undefined,
             'fee': undefined,
             'trades': undefined,
-        };
+        }, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {

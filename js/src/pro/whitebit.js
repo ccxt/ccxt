@@ -283,8 +283,8 @@ export default class whitebit extends whitebitRest {
         // watchTickers
         const messageHashes = Object.keys(client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            if (messageHash.indexOf('tickers') >= 0 && messageHash.indexOf(symbol) >= 0) {
+            const currentMessageHash = messageHashes[i];
+            if (currentMessageHash.indexOf('tickers') >= 0 && currentMessageHash.indexOf(symbol) >= 0) {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
                 // since we only have access to a single symbol at a time
@@ -294,7 +294,7 @@ export default class whitebit extends whitebitRest {
                 // user might have multiple watchTickers promises
                 // watchTickers ( ['LTC/USDT', 'ETH/USDT'] ), watchTickers ( ['ETC/USDT', 'DOGE/USDT'] )
                 // and we want to make sure we resolve only the correct ones
-                client.resolve(ticker, messageHash);
+                client.resolve(ticker, currentMessageHash);
             }
         }
         return message;
@@ -752,15 +752,15 @@ export default class whitebit extends whitebitRest {
             }
             else {
                 // resubscribe
-                let marketIds = [];
-                marketIds = Object.keys(subscription);
+                let marketIdsNew = [];
+                marketIdsNew = Object.keys(subscription);
                 if (isNested) {
-                    marketIds = [marketIds];
+                    marketIdsNew = [marketIdsNew];
                 }
                 const resubRequest = {
                     'id': id,
                     'method': method,
-                    'params': marketIds,
+                    'params': marketIdsNew,
                 };
                 if (method in client.subscriptions) {
                     delete client.subscriptions[method];

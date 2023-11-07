@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -348,6 +347,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
             })
         return result
 
@@ -464,7 +464,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, state, state)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         clOrdId: '00001',

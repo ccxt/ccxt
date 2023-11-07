@@ -22,18 +22,27 @@ class wazirx extends wazirx$1 {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
@@ -45,7 +54,11 @@ class wazirx extends wazirx$1 {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
@@ -55,7 +68,10 @@ class wazirx extends wazirx$1 {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -68,6 +84,12 @@ class wazirx extends wazirx$1 {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'reduceMargin': false,
+                'repayMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -261,6 +283,7 @@ class wazirx extends wazirx$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -424,7 +447,7 @@ class wazirx extends wazirx$1 {
             const symbol = parsedTicker['symbol'];
             result[symbol] = parsedTicker;
         }
-        return result;
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -444,7 +467,7 @@ class wazirx extends wazirx$1 {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = Math.min(limit, 1000); // Default 500; max 1000.
         }
         const method = this.safeString(this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method](this.extend(request, params));
@@ -589,7 +612,7 @@ class wazirx extends wazirx$1 {
         }, market);
     }
     parseBalance(response) {
-        const result = {};
+        const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const id = this.safeString(balance, 'asset');

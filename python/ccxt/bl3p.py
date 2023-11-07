@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderSide, OrderType
 from typing import Optional
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -35,6 +34,9 @@ class bl3p(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -107,7 +109,7 @@ class bl3p(Exchange, ImplicitAPI):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
+                'BTC/EUR': self.safe_market_structure({'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True}),
             },
             'precisionMode': TICK_SIZE,
         })
@@ -237,6 +239,16 @@ class bl3p(Exchange, ImplicitAPI):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades
+        #
+        #     {
+        #         "trade_id": "2518789",
+        #         "date": "1694348697745",
+        #         "amount_int": "2959153",
+        #         "price_int": "2416231440"
+        #     }
+        #
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
         price = self.safe_string(trade, 'price_int')
@@ -271,6 +283,20 @@ class bl3p(Exchange, ImplicitAPI):
         response = self.publicGetMarketTrades(self.extend({
             'market': market['id'],
         }, params))
+        #
+        #    {
+        #        "result": "success",
+        #        "data": {
+        #            "trades": [
+        #                {
+        #                    "trade_id": "2518789",
+        #                    "date": "1694348697745",
+        #                    "amount_int": "2959153",
+        #                    "price_int": "2416231440"
+        #                },
+        #            ]
+        #        }
+        #     }
         result = self.parse_trades(response['data']['trades'], market, since, limit)
         return result
 
@@ -329,12 +355,17 @@ class bl3p(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://github.com/BitonicNL/bl3p-api/blob/master/examples/nodejs/example.md#21---create-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bl3p api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.amount_funds]: maximal EUR amount to spend(*1e5)
+        :param str [params.fee_currency]: 'EUR' or 'BTC'
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         market = self.market(symbol)

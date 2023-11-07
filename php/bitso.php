@@ -462,6 +462,7 @@ class bitso extends Exchange {
                         'max' => $this->safe_number($market, 'maximum_value'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             ), $fee);
         }
@@ -674,7 +675,7 @@ class bitso extends Exchange {
         return $this->parse_ohlcvs($payload, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "bucket_start_time":1648219140000,
@@ -751,13 +752,21 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($trade, 'created_at'));
         $marketId = $this->safe_string($trade, 'book');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $side = $this->safe_string_2($trade, 'side', 'maker_side');
+        $side = $this->safe_string($trade, 'side');
         $makerSide = $this->safe_string($trade, 'maker_side');
         $takerOrMaker = null;
-        if ($side === $makerSide) {
-            $takerOrMaker = 'maker';
+        if ($side !== null) {
+            if ($side === $makerSide) {
+                $takerOrMaker = 'maker';
+            } else {
+                $takerOrMaker = 'taker';
+            }
         } else {
-            $takerOrMaker = 'taker';
+            if ($makerSide === 'buy') {
+                $side = 'sell';
+            } else {
+                $side = 'buy';
+            }
         }
         $amount = $this->safe_string_2($trade, 'amount', 'major');
         if ($amount !== null) {
@@ -1037,7 +1046,7 @@ class bitso extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //
         // canceledOrder

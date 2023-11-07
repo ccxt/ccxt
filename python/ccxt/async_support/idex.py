@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -319,6 +318,7 @@ class idex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
@@ -469,7 +469,7 @@ class idex(Exchange, ImplicitAPI):
             #  {"nextTime":1595536440000}
             return []
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # {
         #   start: 1598345580000,
         #   open: '0.09771286',
@@ -504,7 +504,7 @@ class idex(Exchange, ImplicitAPI):
         if since is not None:
             request['start'] = since
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         # [
         #   {
         #     fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
@@ -983,7 +983,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "market": "DIL-ETH",
@@ -1431,7 +1431,7 @@ class idex(Exchange, ImplicitAPI):
         #
         #    {serverTime: '1655258263236'}
         #
-        return self.safe_number(response, 'serverTime')
+        return self.safe_integer(response, 'serverTime')
 
     async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
         """

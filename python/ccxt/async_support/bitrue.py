@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -707,6 +706,7 @@ class bitrue(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             }
             result.append(entry)
@@ -794,6 +794,16 @@ class bitrue(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market=None):
         #
+        # fetchBidsAsks
+        #
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "bidPrice": "4.00000000",
+        #         "bidQty": "431.00000000",
+        #         "askPrice": "4.00000200",
+        #         "askQty": "9.00000000"
+        #     }
+        #
         # fetchTicker
         #
         #     {
@@ -817,17 +827,17 @@ class bitrue(Exchange, ImplicitAPI):
             'datetime': None,
             'high': self.safe_string(ticker, 'high24hr'),
             'low': self.safe_string(ticker, 'low24hr'),
-            'bid': self.safe_string(ticker, 'highestBid'),
-            'bidVolume': None,
-            'ask': self.safe_string(ticker, 'lowestAsk'),
-            'askVolume': None,
+            'bid': self.safe_string_2(ticker, 'highestBid', 'bidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bidQty'),
+            'ask': self.safe_string_2(ticker, 'lowestAsk', 'askPrice'),
+            'askVolume': self.safe_string(ticker, 'askQty'),
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_string(ticker, 'percentChange'),
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'percentChange'), '10000'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'baseVolume'),
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
@@ -916,7 +926,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #      {
         #         "i":"1660825020",
@@ -940,23 +950,30 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
-        method = None
-        if type == 'future':
-            method = 'fapiPublicGetTickerBookTicker'
-        elif type == 'delivery':
-            method = 'dapiPublicGetTickerBookTicker'
-        else:
-            method = 'publicGetTickerBookTicker'
-        response = await getattr(self, method)(query)
-        return self.parse_tickers(response, symbols)
+        symbols = self.market_symbols(symbols)
+        market = None
+        request = {}
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+            request['symbol'] = market['id']
+        response = await self.v1PublicGetTickerBookTicker(self.extend(request, params))
+        #     {
+        #         "symbol": "LTCBTC",
+        #         "bidPrice": "4.00000000",
+        #         "bidQty": "431.00000000",
+        #         "askPrice": "4.00000200",
+        #         "askQty": "9.00000000"
+        #     }
+        data = {}
+        data[market['id']] = response
+        return self.parse_tickers(data, symbols)
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
@@ -1158,7 +1175,7 @@ class bitrue(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1252,12 +1269,19 @@ class bitrue(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitrue api endpoint
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: a unique id for the order, automatically generated if not sent
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param decimal [params.icebergQty]:
+        :param long [params.recvWindow]:
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -1837,7 +1861,7 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitrue api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

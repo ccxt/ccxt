@@ -11,6 +11,8 @@ declare const errorHierarchy: {
             BadRequest: {
                 BadSymbol: {};
                 MarginModeAlreadySet: {};
+                NoChange: {};
+                OperationRejected: {};
             };
             BadResponse: {
                 NullResponse: {};
@@ -39,6 +41,7 @@ declare const errorHierarchy: {
             };
             InvalidNonce: {};
             RequestTimeout: {};
+            OperationFailed: {};
         };
     };
 };

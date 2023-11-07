@@ -328,7 +328,7 @@ class mexc extends mexc$1 {
         //     }
         //
         return [
-            this.safeIntegerProduct(ohlcv, 't', 1000),
+            this.safeTimestamp(ohlcv, 't'),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
