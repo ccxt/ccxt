@@ -5,7 +5,7 @@ import Exchange from './abstract/luno.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -276,7 +276,7 @@ export default class luno extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const wallets = this.safeValue (response, 'balance', []);
         const result = {
             'info': response,

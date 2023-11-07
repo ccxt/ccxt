@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2897,7 +2897,7 @@ export default class bitget extends Exchange {
         return this.parseBalance (data);
     }
 
-    parseBalance (balance) {
+    parseBalance (balance): Balances {
         const result = { 'info': balance };
         //
         // spot

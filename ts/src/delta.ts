@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1526,7 +1526,7 @@ export default class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'result', []);
         const result = { 'info': response };
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});

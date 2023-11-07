@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -139,7 +139,7 @@ export default class btctradeua extends Exchange {
         return await this.privatePostAuth (params);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'accounts', []);
         for (let i = 0; i < balances.length; i++) {

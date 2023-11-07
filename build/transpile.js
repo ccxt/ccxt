@@ -1553,18 +1553,12 @@ class Transpiler {
                 'number': 'float',
                 'boolean': 'bool',
                 'Promise<any>': 'mixed',
-                'Balance': 'array',
                 'IndexType': 'int|string',
                 'Int': 'int',
-                'object': 'array',
-                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
-                'OHLCV': 'array',
-                'Order': 'array',
-                'FundingHistory[]': 'array',
-                'Trade': 'array',
             }
+            const phpArrayRegex = /(?:object|OHLCV|Order|Trade|Balances?)|(?:\w+\[\])/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1582,15 +1576,23 @@ class Transpiler {
                     nullable = nullable || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
+                    console.log (type)
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
+                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
                 .replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? (phpArgs) : ''
-            const phpReturnType = returnType ? ': ' + (phpTypes[returnType] ?? returnType) : ''
+            let phpReturnType = ''
+            if (returnType) {
+                if (returnType.match (phpArrayRegex)) {
+                    phpReturnType = ': array'
+                } else {
+                    phpReturnType = phpTypes[returnType] ?? returnType
+                }
+            }
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature

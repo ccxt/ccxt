@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, Dup
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1698,7 +1698,7 @@ export default class krakenfutures extends Exchange {
         return balance;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         // cashAccount
         //

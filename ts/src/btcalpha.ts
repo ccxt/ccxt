@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -627,7 +627,7 @@ export default class btcalpha extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];

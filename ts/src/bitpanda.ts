@@ -5,7 +5,7 @@ import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -996,7 +996,7 @@ export default class bitpanda extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {

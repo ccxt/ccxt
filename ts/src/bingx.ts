@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeEr
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1471,7 +1471,7 @@ export default class bingx extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue2 (data, 'balance', 'balances', data);
         const result = { 'info': response };

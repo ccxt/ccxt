@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -272,7 +272,7 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data');
         const codes = Object.keys (this.currencies);

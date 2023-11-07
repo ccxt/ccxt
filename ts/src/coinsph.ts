@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 /**
  * @class coinsph
@@ -1043,7 +1043,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const timestamp = this.milliseconds ();
         const result = {

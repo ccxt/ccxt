@@ -3,7 +3,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 /**
  * @class tidex
@@ -342,7 +342,7 @@ export default class tidex extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return');
         const timestamp = this.safeTimestamp (balances, 'server_time');
         const result = {

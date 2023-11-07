@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest, Balances } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -897,7 +897,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const responseResult = this.safeValue (response, 'result', {});
         const data = this.safeValue (responseResult, 'data', []);
         const positionBalances = this.safeValue (data[0], 'position_balances', []);

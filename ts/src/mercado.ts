@@ -5,7 +5,7 @@ import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -400,7 +400,7 @@ export default class mercado extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
         const result = { 'info': response };

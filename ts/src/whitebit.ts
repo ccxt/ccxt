@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1271,7 +1271,7 @@ export default class whitebit extends Exchange {
         return await this.v4PrivatePostOrderCancel (this.extend (request, params));
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balanceKeys = Object.keys (response);
         const result = {};
         for (let i = 0; i < balanceKeys.length; i++) {

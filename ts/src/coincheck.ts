@@ -5,7 +5,7 @@ import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ export default class coincheck extends Exchange {
         });
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {

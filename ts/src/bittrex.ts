@@ -5,7 +5,7 @@ import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Order, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -377,7 +377,7 @@ export default class bittrex extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const indexed = this.indexBy (response, 'currencySymbol');
         const currencyIds = Object.keys (indexed);

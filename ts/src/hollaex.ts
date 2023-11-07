@@ -6,7 +6,7 @@ import { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, Order
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -829,7 +829,7 @@ export default class hollaex extends Exchange {
         ];
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result = {
             'info': response,

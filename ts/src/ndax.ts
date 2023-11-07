@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -1026,7 +1026,7 @@ export default class ndax extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,

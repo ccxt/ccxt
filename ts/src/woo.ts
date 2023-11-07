@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1642,7 +1642,7 @@ export default class woo extends Exchange {
         return this.parseBalance (data);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
         };
