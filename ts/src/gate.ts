@@ -5259,7 +5259,7 @@ export default class gate extends Exchange {
         let type = undefined;
         let request = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        if (type === undefined) {
+        if ((type === undefined) || (type === 'spot')) {
             type = 'swap'; // default to swap
         }
         if (type === 'option') {
