@@ -847,7 +847,11 @@ export default class testMainClass extends baseMainTestClass {
             const part = parts[i];
             const keyValue = part.split ('=');
             const key = keyValue[0];
-            const value = keyValue[1];
+            let value = keyValue[1];
+            if ((value.startsWith ('[')) || (value.startsWith ('{'))) {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = jsonParse (value);
+            }
             result[key] = value;
         }
         return result;
