@@ -5097,7 +5097,7 @@ export default class okx extends Exchange {
         const request = {
             // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
             'instId': market['id'],
-            'instType': this.convertToInstrumentType (market.type),
+            'instType': this.convertToInstrumentType (market['type']),
             // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
         };
         // okx has one endpoint-method for all market-types
