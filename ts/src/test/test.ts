@@ -402,7 +402,7 @@ export default class testMainClass extends baseMainTestClass {
             // we don't throw exception for public-tests, see comments under 'testSafe' method
             const failedMsg = errors ? errors.join (', ') : undefined;
             let errorsInMessage = '';
-            if (errors !== undefined) {
+            if (errors) {
                 errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
             const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
