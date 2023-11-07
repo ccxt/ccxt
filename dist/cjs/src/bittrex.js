@@ -508,6 +508,7 @@ class bittrex extends bittrex$1 {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;

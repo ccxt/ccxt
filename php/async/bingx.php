@@ -39,6 +39,7 @@ class bingx extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -1618,7 +1619,118 @@ class bingx extends Exchange {
         ));
     }
 
-    public function create_order(string $symbol, $type, string $side, $amount, $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * @ignore
+         * helper function to build $request
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @return {array} $request to be sent to the exchange
+         */
+        $market = $this->market($symbol);
+        $postOnly = null;
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $type = strtoupper($type);
+        $request = array(
+            'symbol' => $market['id'],
+            'type' => $type,
+            'side' => strtoupper($side),
+        );
+        $isMarketOrder = $type === 'MARKET';
+        $isSpot = $marketType === 'spot';
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        if ($timeInForce === 'IOC') {
+            $request['timeInForce'] = 'IOC';
+        }
+        if ($isSpot) {
+            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'POC', $params);
+            if ($postOnly || ($timeInForce === 'POC')) {
+                $request['timeInForce'] = 'POC';
+            }
+            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+            if ($isMarketOrder && ($side === 'buy')) {
+                if ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $request['quoteOrderQty'] = $this->parse_to_numeric($this->price_to_precision($symbol, $cost));
+                    }
+                } else {
+                    $request['quoteOrderQty'] = $this->parse_to_numeric($this->price_to_precision($symbol, $amount));
+                }
+            } else {
+                $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            }
+            if (!$isMarketOrder) {
+                $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
+            }
+        } else {
+            list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
+            if ($postOnly || ($timeInForce === 'PostOnly')) {
+                $request['timeInForce'] = 'PostOnly';
+            } elseif ($timeInForce === 'GTC') {
+                $request['timeInForce'] = 'GTC';
+            } elseif ($timeInForce === 'FOK') {
+                $request['timeInForce'] = 'FOK';
+            }
+            if (($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) {
+                $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
+            }
+            $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
+            $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+            $isTriggerOrder = $triggerPrice !== null;
+            $isStopLossPriceOrder = $stopLossPrice !== null;
+            $isTakeProfitPriceOrder = $takeProfitPrice !== null;
+            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            if ($isTriggerOrder) {
+                $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
+                if ($isMarketOrder || ($type === 'TRIGGER_MARKET')) {
+                    $request['type'] = 'TRIGGER_MARKET';
+                } elseif (($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT')) {
+                    $request['type'] = 'TRIGGER_LIMIT';
+                }
+            } elseif ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
+                // This can be used to set the stop loss and take profit, but the position needs to be opened first
+                $reduceOnly = true;
+                if ($isStopLossPriceOrder) {
+                    $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
+                    if ($isMarketOrder || ($type === 'STOP_MARKET')) {
+                        $request['type'] = 'STOP_MARKET';
+                    } elseif (($type === 'LIMIT') || ($type === 'STOP')) {
+                        $request['type'] = 'STOP';
+                    }
+                } elseif ($isTakeProfitPriceOrder) {
+                    $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
+                    if ($isMarketOrder || ($type === 'TAKE_PROFIT_MARKET')) {
+                        $request['type'] = 'TAKE_PROFIT_MARKET';
+                    } elseif (($type === 'LIMIT') || ($type === 'TAKE_PROFIT')) {
+                        $request['type'] = 'TAKE_PROFIT';
+                    }
+                }
+            }
+            $positionSide = null;
+            if ($reduceOnly) {
+                $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
+            } else {
+                $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+            }
+            $request['positionSide'] = $positionSide;
+            $request['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        }
+        return array_merge($request, $params);
+    }
+
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1627,115 +1739,25 @@ class bingx extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {bool} [$params->postOnly] true to place a post only $order
              * @param {string} [$params->timeInForce] spot supports 'PO' and 'IOC', swap supports 'PO', 'GTC', 'IOC' and 'FOK'
              * @param {bool} [$params->reduceOnly] *swap only* true or false whether the $order is reduce only
-             * @param {float} [$params->triggerPrice] *swap only* $triggerPrice at which the attached take profit / stop loss $order will be triggered
+             * @param {float} [$params->triggerPrice] *swap only* triggerPrice at which the attached take profit / stop loss $order will be triggered
              * @param {float} [$params->stopLossPrice] *swap only* stop loss trigger $price
              * @param {float} [$params->takeProfitPrice] *swap only* take profit trigger $price
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $postOnly = null;
+            $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = null;
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
-            $type = strtoupper($type);
-            $request = array(
-                'symbol' => $market['id'],
-                'type' => $type,
-                'side' => strtoupper($side),
-            );
-            $isMarketOrder = $type === 'MARKET';
-            $isSpot = $marketType === 'spot';
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-            if ($timeInForce === 'IOC') {
-                $request['timeInForce'] = 'IOC';
-            }
-            if ($isSpot) {
-                list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'POC', $params);
-                if ($postOnly || ($timeInForce === 'POC')) {
-                    $request['timeInForce'] = 'POC';
-                }
-                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-                if ($isMarketOrder && ($side === 'buy')) {
-                    if ($createMarketBuyOrderRequiresPrice) {
-                        if ($price === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
-                        } else {
-                            $amountString = $this->number_to_string($amount);
-                            $priceString = $this->number_to_string($price);
-                            $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                            $request['quoteOrderQty'] = $this->price_to_precision($symbol, $cost);
-                        }
-                    } else {
-                        $request['quoteOrderQty'] = $this->price_to_precision($symbol, $amount);
-                    }
-                } else {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                }
-                if (!$isMarketOrder) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                }
-                $response = Async\await($this->spotV1PrivatePostTradeOrder (array_merge($request, $params)));
+            if ($market['swap']) {
+                $response = Async\await($this->swapV2PrivatePostTradeOrder ($request));
             } else {
-                list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $timeInForce === 'PostOnly', $params);
-                if ($postOnly || ($timeInForce === 'PostOnly')) {
-                    $request['timeInForce'] = 'PostOnly';
-                } elseif ($timeInForce === 'GTC') {
-                    $request['timeInForce'] = 'GTC';
-                } elseif ($timeInForce === 'FOK') {
-                    $request['timeInForce'] = 'FOK';
-                }
-                if (($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
-                }
-                $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
-                $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
-                $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
-                $isTriggerOrder = $triggerPrice !== null;
-                $isStopLossPriceOrder = $stopLossPrice !== null;
-                $isTakeProfitPriceOrder = $takeProfitPrice !== null;
-                if ($isTriggerOrder) {
-                    $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    if ($isMarketOrder || ($type === 'TRIGGER_MARKET')) {
-                        $request['type'] = 'TRIGGER_MARKET';
-                    } elseif (($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT')) {
-                        $request['type'] = 'TRIGGER_LIMIT';
-                    }
-                } elseif ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
-                    // This can be used to set the stop loss and take profit, but the position needs to be opened first
-                    if ($isStopLossPriceOrder) {
-                        $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-                        if ($isMarketOrder || ($type === 'STOP_MARKET')) {
-                            $request['type'] = 'STOP_MARKET';
-                        } elseif (($type === 'LIMIT') || ($type === 'STOP')) {
-                            $request['type'] = 'STOP';
-                        }
-                    } elseif ($isTakeProfitPriceOrder) {
-                        $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                        if ($isMarketOrder || ($type === 'TAKE_PROFIT_MARKET')) {
-                            $request['type'] = 'TAKE_PROFIT_MARKET';
-                        } elseif (($type === 'LIMIT') || ($type === 'TAKE_PROFIT')) {
-                            $request['type'] = 'TAKE_PROFIT';
-                        }
-                    }
-                }
-                $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-                $positionSide = null;
-                if ($reduceOnly) {
-                    $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
-                } else {
-                    $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
-                }
-                $request['positionSide'] = $positionSide;
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-                $response = Async\await($this->swapV2PrivatePostTradeOrder (array_merge($request, $params)));
+                $response = Async\await($this->spotV1PrivatePostTradeOrder ($request));
             }
             //
             // spot
@@ -1781,6 +1803,98 @@ class bingx extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
+             * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_number($rawOrder, 'amount');
+                $price = $this->safe_number($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $market = $this->market($symbol);
+            $request = array();
+            $response = null;
+            if ($market['swap']) {
+                $request['batchOrders'] = $this->json($ordersRequests);
+                $response = Async\await($this->swapV2PrivatePostTradeBatchOrders ($request));
+            } else {
+                $request['data'] = $this->json($ordersRequests);
+                $response = Async\await($this->spotV1PrivatePostTradeBatchOrders ($request));
+            }
+            //
+            // spot
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "debugMsg" => "",
+            //         "data" => {
+            //             "orders" => array(
+            //                 array(
+            //                     "symbol" => "BTC-USDT",
+            //                     "orderId" => 1720661389564968960,
+            //                     "transactTime" => 1699072618272,
+            //                     "price" => "25000",
+            //                     "origQty" => "0.0002",
+            //                     "executedQty" => "0",
+            //                     "cummulativeQuoteQty" => "0",
+            //                     "status" => "PENDING",
+            //                     "type" => "LIMIT",
+            //                     "side" => "BUY"
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "data" => {
+            //             "orders" => array(
+            //                 array(
+            //                     "symbol" => "BTC-USDT",
+            //                     "orderId" => 1720657081994006528,
+            //                     "side" => "BUY",
+            //                     "positionSide" => "LONG",
+            //                     "type" => "LIMIT",
+            //                     "clientOrderID" => "",
+            //                     "workingType" => ""
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $result = $this->safe_value($data, 'orders', array());
+            return $this->parse_orders($result, $market);
+        }) ();
+    }
+
     public function parse_order_side($side) {
         $sides = array(
             'BUY' => 'buy',
@@ -1794,7 +1908,7 @@ class bingx extends Exchange {
     public function parse_order($order, $market = null): array {
         //
         // spot
-        // createOrder, cancelOrder
+        // createOrder, createOrders, cancelOrder
         //
         //    {
         //        "symbol" => "XRP-USDT",
@@ -1847,7 +1961,7 @@ class bingx extends Exchange {
         //
         //
         // swap
-        // createOrder
+        // createOrder, createOrders
         //
         //    {
         //      "symbol" => "BTC-USDT",
