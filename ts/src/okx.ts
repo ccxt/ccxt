@@ -4994,7 +4994,7 @@ export default class okx extends Exchange {
         if (position === undefined) {
             return undefined;
         }
-        return this.parsePosition (position);
+        return this.parsePosition (position, market);
     }
 
     async fetchPositions (symbols: string[] = undefined, params = {}) {
@@ -5081,6 +5081,136 @@ export default class okx extends Exchange {
             result.push (this.parsePosition (positions[i]));
         }
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    async fetchPositionsForSymbol (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION
+            'instId': market['id'],
+            'instType': this.convertToInstrumentType (market.type),
+            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+        };
+        // okx has one endpoint-method for all market-types
+        const response = await this.privateGetAccountPositions (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "adl": "",
+        //                "availPos": "",
+        //                "avgPx": "",
+        //                "baseBal": "",
+        //                "baseBorrowed": "",
+        //                "baseInterest": "",
+        //                "bizRefId": "",
+        //                "bizRefType": "",
+        //                "cTime": "1675699340293",
+        //                "ccy": "USDT",
+        //                "closeOrderAlgo": [],
+        //                "deltaBS": "",
+        //                "deltaPA": "",
+        //                "gammaBS": "",
+        //                "gammaPA": "",
+        //                "imr": "",
+        //                "instId": "BTC-USDT-230210",
+        //                "instType": "FUTURES",
+        //                "interest": "",
+        //                "last": "",
+        //                "lever": "",
+        //                "liab": "",
+        //                "liabCcy": "",
+        //                "liqPx": "",
+        //                "margin": "",
+        //                "markPx": "",
+        //                "mgnMode": "isolated",
+        //                "mgnRatio": "",
+        //                "mmr": "0",
+        //                "notionalUsd": "",
+        //                "optVal": "",
+        //                "pendingCloseOrdLiabVal": "",
+        //                "pos": "0",
+        //                "posCcy": "",
+        //                "posId": "542857611101089802",
+        //                "posSide": "net",
+        //                "quoteBal": "",
+        //                "quoteBorrowed": "",
+        //                "quoteInterest": "",
+        //                "spotInUseAmt": "",
+        //                "spotInUseCcy": "",
+        //                "thetaBS": "",
+        //                "thetaPA": "",
+        //                "tradeId": "58925",
+        //                "uTime": "1675699454475",
+        //                "upl": "",
+        //                "uplRatio": "",
+        //                "usdPx": "",
+        //                "vegaBS": "",
+        //                "vegaPA": ""
+        //            },
+        //
+        //            the array might also include up to 2 hedge-position objects with similar structure, only with 'posSide' difference - 'long' and 'short'
+        //            {
+        //                "adl": "",
+        //                "availPos": "",
+        //                "avgPx": "",
+        //                "baseBal": "",
+        //                "baseBorrowed": "",
+        //                "baseInterest": "",
+        //                "bizRefId": "",
+        //                "bizRefType": "",
+        //                "cTime": "1675699288397",
+        //                "ccy": "USDT",
+        //                "closeOrderAlgo": [],
+        //                "deltaBS": "",
+        //                "deltaPA": "",
+        //                "gammaBS": "",
+        //                "gammaPA": "",
+        //                "imr": "",
+        //                "instId": "BTC-USDT-230210",
+        //                "instType": "FUTURES",
+        //                "interest": "",
+        //                "last": "",
+        //                "lever": "",
+        //                "liab": "",
+        //                "liabCcy": "",
+        //                "liqPx": "",
+        //                "margin": "",
+        //                "markPx": "",
+        //                "mgnMode": "isolated",
+        //                "mgnRatio": "",
+        //                "mmr": "0",
+        //                "notionalUsd": "",
+        //                "optVal": "",
+        //                "pendingCloseOrdLiabVal": "",
+        //                "pos": "0",
+        //                "posCcy": "",
+        //                "posId": "542857393433489415",
+        //                "posSide": "short", // "short" or "long"
+        //                "quoteBal": "",
+        //                "quoteBorrowed": "",
+        //                "quoteInterest": "",
+        //                "spotInUseAmt": "",
+        //                "spotInUseCcy": "",
+        //                "thetaBS": "",
+        //                "thetaPA": "",
+        //                "tradeId": "58880",
+        //                "uTime": "1675699297169",
+        //                "upl": "",
+        //                "uplRatio": "",
+        //                "usdPx": "",
+        //                "vegaBS": "",
+        //                "vegaPA": ""
+        //            },
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        // okx returns all 3 positions in one response: hedged (2 position objects) and shared (1 position object). if you never had any position open, it retuns empty data
+        return this.parsePositions (data, [ market['symbol'] ], params);
     }
 
     parsePosition (position, market = undefined) {

@@ -5056,53 +5056,6 @@ export default class bitget extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    async fetchPositionsBySymbol (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['linear'] || !market['swap']) {
-            throw new NotSupported (this.id + ' fetchPositionsBySymbol() is not yet supported for ' + symbol + ' market. Coming soon...');
-        }
-        const request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-        };
-        const response = await this.privateMixGetPositionSinglePosition (this.extend (request, params));
-        //
-        // both one-way and two-way mode has a response of similar structure
-        //
-        //    {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "0",
-        //         "data": [
-        //             {
-        //                 "marginCoin": "USDT",
-        //                 "symbol": "BTCUSDT_UMCBL",
-        //                 "holdSide": "long", // long, short
-        //                 "openDelegateCount": "0",
-        //                 "margin": "4.0019",
-        //                 "available": "0.001",
-        //                 "locked": "0",
-        //                 "total": "0.001",
-        //                 "leverage": "5",
-        //                 "achievedProfits": "0",
-        //                 "averageOpenPrice": "20009.5",
-        //                 "marginMode": "crossed", // crossed, fixed
-        //                 "holdMode": "double_hold", // single_hold, double_hold
-        //                 "unrealizedPL": "0.00039",
-        //                 "liquidationPrice": "0",
-        //                 "keepMarginRate": "0.004",
-        //                 "marketPrice": "20009.89",
-        //                 "cTime": "1678467511525"
-        //             },
-        //             ... second object is same, only "holdSide:short" is different
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        return this.parsePositions (data, [ market['symbol'] ], params);
-    }
-
     parsePosition (position, market = undefined) {
         //
         //     {
