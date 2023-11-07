@@ -847,7 +847,7 @@ export default class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe('private', messageHash, channel, symbol, this.extend(request, params));
+        const orders = await this.subscribe('private', messageHash, channel, undefined, this.extend(request, params));
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }

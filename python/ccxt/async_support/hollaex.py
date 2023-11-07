@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -328,7 +327,7 @@ class hollaex(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://apidocs.hollaex.com/#constants
+        :see: https://apidocs.hollaex.com/#constants
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -775,7 +774,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, response, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "time":"2020-03-02T20:00:00.000Z",
@@ -788,12 +787,12 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         return [
-            self.parse8601(self.safe_string(response, 'time')),
-            self.safe_number(response, 'open'),
-            self.safe_number(response, 'high'),
-            self.safe_number(response, 'low'),
-            self.safe_number(response, 'close'),
-            self.safe_number(response, 'volume'),
+            self.parse8601(self.safe_string(ohlcv, 'time')),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
     def parse_balance(self, response):
@@ -1013,7 +1012,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder, fetchOpenOrder, fetchOpenOrders
         #
@@ -1689,7 +1688,7 @@ class hollaex(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://apidocs.hollaex.com/#constants
+        :see: https://apidocs.hollaex.com/#constants
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`

@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, Permission
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, Balances, OrderType } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, OHLCV, Order } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1458,7 +1458,7 @@ export default class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         // spot
         //
@@ -1971,7 +1971,7 @@ export default class bitmart extends Exchange {
         return this.parseTradingFee (data);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -2109,7 +2109,7 @@ export default class bitmart extends Exchange {
                 '7': 'canceling', // Canceling
                 '8': 'canceled', // Canceled
                 'new': 'open',
-                'partially_filled': 'filled',
+                'partially_filled': 'open',
                 'filled': 'filled',
                 'partially_canceled': 'canceled',
             },
@@ -4057,7 +4057,7 @@ export default class bitmart extends Exchange {
         const priceString = this.safeString (liquidation, 'deal_avg_price');
         const baseValueString = Precise.stringMul (contractsString, contractSizeString);
         const quoteValueString = Precise.stringMul (baseValueString, priceString);
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.parseNumber (contractsString),
@@ -4067,7 +4067,7 @@ export default class bitmart extends Exchange {
             'quoteValue': this.parseNumber (quoteValueString),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     nonce () {

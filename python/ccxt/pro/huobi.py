@@ -114,6 +114,7 @@ class huobi(ccxt.async_support.huobi):
                         '2001': BadSymbol,  # {action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
                         '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
                         '2040': BadRequest,  # {op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684}
+                        '4007': BadRequest,  # {op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540}
                     },
                 },
             },
@@ -305,9 +306,9 @@ class huobi(ccxt.async_support.huobi):
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
-        see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
-        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
-        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -344,6 +345,7 @@ class huobi(ccxt.async_support.huobi):
         #         id: 1583473663565,
         #         rep: 'market.btcusdt.mbp.150',
         #         status: 'ok',
+        #         ts: 1698359289261,
         #         data: {
         #             seqNum: 104999417756,
         #             bids: [
@@ -372,6 +374,9 @@ class huobi(ccxt.async_support.huobi):
             sequence = self.safe_integer(tick, 'seqNum')
             nonce = self.safe_integer(data, 'seqNum')
             snapshot['nonce'] = nonce
+            timestamp = self.safe_integer(message, 'ts')
+            snapshot['timestamp'] = timestamp
+            snapshot['datetime'] = self.iso8601(timestamp)
             snapshotLimit = self.safe_integer(subscription, 'limit')
             snapshotOrderBook = self.order_book(snapshot, snapshotLimit)
             client.resolve(snapshotOrderBook, id)
@@ -519,6 +524,8 @@ class huobi(ccxt.async_support.huobi):
             snapshot = self.parse_order_book(tick, symbol, timestamp)
             orderbook.reset(snapshot)
             orderbook['nonce'] = seqNum
+        if prevSeqNum is not None and prevSeqNum > orderbook['nonce']:
+            raise InvalidNonce(self.id + ' watchOrderBook() received a mesage out of order')
         if (prevSeqNum is None or prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
@@ -1122,12 +1129,12 @@ class huobi(ccxt.async_support.huobi):
         :param dict [params]: extra parameters specific to the huobi api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
-        type = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', type)
-        subType = self.safe_string_2(self.options, 'watchBalance', 'subType', 'linear')
-        subType = self.safe_string(params, 'subType', subType)
-        params = self.omit(params, ['type', 'subType'])
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('watchBalance', None, params, 'linear')
+        isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
+        params = self.omit(params, ['isUnifiedAccount', 'unified'])
         await self.load_markets()
         messageHash = None
         channel = None
@@ -1147,25 +1154,31 @@ class huobi(ccxt.async_support.huobi):
             prefix = 'accounts'
             messageHash = prefix
             if subType == 'linear':
-                # usdt contracts account
-                prefix = prefix + '_cross' if (marginMode == 'cross') else prefix
-                messageHash = prefix
-                if marginMode == 'isolated':
-                    # isolated margin only allows filtering by symbol3
-                    if symbol is not None:
-                        messageHash += '.' + market['id']
-                        channel = messageHash
-                    else:
-                        # subscribe to all
-                        channel = prefix + '.' + '*'
+                if isUnifiedAccount:
+                    # usdt contracts account
+                    prefix = 'accounts_unify'
+                    messageHash = prefix
+                    channel = prefix + '.' + 'usdt'
                 else:
-                    # cross margin
-                    if currencyCode is not None:
-                        channel = prefix + '.' + currencyCode['id']
-                        messageHash = channel
+                    # usdt contracts account
+                    prefix = prefix + '_cross' if (marginMode == 'cross') else prefix
+                    messageHash = prefix
+                    if marginMode == 'isolated':
+                        # isolated margin only allows filtering by symbol3
+                        if symbol is not None:
+                            messageHash += '.' + market['id']
+                            channel = messageHash
+                        else:
+                            # subscribe to all
+                            channel = prefix + '.' + '*'
                     else:
-                        # subscribe to all
-                        channel = prefix + '.' + '*'
+                        # cross margin
+                        if currencyCode is not None:
+                            channel = prefix + '.' + currencyCode['id']
+                            messageHash = channel
+                        else:
+                            # subscribe to all
+                            channel = prefix + '.' + '*'
             elif type == 'future':
                 # inverse futures account
                 if currencyCode is not None:
@@ -1309,13 +1322,13 @@ class huobi(ccxt.async_support.huobi):
         #     }
         #
         channel = self.safe_string(message, 'ch')
-        timestamp = self.safe_integer(message, 'ts')
+        data = self.safe_value(message, 'data', [])
+        timestamp = self.safe_integer(data, 'changeTime', self.safe_integer(message, 'ts'))
         self.balance['timestamp'] = timestamp
         self.balance['datetime'] = self.iso8601(timestamp)
-        self.balance['info'] = self.safe_value(message, 'data')
+        self.balance['info'] = data
         if channel is not None:
             # spot balance
-            data = self.safe_value(message, 'data', {})
             currencyId = self.safe_string(data, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1326,12 +1339,13 @@ class huobi(ccxt.async_support.huobi):
             client.resolve(self.balance, channel)
         else:
             # contract balance
-            data = self.safe_value(message, 'data', [])
             dataLength = len(data)
             if dataLength == 0:
                 return
             first = self.safe_value(data, 0, {})
-            messageHash = self.safe_string(message, 'topic')
+            topic = self.safe_string(message, 'topic')
+            splitTopic = topic.split('.')
+            messageHash = self.safe_string(splitTopic, 0)
             subscription = self.safe_value_2(client.subscriptions, messageHash, messageHash + '.*')
             if subscription is None:
                 # if subscription not found means that we subscribed to a specific currency/symbol
@@ -1339,12 +1353,35 @@ class huobi(ccxt.async_support.huobi):
                 # Example: topic = 'accounts'
                 # client.subscription hash = 'accounts.usdt'
                 # we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                marginAsset = self.safe_string(first, 'margin_asset')
-                messageHash += '.' + marginAsset.lower()
+                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
+                messageHash += '.' + currencyId.lower()
                 subscription = self.safe_value(client.subscriptions, messageHash)
             type = self.safe_string(subscription, 'type')
             subType = self.safe_string(subscription, 'subType')
-            if subType == 'linear':
+            if topic == 'accounts_unify':
+                # {
+                #     margin_asset: 'USDT',
+                #     margin_static: 10,
+                #     cross_margin_static: 10,
+                #     margin_balance: 10,
+                #     cross_profit_unreal: 0,
+                #     margin_frozen: 0,
+                #     withdraw_available: 10,
+                #     cross_risk_rate: null,
+                #     cross_swap: [],
+                #     cross_future: [],
+                #     isolated_swap: []
+                # }
+                marginAsset = self.safe_string(first, 'margin_asset')
+                code = self.safe_currency_code(marginAsset)
+                marginFrozen = self.safe_string(first, 'margin_frozen')
+                unifiedAccount = self.account()
+                unifiedAccount['free'] = self.safe_string(first, 'withdraw_available')
+                unifiedAccount['used'] = marginFrozen
+                self.balance[code] = unifiedAccount
+                self.balance = self.safe_balance(self.balance)
+                client.resolve(self.balance, 'accounts_unify')
+            elif subType == 'linear':
                 margin = self.safe_string(subscription, 'margin')
                 if margin == 'cross':
                     fieldName = 'futures_contract_detail' if (type == 'future') else 'contract_detail'
@@ -1615,6 +1652,15 @@ class huobi(ccxt.async_support.huobi):
         #         id: '2'
         #     }
         #
+        #     {
+        #         op: 'sub',
+        #         cid: '1',
+        #         topic: 'accounts_unify.USDT',
+        #         'err-code': 4007,
+        #         'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface',
+        #         ts: 1698419490189
+        #     }
+        #
         status = self.safe_string(message, 'status')
         if status == 'error':
             id = self.safe_string(message, 'id')
@@ -1631,8 +1677,8 @@ class huobi(ccxt.async_support.huobi):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
             return False
-        code = self.safe_integer(message, 'code')
-        if code is not None and code != 200:
+        code = self.safe_integer_2(message, 'code', 'err-code')
+        if code is not None and ((code != 200) and (code != 0)):
             feedback = self.id + ' ' + self.json(message)
             try:
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)

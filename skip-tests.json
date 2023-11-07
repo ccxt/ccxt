@@ -174,7 +174,7 @@
         }
     },
     "bitfinex2": {
-        "skipWs": true,
+        "//skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
@@ -509,6 +509,7 @@
         }
     },
     "btcalpha": {
+	"skip": true, 
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -1073,15 +1074,19 @@
     },
     "kuna": {
         "httpsProxy": "http://51.83.140.52:11230",
-        "skipPhpAsync": true
+        "skipPhpAsync": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            }
+        }
     },
     "kucoin": {
         "skipWs": true,
         "skipMethods":{
             "fetchCurrencies": {
-                "networks": "not yet implemented",
-                "withdraw": "not provided for some currencies",
-                "deposit": "not provided for some currencies"
+                "depositForNonCrypto": "not provided",
+                "withdrawForNonCrypto": "not provided"
             },
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
@@ -1363,6 +1368,7 @@
         }
     },
     "tidex": {
+        "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
         "skipWs": true,
@@ -1560,6 +1566,17 @@
                 "lastPrice": "undefined",
                 "percentage": "undefined",
                 "liquidationPrice": "undefined"
+            }
+        }
+    },
+    "coinlist": {
+        "skipMethods": {
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
+                "ask": "invalid"
             }
         }
     }

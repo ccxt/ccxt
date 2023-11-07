@@ -8,6 +8,7 @@ var Precise = require('./Precise.js');
 var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
+var crypto = require('./functions/crypto.js');
 var totp = require('./functions/totp.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
@@ -78,6 +79,10 @@ class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+        this.last_request_body = undefined;
+        this.last_request_url = undefined;
+        this.last_request_path = undefined;
         this.id = undefined;
         this.markets = undefined;
         this.status = undefined;
@@ -207,7 +212,6 @@ class Exchange {
         this.urlencodeNested = urlencodeNested;
         this.parseDate = parseDate;
         this.ymd = ymd;
-        this.isArray = generic.inArray;
         this.base64ToString = base64ToString;
         this.crc32 = crc32;
         Object.assign(this, functions);
@@ -272,6 +276,10 @@ class Exchange {
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+        this.last_request_body = undefined;
+        this.last_request_url = undefined;
+        this.last_request_path = undefined;
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -343,6 +351,7 @@ class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': undefined,
                 'createPostOnlyOrder': undefined,
                 'createReduceOnlyOrder': undefined,
                 'createStopOrder': undefined,
@@ -1078,6 +1087,9 @@ class Exchange {
     getProperty(obj, property, defaultValue = undefined) {
         return (property in obj ? obj[property] : defaultValue);
     }
+    axolotl(payload, hexKey, ed25519) {
+        return crypto.axolotl(payload, hexKey, ed25519);
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1438,6 +1450,17 @@ class Exchange {
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
     }
+    parseToNumeric(number) {
+        const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf('.') > 0) {
+            return parseFloat(stringVersion);
+        }
+        return parseInt(stringVersion);
+    }
     afterConstruct() {
         this.createNetworksByIdObject();
     }
@@ -1615,7 +1638,7 @@ class Exchange {
         this.markets_by_id = {};
         // handle marketId conflicts
         // we insert spot markets first
-        const marketValues = this.sortBy(this.toArray(markets), 'spot', true);
+        const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -1665,8 +1688,8 @@ class Exchange {
                     quoteCurrencies.push(currency);
                 }
             }
-            baseCurrencies = this.sortBy(baseCurrencies, 'code');
-            quoteCurrencies = this.sortBy(quoteCurrencies, 'code');
+            baseCurrencies = this.sortBy(baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy(quoteCurrencies, 'code', false, '');
             this.baseCurrencies = this.indexBy(baseCurrencies, 'code');
             this.quoteCurrencies = this.indexBy(quoteCurrencies, 'code');
             const allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
@@ -2090,6 +2113,25 @@ class Exchange {
             'rate': this.parseNumber(rate),
             'cost': this.parseNumber(cost),
         };
+    }
+    safeLiquidation(liquidation, market = undefined) {
+        const contracts = this.safeString(liquidation, 'contracts');
+        const contractSize = this.safeString(market, 'contractSize');
+        const price = this.safeString(liquidation, 'price');
+        let baseValue = this.safeString(liquidation, 'baseValue');
+        let quoteValue = this.safeString(liquidation, 'quoteValue');
+        if ((baseValue === undefined) && (contracts !== undefined) && (contractSize !== undefined) && (price !== undefined)) {
+            baseValue = Precise["default"].stringMul(contracts, contractSize);
+        }
+        if ((quoteValue === undefined) && (baseValue !== undefined) && (price !== undefined)) {
+            quoteValue = Precise["default"].stringMul(baseValue, price);
+        }
+        liquidation['contracts'] = this.parseNumber(contracts);
+        liquidation['contractSize'] = this.parseNumber(contractSize);
+        liquidation['price'] = this.parseNumber(price);
+        liquidation['baseValue'] = this.parseNumber(baseValue);
+        liquidation['quoteValue'] = this.parseNumber(quoteValue);
+        return liquidation;
     }
     safeTrade(trade, market = undefined) {
         const amount = this.safeString(trade, 'amount');
@@ -2829,6 +2871,9 @@ class Exchange {
         }
         this.lastRestRequestTimestamp = this.milliseconds();
         const request = this.sign(path, api, method, params, headers, body);
+        this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
         return await this.fetch(request['url'], request['method'], request['headers'], request['body']);
     }
     async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
@@ -3328,6 +3373,9 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createOrders(orders, params = {}) {
+        throw new errors.NotSupported(this.id + ' createOrders() is not supported yet');
+    }
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrderWs() is not supported yet');
     }
@@ -3409,6 +3457,9 @@ class Exchange {
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchFundingRateHistory() is not supported yet');
+    }
+    async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchFundingHistory() is not supported yet');
     }
     parseLastPrice(price, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseLastPrice() is not supported yet');
@@ -3659,6 +3710,10 @@ class Exchange {
     }
     filterByCurrencySinceLimit(array, code = undefined, since = undefined, limit = undefined, tail = false) {
         return this.filterByValueSinceLimit(array, 'currency', code, since, limit, 'timestamp', tail);
+    }
+    filterBySymbolsSinceLimit(array, symbols = undefined, since = undefined, limit = undefined, tail = false) {
+        const result = this.filterByArray(array, 'symbol', symbols, false);
+        return this.filterBySinceLimit(result, since, limit, 'timestamp', tail);
     }
     parseLastPrices(pricesData, symbols = undefined, params = {}) {
         //
@@ -4387,7 +4442,13 @@ class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                const response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method](params);
+                }
+                else {
+                    response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {

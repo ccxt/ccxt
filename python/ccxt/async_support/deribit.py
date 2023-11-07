@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -436,7 +435,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        see https://docs.deribit.com/#public-get_currencies
+        :see: https://docs.deribit.com/#public-get_currencies
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1272,7 +1271,7 @@ class deribit(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        see https://docs.deribit.com/#private-get_user_trades_by_currency
+        :see: https://docs.deribit.com/#private-get_user_trades_by_currency
         get the list of most recent trades for a particular symbol.
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1520,7 +1519,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(orderTypes, orderType, orderType)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1658,7 +1657,7 @@ class deribit(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://docs.deribit.com/#private-buy
+        :see: https://docs.deribit.com/#private-buy
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2374,7 +2373,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_volatility_history(self, code: str, params={}):
         """
         fetch the historical volatility of an option market based on an underlying asset
-        see https://docs.deribit.com/#public-get_historical_volatility
+        :see: https://docs.deribit.com/#public-get_historical_volatility
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict[]: a list of `volatility history objects <https://github.com/ccxt/ccxt/wiki/Manual#volatility-structure>`
@@ -2623,7 +2622,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://docs.deribit.com/#public-get_currencies
+        :see: https://docs.deribit.com/#public-get_currencies
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2658,7 +2657,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}):
         """
         fetch the current funding rate
-        see https://docs.deribit.com/#public-get_funding_rate_value
+        :see: https://docs.deribit.com/#public-get_funding_rate_value
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param int [params.start_timestamp]: fetch funding rate starting from self timestamp
@@ -2689,7 +2688,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch the current funding rate
-        see https://docs.deribit.com/#public-get_funding_rate_history
+        :see: https://docs.deribit.com/#public-get_funding_rate_history
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the deribit api endpoint
         :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
@@ -2780,7 +2779,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_liquidations(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves the public liquidations of a trading pair
-        see https://docs.deribit.com/#public-get_last_settlements_by_currency
+        :see: https://docs.deribit.com/#public-get_last_settlements_by_currency
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -2850,7 +2849,7 @@ class deribit(Exchange, ImplicitAPI):
     async def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         retrieves the users liquidated positions
-        see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+        :see: https://docs.deribit.com/#private-get_settlement_history_by_instrument
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -2913,7 +2912,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(None, market),
             'contracts': None,
@@ -2923,7 +2922,7 @@ class deribit(Exchange, ImplicitAPI):
             'quoteValue': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def nonce(self):
         return self.milliseconds()

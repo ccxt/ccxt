@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Dictionary, Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -771,7 +771,7 @@ export default class oceanex extends Exchange {
         return result as Order[];
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // [
         //    1559232000,
         //    8889.22,
@@ -820,7 +820,7 @@ export default class oceanex extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "created_at": "2019-01-18T00:38:18Z",
@@ -883,19 +883,6 @@ export default class oceanex extends Exchange {
             'cancel': 'canceled',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    async createOrders (symbol: string, orders, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'orders': orders,
-        };
-        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await this.privatePostOrdersMulti (this.extend (request, params));
-        const data = response['data'];
-        return this.parseOrders (data);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {

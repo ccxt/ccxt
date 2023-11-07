@@ -43,6 +43,7 @@ class okx extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -378,6 +379,7 @@ class okx extends Exchange {
                         'sprd/order' => 1,
                         'sprd/cancel-order' => 1,
                         'sprd/mass-cancel' => 1,
+                        'sprd/amend-order' => 1,
                         // trade
                         'trade/order' => 1 / 3,
                         'trade/batch-orders' => 1 / 15,
@@ -572,9 +574,12 @@ class okx extends Exchange {
                     '51028' => '\\ccxt\\ContractUnavailable', // Contract under delivery
                     '51029' => '\\ccxt\\ContractUnavailable', // Contract is being settled
                     '51030' => '\\ccxt\\ContractUnavailable', // Funding fee is being settled
+                    '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
                     '51046' => '\\ccxt\\InvalidOrder', // The take profit trigger price must be higher than the order price
                     '51047' => '\\ccxt\\InvalidOrder', // The stop loss trigger price must be lower than the order price
-                    '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
+                    '51072' => '\\ccxt\\InvalidOrder', // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
+                    '51073' => '\\ccxt\\InvalidOrder', // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
+                    '51074' => '\\ccxt\\InvalidOrder', // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
                     '51100' => '\\ccxt\\InvalidOrder', // Trading amount does not meet the min tradable amount
                     '51101' => '\\ccxt\\InvalidOrder', // Entered amount exceeds the max pending order amount (Cont) per transaction
                     '51102' => '\\ccxt\\InvalidOrder', // Entered amount exceeds the max pending count
@@ -619,6 +624,7 @@ class okx extends Exchange {
                     '51163' => '\\ccxt\\InvalidOrder', // You hold {instrument} positions. Close these positions and try again
                     '51166' => '\\ccxt\\InvalidOrder', // Currently, we don't support leading trades with this instrument
                     '51174' => '\\ccxt\\InvalidOrder', // The number of {param0} pending orders reached the upper limit of {param1} (orders).
+                    '51185' => '\\ccxt\\InvalidOrder', // The maximum value allowed per order is {maxOrderValue} USD
                     '51201' => '\\ccxt\\InvalidOrder', // Value of per market order cannot exceed 100,000 USDT
                     '51202' => '\\ccxt\\InvalidOrder', // Market - order amount exceeds the max amount
                     '51203' => '\\ccxt\\InvalidOrder', // Order amount exceeds the limit {0}
@@ -766,6 +772,8 @@ class okx extends Exchange {
                     '59200' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
                     '59201' => '\\ccxt\\InsufficientFunds', // Negative account balance
                     '59216' => '\\ccxt\\BadRequest', // The position doesn't exist. Please try again
+                    '59260' => '\\ccxt\\PermissionDenied', // You are not a spot lead trader yet. Complete the application on our website or app first.
+                    '59262' => '\\ccxt\\PermissionDenied', // You are not a contract lead trader yet. Complete the application on our website or app first.
                     '59300' => '\\ccxt\\ExchangeError', // Margin call failed. Position does not exist
                     '59301' => '\\ccxt\\ExchangeError', // Margin adjustment failed for exceeding the max limit
                     '59313' => '\\ccxt\\ExchangeError', // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
@@ -779,6 +787,8 @@ class okx extends Exchange {
                     '59506' => '\\ccxt\\ExchangeError', // APIKey does not exist
                     '59507' => '\\ccxt\\ExchangeError', // The two accounts involved in a transfer must be two different sub accounts under the same parent account
                     '59508' => '\\ccxt\\AccountSuspended', // The sub account of {0} is suspended
+                    '59642' => '\\ccxt\\BadRequest', // Lead and copy traders can only use margin-free or single-currency margin account modes
+                    '59643' => '\\ccxt\\ExchangeError', // Couldn’t switch account modes’re currently copying spot trades
                     // WebSocket error Codes from 60000-63999
                     '60001' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_KEY" can not be empty
                     '60002' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_SIGN" can not be empty
@@ -2042,7 +2052,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "1678928760000", // timestamp
@@ -2774,6 +2784,56 @@ class okx extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $response = Async\await($this->privatePostTradeBatchOrders ($ordersRequests));
+            // {
+            //     "code" => "0",
+            //     "data" => array(
+            //        array(
+            //           "clOrdId" => "e847386590ce4dBCc7f2a1b4c4509f82",
+            //           "ordId" => "636305438765568000",
+            //           "sCode" => "0",
+            //           "sMsg" => "Order placed",
+            //           "tag" => "e847386590ce4dBC"
+            //        ),
+            //        {
+            //           "clOrdId" => "e847386590ce4dBC0b9993fe642d8f62",
+            //           "ordId" => "636305438765568001",
+            //           "sCode" => "0",
+            //           "sMsg" => "Order placed",
+            //           "tag" => "e847386590ce4dBC"
+            //        }
+            //     ),
+            //     "inTime" => "1697979038584486",
+            //     "msg" => "",
+            //     "outTime" => "1697979038586493"
+            // }
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($data);
+        }) ();
+    }
+
     public function edit_order_request(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $market = $this->market($symbol);
         $request = array(
@@ -3037,6 +3097,7 @@ class okx extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'canceled' => 'canceled',
+            'order_failed' => 'canceled',
             'live' => 'open',
             'partially_filled' => 'open',
             'filled' => 'closed',
@@ -3045,7 +3106,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -3151,6 +3212,15 @@ class okx extends Exchange {
         //         "uly" => "BTC-USDT"
         //     }
         //
+        $scode = $this->safe_string($order, 'sCode');
+        if (($scode !== null) && ($scode !== '0')) {
+            return $this->safe_order(array(
+                'id' => $this->safe_string($order, 'ordId'),
+                'clientOrderId' => $this->safe_string($order, 'clOrdId'),
+                'status' => 'rejected',
+                'info' => $order,
+            ));
+        }
         $id = $this->safe_string_2($order, 'algoId', 'ordId');
         $timestamp = $this->safe_integer($order, 'cTime');
         $lastUpdateTimestamp = $this->safe_integer($order, 'uTime');
@@ -6932,7 +7002,7 @@ class okx extends Exchange {
         //    }
         //
         $code = $this->safe_string($response, 'code');
-        if ($code !== '0') {
+        if (($code !== '0') && ($code !== '2')) { // 2 means that bulk operation partially succeeded
             $feedback = $this->id . ' ' . $body;
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {

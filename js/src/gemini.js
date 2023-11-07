@@ -560,11 +560,10 @@ export default class gemini extends Exchange {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const method = 'publicGetV1SymbolsDetailsSymbol';
             const request = {
                 'symbol': marketId,
             };
-            promises.push(this[method](this.extend(request, params)));
+            promises.push(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, params)));
             //
             //     {
             //         "symbol": "BTCUSD",

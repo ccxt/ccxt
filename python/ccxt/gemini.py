@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -555,11 +554,10 @@ class gemini(Exchange, ImplicitAPI):
             marketIds = fetchDetailsForMarketIds
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            method = 'publicGetV1SymbolsDetailsSymbol'
             request = {
                 'symbol': marketId,
             }
-            promises.append(getattr(self, method)(self.extend(request, params)))
+            promises.append(self.publicGetV1SymbolsDetailsSymbol(self.extend(request, params)))
             #
             #     {
             #         "symbol": "BTCUSD",
@@ -913,7 +911,7 @@ class gemini(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.gemini.com/rest-api/#trade-history
+        :see: https://docs.gemini.com/rest-api/#trade-history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1022,7 +1020,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder(private)
         #
@@ -1263,7 +1261,7 @@ class gemini(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://docs.gemini.com/rest-api/#new-order
+        :see: https://docs.gemini.com/rest-api/#new-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -1560,7 +1558,7 @@ class gemini(Exchange, ImplicitAPI):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
-        see https://docs.gemini.com/rest-api/#get-deposit-addresses
+        :see: https://docs.gemini.com/rest-api/#get-deposit-addresses
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the endpoint
@@ -1577,7 +1575,7 @@ class gemini(Exchange, ImplicitAPI):
     def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        see https://docs.gemini.com/rest-api/#get-deposit-addresses
+        :see: https://docs.gemini.com/rest-api/#get-deposit-addresses
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the gemini api endpoint
         :param str [params.network]:  *required* The chain of currency

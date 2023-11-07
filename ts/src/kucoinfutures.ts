@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker, OrderType, OHLCV, Order, Trade, FundingRateHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -162,6 +162,7 @@ export default class kucoinfutures extends kucoin {
                         'transfer-out': 1, // v2
                         'transfer-in': 1,
                         'orders': 1.33,
+                        'orders/test': 1.33,
                         'position/margin/auto-deposit-status': 1,
                         'position/margin/deposit-margin': 1,
                         'position/risk-limit-level/change': 1,
@@ -592,7 +593,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    [
         //        "1545904980000",          // Start time of the candle cycle
@@ -748,10 +749,6 @@ export default class kucoinfutures extends kucoin {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
-        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -869,7 +866,7 @@ export default class kucoinfutures extends kucoin {
                 'positionCost': this.safeNumber (listItem, 'positionCost'),
             });
         }
-        return fees;
+        return fees as FundingHistory[];
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -1119,6 +1116,7 @@ export default class kucoinfutures extends kucoin {
          * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
          * @param {string} [params.stopPriceType]  TP, IP or MP, defaults to MP: Mark Price
          * @param {bool} [params.closeOrder] set to true to close position
+         * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
          * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -1192,7 +1190,14 @@ export default class kucoinfutures extends kucoin {
             }
         }
         params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
-        const response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        let response = undefined;
+        const testOrder = this.safeValue (params, 'test', false);
+        params = this.omit (params, 'test');
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest (this.extend (request, params));
+        } else {
+            response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        }
         //
         //    {
         //        code: "200000",
@@ -1631,7 +1636,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrder, fetchOrdersByStatus
         //

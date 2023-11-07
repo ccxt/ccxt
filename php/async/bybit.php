@@ -41,6 +41,7 @@ class bybit extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -234,35 +235,35 @@ class bybit extends Exchange {
                         'derivatives/v3/public/open-interest' => 1,
                         'derivatives/v3/public/insurance' => 1,
                         // v5
-                        'v5/announcements/index' => 2.5,
+                        'v5/announcements/index' => 5, // 10/s = 1000 / (20 * 5)
                         // market
-                        'v5/market/time' => 2.5,
-                        'v5/market/kline' => 2.5,
-                        'v5/market/mark-price-kline' => 2.5,
-                        'v5/market/index-price-kline' => 2.5,
-                        'v5/market/premium-index-price-kline' => 2.5,
-                        'v5/market/instruments-info' => 2.5,
-                        'v5/market/orderbook' => 2.5,
-                        'v5/market/tickers' => 2.5,
-                        'v5/market/funding/history' => 2.5,
-                        'v5/market/recent-trade' => 2.5,
-                        'v5/market/open-interest' => 2.5,
-                        'v5/market/historical-volatility' => 2.5,
-                        'v5/market/insurance' => 2.5,
-                        'v5/market/risk-limit' => 2.5,
-                        'v5/market/delivery-price' => 2.5,
-                        'v5/market/account-ratio' => 2.5,
+                        'v5/market/time' => 5,
+                        'v5/market/kline' => 5,
+                        'v5/market/mark-price-kline' => 5,
+                        'v5/market/index-price-kline' => 5,
+                        'v5/market/premium-index-price-kline' => 5,
+                        'v5/market/instruments-info' => 5,
+                        'v5/market/orderbook' => 5,
+                        'v5/market/tickers' => 5,
+                        'v5/market/funding/history' => 5,
+                        'v5/market/recent-trade' => 5,
+                        'v5/market/open-interest' => 5,
+                        'v5/market/historical-volatility' => 5,
+                        'v5/market/insurance' => 5,
+                        'v5/market/risk-limit' => 5,
+                        'v5/market/delivery-price' => 5,
+                        'v5/market/account-ratio' => 5,
                         // spot leverage token
-                        'v5/spot-lever-token/info' => 2.5,
-                        'v5/spot-lever-token/reference' => 2.5,
+                        'v5/spot-lever-token/info' => 5,
+                        'v5/spot-lever-token/reference' => 5,
                         // spot margin trade
-                        'v5/spot-margin-trade/data' => 2.5,
-                        'v5/spot-cross-margin-trade/data' => 2.5,
-                        'v5/spot-cross-margin-trade/pledge-token' => 2.5,
-                        'v5/spot-cross-margin-trade/borrow-token' => 2.5,
+                        'v5/spot-margin-trade/data' => 5,
+                        'v5/spot-cross-margin-trade/data' => 5,
+                        'v5/spot-cross-margin-trade/pledge-token' => 5,
+                        'v5/spot-cross-margin-trade/borrow-token' => 5,
                         // institutional lending
-                        'v5/ins-loan/product-infos' => 2.5,
-                        'v5/ins-loan/ensure-tokens-convert' => 2.5,
+                        'v5/ins-loan/product-infos' => 5,
+                        'v5/ins-loan/ensure-tokens-convert' => 5,
                     ),
                 ),
                 'private' => array(
@@ -331,11 +332,11 @@ class bybit extends Exchange {
                         'spot/v3/private/margin-ltv' => 10,
                         // account
                         'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
-                        'asset/v3/private/transfer/inter-transfer/list/query' => 0.84, // 60/s
+                        'asset/v3/private/transfer/inter-transfer/list/query' => 50,
                         'asset/v1/private/sub-member/transfer/list' => 50,
-                        'asset/v3/private/transfer/sub-member/list/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/sub-member-transfer/list/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/universal-transfer/list/query' => 0.84, // 60/s
+                        'asset/v3/private/transfer/sub-member/list/query' => 50,
+                        'asset/v3/private/transfer/sub-member-transfer/list/query' => 50,
+                        'asset/v3/private/transfer/universal-transfer/list/query' => 25,
                         'asset/v1/private/sub-member/member-ids' => 50,
                         'asset/v1/private/deposit/record/query' => 50,
                         'asset/v1/private/withdraw/record/query' => 25,
@@ -343,11 +344,11 @@ class bybit extends Exchange {
                         'asset/v3/private/coin-info/query' => 25, // 2/s
                         'asset/v1/private/asset-info/query' => 50,
                         'asset/v1/private/deposit/address' => 100,
-                        'asset/v3/private/deposit/address/query' => 0.17, // 300/s
+                        'asset/v3/private/deposit/address/query' => 10,
                         'asset/v1/private/universal/transfer/list' => 50,
-                        'contract/v3/private/copytrading/order/list' => 1,
-                        'contract/v3/private/copytrading/position/list' => 1,
-                        'contract/v3/private/copytrading/wallet/balance' => 1,
+                        'contract/v3/private/copytrading/order/list' => 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/position/list' => 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/wallet/balance' => 25, // 120 req/min = 1000 / (20 * 25) = 2/s
                         'contract/v3/private/position/limit-info' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         'contract/v3/private/order/unfilled-orders' => 1,
                         'contract/v3/private/order/list' => 1,
@@ -374,43 +375,43 @@ class bybit extends Exchange {
                         'user/v3/private/query-sub-members' => 5, // 10/s
                         'user/v3/private/query-api' => 5, // 10/s
                         'user/v3/private/get-member-type' => 1,
-                        'asset/v3/private/transfer/transfer-coin/list/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/account-coin/balance/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/account-coins/balance/query' => 50,
-                        'asset/v3/private/transfer/asset-info/query' => 0.84, // 60/s
+                        'asset/v3/private/transfer/transfer-coin/list/query' => 50,
+                        'asset/v3/private/transfer/account-coin/balance/query' => 50,
+                        'asset/v3/private/transfer/account-coins/balance/query' => 25,
+                        'asset/v3/private/transfer/asset-info/query' => 50,
                         'asset/v3/public/deposit/allowed-deposit-list/query' => 0.17, // 300/s
-                        'asset/v3/private/deposit/record/query' => 0.17, // 300/s
-                        'asset/v3/private/withdraw/record/query' => 0.17, // 300/s
+                        'asset/v3/private/deposit/record/query' => 10,
+                        'asset/v3/private/withdraw/record/query' => 10,
                         // v5
                         // trade
                         'v5/order/realtime' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/history' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/spot-borrow-check' => 2.5,
+                        'v5/order/spot-borrow-check' => 1, // 50/s = 1000 / (20 * 1)
                         // position
                         'v5/position/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/execution/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/closed-pnl' => 5, // 10/s => cost = 50 / 10 = 5
                         // pre-upgrade
-                        'v5/pre-upgrade/order/history' => 2.5,
-                        'v5/pre-upgrade/execution/list' => 2.5,
-                        'v5/pre-upgrade/position/closed-pnl' => 2.5,
-                        'v5/pre-upgrade/account/transaction-log' => 2.5,
-                        'v5/pre-upgrade/asset/delivery-record' => 2.5,
-                        'v5/pre-upgrade/asset/settlement-record' => 2.5,
+                        'v5/pre-upgrade/order/history' => 5,
+                        'v5/pre-upgrade/execution/list' => 5,
+                        'v5/pre-upgrade/position/closed-pnl' => 5,
+                        'v5/pre-upgrade/account/transaction-log' => 5,
+                        'v5/pre-upgrade/asset/delivery-record' => 5,
+                        'v5/pre-upgrade/asset/settlement-record' => 5,
                         // account
-                        'v5/account/wallet-balance' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/account/borrow-history' => 2.5,
-                        'v5/account/set-collateral-switch' => 2.5,
-                        'v5/account/collateral-info' => 2.5,
-                        'v5/asset/coin-greeks' => 2.5,
-                        'v5/account/fee-rate' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/account/info' => 2.5,
-                        'v5/account/transaction-log' => 2.5,
-                        'v5/account/mmp-state' => 2.5,
+                        'v5/account/wallet-balance' => 1,
+                        'v5/account/borrow-history' => 1,
+                        'v5/account/set-collateral-switch' => 5,
+                        'v5/account/collateral-info' => 1,
+                        'v5/asset/coin-greeks' => 1,
+                        'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
+                        'v5/account/info' => 5,
+                        'v5/account/transaction-log' => 1,
+                        'v5/account/mmp-state' => 5,
                         // asset
                         'v5/asset/exchange/order-record' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/asset/delivery-record' => 2.5,
-                        'v5/asset/settlement-record' => 2.5,
+                        'v5/asset/delivery-record' => 5,
+                        'v5/asset/settlement-record' => 5,
                         'v5/asset/transfer/query-asset-info' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-account-coins-balance' => 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/transfer/query-account-coin-balance' => 50, // 1/s => cost = 50 / 1 = 50
@@ -418,38 +419,39 @@ class bybit extends Exchange {
                         'v5/asset/transfer/query-inter-transfer-list' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-sub-member-list' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-universal-transfer-list' => 25, // 2/s => cost = 50 / 2 = 25
-                        'v5/asset/deposit/query-allowed-list' => 2.5,
+                        'v5/asset/deposit/query-allowed-list' => 5,
                         'v5/asset/deposit/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-record' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-internal-record' => 2.5,
+                        'v5/asset/deposit/query-internal-record' => 5,
                         'v5/asset/deposit/query-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info' => 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/withdraw/withdrawable-amount' => 2.5,
+                        'v5/asset/withdraw/withdrawable-amount' => 5,
                         // user
                         'v5/user/query-sub-members' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/user/get-member-type' => 2.5,
-                        'v5/user/aff-customer-info' => 2.5,
+                        'v5/user/get-member-type' => 5,
+                        'v5/user/aff-customer-info' => 5,
+                        'v5/user/del-submember' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
-                        'v5/spot-margin-trade/state' => 2.5,
+                        'v5/spot-margin-trade/state' => 5,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                         // institutional lending
-                        'v5/ins-loan/loan-order' => 2.5,
-                        'v5/ins-loan/repaid-history' => 2.5,
-                        'v5/ins-loan/ltv-convert' => 2.5,
+                        'v5/ins-loan/loan-order' => 5,
+                        'v5/ins-loan/repaid-history' => 5,
+                        'v5/ins-loan/ltv-convert' => 5,
                         // c2c lending
-                        'v5/lending/info' => 2.5,
-                        'v5/lending/history-order' => 2.5,
-                        'v5/lending/account' => 2.5,
+                        'v5/lending/info' => 5,
+                        'v5/lending/history-order' => 5,
+                        'v5/lending/account' => 5,
                         // broker
-                        'v5/broker/earning-record' => 2.5,
+                        'v5/broker/earning-record' => 5,
                     ),
                     'post' => array(
                         // inverse swap
@@ -515,17 +517,17 @@ class bybit extends Exchange {
                         'spot/v3/private/cross-margin-repay' => 10,
                         // account
                         'asset/v1/private/transfer' => 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
-                        'asset/v3/private/transfer/inter-transfer' => 2.5, // 20/s
+                        'asset/v3/private/transfer/inter-transfer' => 150,
                         'asset/v1/private/sub-member/transfer' => 150,
                         'asset/v1/private/withdraw' => 50,
-                        'asset/v3/private/withdraw/create' => 1, // 10/s
+                        'asset/v3/private/withdraw/create' => 300,
                         'asset/v1/private/withdraw/cancel' => 50,
-                        'asset/v3/private/withdraw/cancel' => 0.84, // 60/s
+                        'asset/v3/private/withdraw/cancel' => 50,
                         'asset/v1/private/transferable-subs/save' => 3000,
                         'asset/v1/private/universal/transfer' => 1500,
-                        'asset/v3/private/transfer/sub-member-transfer' => 2.5, // 20/s
-                        'asset/v3/private/transfer/transfer-sub-member-save' => 2.5, // 20/s
-                        'asset/v3/private/transfer/universal-transfer' => 2.5, // 20/s
+                        'asset/v3/private/transfer/sub-member-transfer' => 150,
+                        'asset/v3/private/transfer/transfer-sub-member-save' => 150,
+                        'asset/v3/private/transfer/universal-transfer' => 10, // 5/s
                         'user/v3/private/create-sub-member' => 10, // 5/s
                         'user/v3/private/create-sub-api' => 10, // 5/s
                         'user/v3/private/update-api' => 10, // 5/s
@@ -564,12 +566,12 @@ class bybit extends Exchange {
                         'perpetual/usdc/openapi/public/v1/risk-limit/list' => 2.5,
                         'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 2.5,
                         'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
-                        'contract/v3/private/copytrading/order/create' => 2.5,
-                        'contract/v3/private/copytrading/order/cancel' => 2.5,
-                        'contract/v3/private/copytrading/order/close' => 2.5,
-                        'contract/v3/private/copytrading/position/close' => 2.5,
-                        'contract/v3/private/copytrading/position/set-leverage' => 2.5,
-                        'contract/v3/private/copytrading/wallet/transfer' => 2.5,
+                        'contract/v3/private/copytrading/order/create' => 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/order/cancel' => 30,
+                        'contract/v3/private/copytrading/order/close' => 30,
+                        'contract/v3/private/copytrading/position/close' => 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/position/set-leverage' => 40,
+                        'contract/v3/private/copytrading/wallet/transfer' => 25, // 120 req/min = 1000 / (20 * 25) = 2/s
                         'contract/v3/private/copytrading/order/trading-stop' => 2.5,
                         'contract/v3/private/order/create' => 1,
                         'contract/v3/private/order/cancel' => 1,
@@ -584,13 +586,13 @@ class bybit extends Exchange {
                         'contract/v3/private/position/set-risk-limit' => 1,
                         'contract/v3/private/account/setMarginMode' => 1,
                         // derivative
-                        'unified/v3/private/order/create' => 2.5,
-                        'unified/v3/private/order/replace' => 2.5,
-                        'unified/v3/private/order/cancel' => 2.5,
-                        'unified/v3/private/order/create-batch' => 2.5,
-                        'unified/v3/private/order/replace-batch' => 2.5,
-                        'unified/v3/private/order/cancel-batch' => 2.5,
-                        'unified/v3/private/order/cancel-all' => 2.5,
+                        'unified/v3/private/order/create' => 30, // 100 req/min (shared) = 1000 / (20 * 30) = 1.66666666667/s
+                        'unified/v3/private/order/replace' => 30,
+                        'unified/v3/private/order/cancel' => 30,
+                        'unified/v3/private/order/create-batch' => 30,
+                        'unified/v3/private/order/replace-batch' => 30,
+                        'unified/v3/private/order/cancel-batch' => 30,
+                        'unified/v3/private/order/cancel-all' => 30,
                         'unified/v3/private/position/set-leverage' => 2.5,
                         'unified/v3/private/position/tpsl/switch-mode' => 2.5,
                         'unified/v3/private/position/set-risk-limit' => 2.5,
@@ -604,33 +606,34 @@ class bybit extends Exchange {
                         'fht/compliance/tax/v3/private/url' => 50,
                         // v5
                         // trade
-                        'v5/order/create' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/create' => 2.5, // 20/s = 1000 / (20 * 2.5)
                         'v5/order/amend' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel-all' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel' => 2.5,
+                        'v5/order/cancel-all' => 50, // 1/s = 1000 / (20 * 50)
                         'v5/order/create-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/amend-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel-batch' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/disconnected-cancel-all' => 2.5,
+                        'v5/order/disconnected-cancel-all' => 5,
                         // position
                         'v5/position/set-leverage' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated' => 2.5,
+                        'v5/position/switch-isolated' => 5,
                         'v5/position/set-tpsl-mode' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-mode' => 2.5,
+                        'v5/position/switch-mode' => 5,
                         'v5/position/set-risk-limit' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/set-auto-add-margin' => 2.5,
-                        'v5/position/add-margin' => 2.5,
+                        'v5/position/set-auto-add-margin' => 5,
+                        'v5/position/add-margin' => 5,
+                        'v5/position/confirm-pending-mmr' => 5,
                         // account
-                        'v5/account/upgrade-to-uta' => 2.5,
-                        'v5/account/set-margin-mode' => 2.5,
-                        'v5/account/mmp-modify' => 2.5,
-                        'v5/account/mmp-reset' => 2.5,
+                        'v5/account/upgrade-to-uta' => 5,
+                        'v5/account/set-margin-mode' => 5,
+                        'v5/account/mmp-modify' => 5,
+                        'v5/account/mmp-reset' => 5,
                         // asset
                         'v5/asset/transfer/inter-transfer' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/deposit-to-account' => 2.5,
+                        'v5/asset/deposit/deposit-to-account' => 5,
                         'v5/asset/withdraw/create' => 300, // 1/6/s => cost = 50 / 1/6 = 300
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
                         // user
@@ -645,15 +648,15 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/purchase' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-lever-token/redeem' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // spot margin trade
-                        'v5/spot-margin-trade/switch-mode' => 2.5,
-                        'v5/spot-margin-trade/set-leverage' => 2.5,
+                        'v5/spot-margin-trade/switch-mode' => 5,
+                        'v5/spot-margin-trade/set-leverage' => 5,
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // c2c lending
-                        'v5/lending/purchase' => 2.5,
-                        'v5/lending/redeem' => 2.5,
-                        'v5/lending/redeem-cancel' => 2.5,
+                        'v5/lending/purchase' => 5,
+                        'v5/lending/redeem' => 5,
+                        'v5/lending/redeem-cancel' => 5,
                     ),
                     'delete' => array(
                         // spot
@@ -1202,9 +1205,6 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
-            'commonCurrencies' => array(
-                'GAS' => 'GASDAO',
-            ),
         ));
     }
 
@@ -1457,7 +1457,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type($method, $market, $params) {
+    public function get_bybit_type($method, $market, $params = array ()) {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -2369,7 +2369,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "1621162800",
@@ -2786,7 +2786,7 @@ class bybit extends Exchange {
             $feeToken = $this->safe_string($trade, 'feeTokenId');
             $feeCurrency = $this->safe_currency_code($feeToken);
             $fee = array(
-                'cost' => Precise::string_abs($feeCost),
+                'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
         }
@@ -2950,7 +2950,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => Precise::string_abs($feeCostString),
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -3198,8 +3198,11 @@ class bybit extends Exchange {
         //         "time" => 1672125441042
         //     }
         //
+        $timestamp = $this->safe_integer($response, 'time');
         $result = array(
             'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
         $responseResult = $this->safe_value($response, 'result', array());
         $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
@@ -3290,9 +3293,10 @@ class bybit extends Exchange {
                 // because it requires transfer permission
                 $request['accountType'] = $unifiedType;
                 $response = Async\await($this->privateGetV5AssetTransferQueryAccountCoinsBalance (array_merge($request, $params)));
+            } else {
+                $request['accountType'] = $unifiedType;
+                $response = Async\await($this->privateGetV5AccountWalletBalance (array_merge($request, $params)));
             }
-            $request['accountType'] = $unifiedType;
-            $response = Async\await($this->privateGetV5AccountWalletBalance (array_merge($request, $params)));
             //
             // cross
             //     {
@@ -3438,7 +3442,7 @@ class bybit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // v1 for usdc normal account
         //     {
@@ -3521,7 +3525,31 @@ class bybit extends Exchange {
         //         "createdTime" => "1684476068369",
         //         "updatedTime" => "1684476068372"
         //     }
+        // createOrders failed $order
+        //    {
+        //        $category => 'linear',
+        //        $symbol => 'LTCUSDT',
+        //        orderId => '',
+        //        orderLinkId => '',
+        //        createAt => '',
+        //        $code => '10001',
+        //        msg => 'The number of contracts exceeds maximum limit allowed => too large'
+        //    }
         //
+        $code = $this->safe_string($order, 'code');
+        if ($code !== null) {
+            if ($code !== '0') {
+                $category = $this->safe_string($order, 'category');
+                $inferedMarketType = ($category === 'spot') ? 'spot' : 'contract';
+                return $this->safe_order(array(
+                    'info' => $order,
+                    'status' => 'rejected',
+                    'id' => $this->safe_string($order, 'orderId'),
+                    'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
+                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferedMarketType),
+                ));
+            }
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $isContract = (is_array($order) && array_key_exists('tpslMode', $order));
         $marketType = null;
@@ -3672,150 +3700,22 @@ class bybit extends Exchange {
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @param {float} [$params->stopLossPrice] The $price at which a stop loss $order is triggered at
              * @param {float} [$params->takeProfitPrice] The $price at which a take profit $order is triggered at
-             * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit $order will be triggered
+             * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
              * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-             * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered
+             * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered
              * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $isUsdcSettled = $market['settle'] === 'USDC';
             if ($isUsdcSettled && !$isUnifiedAccount) {
                 return Async\await($this->create_usdc_order($symbol, $type, $side, $amount, $price, $params));
             }
-            $lowerCaseType = strtolower($type);
-            if (($price === null) && ($lowerCaseType === 'limit')) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $this->capitalize($side),
-                'orderType' => $this->capitalize($lowerCaseType), // limit or $market
-                // 'timeInForce' => 'GTC', // IOC, FOK, PostOnly
-                // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
-                // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
-                // 'reduceOnly' => false, // reduce only, required for linear orders
-                // when creating a closing $order, bybit recommends a True value for
-                //  closeOnTrigger to avoid failing due to insufficient available margin
-                // 'closeOnTrigger' => false, required for linear orders
-                // 'orderLinkId' => 'string', // unique client $order id, max 36 characters
-                // 'triggerPrice' => 123.46, // trigger $price, required for conditional orders
-                // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
-                // 'mmp' => false // $market maker protection
-                // 'positionIdx' => 0, // Position mode. Unified account has one-way mode only (0)
-                // 'triggerDirection' => 1, // Conditional $order param. Used to identify the expected direction of the conditional $order-> 1 => triggered when $market $price rises to $triggerPrice 2 => triggered when $market $price falls to $triggerPrice
-                // Valid for spot only.
-                // 'isLeverage' => 0, // Whether to borrow. 0(default) => false, 1 => true
-                // 'orderFilter' => 'Order' // Order,tpslOrder. If not passed, Order by default
-                // Valid for option only.
-                // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
-            );
-            if ($market['spot']) {
-                $request['category'] = 'spot';
-            } elseif ($market['linear']) {
-                $request['category'] = 'linear';
-            } elseif ($market['inverse']) {
-                $request['category'] = 'inverse';
-            } elseif ($market['option']) {
-                $request['category'] = 'option';
-            }
-            if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
-                // for $market buy it requires the $amount of quote currency to spend
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    $cost = $this->safe_number($params, 'cost');
-                    $params = $this->omit($params, 'cost');
-                    if ($price === null && $cost === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
-                        $request['qty'] = $this->cost_to_precision($symbol, $amount);
-                    }
-                } else {
-                    $request['qty'] = $this->cost_to_precision($symbol, $amount);
-                }
-            } else {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
-            }
-            $isMarket = $lowerCaseType === 'market';
-            $isLimit = $lowerCaseType === 'limit';
-            if ($isLimit) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
-            if ($postOnly) {
-                $request['timeInForce'] = 'PostOnly';
-            } elseif ($timeInForce === 'gtc') {
-                $request['timeInForce'] = 'GTC';
-            } elseif ($timeInForce === 'fok') {
-                $request['timeInForce'] = 'FOK';
-            } elseif ($timeInForce === 'ioc') {
-                $request['timeInForce'] = 'IOC';
-            }
-            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
-            $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
-            $stopLoss = $this->safe_value($params, 'stopLoss');
-            $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
-            $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
-            $isBuy = $side === 'buy';
-            $setTriggerDirection = ($stopLossTriggerPrice || $triggerPrice) ? !$isBuy : $isBuy;
-            $defaultTriggerDirection = $setTriggerDirection ? 2 : 1;
-            $triggerDirection = $this->safe_string($params, 'triggerDirection');
-            $params = $this->omit($params, 'triggerDirection');
-            $selectedDirection = $defaultTriggerDirection;
-            if ($triggerDirection !== null) {
-                $isAsending = (($triggerDirection === 'up') || ($triggerDirection === '1'));
-                $selectedDirection = $isAsending ? 1 : 2;
-            }
-            if ($triggerPrice !== null) {
-                $request['triggerDirection'] = $selectedDirection;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                $request['triggerDirection'] = $selectedDirection;
-                $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['reduceOnly'] = true;
-            } elseif ($isStopLoss || $isTakeProfit) {
-                if ($isStopLoss) {
-                    $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
-                    $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
-                }
-                if ($isTakeProfit) {
-                    $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
-                    $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
-                }
-            }
-            if ($market['spot']) {
-                // only works for spot $market
-                if ($triggerPrice !== null) {
-                    $request['orderFilter'] = 'StopOrder';
-                } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
-                    $request['orderFilter'] = 'tpslOrder';
-                }
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['orderLinkId'] = $clientOrderId;
-            } elseif ($market['option']) {
-                // mandatory field for options
-                $request['orderLinkId'] = $this->uuid16();
-            }
-            $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
-            $response = Async\await($this->privatePostV5OrderCreate (array_merge($request, $params)));
+            $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->privatePostV5OrderCreate ($orderRequest)); // already extended inside createOrderRequest
             //
             //     {
             //         "retCode" => 0,
@@ -3830,6 +3730,228 @@ class bybit extends Exchange {
             //
             $order = $this->safe_value($response, 'result', array());
             return $this->parse_order($order, $market);
+        }) ();
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $lowerCaseType = strtolower($type);
+        if (($price === null) && ($lowerCaseType === 'limit')) {
+            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $this->capitalize($side),
+            'orderType' => $this->capitalize($lowerCaseType), // limit or $market
+            // 'timeInForce' => 'GTC', // IOC, FOK, PostOnly
+            // 'takeProfit' => 123.45, // take profit $price, only take effect upon opening the position
+            // 'stopLoss' => 123.45, // stop loss $price, only take effect upon opening the position
+            // 'reduceOnly' => false, // reduce only, required for linear orders
+            // when creating a closing order, bybit recommends a True value for
+            //  closeOnTrigger to avoid failing due to insufficient available margin
+            // 'closeOnTrigger' => false, required for linear orders
+            // 'orderLinkId' => 'string', // unique client order id, max 36 characters
+            // 'triggerPrice' => 123.46, // trigger $price, required for conditional orders
+            // 'triggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'tpTriggerby' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'slTriggerBy' => 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'mmp' => false // $market maker protection
+            // 'positionIdx' => 0, // Position mode. Unified account has one-way mode only (0)
+            // 'triggerDirection' => 1, // Conditional order param. Used to identify the expected direction of the conditional order. 1 => triggered when $market $price rises to $triggerPrice 2 => triggered when $market $price falls to $triggerPrice
+            // Valid for spot only.
+            // 'isLeverage' => 0, // Whether to borrow. 0(default) => false, 1 => true
+            // 'orderFilter' => 'Order' // Order,tpslOrder. If not passed, Order by default
+            // Valid for option only.
+            // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
+        );
+        if ($market['spot']) {
+            $request['category'] = 'spot';
+        } elseif ($market['linear']) {
+            $request['category'] = 'linear';
+        } elseif ($market['inverse']) {
+            $request['category'] = 'inverse';
+        } elseif ($market['option']) {
+            $request['category'] = 'option';
+        }
+        if ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                $cost = $this->safe_number($params, 'cost');
+                $params = $this->omit($params, 'cost');
+                if ($price === null && $cost === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)');
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
+                    $request['qty'] = $this->cost_to_precision($symbol, $amount);
+                }
+            } else {
+                $request['qty'] = $this->cost_to_precision($symbol, $amount);
+            }
+        } else {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $isMarket = $lowerCaseType === 'market';
+        $isLimit = $lowerCaseType === 'limit';
+        if ($isLimit) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
+        if ($postOnly) {
+            $request['timeInForce'] = 'PostOnly';
+        } elseif ($timeInForce === 'gtc') {
+            $request['timeInForce'] = 'GTC';
+        } elseif ($timeInForce === 'fok') {
+            $request['timeInForce'] = 'FOK';
+        } elseif ($timeInForce === 'ioc') {
+            $request['timeInForce'] = 'IOC';
+        }
+        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $stopLoss = $this->safe_value($params, 'stopLoss');
+        $takeProfit = $this->safe_value($params, 'takeProfit');
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
+        $isStopLoss = $stopLoss !== null;
+        $isTakeProfit = $takeProfit !== null;
+        $isBuy = $side === 'buy';
+        $setTriggerDirection = ($stopLossTriggerPrice || $triggerPrice) ? !$isBuy : $isBuy;
+        $defaultTriggerDirection = $setTriggerDirection ? 2 : 1;
+        $triggerDirection = $this->safe_string($params, 'triggerDirection');
+        $params = $this->omit($params, 'triggerDirection');
+        $selectedDirection = $defaultTriggerDirection;
+        if ($triggerDirection !== null) {
+            $isAsending = (($triggerDirection === 'up') || ($triggerDirection === '1'));
+            $selectedDirection = $isAsending ? 1 : 2;
+        }
+        if ($triggerPrice !== null) {
+            $request['triggerDirection'] = $selectedDirection;
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+        } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+            $request['triggerDirection'] = $selectedDirection;
+            $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+            $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['reduceOnly'] = true;
+        } elseif ($isStopLoss || $isTakeProfit) {
+            if ($isStopLoss) {
+                $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
+            }
+            if ($isTakeProfit) {
+                $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $request['takeProfit'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+            }
+        }
+        if ($market['spot']) {
+            // only works for spot $market
+            if ($triggerPrice !== null) {
+                $request['orderFilter'] = 'StopOrder';
+            } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
+                $request['orderFilter'] = 'tpslOrder';
+            }
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['orderLinkId'] = $clientOrderId;
+        } elseif ($market['option']) {
+            // mandatory field for options
+            $request['orderLinkId'] = $this->uuid16();
+        }
+        $params = $this->omit($params, array( 'stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit' ));
+        return array_merge($request, $params);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $orderSymbols = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $orderSymbols[] = $marketId;
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+            $market = $this->market($symbols[0]);
+            $category = null;
+            list($category, $params) = $this->get_bybit_type('createOrders', $market, $params);
+            if (($category === 'spot') || ($category === 'inverse')) {
+                throw new NotSupported($this->id . ' createOrders does not allow spot or inverse orders');
+            }
+            $request = array(
+                'category' => $category,
+                'request' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostV5OrderCreateBatch (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            $data = $this->safe_value($result, 'list', array());
+            $retInfo = $this->safe_value($response, 'retExtInfo', array());
+            $codes = $this->safe_value($retInfo, 'list', array());
+            // extend the error with the unsuccessful $orders
+            for ($i = 0; $i < count($codes); $i++) {
+                $code = $codes[$i];
+                $retCode = $this->safe_integer($code, 'code');
+                if ($retCode !== 0) {
+                    $data[$i] = array_merge($data[$i], $code);
+                }
+            }
+            //
+            // {
+            //     "retCode":0,
+            //     "retMsg":"OK",
+            //     "result":{
+            //        "list":array(
+            //           array(
+            //              "category":"linear",
+            //              "symbol":"LTCUSDT",
+            //              "orderId":"",
+            //              "orderLinkId":"",
+            //              "createAt":""
+            //           ),
+            //           array(
+            //              "category":"linear",
+            //              "symbol":"LTCUSDT",
+            //              "orderId":"3c9f65b6-01ad-4ac0-9741-df17e02a4223",
+            //              "orderLinkId":"",
+            //              "createAt":"1698075516029"
+            //           }
+            //        )
+            //     ),
+            //     "retExtInfo":{
+            //        "list":array(
+            //           array(
+            //              "code":10001,
+            //              "msg":"The number of contracts exceeds maximum limit allowed => too large"
+            //           ),
+            //           array(
+            //              "code":0,
+            //              "msg":"OK"
+            //           }
+            //        )
+            //     ),
+            //     "time":1698075516029
+            // }
+            //
+            return $this->parse_orders($data);
         }) ();
     }
 
@@ -4063,7 +4185,9 @@ class bybit extends Exchange {
                 // Valid for option only.
                 // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
             );
-            if ($market['linear']) {
+            if ($market['spot']) {
+                $request['category'] = 'spot';
+            } elseif ($market['linear']) {
                 $request['category'] = 'linear';
             } elseif ($market['inverse']) {
                 $request['category'] = 'inverse';
