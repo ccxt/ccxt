@@ -931,7 +931,7 @@ export default class testMainClass extends baseMainTestClass {
         const newInput = [];
         for (let i = 0; i < input.length; i++) {
             const current = input[i];
-            if (current === null) {
+            if (current === null) { // noqa: E711
                 newInput.push (undefined);
             } else {
                 newInput.push (current);
