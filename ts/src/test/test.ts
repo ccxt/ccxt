@@ -902,8 +902,15 @@ export default class testMainClass extends baseMainTestClass {
             if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
                 const storedUrlParts = storedUrl.split ('?');
                 const newUrlParts = requestUrl.split ('?');
-                const storedUrlParams = this.urlencodedToDict (storedUrlParts[1]);
-                const newUrlParams = this.urlencodedToDict (newUrlParts[1]);
+                const storedUrlQuery = exchange.safeValue (storedUrlParts, 1);
+                const newUrlQuery = exchange.safeValue (newUrlParts, 1);
+                if ((storedUrlQuery === undefined) && (newUrlQuery === undefined)) {
+                    // might be a get request without any query parameters
+                    // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                const storedUrlParams = this.urlencodedToDict (storedUrlQuery);
+                const newUrlParams = this.urlencodedToDict (newUrlQuery);
                 this.assertNewAndStoredOutput (exchange, skipKeys, newUrlParams, storedUrlParams);
                 return;
             }
