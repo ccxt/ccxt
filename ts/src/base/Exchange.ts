@@ -1760,6 +1760,18 @@ export default class Exchange {
         return parseInt (convertedNumber);
     }
 
+    parseToNumeric (number) {
+        const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf ('.') > 0) {
+            return parseFloat (stringVersion);
+        }
+        return parseInt (stringVersion);
+    }
+
     afterConstruct () {
         this.createNetworksByIdObject ();
     }

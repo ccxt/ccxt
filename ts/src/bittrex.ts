@@ -514,6 +514,7 @@ export default class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
