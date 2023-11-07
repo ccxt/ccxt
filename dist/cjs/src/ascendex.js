@@ -35,6 +35,7 @@ class ascendex extends ascendex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -1460,30 +1461,33 @@ class ascendex extends ascendex$1 {
         }
         return result;
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name ascendex#createOrder
-         * @description Create an order on the exchange
-         * @param {string} symbol Unified CCXT market symbol
-         * @param {string} type "limit" or "market"
-         * @param {string} side "buy" or "sell"
-         * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-         * @param {object} [params] Extra parameters specific to the exchange API endpoint
+         * @ignore
+         * @name ascendex#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the ascendex api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
-         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
-         * @returns [An order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @returns {object} request to be sent to the exchange
          */
-        await this.loadMarkets();
-        await this.loadAccounts();
         const market = this.market(symbol);
+        let marginMode = undefined;
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('createOrder', market, params);
-        const options = this.safeValue(this.options, 'createOrder', {});
+        [marginMode, params] = this.handleMarginModeAndParams('createOrderRequest', params);
+        [marketType, params] = this.handleMarketTypeAndParams('createOrderRequest', market, params);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
-        const accountCategory = this.safeString(accountsByType, marketType, 'cash');
+        let accountCategory = this.safeString(accountsByType, marketType, 'cash');
+        if (marginMode !== undefined) {
+            accountCategory = 'margin';
+        }
         const account = this.safeValue(this.accounts, 0, {});
         const accountGroup = this.safeValue(account, 'id');
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'id');
@@ -1504,13 +1508,6 @@ class ascendex extends ascendex$1 {
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
         const reduceOnly = this.safeValue(params, 'reduceOnly', false);
         const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
-        params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice']);
-        if (reduceOnly) {
-            if (marketType !== 'swap') {
-                throw new errors.InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only');
-            }
-            request['execInst'] = 'ReduceOnly';
-        }
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
@@ -1535,21 +1532,56 @@ class ascendex extends ascendex$1 {
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
         }
-        const defaultMethod = this.safeString(options, 'method', 'v1PrivateAccountCategoryPostOrder');
-        const method = this.getSupportedMapping(marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
-        });
-        if (method === 'v1PrivateAccountCategoryPostOrder') {
+        if (market['spot']) {
             if (accountCategory !== undefined) {
                 request['category'] = accountCategory;
             }
         }
         else {
             request['account-category'] = accountCategory;
+            if (reduceOnly) {
+                request['execInst'] = 'ReduceOnly';
+            }
+            if (postOnly) {
+                request['execInst'] = 'Post';
+            }
         }
-        const response = await this[method](this.extend(request, params));
+        params = this.omit(params, ['reduceOnly', 'triggerPrice']);
+        return this.extend(request, params);
+    }
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#createOrder
+         * @description create a trade order on the exchange
+         * @see https://ascendex.github.io/ascendex-pro-api/#place-order
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} type "limit" or "market"
+         * @param {string} side "buy" or "sell"
+         * @param {float} amount the amount of currency to trade
+         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [params.postOnly] true or false
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
+         * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
+         * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+         * @returns [An order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        await this.loadAccounts();
+        const market = this.market(symbol);
+        const request = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.v2PrivateAccountGroupPostFuturesOrder(request);
+        }
+        else {
+            response = await this.v1PrivateAccountCategoryPostOrder(request);
+        }
         //
         // spot
         //
@@ -1569,7 +1601,6 @@ class ascendex extends ascendex$1 {
         //              }
         //          }
         //      }
-        //
         //
         // swap
         //
@@ -1617,6 +1648,105 @@ class ascendex extends ascendex$1 {
         const data = this.safeValue(response, 'data', {});
         const order = this.safeValue2(data, 'order', 'info', {});
         return this.parseOrder(order, market);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name ascendex#createOrders
+         * @description create a list of trade orders
+         * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the ascendex api endpoint
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [params.postOnly] true or false
+         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        await this.loadAccounts();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let marginMode = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            }
+            else {
+                if (symbol !== marketId) {
+                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                }
+                else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            ordersRequests.push(orderRequest);
+        }
+        const market = this.market(symbol);
+        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        let accountCategory = this.safeString(accountsByType, market['type'], 'cash');
+        if (marginMode !== undefined) {
+            accountCategory = 'margin';
+        }
+        const account = this.safeValue(this.accounts, 0, {});
+        const accountGroup = this.safeValue(account, 'id');
+        const request = {};
+        let response = undefined;
+        if (market['swap']) {
+            throw new errors.NotSupported(this.id + ' createOrders() is not currently supported for swap markets on ascendex');
+            // request['account-group'] = accountGroup;
+            // request['category'] = accountCategory;
+            // request['orders'] = ordersRequests;
+            // response = await this.v2PrivateAccountGroupPostFuturesOrderBatch (request);
+        }
+        else {
+            request['account-group'] = accountGroup;
+            request['account-category'] = accountCategory;
+            request['orders'] = ordersRequests;
+            response = await this.v1PrivateAccountCategoryPostOrderBatch(request);
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "cshdAKBO43TKIh2kJtq7FVVb42KIePyS",
+        //             "ac": "CASH",
+        //             "action": "batch-place-order",
+        //             "status": "Ack",
+        //             "info": [
+        //                 {
+        //                     "symbol": "BTC/USDT",
+        //                     "orderType": "Limit",
+        //                     "timestamp": 1699326589344,
+        //                     "id": "",
+        //                     "orderId": "a18ba7c1f6efU0711043490p3HvjjN5x"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue(response, 'data', {});
+        const info = this.safeValue(data, 'info', []);
+        return this.parseOrders(info, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

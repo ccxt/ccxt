@@ -123,6 +123,7 @@ from ccxt.coinbasepro import coinbasepro                              # noqa: F4
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinfalcon import coinfalcon                                # noqa: F401
+from ccxt.coinlist import coinlist                                    # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
@@ -230,6 +231,7 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
+    'coinlist',
     'coinmate',
     'coinone',
     'coinsph',
