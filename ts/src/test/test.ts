@@ -920,18 +920,7 @@ export default class testMainClass extends baseMainTestClass {
             storedOutput = this.urlencodedToDict (storedOutput);
             newOutput = this.urlencodedToDict (newOutput);
         }
-        if (Array.isArray (storedOutput)) {
-            if (!Array.isArray (newOutput)) {
-                this.assertStaticError (false, 'output type mismatch', storedOutput, newOutput);
-            }
-            for (let i = 0; i < storedOutput.length; i++) {
-                const storedItem = storedOutput[i];
-                const newItem = newOutput[i];
-                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
-            }
-        } else {
-            this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
-        }
+        this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
     async testMethodStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
