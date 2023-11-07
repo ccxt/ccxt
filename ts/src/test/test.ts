@@ -794,13 +794,13 @@ export default class testMainClass extends baseMainTestClass {
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        const filename = './ts/src/test/static/markets/' + id + '.json';
+        const filename = rootDir + './ts/src/test/static/markets/' + id + '.json';
         const content = ioFileRead (filename);
         return content;
     }
 
     loadStaticData (targetExchange: string = undefined) {
-        const folder = './ts/src/test/static/data/';
+        const folder = rootDir + './ts/src/test/static/data/';
         const result = {};
         if (targetExchange) {
             // read a single exchange
