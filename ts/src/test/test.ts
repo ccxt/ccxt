@@ -871,9 +871,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                if (Array.isArray (storedValue) || (typeof storedValue === 'object')) {
-                    this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
-                }
+                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
             }
         } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
