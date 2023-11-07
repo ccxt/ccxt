@@ -37,7 +37,7 @@ export default class testMainClass extends baseMainTestClass {
     loadStaticData(targetExchange?: string): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
-    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: object, storedOutput: object): any;
+    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: any, storedOutput: any): void;
     assertStaticOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
     testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
     initOfflineExchange(exchangeName: string): Exchange;
