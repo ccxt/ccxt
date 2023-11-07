@@ -6,9 +6,9 @@ from decimal import Decimal
 if sys.version_info.minor > 7:
     from typing import TypedDict, Literal, Dict
 else:
-    TypedDict = dict
-    Dict = dict
+    from typing import Dict
     from typing_extensions import Literal
+    TypedDict = Dict
 
 
 OrderSide = Literal['buy', 'sell']
