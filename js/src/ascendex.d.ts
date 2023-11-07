@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest } from './base/types.js';
 /**
  * @class ascendex
  * @extends Exchange
@@ -31,7 +31,9 @@ export default class ascendex extends Exchange {
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
     fetchTradingFees(params?: {}): Promise<{}>;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
