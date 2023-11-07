@@ -1075,7 +1075,13 @@
         }
     },
     "kuna": {
-        "httpProxy": "http://5.75.153.75:8002"
+        "httpProxy": "http://5.75.153.75:8002",
+        "skipPhpAsync": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            }
+        }
     },
     "kucoin": {
         "skipWs": true,
@@ -1365,6 +1371,7 @@
         }
     },
     "tidex": {
+        "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
         "skipWs": true,

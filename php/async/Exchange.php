@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.37';
+$version = '4.1.40';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.37';
+    const VERSION = '4.1.40';
 
     public $browser;
     public $marketsLoading = null;
@@ -3905,7 +3905,12 @@ class Exchange extends \ccxt\Exchange {
                         }
                         $params[$cursorSent] = $cursorValue;
                     }
-                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $response = null;
+                    if ($method === 'fetchAccounts') {
+                        $response = Async\await($this->$method ($params));
+                    } else {
+                        $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    }
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {

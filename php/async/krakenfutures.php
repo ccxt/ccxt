@@ -95,6 +95,7 @@ class krakenfutures extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -104,6 +105,7 @@ class krakenfutures extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -142,11 +144,6 @@ class krakenfutures extends Exchange {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ),
-                ),
-                'feeschedules' => array(
-                    'get' => array(
-                        'volumes',
                     ),
                 ),
             ),

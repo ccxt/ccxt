@@ -1301,7 +1301,7 @@ class Transpiler {
         const sync = syncFilePath
         log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
-        const syncBody = his.transpileAsyncPHPToSyncPHP (fileContents)
+        const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
 
         const phpTestRegexes = [
             [ /Async\\coroutine\(\$main\)/, '\$main()' ],
