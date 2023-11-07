@@ -13,7 +13,8 @@ from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
-from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, SameLeverage, TradesNotFound
+from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, SameLeverage, TradesNotFound, \
+    AccountRateLimitExceeded
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -510,10 +511,10 @@ class bybit(Exchange):
                     '10003': AuthenticationError,  # Invalid apikey
                     '10004': AuthenticationError,  # invalid sign
                     '10005': PermissionDenied,  # permission denied for current apikey
-                    '10006': RateLimitExceeded,  # too many requests
+                    '10006': AccountRateLimitExceeded,  # too many requests
                     '10007': AuthenticationError,  # api_key not found in your request parameters
                     '10008': AuthenticationError,  # User had been banned
-                    '10009': AuthenticationError,  # IP had been banned
+                    '10009': BadRequest,  # IP had been banned
                     '10010': PermissionDenied,  # request ip mismatch
                     '10014': BadRequest,  # Request is duplicate
                     '10016': ExchangeError,  # {"retCode":10016,"retMsg":"System error. Please try again later."}

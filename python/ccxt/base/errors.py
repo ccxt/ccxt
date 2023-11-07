@@ -32,7 +32,9 @@ error_hierarchy = {
         },
         'NetworkError': {
             'DDoSProtection': {
-                'RateLimitExceeded': {},
+                'RateLimitExceeded': {
+                    'AccountRateLimitExceeded': {}
+                },
             },
             'ExchangeNotAvailable': {
                 'OnMaintenance': {},
@@ -152,6 +154,10 @@ class RateLimitExceeded(DDoSProtection):
     pass
 
 
+class AccountRateLimitExceeded(RateLimitExceeded):
+    pass
+
+
 class SameLeverage(ExchangeError):
     pass
 
@@ -219,6 +225,7 @@ __all__ = [
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',
+    'AccountRateLimitExceeded',
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
