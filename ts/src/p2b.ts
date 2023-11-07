@@ -28,7 +28,14 @@ export default class p2b extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'createMarketOrder': false,
+                'createOrder': true,
+                'fetchBalance': true,
                 'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': true,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTickers': true,
                 'fetchTicker': true,
                 'fetchOrderBook': true,
@@ -521,6 +528,8 @@ export default class p2b extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades
+        //
         //    {
         //        id: '7495738622',
         //        type: 'sell',
@@ -529,21 +538,59 @@ export default class p2b extends Exchange {
         //        price: '0.3422'
         //    }
         //
-        const timestamp = this.safeIntegerProduct (trade, 'time', 1000);
+        // fetchMyTrades
+        //
+        //    {
+        //        "deal_id": 7450617292,              // Deal id
+        //        "deal_time": 1698506956.66224,      // Deal execution time
+        //        "deal_order_id": 171955225751,      // Deal order id
+        //        "opposite_order_id": 171955110512,  // Opposite order id
+        //        "side": "sell",                     // Deal side
+        //        "price": "0.05231",                 // Deal price
+        //        "amount": "0.002",                  // Deal amount
+        //        "deal": "0.00010462",               // Total (price * amount)
+        //        "deal_fee": "0.000000188316",       // Deal fee
+        //        "role": "taker",                    // Role. Taker or maker
+        //        "isSelfTrade": false                // is self trade
+        //    }
+        //
+        // fetchOrderTrades
+        //
+        //    {
+        //        "id": 7429883128,             // Deal id
+        //        "time": 1698237535.41196,     // Deal execution time
+        //        "fee": "0.01755848704",       // Deal fee
+        //        "price": "34293.92",          // Deal price
+        //        "amount": "0.00032",          // Deal amount
+        //        "dealOrderId": 171366551416,  // Deal order id
+        //        "role": 1,                    // Deal role (1 - maker, 2 - taker)
+        //        "deal": "10.9740544"          // Total (price * amount)
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct2 (trade, 'time', 'deal_time', 1000);
+        let takerOrMaker = this.safeString (trade, 'role');
+        if (takerOrMaker === '1') {
+            takerOrMaker = 'maker';
+        } else if (takerOrMaker === '2') {
+            takerOrMaker = 'taker';
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString2 (trade, 'id', 'deal_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': this.safeString (market, 'symbol'),
-            'order': undefined,
+            'order': this.safeString2 (trade, 'dealOrderId', 'deal_order_id'),
             'type': undefined,
             'side': this.safeString (trade, 'type'),
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'amount'),
-            'cost': undefined,
-            'fee': undefined,
+            'cost': this.safeString (trade, 'deal'),
+            'fee': {
+                'currency': market['base'],
+                'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
+            },
         }, market);
     }
 
@@ -618,6 +665,482 @@ export default class p2b extends Exchange {
         ];
     }
 
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountBalances (params);
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "USDT": {
+        //              "available": "71.81328046",
+        //              "freeze": "10.46103091"
+        //            },
+        //            "BTC": {
+        //              "available": "0.00135674",
+        //              "freeze": "0.00020003"
+        //            }
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseBalance (result);
+    }
+
+    parseBalance (response) {
+        //
+        //    {
+        //        "USDT": {
+        //            "available": "71.81328046",
+        //            "freeze": "10.46103091"
+        //        },
+        //        "BTC": {
+        //            "available": "0.00135674",
+        //            "freeze": "0.00020003"
+        //        }
+        //    }
+        //
+        const result = {
+            'info': response,
+        };
+        const keys = response.keys ();
+        for (let i = 0; i < keys.length; i++) {
+            const currencyId = response[i];
+            const balance = response[currencyId];
+            const code = this.safeCurrencyCode (currencyId);
+            const used = this.safeString (balance, 'freeze');
+            const available = this.safeString (balance, 'available');
+            const account = {
+                'free': available,
+                'used': used,
+            };
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#createOrder
+         * @description create a trade order
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type must be 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        if (type === 'market') {
+            throw new BadRequest (this.id + ' createOrder () can only accept orders with type "limit"');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'type': type,
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const response = await this.privatePostOrderNew (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "orderId": 171906478744,          // Order id
+        //            "market": "ETH_BTC",              // Market name
+        //            "price": "0.04348",               // Price
+        //            "side": "buy",                    // Side
+        //            "type": "limit",                  // Order type
+        //            "timestamp": 1698484861.746517,   // Order creation time
+        //            "dealMoney": "0",                 // Filled total
+        //            "dealStock": "0",                 // Filled amount
+        //            "amount": "0.0277",               // Original amount
+        //            "takerFee": "0.002",              // taker fee
+        //            "makerFee": "0.002",              // maker fee
+        //            "left": "0.0277",                 // Unfilled amount
+        //            "dealFee": "0"                    // Filled fee
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result, market);
+    }
+
+    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#cancelOrder
+         * @description cancels an open order
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires argument ' + symbol);
+        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'orderNo': id,
+        };
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "orderId": 171906478744,
+        //            "market": "ETH_BTC",
+        //            "price": "0.04348",
+        //            "side": "buy",
+        //            "type": "limit",
+        //            "timestamp": 1698484861.746517,
+        //            "dealMoney": "0",
+        //            "dealStock": "0",
+        //            "amount": "0.0277",
+        //            "takerFee": "0.002",
+        //            "makerFee": "0.002",
+        //            "left": "0.0277",
+        //            "dealFee": "0"
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result);
+    }
+
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] 0-10000, default=0
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders () requires the symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": [
+        //            {
+        //                "orderId": 171913325964,
+        //                "market": "ETH_BTC",
+        //                "price": "0.06534",
+        //                "side": "sell",
+        //                "type": "limit",
+        //                "timestamp": 1698487986.836821,
+        //                "dealMoney": "0",
+        //                "dealStock": "0",
+        //                "amount": "0.0018",
+        //                "takerFee": "0.0018",
+        //                "makerFee": "0.0016",
+        //                "left": "0.0018",
+        //                "dealFee": "0"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] 1-100, default=50
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] 0-10000, default=0
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'orderNo': id,
+        };
+        const response = await this.privatePostAccountOrder (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "offset": 0,
+        //            "limit": 50,
+        //            "records": [
+        //                {
+        //                    "id": 7429883128,             // Deal id
+        //                    "time": 1698237535.41196,     // Deal execution time
+        //                    "fee": "0.01755848704",       // Deal fee
+        //                    "price": "34293.92",          // Deal price
+        //                    "amount": "0.00032",          // Deal amount
+        //                    "dealOrderId": 171366551416,  // Deal order id
+        //                    "role": 1,                    // Deal role (1 - maker, 2 - taker)
+        //                    "deal": "10.9740544"          // Total (price * amount)
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const records = this.safeValue (result, 'records', []);
+        return this.parseTrades (records, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchMyTrades
+         * @description fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} since the earliest time in ms to fetch orders for
+         * @param {int} [limit] 1-100, default=50
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {int} params.until the latest time in ms to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] 0-10000, default=0
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         */
+        await this.loadMarkets ();
+        const until = this.safeInteger (params, 'until');
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' fetchClosedOrders must have a symbol argument');
+        }
+        if (since === undefined) {
+            throw new BadRequest (this.id + ' fetchClosedOrders must have a since argument');
+        }
+        if (until === undefined) {
+            throw new BadRequest (this.id + ' fetchClosedOrders must have an extra argument params["until"]');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'startTime': since / 1000,
+            'endTime': until / 1000,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostAccountMarketDealHistory (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "total": 2,                                 // Total records in the queried range
+        //            "deals": [
+        //                {
+        //                    "deal_id": 7450617292,              // Deal id
+        //                    "deal_time": 1698506956.66224,      // Deal execution time
+        //                    "deal_order_id": 171955225751,      // Deal order id
+        //                    "opposite_order_id": 171955110512,  // Opposite order id
+        //                    "side": "sell",                     // Deal side
+        //                    "price": "0.05231",                 // Deal price
+        //                    "amount": "0.002",                  // Deal amount
+        //                    "deal": "0.00010462",               // Total (price * amount)
+        //                    "deal_fee": "0.000000188316",       // Deal fee
+        //                    "role": "taker",                    // Role. Taker or maker
+        //                    "isSelfTrade": false                // is self trade
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const deals = this.safeValue (result, 'deals', []);
+        return this.parseTrades (deals, market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} since the earliest time in ms to fetch orders for
+         * @param {int} [limit] 1-100, default=50
+         * @param {object} [params] extra parameters specific to the p2b api endpoint
+         * @param {int} params.until the latest time in ms to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.offset] 0-10000, default=0
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const until = this.safeInteger (params, 'until');
+        if (symbol === undefined) {
+            throw new BadRequest (this.id + ' fetchClosedOrders must have a symbol argument');
+        }
+        if (since === undefined) {
+            throw new BadRequest (this.id + ' fetchClosedOrders must have a since argument');
+        }
+        if (until === undefined) {
+            throw new BadRequest (this.id + ' fetchClosedOrders must have an extra argument params["until"]');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'startTime': since / 1000,
+            'endTime': until / 1000,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostAccountOrderHistory (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "errorCode": "",
+        //        "message": "",
+        //        "result": {
+        //            "total": 2,                           // Total records in the queried range
+        //            "orders": [
+        //                {
+        //                    "id": 171366547790,           // Order id
+        //                    "amount": "0.00032",          // Original amount
+        //                    "price": "34293.92",          // Order price
+        //                    "type": "limit",              // Order type
+        //                    "side": "sell",               // Order side
+        //                    "ctime": 1698237533.497241,   // Order creation time
+        //                    "ftime": 1698237535.41196,    // Order fill time
+        //                    "market": "BTC_USDT",         // Market name
+        //                    "takerFee": "0.0018",         // Taker fee
+        //                    "makerFee": "0.0016",         // Market fee
+        //                    "dealFee": "0.01755848704",   // Deal fee
+        //                    "dealStock": "0.00032",       // Filled amount
+        //                    "dealMoney": "10.9740544"     // Filled total
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        const orders = this.safeValue (result, 'orders');
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // cancelOrder, fetchOpenOrders, createOrder
+        //
+        //    {
+        //        "orderId": 171906478744,
+        //        "market": "ETH_BTC",
+        //        "price": "0.04348",
+        //        "side": "buy",
+        //        "type": "limit",
+        //        "timestamp": 1698484861.746517,
+        //        "dealMoney": "0",
+        //        "dealStock": "0",
+        //        "amount": "0.0277",
+        //        "takerFee": "0.002",
+        //        "makerFee": "0.002",
+        //        "left": "0.0277",
+        //        "dealFee": "0"
+        //    }
+        //
+        // fetchClosedOrders
+        //
+        //    {
+        //        "id": 171366547790,           // Order id
+        //        "amount": "0.00032",          // Original amount
+        //        "price": "34293.92",          // Order price
+        //        "type": "limit",              // Order type
+        //        "side": "sell",               // Order side
+        //        "ctime": 1698237533.497241,   // Order creation time
+        //        "ftime": 1698237535.41196,    // Order fill time
+        //        "market": "BTC_USDT",         // Market name
+        //        "takerFee": "0.0018",         // Taker fee
+        //        "makerFee": "0.0016",         // Market fee
+        //        "dealFee": "0.01755848704",   // Deal fee
+        //        "dealStock": "0.00032",       // Filled amount
+        //        "dealMoney": "10.9740544"     // Filled total
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct2 (order, 'timestamp', 'ctime', 1000);
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString2 (order, 'id', 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': this.safeString (order, 'type'),
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'price'),
+            'stopPrice': undefined,
+            'amount': this.safeString (order, 'amount'),
+            'cost': undefined,
+            'average': undefined,
+            'filled': this.safeString (order, 'dealStock'),
+            'remaining': this.safeString (order, 'left'),
+            'status': undefined,
+            'fee': {
+                'currency': market['base'],
+                'cost': this.safeString (order, 'dealFee'),
+            },
+            'trades': undefined,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -627,16 +1150,16 @@ export default class p2b extends Exchange {
             }
         }
         if (api === 'private') {
-            const nonce = this.nonce ();
-            params['nonce'] = nonce;
             params['request'] = '/api/v2/' + path;
-            const payload = this.encode (this.json (params));  // Body json encoded in base64
+            params['nonce'] = this.nonce ().toString ();
+            const payload = this.stringToBase64 (this.json (params));  // Body json encoded in base64
             headers = {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
-                'X-TXC-SIGNATURE': this.hmac (payload, this.encode (this.secret), sha512, 'base64'),
+                'X-TXC-SIGNATURE': this.hmac (payload, this.encode (this.secret), sha512),
             };
+            body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
