@@ -99,6 +99,14 @@ class Position(TypedDict):
     takeProfitPrice: Numeric
     info: Dict[str, any]
 
+class Liquidation(TypedDict):
+    info: Dict[str, any]
+    symbol: str
+    timestamp: Numeric
+    datetime: str
+    price: Numeric
+    baseValue: Numeric
+    quoteValue: Numeric
 
 class OrderRequest(TypedDict):
     symbol: str
