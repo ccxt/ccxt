@@ -1618,11 +1618,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
     }
 
-    async watchAllLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]>  {
+    async watchAllLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         throw new NotSupported (this.id + ' watchAllLiquidations() is not supported yet');
     }
 
-    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {    
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.has['watchAllLiquidations']) {
             return this.watchAllLiquidations (symbols, since, limit, params);
         }
@@ -1640,7 +1640,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchAllMyLiquidations() is not supported yet');
     }
 
-    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]>  {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.has['watchAllMyLiquidations']) {
             return this.watchAllMyLiquidations (symbols, since, limit, params);
         }
