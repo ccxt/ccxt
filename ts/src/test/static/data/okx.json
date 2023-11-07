@@ -118,6 +118,16 @@
             ],
             "output": "[{\"instId\":\"ADA-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"limit\",\"sz\":\"50\",\"tdMode\":\"cross\",\"px\":\"0.2\",\"slTriggerPx\":\"0.1\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"5\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\",\"clOrdId\":\"e847386590ce4dBCe3cef3837420904f\",\"tag\":\"e847386590ce4dBC\",\"posSide\":\"long\"}]"
           }
+        ],
+        "fetchPositionsForSymbol": [
+          {
+            "description": "Fetch positions (inlcuding hedge mode) array for a contract symbol",
+            "method": "fetchPositionsForSymbol",
+            "url": "https://www.okx.com/api/v5/account/positions?instId=ADA-USDT-SWAP&instType=SWAP",
+            "input": [
+              "ADA/USDT:USDT"
+            ]
+          }
         ]
     }
 }
