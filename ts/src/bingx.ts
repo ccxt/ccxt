@@ -1681,6 +1681,7 @@ export default class bingx extends Exchange {
             const isTriggerOrder = triggerPrice !== undefined;
             const isStopLossPriceOrder = stopLossPrice !== undefined;
             const isTakeProfitPriceOrder = takeProfitPrice !== undefined;
+            let reduceOnly = this.safeValue (params, 'reduceOnly', false);
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice));
                 if (isMarketOrder || (type === 'TRIGGER_MARKET')) {
@@ -1690,6 +1691,7 @@ export default class bingx extends Exchange {
                 }
             } else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 // This can be used to set the stop loss and take profit, but the position needs to be opened first
+                reduceOnly = true;
                 if (isStopLossPriceOrder) {
                     request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
                     if (isMarketOrder || (type === 'STOP_MARKET')) {
@@ -1706,7 +1708,6 @@ export default class bingx extends Exchange {
                     }
                 }
             }
-            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
             let positionSide = undefined;
             if (reduceOnly) {
                 positionSide = (side === 'buy') ? 'SHORT' : 'LONG';

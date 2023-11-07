@@ -65,6 +65,126 @@
                 "triggerPrice": 100
               }
             ]
+          },
+          {
+            "description": "Swap attach a take profit market order to an existing long position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quantity=0.0001&side=SELL&stopPrice=40000&symbol=BTC-USDT&timestamp=1699343342279&type=TAKE_PROFIT_MARKET&signature=26051175a041231ba47518249dd2e70c7ccc45185f32bb5551b4cccf49e9cb9d",
+            "input": [
+              "BTC/USDT:USDT",
+              "market",
+              "sell",
+              0.0001,
+              null,
+              {
+                "takeProfitPrice": "40000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a stop loss market order to an existing long position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&quantity=0.0001&side=SELL&stopPrice=30000&symbol=BTC-USDT&timestamp=1699343474612&type=STOP_MARKET&signature=2eef7b8d45e2c6fba7f38299c154c8f0112eb135c1ca59650b72aed5e54a7533",
+            "input": [
+              "BTC/USDT:USDT",
+              "market",
+              "sell",
+              0.0001,
+              null,
+              {
+                "stopLossPrice": "30000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a take profit limit order to an existing long position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=39000&quantity=0.0001&side=SELL&stopPrice=40000&symbol=BTC-USDT&timestamp=1699343931549&type=TAKE_PROFIT&signature=d38f30c621fe59fadd3b8a5874442b14c7a6ff08e6a8d2b052d2aed263058a8b",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "sell",
+              0.0001,
+              39000,
+              {
+                "takeProfitPrice": "40000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a stop loss limit order to an existing long position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=LONG&price=31000&quantity=0.0001&side=SELL&stopPrice=30000&symbol=BTC-USDT&timestamp=1699343849547&type=STOP&signature=8c3cb440c84bbb09defdc6b44d7c22b35e1e4942f338d476e9952c30d9be4eba",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "sell",
+              0.0001,
+              31000,
+              {
+                "stopLossPrice": "30000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a take profit market order to an existing short position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=SHORT&quantity=0.0001&side=BUY&stopPrice=30000&symbol=BTC-USDT&timestamp=1699344115407&type=TAKE_PROFIT_MARKET&signature=937af5613b9503cf6a57f226a9dd5117127bf062e459a1341865858079c0c48b",
+            "input": [
+              "BTC/USDT:USDT",
+              "market",
+              "buy",
+              0.0001,
+              null,
+              {
+                "takeProfitPrice": "30000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a stop loss market order to an existing short position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=SHORT&quantity=0.0001&side=BUY&stopPrice=40000&symbol=BTC-USDT&timestamp=1699344170850&type=STOP_MARKET&signature=185c506151d6b405651c187500768dda9d2a6eb0aa8555564356766d59939e15",
+            "input": [
+              "BTC/USDT:USDT",
+              "market",
+              "buy",
+              0.0001,
+              null,
+              {
+                "stopLossPrice": "40000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a take profit limit order to an existing short position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=SHORT&price=31000&quantity=0.0001&side=BUY&stopPrice=30000&symbol=BTC-USDT&timestamp=1699344371397&type=TAKE_PROFIT&signature=56d80e251692435252f773ec1962762ca6986ae13a46f3e061ac2c328ba46587",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.0001,
+              31000,
+              {
+                "takeProfitPrice": "30000"
+              }
+            ]
+          },
+          {
+            "description": "Swap attach a stop loss limit order to an existing short position",
+            "method": "createOrder",
+            "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=SHORT&price=39000&quantity=0.0001&side=BUY&stopPrice=40000&symbol=BTC-USDT&timestamp=1699344308575&type=STOP&signature=197178df2ae9cbe1b90f833fd4cb4a70a19171630415d91264e2a10e45a74ccc",
+            "input": [
+              "BTC/USDT:USDT",
+              "limit",
+              "buy",
+              0.0001,
+              39000,
+              {
+                "stopLossPrice": "40000"
+              }
+            ]
           }
         ],
         "createOrders": [
