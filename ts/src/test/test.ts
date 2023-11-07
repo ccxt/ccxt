@@ -869,7 +869,20 @@ export default class testMainClass extends baseMainTestClass {
             }
             const storedValue = storedOutput[key];
             const newValue = newOutput[key];
-            if (typeof storedValue === 'object') {
+            if (Array.isArray (storedValue)) {
+                if (Array.isArray (newValue)) {
+                    // recursive arrays
+                    for (let j = 0; j < storedValue.length; j++) {
+                        const storedItem = storedValue[j];
+                        const newItem = newValue[j];
+                        if ((typeof storedItem === 'object') || (Array.isArray (storedItem))) {
+                            return this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
+                        }
+                        const innerError = 'output value mismatch for: ' + key + ' : ' + storedItem.toString () + ' != ' + newItem.toString ();
+                        this.assertStaticError (newItem === storedItem, innerError, storedOutput, newOutput);
+                    }
+                }
+            } else if (typeof storedValue === 'object') {
                 if (typeof newValue === 'object') {
                     // recursive objects
                     return this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
