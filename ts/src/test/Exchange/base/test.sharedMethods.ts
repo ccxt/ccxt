@@ -337,14 +337,15 @@ function checkPrecisionAccuracy (exchange, skippedProperties, method, entry, key
 function removeProxyOptions (exchange, skippedProperties) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
-    exchange.proxyUrl = undefined;
-    exchange.proxy_url = undefined;
-    exchange.httpProxy = undefined;
-    exchange.http_proxy = undefined;
-    exchange.httpsProxy = undefined;
-    exchange.https_proxy = undefined;
-    exchange.socksProxy = undefined;
-    exchange.socks_proxy = undefined;
+    // because of bug in transpiled, about `.proxyUrl` being transpiled into `.proxy_url`, we have to use this workaround
+    exchange.setProperty (exchange, 'proxyUrl', undefined);
+    exchange.setProperty (exchange, 'proxy_url', undefined);
+    exchange.setProperty (exchange, 'httpProxy', undefined);
+    exchange.setProperty (exchange, 'http_proxy', undefined);
+    exchange.setProperty (exchange, 'httpsProxy', undefined);
+    exchange.setProperty (exchange, 'https_proxy', undefined);
+    exchange.setProperty (exchange, 'socksProxy', undefined);
+    exchange.setProperty (exchange, 'socks_proxy', undefined);
     return [ proxyUrl, httpProxy, httpsProxy, socksProxy ];
 }
 
