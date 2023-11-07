@@ -719,7 +719,7 @@ export default class bitrue extends Exchange {
         const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
-            'symbol': base + '/' + quote,
+            'symbol': (type === 'spot') ? (base + '/' + quote) : id,
             'base': base,
             'quote': quote,
             'settle': undefined,
@@ -843,8 +843,7 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        //
-        // swap
+        // future
         //
         //     [
         //         {
@@ -894,7 +893,7 @@ export default class bitrue extends Exchange {
         //         "canDeposit":false
         //     }
         //
-        // linear & inverse
+        // future
         //
         //     {
         //         "account":[
@@ -1062,7 +1061,6 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        params = this.omit (params, 'type');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
         let response = undefined;
@@ -1101,6 +1099,8 @@ export default class bitrue extends Exchange {
             response = await this.spotV1PublicGetDepth (this.extend (request, params));
         }
         //
+        // spot
+        //
         //     {
         //         "lastUpdateId":1635474910177,
         //         "bids":[
@@ -1113,6 +1113,14 @@ export default class bitrue extends Exchange {
         //             ["61452.47","0.0597",[]],
         //             ["61452.76","0.0713",[]],
         //         ]
+        //     }
+        //
+        // future
+        //
+        //     {
+        //         "asks": [[34916.5, 2582], [34916.6, 2193], [34916.7, 2629], [34916.8, 3478], [34916.9, 2718]],
+        //         "bids": [[34916.4, 92065], [34916.3, 25703], [34916.2, 37259], [34916.1, 26446], [34916, 44456]],
+        //         "time": 1699338305000
         //     }
         //
         const timestamp = this.safeInteger (response, 'time');
@@ -1136,39 +1144,48 @@ export default class bitrue extends Exchange {
         // fetchTicker
         //
         //     {
-        //         "id":397945892,
-        //         "last":"1.143411",
-        //         "lowestAsk":"1.144223",
-        //         "highestBid":"1.141696",
-        //         "percentChange":"-0.001432",
-        //         "baseVolume":"338287",
-        //         "quoteVolume":"415013.244366",
-        //         "isFrozen":"0",
-        //         "high24hr":"1.370087",
-        //         "low24hr":"1.370087",
+        //         "symbol": "BNBBTC",
+        //         "priceChange": "0.000248",
+        //         "priceChangePercent": "3.5500",
+        //         "weightedAvgPrice": null,
+        //         "prevClosePrice": null,
+        //         "lastPrice": "0.007226",
+        //         "lastQty": null,
+        //         "bidPrice": "0.007208",
+        //         "askPrice": "0.007240",
+        //         "openPrice": "0.006978",
+        //         "highPrice": "0.007295",
+        //         "lowPrice": "0.006935",
+        //         "volume": "11749.86",
+        //         "quoteVolume": "84.1066211",
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "firstId": 0,
+        //         "lastId": 0,
+        //         "count": 0
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeString (ticker, 'last');
+        const last = this.safeString (ticker, 'lastPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString (ticker, 'high24hr'),
-            'low': this.safeString (ticker, 'low24hr'),
-            'bid': this.safeString2 (ticker, 'highestBid', 'bidPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
             'bidVolume': this.safeString (ticker, 'bidQty'),
-            'ask': this.safeString2 (ticker, 'lowestAsk', 'askPrice'),
+            'ask': this.safeString (ticker, 'askPrice'),
             'askVolume': this.safeString (ticker, 'askQty'),
-            'vwap': undefined,
-            'open': undefined,
+            'vwap': this.safeString (ticker, 'weightedAvgPrice'),
+            'open': this.safeString (ticker, 'openPrice'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': Precise.stringMul (this.safeString (ticker, 'percentChange'), '10000'),
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
         }, market);
@@ -1185,40 +1202,35 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const uppercaseBaseId = this.safeStringUpper (market, 'baseId');
-        const uppercaseQuoteId = this.safeStringUpper (market, 'quoteId');
         const request = {
-            'currency': uppercaseQuoteId,
-            'command': 'returnTicker',
+            'symbol': market['id'],
         };
-        const response = await this.spotKlinePublicGetPublicCurrencyJson (this.extend (request, params));
+        const response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
         //
-        //     {
-        //         "code":"200",
-        //         "msg":"success",
-        //         "data":{
-        //             "DODO3S_USDT":{
-        //                 "id":397945892,
-        //                 "last":"1.143411",
-        //                 "lowestAsk":"1.144223",
-        //                 "highestBid":"1.141696",
-        //                 "percentChange":"-0.001432",
-        //                 "baseVolume":"338287",
-        //                 "quoteVolume":"415013.244366",
-        //                 "isFrozen":"0",
-        //                 "high24hr":"1.370087",
-        //                 "low24hr":"1.370087"
-        //             }
-        //         }
-        //     }
+        //     [{
+        //         symbol: 'BTCUSDT',
+        //         priceChange: '105.20',
+        //         priceChangePercent: '0.3000',
+        //         weightedAvgPrice: null,
+        //         prevClosePrice: null,
+        //         lastPrice: '34905.21',
+        //         lastQty: null,
+        //         bidPrice: '34905.21',
+        //         askPrice: '34905.22',
+        //         openPrice: '34800.01',
+        //         highPrice: '35276.33',
+        //         lowPrice: '34787.51',
+        //         volume: '12549.6481',
+        //         quoteVolume: '439390492.917',
+        //         openTime: '0',
+        //         closeTime: '0',
+        //         firstId: '0',
+        //         lastId: '0',
+        //         count: '0'
+        //     }]
         //
-        const data = this.safeValue (response, 'data', {});
-        const id = uppercaseBaseId + '_' + uppercaseQuoteId;
-        const ticker = this.safeValue (data, id);
-        if (ticker === undefined) {
-            throw new ExchangeError (this.id + ' fetchTicker() could not find the ticker for ' + market['symbol']);
-        }
-        return this.parseTicker (ticker, market);
+        const data = this.safeValue (response, 0, {});
+        return this.parseTicker (data, market);
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
