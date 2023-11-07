@@ -298,10 +298,14 @@
             "input": []
           },
           {
-            "description": "Swap fetch balance",
+            "description": "Swap fetchBalance",
             "method": "fetchBalance",
-            "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1699384838614&recvWindow=10000&signature=ba3638c079e75529783c9ae424e8a611a67584e9817d424e944eec841595d746",
-            "input": []
+            "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+            "input": [
+              {
+                "type": "swap"
+              }
+            ]
           }
         ],
         "fetchMyTrades": [

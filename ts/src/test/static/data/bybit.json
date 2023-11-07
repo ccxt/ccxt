@@ -161,6 +161,141 @@
             ],
             "output": "{\"symbol\":\"TRXUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"1\",\"stopLoss\":\"0.04\",\"takeProfit\":\"1\"}"
           }
+        ],
+        "createOrders": [
+          {
+            "description": "Swap create orders",
+            "method": "createOrders",
+            "url": "https://api-testnet.bybit.com/v5/order/create-batch",
+            "input": [
+              [
+                {
+                  "symbol": "LTC/USDT:USDT",
+                  "amount": 0.1,
+                  "side": "buy",
+                  "type": "limit",
+                  "price": 60
+                },
+                {
+                  "symbol": "LTC/USDT:USDT",
+                  "amount": 0.11,
+                  "side": "buy",
+                  "type": "limit",
+                  "price": 61
+                }
+              ]
+            ],
+            "output": "{\"category\":\"linear\",\"request\":[{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"60\"},{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.1\",\"price\":\"61\"}]}"
+          }
+        ],
+        "cancelOrder": [
+          {
+            "description": "Swap cancelOrder",
+            "method": "cancelOrder",
+            "url": "https://api-testnet.bybit.com/v5/order/cancel",
+            "input": [
+              "8caeea8c-cf80-4b06-83e8-bb7df45fc122",
+              "LTC/USDT:USDT"
+            ],
+            "output": "{\"symbol\":\"LTCUSDT\",\"orderId\":\"8caeea8c-cf80-4b06-83e8-bb7df45fc122\",\"category\":\"linear\"}"
+          },
+          {
+            "description": "Spot cancelOrder",
+            "method": "cancelOrder",
+            "url": "https://api-testnet.bybit.com/v5/order/cancel",
+            "input": [
+              "1513125485218108928",
+              "LTC/USDT"
+            ],
+            "output": "{\"symbol\":\"LTCUSDT\",\"orderFilter\":\"Order\",\"orderId\":\"1513125485218108928\",\"category\":\"spot\"}"
+          }
+        ],
+        "fetchOpenOrders": [
+          {
+            "description": "Spot fetchOpenOrders",
+            "method": "fetchOpenOrders",
+            "url": "https://api-testnet.bybit.com/v5/order/realtime?symbol=LTCUSDT&category=spot",
+            "input": [
+              "LTC/USDT",
+              null,
+              null
+            ]
+          },
+          {
+            "description": "Swap fetchOpenOrders",
+            "method": "fetchOpenOrders",
+            "url": "https://api-testnet.bybit.com/v5/order/realtime?symbol=LTCUSDT&category=linear",
+            "input": [
+              "LTC/USDT",
+              null,
+              null,
+              {
+                "type": "swap"
+              }
+            ]
+          }
+        ],
+        "fetchClosedOrders": [
+          {
+            "description": "Swap fetchClosedOrders",
+            "method": "fetchClosedOrders",
+            "url": "https://api-testnet.bybit.com/v5/order/history?category=linear&orderStatus=Filled",
+            "input": []
+          }
+        ],
+        "fetchCanceledOrders": [
+          {
+            "description": "Spot fetchCanceledOrders",
+            "method": "fetchCanceledOrders",
+            "url": "https://api-testnet.bybit.com/v5/order/history?category=linear&orderStatus=Cancelled",
+            "input": []
+          }
+        ],
+        "fetchOrder": [
+          {
+            "description": "Spot fetchOrder",
+            "method": "fetchOrder",
+            "url": "https://api-testnet.bybit.com/v5/order/history?symbol=LTCUSDT&category=spot&orderId=1513125485218108928",
+            "input": [
+              "1513125485218108928",
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "Swap fetchOrder",
+            "method": "fetchOrder",
+            "url": "https://api-testnet.bybit.com/v5/order/history?symbol=LTCUSDT&category=linear&orderId=8caeea8c-cf80-4b06-83e8-bb7df45fc122",
+            "input": [
+              "8caeea8c-cf80-4b06-83e8-bb7df45fc122",
+              "LTC/USDT:USDT"
+            ]
+          }
+        ],
+        "fetchMyTrades": [
+          {
+            "description": "Spot fetchMyTrades",
+            "method": "fetchMyTrades",
+            "url": "https://api-testnet.bybit.com/v5/execution/list?symbol=LTCUSDT&category=spot",
+            "input": [
+              "LTC/USDT"
+            ]
+          },
+          {
+            "description": "Swap fetchMyTrades",
+            "method": "fetchMyTrades",
+            "url": "https://api-testnet.bybit.com/v5/execution/list?symbol=LTCUSDT&category=linear",
+            "input": [
+              "LTC/USDT:USDT"
+            ]
+          }
+        ],
+        "fetchPositions": [
+          {
+            "description": "Swap fetchPositions",
+            "method": "fetchPositions",
+            "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear",
+            "input": []
+          }
         ]
     },
     "disabled": [
