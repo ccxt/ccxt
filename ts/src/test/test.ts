@@ -853,43 +853,41 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    assertNewAndStoredOutput (exchange, skipKeys: string[], newOutput: object, storedOutput: object) {
-        const storedOutputKeys = Object.keys (storedOutput);
-        const newOutputKeys = Object.keys (newOutput);
-        const storedLenght = storedOutputKeys.length;
-        const newLength = newOutputKeys.length;
-        this.assertStaticError (storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
-        for (let i = 0; i < storedOutputKeys.length; i++) {
-            const key = storedOutputKeys[i];
-            if (exchange.inArray (key, skipKeys)) {
-                continue;
-            }
-            if (!(exchange.inArray (key, newOutputKeys))) {
-                this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
-            }
-            const storedValue = storedOutput[key];
-            const newValue = newOutput[key];
-            if (Array.isArray (storedValue)) {
-                if (Array.isArray (newValue)) {
-                    // recursive arrays
-                    for (let j = 0; j < storedValue.length; j++) {
-                        const storedItem = storedValue[j];
-                        const newItem = newValue[j];
-                        if ((typeof storedItem === 'object') || (Array.isArray (storedItem))) {
-                            return this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
-                        }
-                        const innerError = 'output value mismatch for: ' + key + ' : ' + storedItem.toString () + ' != ' + newItem.toString ();
-                        this.assertStaticError (newItem === storedItem, innerError, storedOutput, newOutput);
-                    }
+    assertNewAndStoredOutput (exchange, skipKeys: string[], newOutput, storedOutput) {
+        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+            const storedOutputKeys = Object.keys (storedOutput);
+            const newOutputKeys = Object.keys (newOutput);
+            const storedKeysLength = storedOutputKeys.length;
+            const newKeysLength = newOutputKeys.length;
+            this.assertStaticError (storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
+            // iterate over the keys
+            for (let i = 0; i < storedOutputKeys.length; i++) {
+                const key = storedOutputKeys[i];
+                if (exchange.inArray (key, skipKeys)) {
+                    continue;
                 }
-            } else if (typeof storedValue === 'object') {
-                if (typeof newValue === 'object') {
-                    // recursive objects
-                    return this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
+                if (!(exchange.inArray (key, newOutputKeys))) {
+                    this.assertStaticError (false, 'output key missing: ' + key, storedOutput, newOutput);
+                }
+                const storedValue = storedOutput[key];
+                const newValue = newOutput[key];
+                if (Array.isArray (storedValue) || (typeof storedValue === 'object')) {
+                    this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
                 }
             }
-            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString () + ' != ' + newValue.toString ();
-            this.assertStaticError (storedValue === newValue, messageError, storedOutput, newOutput);
+        } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
+            const storedArrayLength = storedOutput.length;
+            const newArrayLength = newOutput.length;
+            this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
+            for (let i = 0; i < storedOutput.length; i++) {
+                const storedItem = storedOutput[i];
+                const newItem = newOutput[i];
+                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
+            }
+        } else {
+            // built-in types like strings, numbers, booleans
+            const messageError = 'output value mismatch:' + newOutput.toString () + ' != ' + storedOutput.toString ();
+            this.assertStaticError (newOutput === storedOutput, messageError, storedOutput, newOutput);
         }
     }
 
