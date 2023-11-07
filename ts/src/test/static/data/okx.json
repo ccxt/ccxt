@@ -123,9 +123,9 @@
           {
             "description": "Fetch positions (inlcuding hedge mode) array for a contract symbol",
             "method": "fetchPositionsForSymbol",
-            "url": "https://www.okx.com/api/v5/account/positions?instId=ADA-USDT-SWAP&instType=SWAP",
+            "url": "https://www.okx.com/api/v5/account/positions?instId=BTC-USDT-SWAP&instType=SWAP",
             "input": [
-              "ADA/USDT:USDT"
+              "BTC/USDT:USDT"
             ]
           }
         ]
