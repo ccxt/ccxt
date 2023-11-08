@@ -665,8 +665,7 @@
     "cex": {
         "skipWs": true,
         "skipMethods": {
-            "proxyUrl":"probably proxy location does not work or cex implementation broken",
-            "httpProxy":"probably proxy location does not work or cex implementation broken",
+            "proxies": "they do not permit our proxy location",
             "loadMarkets": {
                 "active":"is undefined"
             },
@@ -700,8 +699,7 @@
     "cryptocom": {
         "skipWs": true,
         "skipMethods": {
-            "proxyUrl":"probably proxy location does not work",
-            "httpProxy":"probably proxy location does not work",
+            "proxies": "they do not permit our proxy location",
             "loadMarkets": {
                 "limits":"max is below min",
                 "active":"is undefined",
