@@ -606,6 +606,7 @@ export default class kuna extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': item,
             });
         }
