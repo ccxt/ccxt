@@ -7,8 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Balances, Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Precise } from'./base/Precise.js'
-
+import { Precise } from'./base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
