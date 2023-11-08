@@ -331,6 +331,30 @@ export default class bitrue extends Exchange {
                     'TRC20': 'TRX',
                 },
                 'defaultType': 'spot',
+                'timeframes': {
+                    'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '12h': '12H',
+                        '1d': '1D',
+                        '1w': '1W',
+                    },
+                    'future': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1h',
+                        '1d': '1day',
+                        '1w': '1week',
+                        '1M': '1month',
+                    },
+                },
             },
             'commonCurrencies': {
                 'MIM': 'MIM Swarm',
@@ -1280,14 +1304,53 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'scale': this.safeString (this.timeframes, timeframe, timeframe),
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        let data = undefined;
+        if (market['future']) {
+            const timeframesFuture = this.safeValue (timeframes, 'future', {});
+            const request = {
+                'contractName': market['id'],
+                // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
+                'interval': this.safeString (timeframesFuture, timeframe, '1min'),
+            };
+            if (limit !== undefined) {
+                if (limit > 300) {
+                    limit = 300;
+                }
+                request['limit'] = limit;
+            }
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV1PublicGetKlines (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV1PublicGetKlines (this.extend (request, params));
+            }
+            data = response;
+        } else {
+            const timeframesSpot = this.safeValue (timeframes, 'spot', {});
+            const request = {
+                'symbol': market['id'],
+                // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
+                'scale': this.safeString (timeframesSpot, timeframe, '1m'),
+            };
+            if (limit !== undefined) {
+                if (limit > 1440) {
+                    limit = 1440;
+                }
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['fromIdx'] = since;
+            }
+            response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
+            data = this.safeValue (response, 'data', []);
         }
-        const response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
+        //
+        // spot
         //
         //       {
         //           "symbol":"BTCUSDT",
@@ -1305,11 +1368,25 @@ export default class bitrue extends Exchange {
         //           ]
         //       }
         //
-        const data = this.safeValue (response, 'data', []);
+        // future
+        //
+        //     [
+        //         {
+        //           "high": "35360.7",
+        //           "vol": "110288",
+        //           "low": "35347.9",
+        //           "idx": 1699411680000,
+        //           "close": "35347.9",
+        //           "open": "35349.4"
+        //         }
+        //     ]
+        //
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        //
+        // spot
         //
         //      {
         //         "i":"1660825020",
@@ -1321,13 +1398,24 @@ export default class bitrue extends Exchange {
         //         "o":"23508.34"
         //      }
         //
+        // future
+        //
+        //     {
+        //         "high": "35360.7",
+        //         "vol": "110288",
+        //         "low": "35347.9",
+        //         "idx": 1699411680000,
+        //         "close": "35347.9",
+        //         "open": "35349.4"
+        //     }
+        //
         return [
-            this.safeTimestamp (ohlcv, 'i'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber (ohlcv, 'v'),
+            this.safeTimestamp2 (ohlcv, 'i', 'idx'),
+            this.safeNumber2 (ohlcv, 'o', 'open'),
+            this.safeNumber2 (ohlcv, 'h', 'high'),
+            this.safeNumber2 (ohlcv, 'l', 'low'),
+            this.safeNumber2 (ohlcv, 'c', 'close'),
+            this.safeNumber2 (ohlcv, 'v', 'vol'),
         ];
     }
 
