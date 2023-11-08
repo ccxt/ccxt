@@ -700,6 +700,7 @@
     "cryptocom": {
         "skipWs": true,
         "skipMethods": {
+            "proxies": "they do not permit our proxy location",
             "loadMarkets": {
                 "limits":"max is below min",
                 "active":"is undefined",
