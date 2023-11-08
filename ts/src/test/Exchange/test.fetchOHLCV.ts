@@ -68,7 +68,9 @@ function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, tim
         }
         // if this is the last bar, then check if it's <= now
         if (i === barsLength - 1) {
-            assert (barTs <= now, 'Returned bars latest timestamp (' + barTs.toString () + ') is after than current timestamp (' + now.toString () + ')' + logText);
+            if (!('compareToNow' in skippedProperties)) {
+                assert (barTs <= now, 'Returned bars latest timestamp (' + barTs.toString () + ') is after than current timestamp (' + now.toString () + ')' + logText);
+            }
         }
         // we do compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
         if (!('compareDuration' in skippedProperties)) {

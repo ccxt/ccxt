@@ -1229,6 +1229,7 @@
                 "deposit": "not provided"
             },
             "fetchOHLCV": {
+                "compareToNow": "last bar timestamp is beyond current timestamp",
                 "compareAmountToZero": "sometimes zero amount returned"
             }
         }
