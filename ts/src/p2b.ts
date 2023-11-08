@@ -4,7 +4,7 @@
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Int, OHLCV, OrderSide, OrderType, Ticker } from './base/types.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 // ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ export default class p2b extends Exchange {
             'id': 'p2b',
             'name': 'p2b',
             'countries': [ 'LT' ],
-            'rateLimit': 1000,
+            'rateLimit': 100,
             'version': 'v2',
             'has': {
                 'CORS': undefined,
@@ -120,30 +120,30 @@ export default class p2b extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'markets',
-                        'market',
-                        'tickers',
-                        'ticker',
-                        'book',
-                        'history',
-                        'depth/result',
-                        'market/kline',
-                    ],
+                    'get': {
+                        'markets': 1,
+                        'market': 1,
+                        'tickers': 1,
+                        'ticker': 1,
+                        'book': 1,
+                        'history': 1,
+                        'depth/result': 1,
+                        'market/kline': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account/balances',
-                        'account/balance',
-                        'order/new',
-                        'order/cancel',
-                        'orders',
-                        'account/market_order_history',
-                        'account/market_deal_history',
-                        'account/order',
-                        'account/order_history',
-                        'account/executed_history',
-                    ],
+                    'post': {
+                        'account/balances': 1,
+                        'account/balance': 1,
+                        'order/new': 1,
+                        'order/cancel': 1,
+                        'orders': 1,
+                        'account/market_order_history': 1,
+                        'account/market_deal_history': 1,
+                        'account/order': 1,
+                        'account/order_history': 1,
+                        'account/executed_history': 1,
+                    },
                 },
             },
             'fees': {
@@ -701,7 +701,7 @@ export default class p2b extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) : OHLCV {
         //
         //    [
         //        1699253400,       // Kline open time
