@@ -1,0 +1,49 @@
+{
+    "exchange": "wazirx",
+    "skipKeys": ["timestamp", "signature"],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchOrders": [
+            {
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.wazirx.com/sapi/v1/allOrders?recvWindow=10000&symbol=ltcusdt&timestamp=1699458294619&signature=1abfb9a64266ee5640a6c0404a76f0b82c15c59fb7d7143f318900f19a4123b7",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.wazirx.com/sapi/v1/openOrders?recvWindow=10000&symbol=ltcusdt&timestamp=1699458294841&signature=95d63737ff47ad998f35f7381b3ee41f22d3bdda120427f7775a7e3933d6d346",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.wazirx.com/sapi/v1/openOrders?recvWindow=10000&symbol=ltcusdt&timestamp=1699458295058&signature=cdcfe733fd64c222f6679da4aecaf655b47ab03b52de3d1d3ea23ed2a2f8955e",
+                "input": [
+                    "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.wazirx.com/sapi/v1/funds?recvWindow=10000&timestamp=1699458295323&type=spot&signature=224c00efad7e8d60d1913c10888be477c85da7630b470234d08f4b8d49162d44",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            }
+        ]
+    }
+}

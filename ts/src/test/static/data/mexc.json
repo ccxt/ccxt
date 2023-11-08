@@ -1,39 +1,41 @@
 {
-    "exchange": "bitmart",
-    "skipKeys": [],
+    "exchange": "mexc",
+    "skipKeys": ["timestamp", "signature"],
     "outputType": "json",
     "methods": {
-        "createOrder": [
+        "fetchOrders": [
             {
-                "description": "Spot limit buy",
-                "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "description": "Spot orders",
+                "method": "fetchOrders",
+                "url": "https://api.mexc.com/api/v3/allOrders?symbol=LTCUSDT&timestamp=1699458295321&recvWindow=5000&signature=5abde0d1bc718a8528ef3fb60023353897cefabdbd0ccb10f583eabe675f2b7c",
                 "input": [
-                    "LTC/USDT",
-                    "limit",
-                    "buy",
-                    0.1,
-                    50
-                ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"50\"}"
+                    "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap orders",
+                "method": "fetchOrders",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT",
+                "input": [
+                    "LTC/USDT:USDT"
+                ]
             }
         ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api-cloud.bitmart.com/spot/v4/query/trades",
+                "url": "https://api.mexc.com/api/v3/myTrades?symbol=LTCUSDT&start_time=1699457638000&limit=5&timestamp=1699458296346&recvWindow=5000&signature=7dc7d5f1dd4aa27c8b16c58e6aa72b425dad4fe252fdc2e8f89ba505681a4794",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
                     5
-                ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"limit\":5,\"startTime\":1699457638000}"
+                ]
             },
             {
                 "description": "Swap private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api-cloud.bitmart.com/contract/private/trades?symbol=LTCUSDT&start_time=1699457638000",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/order_deals?end_time=1707233637999&page_size=5&start_time=1699457638000&symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT",
                     1699457638000,
@@ -45,16 +47,15 @@
             {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v4/query/open-orders",
+                "url": "https://api.mexc.com/api/v3/openOrders?symbol=LTCUSDT&timestamp=1699458297358&recvWindow=5000&signature=6c929bb88a2d7bf13ef808b5ceb47101119c8f0a9bd395c6032fece0353e4647",
                 "input": [
                     "LTC/USDT"
-                ],
-                "output": "{\"symbol\":\"LTC_USDT\"}"
+                ]
             },
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=LTCUSDT",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?states=2&symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -62,40 +63,38 @@
         ],
         "fetchClosedOrders": [
             {
-                "description": "Spot closed orders",
+                "description": "Swap closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v4/query/history-orders",
+                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?states=3&symbol=LTC_USDT",
                 "input": [
-                    "LTC/USDT"
-                ],
-                "output": "{\"symbol\":\"LTC_USDT\"}"
+                    "LTC/USDT:USDT"
+                ]
             }
         ],
         "cancelAllOrders": [
             {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/cancel-orders",
+                "url": "https://contract.mexc.com/api/v1/private/order/cancel_all",
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\"}"
+                "output": "{\"symbol\":\"LTC_USDT\"}"
             },
             {
                 "description": "Cancel spot orders",
                 "method": "cancelAllOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v1/cancel_orders",
+                "url": "https://api.mexc.com/api/v3/openOrders?symbol=LTCUSDT&timestamp=1699458299108&recvWindow=5000&signature=26c70b86d77a92772d0f8a743ae49a8d92c53ea4d36c61ac6016bc5125e3c6aa",
                 "input": [
                     "LTC/USDT"
-                ],
-                "output": "{\"symbol\":\"LTC_USDT\"}"
+                ]
             }
         ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api-cloud.bitmart.com/spot/v1/wallet",
+                "url": "https://api.mexc.com/api/v3/account?timestamp=1699458299399&recvWindow=5000&signature=f6081d066b1cf497d8e6ad432d9f0581d6a607a077619c5ca53e80ce2e869e44",
                 "input": [
                     {
                         "type": "spot"
@@ -105,7 +104,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api-cloud.bitmart.com/contract/private/assets-detail",
+                "url": "https://contract.mexc.com/api/v1/private/account/assets",
                 "input": [
                     {
                         "type": "swap"
@@ -117,7 +116,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api-cloud.bitmart.com/contract/private/position?symbol=LTCUSDT",
+                "url": "https://contract.mexc.com/api/v1/private/position/open_positions",
                 "input": [
                     [
                         "LTC/USDT:USDT"
@@ -129,7 +128,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
+                "url": "https://api.mexc.com/api/v3/capital/deposit/hisrec?timestamp=1699458300838&recvWindow=5000&signature=b7721e37954b8adcbd864a5b24370860b3923c73056c789f726fda886d8728a6",
                 "input": []
             }
         ]

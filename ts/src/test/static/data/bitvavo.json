@@ -1,0 +1,15 @@
+{
+    "exchange": "bitvavo",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.bitvavo.com/v2/depositHistory",
+                "input": []
+            }
+        ]
+    }
+}

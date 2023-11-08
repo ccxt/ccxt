@@ -1,0 +1,19 @@
+{
+    "exchange": "bit2c",
+    "skipKeys": ["nonce"],
+    "outputType": "json",
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://bit2c.co.il/Account/Balance/v2?nonce=1699458292501&type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            }
+        ]
+    }
+}

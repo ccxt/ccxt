@@ -1,6 +1,9 @@
 {
     "exchange": "ascendex",
-    "skipKeys": ["time", "account-group"],
+    "skipKeys": [
+        "time",
+        "account-group"
+    ],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -86,6 +89,14 @@
                     ]
                 ],
                 "output": "{\"orders\":[{\"account-group\":\"6\",\"account-category\":\"cash\",\"symbol\":\"BTC/USDT\",\"time\":1699329018603,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"cash\"},{\"account-group\":\"6\",\"account-category\":\"cash\",\"symbol\":\"BTC/USDT\",\"time\":1699329018604,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"27000\",\"category\":\"cash\"}]}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://ascendex.com/api/pro/v1/wallet/transactions?txType=deposit",
+                "input": []
             }
         ]
     }

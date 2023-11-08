@@ -1,0 +1,37 @@
+{
+    "exchange": "coinbasepro",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.pro.coinbase.com/accounts?type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.pro.coinbase.com/accounts?type=swap",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.pro.coinbase.com/transfers?type=deposit",
+                "input": []
+            }
+        ]
+    }
+}

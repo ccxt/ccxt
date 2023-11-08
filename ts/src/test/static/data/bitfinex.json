@@ -1,0 +1,161 @@
+{
+    "exchange": "bitfinex",
+    "skipKeys": [
+        "nonce", "timestamp"
+    ],
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitfinex.com/v1/mytrades",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"nonce\":\"1699458201881\",\"request\":\"/v1/mytrades\",\"symbol\":\"LTCUST\",\"limit_trades\":5,\"timestamp\":1699457638}"
+            },
+            {
+                "description": "Spot private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.bitfinex.com/v1/mytrades",
+                "input": [
+                    "LTC/USDT",
+                    1699457638000,
+                    5
+                ],
+                "output": "{\"nonce\":\"1699458293116\",\"request\":\"/v1/mytrades\",\"symbol\":\"LTCUST\",\"limit_trades\":5,\"timestamp\":1699457638}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitfinex.com/v1/orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"nonce\":\"1699458201994\",\"request\":\"/v1/orders\"}"
+            },
+            {
+                "description": "Spot open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bitfinex.com/v1/orders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"nonce\":\"1699458293261\",\"request\":\"/v1/orders\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel swap orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitfinex.com/v1/order/cancel/all",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"nonce\":\"1699458202214\",\"request\":\"/v1/order/cancel/all\"}"
+            },
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitfinex.com/v1/order/cancel/all",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"nonce\":\"1699458202358\",\"request\":\"/v1/order/cancel/all\"}"
+            },
+            {
+                "description": "Cancel swap orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitfinex.com/v1/order/cancel/all",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"nonce\":\"1699458293603\",\"request\":\"/v1/order/cancel/all\"}"
+            },
+            {
+                "description": "Cancel spot orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitfinex.com/v1/order/cancel/all",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": "{\"nonce\":\"1699458293735\",\"request\":\"/v1/order/cancel/all\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitfinex.com/v1/balances",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "{\"nonce\":\"1699458202475\",\"request\":\"/v1/balances\"}"
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitfinex.com/v1/balances",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"nonce\":\"1699458202631\",\"request\":\"/v1/balances\"}"
+            },
+            {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitfinex.com/v1/balances",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "{\"nonce\":\"1699458293881\",\"request\":\"/v1/balances\"}"
+            },
+            {
+                "description": "Fetch swap Balance",
+                "method": "fetchBalance",
+                "url": "https://api.bitfinex.com/v1/balances",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"nonce\":\"1699458294113\",\"request\":\"/v1/balances\"}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPositions",
+                "url": "https://api.bitfinex.com/v1/positions",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ]
+                ],
+                "output": "{\"nonce\":\"1699458202753\",\"request\":\"/v1/positions\"}"
+            },
+            {
+                "description": "Fetch linear position",
+                "method": "fetchPositions",
+                "url": "https://api.bitfinex.com/v1/positions",
+                "input": [
+                    [
+                        "LTC/USDT:USDT"
+                    ]
+                ],
+                "output": "{\"nonce\":\"1699458294258\",\"request\":\"/v1/positions\"}"
+            }
+        ]
+    },
+    "outputType": "json"
+}
