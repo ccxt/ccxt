@@ -912,7 +912,6 @@ export default class coinex extends Exchange {
          * @param {object} [params] extra parameters specific to the coinex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
-        this.checkRequiredSymbol ('fetchOrderBook', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
