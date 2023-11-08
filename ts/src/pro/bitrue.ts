@@ -298,7 +298,6 @@ export default class bitrue extends bitrueRest {
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        this.checkRequiredSymbol ('watchOrderBook', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
