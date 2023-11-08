@@ -600,6 +600,7 @@ class kuna(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': item,
             })
         return markets

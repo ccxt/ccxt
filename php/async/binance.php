@@ -8471,10 +8471,10 @@ class binance extends Exchange {
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($orderidlist);
                     if ($orderidlistLength > 0) {
-                        $query = $query . '&$orderidlist=[' . implode(',', $orderidlist) . ']';
+                        $query = $query . '&' . 'orderidlist=[' . implode(',', $orderidlist) . ']';
                     }
                     if ($origclientorderidlistLength > 0) {
-                        $query = $query . '&$origclientorderidlist=[' . implode(',', $origclientorderidlist) . ']';
+                        $query = $query . '&' . 'origclientorderidlist=[' . implode(',', $origclientorderidlist) . ']';
                     }
                 } else {
                     $query = $this->rawencode($extendedParams);
