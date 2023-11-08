@@ -530,6 +530,73 @@
             ],
             "output": "timestamp=1699384759972&asset=USDT&amount=1&type=FUNDING_MAIN&recvWindow=10000&signature=4e43d89ac545361e50c2b7df44b91f6c168c99dab114acc6bad382a4c51aa34b"
           }
+        ],
+        "fetchDeposits": [
+          {
+            "description": "Default fetch deposits",
+            "method": "fetchDeposits",
+            "url": "https://api.binance.com/sapi/v1/capital/deposit/hisrec?timestamp=1699440724626&recvWindow=10000&signature=d36b11a06e7af3f8bc85c28e97ab788a58e20f39b201b6fc31132688d71f4968",
+            "input": []
+          }
+        ],
+        "fetchLedger": [
+          {
+            "description": "Fetch swap ledger",
+            "method": "fetchLedger",
+            "url": "https://fapi.binance.com/fapi/v1/income?timestamp=1699440856890&recvWindow=10000&signature=e921974f0fc79c71a0bf5c210bded9841b627248e89ca2659dd26616d2870bd9",
+            "input": [
+              "USDT",
+              null,
+              null,
+              {
+                "type": "swap"
+              }
+            ]
+          }
+        ],
+        "setLeverage": [
+          {
+            "description": "Swap linear setLeverage",
+            "method": "setLeverage",
+            "url": "https://testnet.binancefuture.com/fapi/v1/leverage",
+            "input": [
+              5,
+              "LTC/USDT:USDT"
+            ],
+            "output": "timestamp=1699440965441&symbol=LTCUSDT&leverage=5&recvWindow=10000&signature=500407a2dd13c20e6cef1a884fd1982fe494f2436761cd8c73c6de1aeeaf2a70"
+          },
+          {
+            "description": "Swap inverse setLeverage",
+            "method": "setLeverage",
+            "url": "https://fapi.binance.com/fapi/v1/leverage",
+            "input": [
+              5,
+              "LTC/USDT:USDT"
+            ],
+            "output": "timestamp=1699441011001&symbol=LTCUSDT&leverage=5&recvWindow=10000&signature=f932a4e8dd21ce1dcea84d8ab2fd9451c31b77c710d1adb9c51f54adc520cd90"
+          }
+        ],
+        "setMarginMode": [
+          {
+            "description": "Set margin mode to cross",
+            "method": "setMarginMode",
+            "url": "https://testnet.binancefuture.com/fapi/v1/marginType",
+            "input": [
+              "CROSS",
+              "BTC/USDT:USDT"
+            ],
+            "output": "timestamp=1699441787982&symbol=BTCUSDT&marginType=CROSSED&recvWindow=10000&signature=16f612e91d2ff4494239137194470ea53d7a20eff2d1b02c0783327bd40da955"
+          },
+          {
+            "description": "Set margin mode to isolated with inverse market",
+            "method": "setMarginMode",
+            "url": "https://dapi.binance.com/dapi/v1/marginType",
+            "input": [
+              "isolated",
+              "BTC/USD:BTC"
+            ],
+            "output": "timestamp=1699441887107&symbol=BTCUSD_PERP&marginType=ISOLATED&recvWindow=10000&signature=23faa49ca6c2c26c2ed637bda09e850587c8cf9dd884d495b44bddf6744dff09"
+          }
         ]
     }
 }

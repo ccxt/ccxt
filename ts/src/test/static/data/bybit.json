@@ -1,6 +1,6 @@
 {
     "exchange": "bybit",
-    "skipKeys": [],
+    "skipKeys": ["transferId"],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -295,6 +295,120 @@
             "method": "fetchPositions",
             "url": "https://api-testnet.bybit.com/v5/position/list?settleCoin=USDT&category=linear",
             "input": []
+          }
+        ],
+        "fetchBalance": [
+          {
+            "description": "fetch default balance",
+            "method": "fetchBalance",
+            "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
+            "input": []
+          }
+        ],
+        "setLeverage": [
+          {
+            "description": "Set leverage swap linear",
+            "method": "setLeverage",
+            "url": "https://api-testnet.bybit.com/v5/position/set-leverage",
+            "input": [
+              6,
+              "LTC/USDT:USDT"
+            ],
+            "output": "{\"symbol\":\"LTCUSDT\",\"buyLeverage\":\"6\",\"sellLeverage\":\"6\",\"category\":\"linear\"}"
+          },
+          {
+            "description": "Set leverage inverse",
+            "method": "setLeverage",
+            "url": "https://api-testnet.bybit.com/v5/position/set-leverage",
+            "input": [
+              6,
+              "BTC/USD:BTC"
+            ],
+            "output": "{\"symbol\":\"BTCUSD\",\"buyLeverage\":\"6\",\"sellLeverage\":\"6\",\"category\":\"inverse\"}"
+          }
+        ],
+        "fetchDeposits": [
+          {
+            "description": "Default fetchDeposits",
+            "method": "fetchDeposits",
+            "url": "https://api-testnet.bybit.com/v5/asset/deposit/query-record?",
+            "input": []
+          }
+        ],
+        "fetchLedger": [
+          {
+            "description": "Default fetchLedger",
+            "method": "fetchLedger",
+            "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
+            "input": []
+          }
+        ],
+        "fetchTransfers": [
+          {
+            "description": "Fetch USDT transfers",
+            "method": "fetchTransfers",
+            "url": "https://api-testnet.bybit.com/v5/asset/transfer/query-inter-transfer-list?coin=USDT",
+            "input": [
+              "USDT"
+            ]
+          }
+        ],
+        "transfer": [
+          {
+            "description": "Unified to funding transfer",
+            "method": "transfer",
+            "url": "https://api-testnet.bybit.com/v5/asset/transfer/inter-transfer",
+            "input": [
+              "USDT",
+              1,
+              "unified",
+              "funding"
+            ],
+            "output": "{\"transferId\":\"22942eaa-4231-47a4-8f05-0a6a6d8d221e\",\"fromAccountType\":\"UNIFIED\",\"toAccountType\":\"FUND\",\"coin\":\"USDT\",\"amount\":\"1\"}"
+          }
+        ],
+        "setPositionMode": [
+          {
+            "description": "Set position Mode to hedge mode",
+            "method": "setPositionMode",
+            "url": "https://api-testnet.bybit.com/v5/position/switch-mode",
+            "input": [
+              true,
+              "BTC/USDT:USDT"
+            ],
+            "output": "{\"mode\":3,\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+          },
+          {
+            "description": "Set position mode to one-way mode",
+            "method": "setPositionMode",
+            "url": "https://api-testnet.bybit.com/v5/position/switch-mode",
+            "input": [
+              false,
+              "BTC/USDT:USDT"
+            ],
+            "output": "{\"mode\":0,\"symbol\":\"BTCUSDT\",\"category\":\"linear\"}"
+          }
+        ],
+        "setMarginMode": [
+          {
+            "description": "set margin mode to isolated margin",
+            "method": "setMarginMode",
+            "url": "https://api-testnet.bybit.com/v5/account/set-margin-mode",
+            "input": [
+              "isolated",
+              "BTC/USDT:USDT"
+            ],
+            "output": "{\"setMarginMode\":\"ISOLATED_MARGIN\"}"
+          },
+          {
+            "description": "Set margin mode to cross margin",
+            "method": "setMarginMode",
+            "url": "https://api-testnet.bybit.com/v5/account/set-margin-mode",
+            "input": [
+              "cross",
+              "BTC/USDT:USDT"
+            ],
+            "output": "{\"setMarginMode\":\"REGULAR_MARGIN\"}"
           }
         ]
     },
