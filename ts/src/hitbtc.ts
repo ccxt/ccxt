@@ -1026,12 +1026,31 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.hitbtc.com/#tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
-        const response = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (response, symbol) as Ticker;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPublicTickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "ask": "0.020572",
+        //         "bid": "0.020566",
+        //         "last": "0.020574",
+        //         "low": "0.020388",
+        //         "high": "0.021084",
+        //         "open": "0.020913",
+        //         "volume": "138444.3666",
+        //         "volume_quote": "2853.6874972480",
+        //         "timestamp": "2021-06-02T17:52:36.731Z"
+        //     }
+        //
+        return this.parseTicker (response, market) as Ticker;
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -1039,6 +1058,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://api.hitbtc.com/#tickers
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
