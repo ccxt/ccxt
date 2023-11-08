@@ -1,0 +1,77 @@
+{
+    "exchange": "hitbtc",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createOrder": [
+          {
+            "description": "Spot market buy",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order",
+            "input": [
+              "TRX/USDT",
+              "market",
+              "buy",
+              10
+            ],
+            "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+          },
+          {
+            "description": "Spot market sell",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order",
+            "input": [
+              "TRX/USDT",
+              "market",
+              "sell",
+              10
+            ],
+            "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+          },
+          {
+            "description": "Spot limit buy",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order",
+            "input": [
+              "TRX/USDT",
+              "limit",
+              "buy",
+              10,
+              0.05
+            ],
+            "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
+          }
+        ],
+        "cancelOrder":[
+          {
+            "description": "cancelOrder",
+            "method": "cancelOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order/8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS",
+            "input": [
+              "8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS",
+              "TRX/USDT"
+            ],
+            "output": "{\"client_order_id\":\"8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS\"}"
+          }
+        ],
+        "fetchOrder": [
+          {
+            "description": "Fetch open order",
+            "method": "fetchOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/history/order?client_order_id=n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+            "input": [
+              "n-UcdSfwxO6eOiec86a5E0UV3WTe64DC",
+              "TRX/USDT"
+            ]
+          }
+        ],
+        "fetchMyTrades": [
+          {
+            "description": "Fetch my trades",
+            "method": "fetchMyTrades",
+            "url": "https://api.hitbtc.com/api/3/spot/history/trade",
+            "input": []
+          }
+        ]
+    }
+}
