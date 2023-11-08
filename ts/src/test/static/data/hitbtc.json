@@ -52,6 +52,16 @@
               "TRX/USDT"
             ],
             "output": "{\"client_order_id\":\"8PYnj6rAdX_-vPV5nJSROzMf85B8rTQS\"}"
+          },
+          {
+            "description": "Cancel swap order",
+            "method": "cancelOrder",
+            "url": "https://api.hitbtc.com/api/3/futures/order/47a240fa3cfb4949b4abf349c1ad079e",
+            "input": [
+              "47a240fa3cfb4949b4abf349c1ad079e",
+              "TRX/USDT:USDT"
+            ],
+            "output": "{\"client_order_id\":\"47a240fa3cfb4949b4abf349c1ad079e\"}"
           }
         ],
         "fetchOrder": [
@@ -71,6 +81,16 @@
             "method": "fetchMyTrades",
             "url": "https://api.hitbtc.com/api/3/spot/history/trade",
             "input": []
+          }
+        ],
+        "fetchOpenOrders": [
+          {
+            "description": "fetch open swap orders",
+            "method": "fetchOpenOrders",
+            "url": "https://api.hitbtc.com/api/3/futures/order?symbol=TRXUSDT_PERP",
+            "input": [
+              "TRX/USDT:USDT"
+            ]
           }
         ]
     }
