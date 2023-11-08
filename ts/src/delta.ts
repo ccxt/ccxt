@@ -6,7 +6,7 @@ import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, 
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -831,7 +831,7 @@ export default class delta extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -1526,7 +1526,7 @@ export default class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'result', []);
         const result = { 'info': response };
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId', {});
@@ -1915,8 +1915,8 @@ export default class delta extends Exchange {
         const request = {
             'id': parseInt (id),
             'product_id': market['numericId'],
-            // 'limit_price': this.priceToPrecision (symbol, price),
-            // 'size': this.amountToPrecision (symbol, amount),
+            // "limit_price": this.priceToPrecision (symbol, price),
+            // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
             request['size'] = parseInt (this.amountToPrecision (symbol, amount));
@@ -2707,7 +2707,7 @@ export default class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
          * @param {string} symbol unified market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);

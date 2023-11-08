@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -448,7 +448,7 @@ export default class cex extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);
@@ -568,7 +568,7 @@ export default class cex extends Exchange {
         return undefined;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const volume = this.safeString (ticker, 'volume');
         const high = this.safeString (ticker, 'high');
@@ -715,11 +715,11 @@ export default class cex extends Exchange {
         const response = await this.privatePostGetMyfee (params);
         //
         //      {
-        //          e: 'get_myfee',
-        //          ok: 'ok',
-        //          data: {
-        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
-        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15' },
+        //          "e": "get_myfee",
+        //          "ok": "ok",
+        //          "data": {
+        //            'BTC:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
+        //            'ETH:USD': { buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15" },
         //            ..
         //          }
         //      }
@@ -930,23 +930,23 @@ export default class cex extends Exchange {
                 const tradeSide = this.safeString (item, 'type');
                 if (tradeSide === 'cancel') {
                     // looks like this might represent the cancelled part of an order
-                    //   { id: '4426729543',
-                    //     type: 'cancel',
-                    //     time: '2017-09-22T00:24:30.476Z',
-                    //     user: 'up106404164',
-                    //     c: 'user:up106404164:a:BCH',
-                    //     d: 'order:4426728375:a:BCH',
-                    //     a: '0.09935956',
-                    //     amount: '0.09935956',
-                    //     balance: '0.42580261',
-                    //     symbol: 'BCH',
-                    //     order: '4426728375',
-                    //     buy: null,
-                    //     sell: null,
-                    //     pair: null,
-                    //     pos: null,
-                    //     cs: '0.42580261',
-                    //     ds: 0 }
+                    //   { "id": "4426729543",
+                    //     "type": "cancel",
+                    //     "time": "2017-09-22T00:24:30.476Z",
+                    //     "user": "up106404164",
+                    //     "c": "user:up106404164:a:BCH",
+                    //     "d": "order:4426728375:a:BCH",
+                    //     "a": "0.09935956",
+                    //     "amount": "0.09935956",
+                    //     "balance": "0.42580261",
+                    //     "symbol": "BCH",
+                    //     "order": "4426728375",
+                    //     "buy": null,
+                    //     "sell": null,
+                    //     "pair": null,
+                    //     "pos": null,
+                    //     "cs": "0.42580261",
+                    //     "ds": 0 }
                     continue;
                 }
                 const tradePrice = this.safeString (item, 'price');
@@ -1298,95 +1298,95 @@ export default class cex extends Exchange {
         const results = [];
         for (let i = 0; i < response.length; i++) {
             // cancelled (unfilled):
-            //    { id: '4005785516',
-            //     type: 'sell',
-            //     time: '2017-07-18T19:08:34.223Z',
-            //     lastTxTime: '2017-07-18T19:08:34.396Z',
-            //     lastTx: '4005785522',
-            //     pos: null,
-            //     status: 'c',
-            //     symbol1: 'ETH',
-            //     symbol2: 'GBP',
-            //     amount: '0.20000000',
-            //     price: '200.5625',
-            //     remains: '0.20000000',
-            //     'a:ETH:cds': '0.20000000',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '10155061217',
-            //     orderId: '4005785516' }
+            //    { "id": "4005785516",
+            //     "type": "sell",
+            //     "time": "2017-07-18T19:08:34.223Z",
+            //     "lastTxTime": "2017-07-18T19:08:34.396Z",
+            //     "lastTx": "4005785522",
+            //     "pos": null,
+            //     "status": "c",
+            //     "symbol1": "ETH",
+            //     "symbol2": "GBP",
+            //     "amount": "0.20000000",
+            //     "price": "200.5625",
+            //     "remains": "0.20000000",
+            //     'a:ETH:cds': "0.20000000",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "10155061217",
+            //     "orderId": "4005785516" }
             // --
             // cancelled (partially filled buy):
-            //    { id: '4084911657',
-            //     type: 'buy',
-            //     time: '2017-08-05T03:18:39.596Z',
-            //     lastTxTime: '2019-03-19T17:37:46.404Z',
-            //     lastTx: '8459265833',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BTC',
-            //     symbol2: 'GBP',
-            //     amount: '0.05000000',
-            //     price: '2241.4692',
-            //     tfacf: '1',
-            //     remains: '0.03910535',
-            //     'tfa:GBP': '0.04',
-            //     'tta:GBP': '24.39',
-            //     'a:BTC:cds': '0.01089465',
-            //     'a:GBP:cds': '112.26',
-            //     'f:GBP:cds': '0.04',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '13336396963',
-            //     orderId: '4084911657' }
+            //    { "id": "4084911657",
+            //     "type": "buy",
+            //     "time": "2017-08-05T03:18:39.596Z",
+            //     "lastTxTime": "2019-03-19T17:37:46.404Z",
+            //     "lastTx": "8459265833",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BTC",
+            //     "symbol2": "GBP",
+            //     "amount": "0.05000000",
+            //     "price": "2241.4692",
+            //     "tfacf": "1",
+            //     "remains": "0.03910535",
+            //     'tfa:GBP': "0.04",
+            //     'tta:GBP': "24.39",
+            //     'a:BTC:cds': "0.01089465",
+            //     'a:GBP:cds': "112.26",
+            //     'f:GBP:cds': "0.04",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.16",
+            //     "tradingFeeUserVolumeAmount": "13336396963",
+            //     "orderId": "4084911657" }
             // --
             // cancelled (partially filled sell):
-            //    { id: '4426728375',
-            //     type: 'sell',
-            //     time: '2017-09-22T00:24:20.126Z',
-            //     lastTxTime: '2017-09-22T00:24:30.476Z',
-            //     lastTx: '4426729543',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     price: '0.11757182',
-            //     tfacf: '1',
-            //     remains: '0.09935956',
-            //     'tfa:BTC': '0.00000014',
-            //     'tta:BTC': '0.00007537',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.00007537',
-            //     'f:BTC:cds': '0.00000014',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.18',
-            //     tradingFeeUserVolumeAmount: '3466715450',
-            //     orderId: '4426728375' }
+            //    { "id": "4426728375",
+            //     "type": "sell",
+            //     "time": "2017-09-22T00:24:20.126Z",
+            //     "lastTxTime": "2017-09-22T00:24:30.476Z",
+            //     "lastTx": "4426729543",
+            //     "pos": null,
+            //     "status": "cd",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "price": "0.11757182",
+            //     "tfacf": "1",
+            //     "remains": "0.09935956",
+            //     'tfa:BTC': "0.00000014",
+            //     'tta:BTC': "0.00007537",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.00007537",
+            //     'f:BTC:cds': "0.00000014",
+            //     "tradingFeeMaker": "0",
+            //     "tradingFeeTaker": "0.18",
+            //     "tradingFeeUserVolumeAmount": "3466715450",
+            //     "orderId": "4426728375" }
             // --
             // filled:
-            //    { id: '5342275378',
-            //     type: 'sell',
-            //     time: '2018-01-04T00:28:12.992Z',
-            //     lastTxTime: '2018-01-04T00:28:12.992Z',
-            //     lastTx: '5342275393',
-            //     pos: null,
-            //     status: 'd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     kind: 'api',
-            //     price: '0.17',
-            //     remains: '0.00000000',
-            //     'tfa:BTC': '0.00003902',
-            //     'tta:BTC': '0.01699999',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.01699999',
-            //     'f:BTC:cds': '0.00003902',
-            //     tradingFeeMaker: '0.15',
-            //     tradingFeeTaker: '0.23',
-            //     tradingFeeUserVolumeAmount: '1525951128',
-            //     orderId: '5342275378' }
+            //    { "id": "5342275378",
+            //     "type": "sell",
+            //     "time": "2018-01-04T00:28:12.992Z",
+            //     "lastTxTime": "2018-01-04T00:28:12.992Z",
+            //     "lastTx": "5342275393",
+            //     "pos": null,
+            //     "status": "d",
+            //     "symbol1": "BCH",
+            //     "symbol2": "BTC",
+            //     "amount": "0.10000000",
+            //     "kind": "api",
+            //     "price": "0.17",
+            //     "remains": "0.00000000",
+            //     'tfa:BTC': "0.00003902",
+            //     'tta:BTC': "0.01699999",
+            //     'a:BCH:cds': "0.10000000",
+            //     'a:BTC:cds': "0.01699999",
+            //     'f:BTC:cds': "0.00003902",
+            //     "tradingFeeMaker": "0.15",
+            //     "tradingFeeTaker": "0.23",
+            //     "tradingFeeUserVolumeAmount": "1525951128",
+            //     "orderId": "5342275378" }
             // --
             // market order (buy):
             //    { "id": "6281946200",

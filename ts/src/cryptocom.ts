@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest, Balances, Transaction } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -897,7 +897,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const responseResult = this.safeValue (response, 'result', {});
         const data = this.safeValue (responseResult, 'data', []);
         const positionBalances = this.safeValue (data[0], 'position_balances', []);
@@ -1932,18 +1932,18 @@ export default class cryptocom extends Exchange {
         const response = await this[method] (this.extend (request, query));
         //
         //     {
-        //       id: '1641032709328',
-        //       method: 'private/deriv/get-transfer-history',
-        //       code: '0',
-        //       result: {
-        //         transfer_list: [
+        //       "id": "1641032709328",
+        //       "method": "private/deriv/get-transfer-history",
+        //       "code": "0",
+        //       "result": {
+        //         "transfer_list": [
         //           {
-        //             direction: 'IN',
-        //             time: '1641025185223',
-        //             amount: '109.56',
-        //             status: 'COMPLETED',
-        //             information: 'From Spot Wallet',
-        //             currency: 'USDC'
+        //             "direction": "IN",
+        //             "time": "1641025185223",
+        //             "amount": "109.56",
+        //             "status": "COMPLETED",
+        //             "information": "From Spot Wallet",
+        //             "currency": "USDC"
         //           }
         //         ]
         //       }
@@ -1967,19 +1967,19 @@ export default class cryptocom extends Exchange {
     parseTransfer (transfer, currency = undefined) {
         //
         //   {
-        //     response: {
-        //       id: '1641032709328',
-        //       method: 'private/deriv/get-transfer-history',
-        //       code: '0',
-        //       result: {
-        //         transfer_list: [
+        //     "response": {
+        //       "id": "1641032709328",
+        //       "method": "private/deriv/get-transfer-history",
+        //       "code": "0",
+        //       "result": {
+        //         "transfer_list": [
         //           {
-        //             direction: 'IN',
-        //             time: '1641025185223',
-        //             amount: '109.56',
-        //             status: 'COMPLETED',
-        //             information: 'From Spot Wallet',
-        //             currency: 'USDC'
+        //             "direction": "IN",
+        //             "time": "1641025185223",
+        //             "amount": "109.56",
+        //             "status": "COMPLETED",
+        //             "information": "From Spot Wallet",
+        //             "currency": "USDC"
         //           }
         //         ]
         //       }
@@ -2039,7 +2039,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -2322,7 +2322,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2590,16 +2590,16 @@ export default class cryptocom extends Exchange {
     parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
-        //        full_name: 'Alchemix',
-        //        default_network: 'ETH',
-        //        network_list: [
+        //        "full_name": "Alchemix",
+        //        "default_network": "ETH",
+        //        "network_list": [
         //          {
-        //            network_id: 'ETH',
-        //            withdrawal_fee: '0.25000000',
-        //            withdraw_enabled: true,
-        //            min_withdrawal_amount: '0.5',
-        //            deposit_enabled: true,
-        //            confirmation_required: '0'
+        //            "network_id": "ETH",
+        //            "withdrawal_fee": "0.25000000",
+        //            "withdraw_enabled": true,
+        //            "min_withdrawal_amount": "0.5",
+        //            "deposit_enabled": true,
+        //            "confirmation_required": "0"
         //          }
         //        ]
         //    }

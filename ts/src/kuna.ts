@@ -5,9 +5,9 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Precise } from '../ccxt.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
@@ -662,7 +662,7 @@ export default class kuna extends Exchange {
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //    {
         //        "pair": "BTC_USDT",                                   // Traded pair
@@ -855,17 +855,17 @@ export default class kuna extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //    {
-        //        id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //        orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //        pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //        quantity: "1.5862",                                // Traded quantity of base asset
-        //        price: "19087",                                    // Price of the trade
-        //        isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //        fee: "0.0039655",                                  // Exchange commission fee
-        //        feeCurrency: "BTC",                                // Currency of the commission
-        //        isBuyer: true,                                     // Buy or sell the base asset
-        //        quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //        createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //        "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //        "pair": "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        "quantity": "1.5862",                                // Traded quantity of base asset
+        //        "price": "19087",                                    // Price of the trade
+        //        "isTaker": true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        "fee": "0.0039655",                                  // Exchange commission fee
+        //        "feeCurrency": "BTC",                                // Currency of the commission
+        //        "isBuyer": true,                                     // Buy or sell the base asset
+        //        "quoteQuantity": "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        "createdAt": "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //    }
         //
         const datetime = this.safeString (trade, 'createdAt');
@@ -897,7 +897,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         //    [
         //        {
@@ -1391,17 +1391,17 @@ export default class kuna extends Exchange {
         //    {
         //        "data": [
         //            {
-        //                id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-        //                orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-        //                pair: "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //                quantity: "1.5862",                                // Traded quantity of base asset
-        //                price: "19087",                                    // Price of the trade
-        //                isTaker: true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //                fee: "0.0039655",                                  // Exchange commission fee
-        //                feeCurrency: "BTC",                                // Currency of the commission
-        //                isBuyer: true,                                     // Buy or sell the base asset
-        //                quoteQuantity: "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //                createdAt: "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+        //                "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+        //                "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+        //                "pair": "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //                "quantity": "1.5862",                                // Traded quantity of base asset
+        //                "price": "19087",                                    // Price of the trade
+        //                "isTaker": true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //                "fee": "0.0039655",                                  // Exchange commission fee
+        //                "feeCurrency": "BTC",                                // Currency of the commission
+        //                "isBuyer": true,                                     // Buy or sell the base asset
+        //                "quoteQuantity": "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //                "createdAt": "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
         //            },
         //        ]
         //    }
@@ -1777,7 +1777,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //    {
         //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1824,7 +1824,7 @@ export default class kuna extends Exchange {
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'memo'),
             'fee': {
-                'cost': this.safeString (transaction, 'fee'),
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,
             },
         };

@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, Bad
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -326,7 +326,7 @@ export default class bitbns extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "symbol":"BTC/INR",
@@ -431,7 +431,7 @@ export default class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const timestamp = undefined;
         const result = {
             'info': response,
@@ -1065,7 +1065,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //

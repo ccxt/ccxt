@@ -6,7 +6,7 @@ import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './ba
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -272,7 +272,7 @@ export default class btcturk extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
@@ -353,7 +353,7 @@ export default class btcturk extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //   {
         //     "pair": "BTCTRY",
@@ -540,12 +540,12 @@ export default class btcturk extends Exchange {
     parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
-        //        'timestamp': 1661990400,
-        //        'high': 368388.0,
-        //        'open': 368388.0,
-        //        'low': 368388.0,
-        //        'close': 368388.0,
-        //        'volume': 0.00035208,
+        //        "timestamp": 1661990400,
+        //        "high": 368388.0,
+        //        "open": 368388.0,
+        //        "low": 368388.0,
+        //        "close": 368388.0,
+        //        "volume": 0.00035208,
         //    }
         //
         return [

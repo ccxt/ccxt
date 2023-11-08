@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, Pe
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -182,7 +182,7 @@ export default class bit2c extends Exchange {
         });
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -277,7 +277,7 @@ export default class bit2c extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
         const averagePrice = this.safeString (ticker, 'av');
@@ -834,8 +834,8 @@ export default class bit2c extends Exchange {
         const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
         //
         //     {
-        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx': False
+        //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        //         "hasTx": False
         //     }
         //
         return this.parseDepositAddress (response, currency);
@@ -844,8 +844,8 @@ export default class bit2c extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx': False
+        //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        //         "hasTx": False
         //     }
         //
         const address = this.safeString (depositAddress, 'address');

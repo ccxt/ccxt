@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -399,7 +399,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //     "symbol": "BTC-USD",
@@ -484,20 +484,20 @@ export default class blockchaincom extends Exchange {
     parseOrder (order, market = undefined): Order {
         //
         //     {
-        //         clOrdId: '00001',
-        //         ordType: 'MARKET',
-        //         ordStatus: 'FILLED',
-        //         side: 'BUY',
-        //         symbol: 'USDC-USDT',
-        //         exOrdId: '281775861306290',
-        //         price: null,
-        //         text: 'Fill',
-        //         lastShares: '30.0',
-        //         lastPx: '0.9999',
-        //         leavesQty: '0.0',
-        //         cumQty: '30.0',
-        //         avgPx: '0.9999',
-        //         timestamp: '1633940339619'
+        //         "clOrdId": "00001",
+        //         "ordType": "MARKET",
+        //         "ordStatus": "FILLED",
+        //         "side": "BUY",
+        //         "symbol": "USDC-USDT",
+        //         "exOrdId": "281775861306290",
+        //         "price": null,
+        //         "text": "Fill",
+        //         "lastShares": "30.0",
+        //         "lastPx": "0.9999",
+        //         "leavesQty": "0.0",
+        //         "cumQty": "30.0",
+        //         "avgPx": "0.9999",
+        //         "timestamp": "1633940339619"
         //     }
         //
         const clientOrderId = this.safeString (order, 'clOrdId');
@@ -658,9 +658,9 @@ export default class blockchaincom extends Exchange {
         const response = await this.privateGetFees (params);
         //
         //     {
-        //         makerRate: "0.002",
-        //         takerRate: "0.004",
-        //         volumeInUSD: "0.0"
+        //         "makerRate": "0.002",
+        //         "takerRate": "0.004",
+        //         "volumeInUSD": "0.0"
         //     }
         //
         const makerFee = this.safeNumber (response, 'makerRate');
@@ -854,7 +854,7 @@ export default class blockchaincom extends Exchange {
         return this.safeString (states, state, state);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // deposit
         //
@@ -991,13 +991,13 @@ export default class blockchaincom extends Exchange {
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
         //     {
-        //         amount: "30.0",
-        //         currency: "USDT",
-        //         beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        //         withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        //         fee: "34.005078",
-        //         state: "PENDING",
-        //         timestamp: "1634218452595"
+        //         "amount": "30.0",
+        //         "currency": "USDT",
+        //         "beneficiary": "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        //         "withdrawalId": "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        //         "fee": "34.005078",
+        //         "state": "PENDING",
+        //         "timestamp": "1634218452595"
         //     },
         //
         return this.parseTransaction (response, currency);
