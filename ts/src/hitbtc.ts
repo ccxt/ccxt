@@ -1148,6 +1148,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://api.hitbtc.com/#trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1157,20 +1158,25 @@ export default class hitbtc extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            // symbol is optional for hitbtc fetchTrades
-            request['symbols'] = market['id'];
-        }
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.publicGetPublicTrades (this.extend (request, params));
-        const marketIds = Object.keys (response);
+        let response = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            response = await this.publicGetPublicTradesSymbol (this.extend (request, params));
+        } else {
+            response = await this.publicGetPublicTrades (this.extend (request, params));
+        }
+        if (symbol !== undefined) {
+            return this.parseTrades (response, market) as Trade[];
+        }
         let trades = [];
+        const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketInner = this.market (marketId);
