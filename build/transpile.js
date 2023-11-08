@@ -1576,7 +1576,6 @@ class Transpiler {
                     nullable = nullable || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
-                    console.log (type)
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
