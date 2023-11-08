@@ -1495,39 +1495,81 @@ export default class bitrue extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'command': 'returnTicker',
-        };
-        const response = await this.spotKlinePublicGetPublicJson (this.extend (request, params));
+        symbols = this.marketSymbols (symbols);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            const market = this.market (first);
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+            if (market['future']) {
+                request['contractName'] = market['id'];
+                if (this.isLinear (type, subType)) {
+                    response = await this.fapiV1PublicGetTicker (this.extend (request, params));
+                } else if (this.isInverse (type, subType)) {
+                    response = await this.dapiV1PublicGetTicker (this.extend (request, params));
+                }
+                response['symbol'] = market['id'];
+                data = [ response ];
+            } else {
+                request['symbol'] = market['id'];
+                response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+                data = response;
+            }
+        } else {
+            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+            data = response;
+        }
+        //
+        // spot
+        //
+        //     [{
+        //         symbol: 'BTCUSDT',
+        //         priceChange: '105.20',
+        //         priceChangePercent: '0.3000',
+        //         weightedAvgPrice: null,
+        //         prevClosePrice: null,
+        //         lastPrice: '34905.21',
+        //         lastQty: null,
+        //         bidPrice: '34905.21',
+        //         askPrice: '34905.22',
+        //         openPrice: '34800.01',
+        //         highPrice: '35276.33',
+        //         lowPrice: '34787.51',
+        //         volume: '12549.6481',
+        //         quoteVolume: '439390492.917',
+        //         openTime: '0',
+        //         closeTime: '0',
+        //         firstId: '0',
+        //         lastId: '0',
+        //         count: '0'
+        //     }]
+        //
+        // future
         //
         //     {
-        //         "code":"200",
-        //         "msg":"success",
-        //         "data":{
-        //             "DODO3S_USDT":{
-        //                 "id":397945892,
-        //                 "last":"1.143411",
-        //                 "lowestAsk":"1.144223",
-        //                 "highestBid":"1.141696",
-        //                 "percentChange":"-0.001432",
-        //                 "baseVolume":"338287",
-        //                 "quoteVolume":"415013.244366",
-        //                 "isFrozen":"0",
-        //                 "high24hr":"1.370087",
-        //                 "low24hr":"1.370087"
-        //             }
-        //         }
+        //         "high": "35296",
+        //         "vol": "779308354",
+        //         "last": "34884.1",
+        //         "low": "34806.7",
+        //         "buy": 34883.9,
+        //         "sell": 34884,
+        //         "rose": "-0.0027957315",
+        //         "time": 1699348013000
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
         // the exchange returns market ids with an underscore from the tickers endpoint
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
-        const marketIds = Object.keys (data);
-        for (let i = 0; i < marketIds.length; i++) {
-            const marketId = marketIds[i].replace ('_', '');
-            tickers[marketId] = data[marketIds[i]];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.safeValue (data, i, {});
+            const market = this.market (this.safeValue (ticker, 'symbol'));
+            tickers[market['id']] = ticker;
         }
         return this.parseTickers (tickers, symbols);
     }
