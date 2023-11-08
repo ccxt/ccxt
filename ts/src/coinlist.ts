@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
 
 /**
  * @class coinlist
@@ -2007,7 +2007,7 @@ export default class coinlist extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         // withdraw
         //
         //     {
