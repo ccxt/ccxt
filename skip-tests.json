@@ -795,7 +795,8 @@
                 "baseVolume": "quoteVolume >= baseVolume * low is failing",
                 "ask": "failing the test",
                 "bid": "failing the test"
-            }
+            },
+            "fetchOHLCV": "some temporary issues https://app.travis-ci.com/github/ccxt/ccxt/builds/267114353#L2340"
         }
     },
     "deribit": {
@@ -1228,10 +1229,7 @@
                 "withdraw": "not provided",
                 "deposit": "not provided"
             },
-            "fetchOHLCV": {
-                "compareToNow": "last bar timestamp is beyond current timestamp",
-                "compareAmountToZero": "sometimes zero amount returned"
-            }
+            "fetchOHLCV": "too many issues in the endpoint, compareAmountToZero, compareToNow, and even string responses"
         }
     },
     "mexc": {
