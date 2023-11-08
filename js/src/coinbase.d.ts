@@ -7,9 +7,9 @@ import { Int, OrderSide, OrderType, Order, Trade, OHLCV } from './base/types.js'
 export default class coinbase extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchAccounts(params?: {}): Promise<any[]>;
-    fetchAccountsV2(params?: {}): Promise<any[]>;
-    fetchAccountsV3(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<any>;
+    fetchAccountsV2(params?: {}): Promise<any>;
+    fetchAccountsV3(params?: {}): Promise<any>;
     parseAccount(account: any): {
         id: string;
         type: string;
@@ -107,7 +107,7 @@ export default class coinbase extends Exchange {
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;

@@ -281,6 +281,7 @@ export default class phemex extends Exchange {
             'exceptions': {
                 'exact': {
                     // not documented
+                    '401': AuthenticationError,
                     '412': BadRequest,
                     '6001': BadRequest,
                     // documented
@@ -1982,6 +1983,9 @@ export default class phemex extends Exchange {
             'Filled': 'closed',
             'Canceled': 'canceled',
             '1': 'open',
+            '2': 'canceled',
+            '3': 'closed',
+            '4': 'canceled',
             '5': 'open',
             '6': 'open',
             '7': 'closed',

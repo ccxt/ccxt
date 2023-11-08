@@ -6,9 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -110,6 +108,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': [
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -119,6 +118,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': [
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -157,11 +157,6 @@ class krakenfutures(Exchange, ImplicitAPI):
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ],
-                },
-                'feeschedules': {
-                    'get': [
-                        'volumes',
                     ],
                 },
             },
@@ -631,7 +626,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "time": 1645198500000,
@@ -1145,7 +1140,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # LIMIT
         #

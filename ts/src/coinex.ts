@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import { FundingHistory, FundingRateHistory, Int, OrderSide, OrderType } from './base/types.js';
+import { FundingHistory, FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -310,8 +310,8 @@ export default class coinex extends Exchange {
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCommonAssetConfig (params);
         //     {
-        //         code: 0,
-        //         data: {
+        //         "code": 0,
+        //         "data": {
         //             "USDT-ERC20": {
         //                  "asset": "USDT",
         //                  "chain": "ERC20",
@@ -325,7 +325,7 @@ export default class coinex extends Exchange {
         //             },
         //             ...
         //         },
-        //         message: 'Success',
+        //         "message": "Success",
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -643,7 +643,7 @@ export default class coinex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // Spot fetchTicker, fetchTickers
         //
@@ -894,9 +894,9 @@ export default class coinex extends Exchange {
         const response = await this.perpetualPublicGetTime (params);
         //
         //     {
-        //         code: '0',
-        //         data: '1653261274414',
-        //         message: 'OK'
+        //         "code": "0",
+        //         "data": "1653261274414",
+        //         "message": "OK"
         //     }
         //
         return this.safeInteger (response, 'data');
@@ -977,7 +977,7 @@ export default class coinex extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1230,7 +1230,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1591484400,
@@ -1537,7 +1537,7 @@ export default class coinex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrder
         //
@@ -2734,12 +2734,12 @@ export default class coinex extends Exchange {
         const response = await this.privatePutBalanceDepositAddressCoinType (this.extend (request, params));
         //
         //     {
-        //         code: 0,
-        //         data: {
-        //             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        //             is_bitcoin_cash: false
+        //         "code": 0,
+        //         "data": {
+        //             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        //             "is_bitcoin_cash": false
         //         },
-        //         message: 'Success'
+        //         "message": "Success"
         //     }
         const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
@@ -2778,13 +2778,13 @@ export default class coinex extends Exchange {
         const response = await this.privateGetBalanceDepositAddressCoinType (this.extend (request, params));
         //
         //      {
-        //          code: 0,
-        //          data: {
-        //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //            // coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
-        //            is_bitcoin_cash: false
+        //          "code": 0,
+        //          "data": {
+        //            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //            // coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
+        //            "is_bitcoin_cash": false
         //          },
-        //          message: 'Success'
+        //          "message": "Success"
         //      }
         //
         const data = this.safeValue (response, 'data', {});
@@ -2818,8 +2818,8 @@ export default class coinex extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //         is_bitcoin_cash: false
+        //         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "is_bitcoin_cash": false
         //     }
         //
         const coinAddress = this.safeString (depositAddress, 'coin_address');
@@ -3940,7 +3940,7 @@ export default class coinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //

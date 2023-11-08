@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Transaction, Ticker } from './base/types.js';
 
 /**
  * @class gate
@@ -2460,7 +2460,7 @@ export default class gate extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // SPOT
         //
@@ -2499,13 +2499,13 @@ export default class gate extends Exchange {
         //
         // bookTicker
         //    {
-        //        t: 1671363004228,
-        //        u: 9793320464,
-        //        s: 'BTC_USDT',
-        //        b: '16716.8', // best bid price
-        //        B: '0.0134', // best bid size
-        //        a: '16716.9', // best ask price
-        //        A: '0.0353' // best ask size
+        //        "t": 1671363004228,
+        //        "u": 9793320464,
+        //        "s": "BTC_USDT",
+        //        "b": "16716.8", // best bid price
+        //        "B": "0.0134", // best bid size
+        //        "a": "16716.9", // best ask price
+        //        "A": "0.0353" // best ask size
         //     }
         //
         // option
@@ -2718,52 +2718,52 @@ export default class gate extends Exchange {
         //  Perpetual Swap
         //
         //    {
-        //        order_margin: "0",
-        //        point: "0",
-        //        bonus: "0",
-        //        history: {
-        //            dnw: "2.1321",
-        //            pnl: "11.5351",
-        //            refr: "0",
-        //            point_fee: "0",
-        //            fund: "-0.32340576684",
-        //            bonus_dnw: "0",
-        //            point_refr: "0",
-        //            bonus_offset: "0",
-        //            fee: "-0.20132775",
-        //            point_dnw: "0",
+        //        "order_margin": "0",
+        //        "point": "0",
+        //        "bonus": "0",
+        //        "history": {
+        //            "dnw": "2.1321",
+        //            "pnl": "11.5351",
+        //            "refr": "0",
+        //            "point_fee": "0",
+        //            "fund": "-0.32340576684",
+        //            "bonus_dnw": "0",
+        //            "point_refr": "0",
+        //            "bonus_offset": "0",
+        //            "fee": "-0.20132775",
+        //            "point_dnw": "0",
         //        },
-        //        unrealised_pnl: "13.315100000006",
-        //        total: "12.51345151332",
-        //        available: "0",
-        //        in_dual_mode: false,
-        //        currency: "USDT",
-        //        position_margin: "12.51345151332",
-        //        user: "6333333",
+        //        "unrealised_pnl": "13.315100000006",
+        //        "total": "12.51345151332",
+        //        "available": "0",
+        //        "in_dual_mode": false,
+        //        "currency": "USDT",
+        //        "position_margin": "12.51345151332",
+        //        "user": "6333333",
         //    }
         //
         // Delivery Future
         //
         //    {
-        //        order_margin: "0",
-        //        point: "0",
-        //        history: {
-        //            dnw: "1",
-        //            pnl: "0",
-        //            refr: "0",
-        //            point_fee: "0",
-        //            point_dnw: "0",
-        //            settle: "0",
-        //            settle_fee: "0",
-        //            point_refr: "0",
-        //            fee: "0",
+        //        "order_margin": "0",
+        //        "point": "0",
+        //        "history": {
+        //            "dnw": "1",
+        //            "pnl": "0",
+        //            "refr": "0",
+        //            "point_fee": "0",
+        //            "point_dnw": "0",
+        //            "settle": "0",
+        //            "settle_fee": "0",
+        //            "point_refr": "0",
+        //            "fee": "0",
         //        },
-        //        unrealised_pnl: "0",
-        //        total: "1",
-        //        available: "1",
-        //        currency: "USDT",
-        //        position_margin: "0",
-        //        user: "6333333",
+        //        "unrealised_pnl": "0",
+        //        "total": "1",
+        //        "available": "1",
+        //        "currency": "USDT",
+        //        "position_margin": "0",
+        //        "user": "6333333",
         //    }
         //
         // option
@@ -2975,7 +2975,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         // Spot market candles
         //
@@ -3092,13 +3092,13 @@ export default class gate extends Exchange {
         //
         //     [
         //         {
-        //             id: "1852958144",
-        //             create_time: "1634673259",
-        //             create_time_ms: "1634673259378.105000",
-        //             currency_pair: "ADA_USDT",
-        //             side: "sell",
-        //             amount: "307.078",
-        //             price: "2.104",
+        //             "id": "1852958144",
+        //             "create_time": "1634673259",
+        //             "create_time_ms": "1634673259378.105000",
+        //             "currency_pair": "ADA_USDT",
+        //             "side": "sell",
+        //             "amount": "307.078",
+        //             "price": "2.104",
         //         }
         //     ]
         //
@@ -3106,12 +3106,12 @@ export default class gate extends Exchange {
         //
         //     [
         //         {
-        //              size: "2",
-        //              id: "2522911",
-        //              create_time_ms: "1634673380.182",
-        //              create_time: "1634673380.182",
-        //              contract: "ADA_USDT",
-        //              price: "2.10486",
+        //              "size": "2",
+        //              "id": "2522911",
+        //              "create_time_ms": "1634673380.182",
+        //              "create_time": "1634673380.182",
+        //              "contract": "ADA_USDT",
+        //              "price": "2.10486",
         //         }
         //     ]
         //
@@ -3306,7 +3306,7 @@ export default class gate extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public
         //
@@ -3323,11 +3323,11 @@ export default class gate extends Exchange {
         // public ws
         //
         //     {
-        //         id: 221994511,
-        //         time: 1580311438.618647,
-        //         price: '9309',
-        //         amount: '0.0019',
-        //         type: 'sell'
+        //         "id": 221994511,
+        //         "time": 1580311438.618647,
+        //         "price": "9309",
+        //         "amount": "0.0019",
+        //         "type": "sell"
         //     }
         //
         // spot rest
@@ -3598,7 +3598,7 @@ export default class gate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // deposits
         //
@@ -4180,7 +4180,7 @@ export default class gate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // SPOT
         // createOrder/cancelOrder/fetchOrder/editOrder
@@ -4812,27 +4812,27 @@ export default class gate extends Exchange {
         // swap, future and option
         //
         //     {
-        //         id: "82241928192",
-        //         contract: "BTC_USDT",
-        //         mkfr: "0",
-        //         tkfr: "0.0005",
-        //         tif: "gtc",
-        //         is_reduce_only: false,
-        //         create_time: "1635196145.06",
-        //         finish_time: "1635196233.396",
-        //         price: "61000",
-        //         size: "4",
-        //         refr: "0",
-        //         left: "4",
-        //         text: "web",
-        //         fill_price: "0",
-        //         user: "6693577",
-        //         finish_as: "cancelled",
-        //         status: "finished",
-        //         is_liq: false,
-        //         refu: "0",
-        //         is_close: false,
-        //         iceberg: "0",
+        //         "id": "82241928192",
+        //         "contract": "BTC_USDT",
+        //         "mkfr": "0",
+        //         "tkfr": "0.0005",
+        //         "tif": "gtc",
+        //         "is_reduce_only": false,
+        //         "create_time": "1635196145.06",
+        //         "finish_time": "1635196233.396",
+        //         "price": "61000",
+        //         "size": "4",
+        //         "refr": "0",
+        //         "left": "4",
+        //         "text": "web",
+        //         "fill_price": "0",
+        //         "user": "6693577",
+        //         "finish_as": "cancelled",
+        //         "status": "finished",
+        //         "is_liq": false,
+        //         "refu": "0",
+        //         "is_close": false,
+        //         "iceberg": "0",
         //     }
         //
         return this.parseOrder (response, market);
@@ -5050,29 +5050,29 @@ export default class gate extends Exchange {
         // swap and future
         //
         //     {
-        //         value: "12.475572",
-        //         leverage: "0",
-        //         mode: "single",
-        //         realised_point: "0",
-        //         contract: "BTC_USDT",
-        //         entry_price: "62422.6",
-        //         mark_price: "62377.86",
-        //         history_point: "0",
-        //         realised_pnl: "-0.00624226",
-        //         close_order:  null,
-        //         size: "2",
-        //         cross_leverage_limit: "25",
-        //         pending_orders: "0",
-        //         adl_ranking: "5",
-        //         maintenance_rate: "0.005",
-        //         unrealised_pnl: "-0.008948",
-        //         user: "663337",
-        //         leverage_max: "100",
-        //         history_pnl: "14.98868396636",
-        //         risk_limit: "1000000",
-        //         margin: "0.740721495056",
-        //         last_close_pnl: "-0.041996015",
-        //         liq_price: "59058.58"
+        //         "value": "12.475572",
+        //         "leverage": "0",
+        //         "mode": "single",
+        //         "realised_point": "0",
+        //         "contract": "BTC_USDT",
+        //         "entry_price": "62422.6",
+        //         "mark_price": "62377.86",
+        //         "history_point": "0",
+        //         "realised_pnl": "-0.00624226",
+        //         "close_order":  null,
+        //         "size": "2",
+        //         "cross_leverage_limit": "25",
+        //         "pending_orders": "0",
+        //         "adl_ranking": "5",
+        //         "maintenance_rate": "0.005",
+        //         "unrealised_pnl": "-0.008948",
+        //         "user": "663337",
+        //         "leverage_max": "100",
+        //         "history_pnl": "14.98868396636",
+        //         "risk_limit": "1000000",
+        //         "margin": "0.740721495056",
+        //         "last_close_pnl": "-0.041996015",
+        //         "liq_price": "59058.58"
         //     }
         //
         // option
@@ -5249,23 +5249,19 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 market = this.market (symbols[0]);
-                for (let i = 1; i < symbols.length; i++) {
-                    const checkMarket = this.market (symbols[i]);
-                    if (checkMarket['type'] !== market['type']) {
-                        throw new BadRequest (this.id + ' fetchPositions() does not support multiple types of positions at the same time');
-                    }
-                }
             }
         }
         let type = undefined;
         let request = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        this.checkRequiredArgument ('fetchPositions', type, 'type', [ 'swap', 'future', 'option' ]);
+        if ((type === undefined) || (type === 'spot')) {
+            type = 'swap'; // default to swap
+        }
         if (type === 'option') {
             if (symbols !== undefined) {
                 const marketId = market['id'];
@@ -5275,40 +5271,42 @@ export default class gate extends Exchange {
         } else {
             [ request, params ] = this.prepareRequest (undefined, type, params);
         }
-        const method = this.getSupportedMapping (type, {
-            'swap': 'privateFuturesGetSettlePositions',
-            'future': 'privateDeliveryGetSettlePositions',
-            'option': 'privateOptionsGetPositions',
-        });
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.privateFuturesGetSettlePositions (this.extend (request, params));
+        } else if (type === 'future') {
+            response = await this.privateDeliveryGetSettlePositions (this.extend (request, params));
+        } else if (type === 'option') {
+            response = await this.privateOptionsGetPositions (this.extend (request, params));
+        }
         //
         // swap and future
         //
         //     [
         //         {
-        //             value: "12.475572",
-        //             leverage: "0",
-        //             mode: "single",
-        //             realised_point: "0",
-        //             contract: "BTC_USDT",
-        //             entry_price: "62422.6",
-        //             mark_price: "62377.86",
-        //             history_point: "0",
-        //             realised_pnl: "-0.00624226",
-        //             close_order:  null,
-        //             size: "2",
-        //             cross_leverage_limit: "25",
-        //             pending_orders: "0",
-        //             adl_ranking: "5",
-        //             maintenance_rate: "0.005",
-        //             unrealised_pnl: "-0.008948",
-        //             user: "6693577",
-        //             leverage_max: "100",
-        //             history_pnl: "14.98868396636",
-        //             risk_limit: "1000000",
-        //             margin: "0.740721495056",
-        //             last_close_pnl: "-0.041996015",
-        //             liq_price: "59058.58"
+        //             "value": "12.475572",
+        //             "leverage": "0",
+        //             "mode": "single",
+        //             "realised_point": "0",
+        //             "contract": "BTC_USDT",
+        //             "entry_price": "62422.6",
+        //             "mark_price": "62377.86",
+        //             "history_point": "0",
+        //             "realised_pnl": "-0.00624226",
+        //             "close_order":  null,
+        //             "size": "2",
+        //             "cross_leverage_limit": "25",
+        //             "pending_orders": "0",
+        //             "adl_ranking": "5",
+        //             "maintenance_rate": "0.005",
+        //             "unrealised_pnl": "-0.008948",
+        //             "user": "6693577",
+        //             "leverage_max": "100",
+        //             "history_pnl": "14.98868396636",
+        //             "risk_limit": "1000000",
+        //             "margin": "0.740721495056",
+        //             "last_close_pnl": "-0.041996015",
+        //             "liq_price": "59058.58"
         //         }
         //     ]
         //
@@ -5987,20 +5985,20 @@ export default class gate extends Exchange {
         //
         //    [
         //        {
-        //            long_liq_size: '0',
-        //            short_liq_size: '0',
-        //            short_liq_usd: '0',
-        //            lsr_account: '3.2808988764045',
-        //            mark_price: '0.34619',
-        //            top_lsr_size: '0',
-        //            time: '1674057000',
-        //            short_liq_amount: '0',
-        //            long_liq_amount: '0',
-        //            open_interest_usd: '9872386.7775',
-        //            top_lsr_account: '0',
-        //            open_interest: '2851725',
-        //            long_liq_usd: '0',
-        //            lsr_taker: '9.3765153315902'
+        //            "long_liq_size": "0",
+        //            "short_liq_size": "0",
+        //            "short_liq_usd": "0",
+        //            "lsr_account": "3.2808988764045",
+        //            "mark_price": "0.34619",
+        //            "top_lsr_size": "0",
+        //            "time": "1674057000",
+        //            "short_liq_amount": "0",
+        //            "long_liq_amount": "0",
+        //            "open_interest_usd": "9872386.7775",
+        //            "top_lsr_account": "0",
+        //            "open_interest": "2851725",
+        //            "long_liq_usd": "0",
+        //            "lsr_taker": "9.3765153315902"
         //        },
         //        ...
         //    ]
@@ -6011,20 +6009,20 @@ export default class gate extends Exchange {
     parseOpenInterest (interest, market = undefined) {
         //
         //    {
-        //        long_liq_size: '0',
-        //        short_liq_size: '0',
-        //        short_liq_usd: '0',
-        //        lsr_account: '3.2808988764045',
-        //        mark_price: '0.34619',
-        //        top_lsr_size: '0',
-        //        time: '1674057000',
-        //        short_liq_amount: '0',
-        //        long_liq_amount: '0',
-        //        open_interest_usd: '9872386.7775',
-        //        top_lsr_account: '0',
-        //        open_interest: '2851725',
-        //        long_liq_usd: '0',
-        //        lsr_taker: '9.3765153315902'
+        //        "long_liq_size": "0",
+        //        "short_liq_size": "0",
+        //        "short_liq_usd": "0",
+        //        "lsr_account": "3.2808988764045",
+        //        "mark_price": "0.34619",
+        //        "top_lsr_size": "0",
+        //        "time": "1674057000",
+        //        "short_liq_amount": "0",
+        //        "long_liq_amount": "0",
+        //        "open_interest_usd": "9872386.7775",
+        //        "top_lsr_account": "0",
+        //        "open_interest": "2851725",
+        //        "long_liq_usd": "0",
+        //        "lsr_taker": "9.3765153315902"
         //    }
         //
         const timestamp = this.safeTimestamp (interest, 'time');
@@ -6691,7 +6689,7 @@ export default class gate extends Exchange {
         if (quoteValueString === undefined) {
             quoteValueString = Precise.stringMul (baseValueString, priceString);
         }
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': this.parseNumber (contractsString),
@@ -6701,7 +6699,7 @@ export default class gate extends Exchange {
             'quoteValue': this.parseNumber (Precise.stringAbs (quoteValueString)),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        };
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

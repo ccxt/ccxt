@@ -95,6 +95,7 @@ class krakenfutures extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -104,6 +105,7 @@ class krakenfutures extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -142,11 +144,6 @@ class krakenfutures extends Exchange {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ),
-                ),
-                'feeschedules' => array(
-                    'get' => array(
-                        'volumes',
                     ),
                 ),
             ),
@@ -642,7 +639,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "time" => 1645198500000,
@@ -1212,7 +1209,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // LIMIT
         //

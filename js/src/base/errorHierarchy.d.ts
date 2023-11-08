@@ -17,7 +17,6 @@ declare const errorHierarchy: {
             BadResponse: {
                 NullResponse: {};
             };
-            OperationFailed: {};
             InsufficientFunds: {};
             InvalidAddress: {
                 AddressPending: {};
@@ -42,6 +41,7 @@ declare const errorHierarchy: {
             };
             InvalidNonce: {};
             RequestTimeout: {};
+            OperationFailed: {};
         };
     };
 };

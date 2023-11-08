@@ -296,6 +296,7 @@ class Transpiler {
             [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
+            [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -912,17 +913,25 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        if (bodyAsString.match (/: OrderSide/)) {
-            libraries.push ('from ccxt.base.types import OrderSide')
+        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
+        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Trade', 'Transaction' ]
+        const matches = []
+        let match
+        const listRegex = /: List\[(\w+)\]/g
+        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
+        while (match = listRegex.exec (bodyAsString)) {
+            if (!pythonBuiltIns.includes (match[1])) {
+                matches.push (match[1])
+            }
         }
-        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
-            libraries.push ('from ccxt.base.types import OrderRequest')
+        for (let i = 0; i < matchAgainst.length; i++) {
+            const regex = matchAgainst[i]
+            if (bodyAsString.match (regex)) {
+                matches.push (objects[i])
+            }
         }
-        if (bodyAsString.match (/: OrderType/)) {
-            libraries.push ('from ccxt.base.types import OrderType')
-        }
-        if (bodyAsString.match (/: IndexType/)) {
-            libraries.push ('from ccxt.base.types import IndexType')
+        if (matches.length) {
+            libraries.push ('from ccxt.base.types import ' + matches.join (', '))
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -932,6 +941,10 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
+        }
+
+        if (bodyAsString.match (/-> Any/)) {
+            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -1499,7 +1512,9 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            if (className === 'Exchange') {
+                signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            }
 
             let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
@@ -1538,14 +1553,12 @@ class Transpiler {
                 'number': 'float',
                 'boolean': 'bool',
                 'Promise<any>': 'mixed',
-                'Balance': 'array',
                 'IndexType': 'int|string',
                 'Int': 'int',
-                'object': 'array',
-                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
+            const phpArrayRegex = /(?:object|OHLCV|Order|Ticker|Trade|Transaction|Balances?)|(?:\w+\[\])/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1564,14 +1577,21 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
+                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
                 .replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? (phpArgs) : ''
-            const phpReturnType = returnType ? ': ' + (phpTypes[returnType] ?? returnType) : ''
+            let phpReturnType = ''
+            if (returnType) {
+                if (returnType.match (phpArrayRegex)) {
+                    phpReturnType = ': array'
+                } else {
+                    phpReturnType = ': ' + (phpTypes[returnType] ?? returnType)
+                }
+            }
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
@@ -1582,6 +1602,8 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
+                'OHLCV': 'list',
+                'FundingHistory[]': 'List[FundingHistory]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -2461,7 +2483,7 @@ class Transpiler {
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",    
+                "use React\\Async;",
                 "use React\\Promise;",
                 "",
                 "",

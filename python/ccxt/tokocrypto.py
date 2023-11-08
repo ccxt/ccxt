@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1195,7 +1194,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = self.binanceGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -1372,7 +1371,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #

@@ -411,7 +411,7 @@ class zonda extends Exchange {
         return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         $market => 'ETH-EUR',
@@ -1143,7 +1143,7 @@ class zonda extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         '1582399800000',

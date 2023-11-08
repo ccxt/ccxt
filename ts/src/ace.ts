@@ -5,7 +5,7 @@ import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -253,7 +253,7 @@ export default class ace extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -409,7 +409,7 @@ export default class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "changeRate": 0,
@@ -499,7 +499,7 @@ export default class ace extends Exchange {
         return this.safeString (statuses, status, undefined);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //         "15697850529570392100421100482693"
@@ -762,7 +762,7 @@ export default class ace extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchOrderTrades
         //         {
@@ -959,7 +959,7 @@ export default class ace extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         //     [
         //         {
@@ -1012,9 +1012,9 @@ export default class ace extends Exchange {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance (balances);

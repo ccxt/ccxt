@@ -5224,23 +5224,19 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         let market = undefined;
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         if (symbols !== undefined) {
-            symbols = this.marketSymbols(symbols);
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 market = this.market(symbols[0]);
-                for (let i = 1; i < symbols.length; i++) {
-                    const checkMarket = this.market(symbols[i]);
-                    if (checkMarket['type'] !== market['type']) {
-                        throw new errors.BadRequest(this.id + ' fetchPositions() does not support multiple types of positions at the same time');
-                    }
-                }
             }
         }
         let type = undefined;
         let request = {};
         [type, params] = this.handleMarketTypeAndParams('fetchPositions', market, params);
-        this.checkRequiredArgument('fetchPositions', type, 'type', ['swap', 'future', 'option']);
+        if ((type === undefined) || (type === 'spot')) {
+            type = 'swap'; // default to swap
+        }
         if (type === 'option') {
             if (symbols !== undefined) {
                 const marketId = market['id'];
@@ -5251,12 +5247,16 @@ class gate extends gate$1 {
         else {
             [request, params] = this.prepareRequest(undefined, type, params);
         }
-        const method = this.getSupportedMapping(type, {
-            'swap': 'privateFuturesGetSettlePositions',
-            'future': 'privateDeliveryGetSettlePositions',
-            'option': 'privateOptionsGetPositions',
-        });
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.privateFuturesGetSettlePositions(this.extend(request, params));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettlePositions(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetPositions(this.extend(request, params));
+        }
         //
         // swap and future
         //
@@ -6658,7 +6658,7 @@ class gate extends gate$1 {
         if (quoteValueString === undefined) {
             quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
         }
-        return {
+        return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
@@ -6668,7 +6668,7 @@ class gate extends gate$1 {
             'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-        };
+        });
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

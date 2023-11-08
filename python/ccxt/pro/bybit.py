@@ -455,7 +455,7 @@ class bybit(ccxt.async_support.bybit):
         client.resolve(stored, messageHash)
         self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "start": 1670363160000,

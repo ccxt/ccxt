@@ -1074,7 +1074,12 @@
     },
     "kuna": {
         "httpsProxy": "http://51.83.140.52:11230",
-        "skipPhpAsync": true
+        "skipPhpAsync": true,
+        "skipMethods": {
+            "loadMarkets": {
+                "active":"is undefined"
+            }
+        }
     },
     "kucoin": {
         "skipWs": true,
@@ -1363,6 +1368,7 @@
         }
     },
     "tidex": {
+        "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
         "skipWs": true,
@@ -1560,6 +1566,17 @@
                 "lastPrice": "undefined",
                 "percentage": "undefined",
                 "liquidationPrice": "undefined"
+            }
+        }
+    },
+    "coinlist": {
+        "skipMethods": {
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
+                "ask": "invalid"
             }
         }
     }

@@ -7,9 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -593,9 +591,12 @@ class okx(Exchange, ImplicitAPI):
                     '51028': ContractUnavailable,  # Contract under delivery
                     '51029': ContractUnavailable,  # Contract is being settled
                     '51030': ContractUnavailable,  # Funding fee is being settled
+                    '51031': InvalidOrder,  # This order price is not within the closing price range
                     '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
-                    '51031': InvalidOrder,  # This order price is not within the closing price range
+                    '51072': InvalidOrder,  # As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
+                    '51073': InvalidOrder,  # As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
+                    '51074': InvalidOrder,  # Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction
                     '51102': InvalidOrder,  # Entered amount exceeds the max pending count
@@ -640,6 +641,7 @@ class okx(Exchange, ImplicitAPI):
                     '51163': InvalidOrder,  # You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder,  # Currently, we don't support leading trades with self instrument
                     '51174': InvalidOrder,  # The number of {param0} pending orders reached the upper limit of {param1}(orders).
+                    '51185': InvalidOrder,  # The maximum value allowed per order is {maxOrderValue} USD
                     '51201': InvalidOrder,  # Value of per market order cannot exceed 100,000 USDT
                     '51202': InvalidOrder,  # Market - order amount exceeds the max amount
                     '51203': InvalidOrder,  # Order amount exceeds the limit {0}
@@ -787,6 +789,8 @@ class okx(Exchange, ImplicitAPI):
                     '59200': InsufficientFunds,  # Insufficient account balance
                     '59201': InsufficientFunds,  # Negative account balance
                     '59216': BadRequest,  # The position doesn't exist. Please try again
+                    '59260': PermissionDenied,  # You are not a spot lead trader yet. Complete the application on our website or app first.
+                    '59262': PermissionDenied,  # You are not a contract lead trader yet. Complete the application on our website or app first.
                     '59300': ExchangeError,  # Margin call failed. Position does not exist
                     '59301': ExchangeError,  # Margin adjustment failed for exceeding the max limit
                     '59313': ExchangeError,  # Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
@@ -800,6 +804,8 @@ class okx(Exchange, ImplicitAPI):
                     '59506': ExchangeError,  # APIKey does not exist
                     '59507': ExchangeError,  # The two accounts involved in a transfer must be two different sub accounts under the same parent account
                     '59508': AccountSuspended,  # The sub account of {0} is suspended
+                    '59642': BadRequest,  # Lead and copy traders can only use margin-free or single-currency margin account modes
+                    '59643': ExchangeError,  # Couldn’t switch account modes’re currently copying spot trades
                     # WebSocket error Codes from 60000-63999
                     '60001': AuthenticationError,  # "OK_ACCESS_KEY" can not be empty
                     '60002': AuthenticationError,  # "OK_ACCESS_SIGN" can not be empty
@@ -1984,7 +1990,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         "1678928760000",  # timestamp
@@ -2926,7 +2932,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #

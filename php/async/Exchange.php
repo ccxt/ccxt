@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.35';
+$version = '4.1.43';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.35';
+    const VERSION = '4.1.43';
 
     public $browser;
     public $marketsLoading = null;
@@ -135,7 +135,7 @@ class Exchange extends \ccxt\Exchange {
                 } else if (strpos($message, 'DNS query') !== false) {
                     throw new ccxt\NetworkError($message);
                 } else {
-                    throw new ccxt\ExchangeError($message);
+                    throw new ccxt\NetworkError($message);
                 }
             }
 
@@ -663,6 +663,18 @@ class Exchange extends \ccxt\Exchange {
         $stringifiedNumber = (string) $number;
         $convertedNumber = floatval($stringifiedNumber);
         return intval($convertedNumber);
+    }
+
+    public function parse_to_numeric($number) {
+        $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS => 1 == 1.0 is true
+        // in Python => 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (mb_strpos($stringVersion, '.') > 0) {
+            return floatval($stringVersion);
+        }
+        return intval($stringVersion);
     }
 
     public function after_construct() {
@@ -1311,6 +1323,26 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
+    public function safe_liquidation(array $liquidation, ?array $market = null) {
+        $contracts = $this->safe_string($liquidation, 'contracts');
+        $contractSize = $this->safe_string($market, 'contractSize');
+        $price = $this->safe_string($liquidation, 'price');
+        $baseValue = $this->safe_string($liquidation, 'baseValue');
+        $quoteValue = $this->safe_string($liquidation, 'quoteValue');
+        if (($baseValue === null) && ($contracts !== null) && ($contractSize !== null) && ($price !== null)) {
+            $baseValue = Precise::string_mul($contracts, $contractSize);
+        }
+        if (($quoteValue === null) && ($baseValue !== null) && ($price !== null)) {
+            $quoteValue = Precise::string_mul($baseValue, $price);
+        }
+        $liquidation['contracts'] = $this->parse_number($contracts);
+        $liquidation['contractSize'] = $this->parse_number($contractSize);
+        $liquidation['price'] = $this->parse_number($price);
+        $liquidation['baseValue'] = $this->parse_number($baseValue);
+        $liquidation['quoteValue'] = $this->parse_number($quoteValue);
+        return $liquidation;
+    }
+
     public function safe_trade(array $trade, ?array $market = null) {
         $amount = $this->safe_string($trade, 'amount');
         $price = $this->safe_string($trade, 'price');
@@ -1727,7 +1759,7 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
@@ -2080,6 +2112,8 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
             $this->last_request_headers = $request['headers'];
+            $this->last_request_body = $request['body'];
+            $this->last_request_url = $request['url'];
             return Async\await($this->fetch ($request['url'], $request['method'], $request['headers'], $request['body']));
         }) ();
     }
@@ -3079,6 +3113,11 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_value_since_limit($array, 'currency', $code, $since, $limit, 'timestamp', $tail);
     }
 
+    public function filter_by_symbols_since_limit($array, ?array $symbols = null, ?int $since = null, ?int $limit = null, $tail = false) {
+        $result = $this->filter_by_array($array, 'symbol', $symbols, false);
+        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp', $tail);
+    }
+
     public function parse_last_prices($pricesData, ?array $symbols = null, $params = array ()) {
         //
         // the value of tickers is either a dict or a list
@@ -3828,7 +3867,12 @@ class Exchange extends \ccxt\Exchange {
                         }
                         $params[$cursorSent] = $cursorValue;
                     }
-                    $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    $response = null;
+                    if ($method === 'fetchAccounts') {
+                        $response = Async\await($this->$method ($params));
+                    } else {
+                        $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
+                    }
                     $errors = 0;
                     $responseLength = count($response);
                     if ($this->verbose) {

@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Dictionary, Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -194,15 +194,15 @@ export default class oceanex extends Exchange {
         const response = await this.publicGetMarkets (this.extend (request, params));
         //
         //    {
-        //        id: 'xtzusdt',
-        //        name: 'XTZ/USDT',
-        //        ask_precision: '8',
-        //        bid_precision: '8',
-        //        enabled: true,
-        //        price_precision: '4',
-        //        amount_precision: '3',
-        //        usd_precision: '4',
-        //        minimum_trading_amount: '1.0'
+        //        "id": "xtzusdt",
+        //        "name": "XTZ/USDT",
+        //        "ask_precision": "8",
+        //        "bid_precision": "8",
+        //        "enabled": true,
+        //        "price_precision": "4",
+        //        "amount_precision": "3",
+        //        "usd_precision": "4",
+        //        "minimum_trading_amount": "1.0"
         //    },
         //
         const result = [];
@@ -540,7 +540,7 @@ export default class oceanex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -636,7 +636,7 @@ export default class oceanex extends Exchange {
         return this.safeValue (response, 'data');
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts', []);
         const result = { 'info': response };
@@ -804,7 +804,7 @@ export default class oceanex extends Exchange {
         return result as Order[];
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // [
         //    1559232000,
         //    8889.22,
@@ -853,7 +853,7 @@ export default class oceanex extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "created_at": "2019-01-18T00:38:18Z",

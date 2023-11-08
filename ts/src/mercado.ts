@@ -5,7 +5,7 @@ import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -265,7 +265,7 @@ export default class mercado extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "high":"103.96000000",
@@ -338,7 +338,7 @@ export default class mercado extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'executed_timestamp');
         market = this.safeMarket (undefined, market);
         const id = this.safeString2 (trade, 'tid', 'operation_id');
@@ -400,7 +400,7 @@ export default class mercado extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
         const result = { 'info': response };
@@ -496,25 +496,25 @@ export default class mercado extends Exchange {
         const response = await this.privatePostCancelOrder (this.extend (request, params));
         //
         //     {
-        //         response_data: {
-        //             order: {
-        //                 order_id: 2176769,
-        //                 coin_pair: 'BRLBCH',
-        //                 order_type: 2,
-        //                 status: 3,
-        //                 has_fills: false,
-        //                 quantity: '0.10000000',
-        //                 limit_price: '1996.15999',
-        //                 executed_quantity: '0.00000000',
-        //                 executed_price_avg: '0.00000',
-        //                 fee: '0.00000000',
-        //                 created_timestamp: '1536956488',
-        //                 updated_timestamp: '1536956499',
-        //                 operations: []
+        //         "response_data": {
+        //             "order": {
+        //                 "order_id": 2176769,
+        //                 "coin_pair": "BRLBCH",
+        //                 "order_type": 2,
+        //                 "status": 3,
+        //                 "has_fills": false,
+        //                 "quantity": "0.10000000",
+        //                 "limit_price": "1996.15999",
+        //                 "executed_quantity": "0.00000000",
+        //                 "executed_price_avg": "0.00000",
+        //                 "fee": "0.00000000",
+        //                 "created_timestamp": "1536956488",
+        //                 "updated_timestamp": "1536956499",
+        //                 "operations": []
         //             }
         //         },
-        //         status_code: 100,
-        //         server_unix_timestamp: '1536956499'
+        //         "status_code": 100,
+        //         "server_unix_timestamp": "1536956499"
         //     }
         //
         const responseData = this.safeValue (response, 'response_data', {});
@@ -531,7 +531,7 @@ export default class mercado extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "order_id": 4,
@@ -694,7 +694,7 @@ export default class mercado extends Exchange {
         return this.parseTransaction (withdrawal, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //     {
         //         "id": 1,
@@ -732,7 +732,7 @@ export default class mercado extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),

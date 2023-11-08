@@ -1226,7 +1226,7 @@ class woo extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, null);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // Possible input functions:
         // * createOrder
@@ -1453,7 +1453,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // example response in fetchOHLCV
         return array(
             $this->safe_integer($ohlcv, 'start_timestamp'),

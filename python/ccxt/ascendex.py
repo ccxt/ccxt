@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,6 +16,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -46,6 +46,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createOrders': True,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -1039,7 +1040,7 @@ class ascendex(Exchange, ImplicitAPI):
             return self.parse_tickers([data], symbols)
         return self.parse_tickers(data, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "m":"bar",
@@ -1200,7 +1201,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1418,28 +1419,30 @@ class ascendex(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        Create an order on the exchange
-        :param str symbol: Unified CCXT market symbol
-        :param str type: "limit" or "market"
-        :param str side: "buy" or "sell"
-        :param float amount: the amount of currency to trade
-        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-        :param dict [params]: Extra parameters specific to the exchange API endpoint
+         * @ignore
+        helper function to build request
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the ascendex api endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
-        :param float [params.stopPrice]: The price at which a trigger order is triggered at
-        :returns: `An order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :returns dict: request to be sent to the exchange
         """
-        self.load_markets()
-        self.load_accounts()
         market = self.market(symbol)
+        marginMode = None
         marketType = None
-        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
-        options = self.safe_value(self.options, 'createOrder', {})
+        marginMode, params = self.handle_margin_mode_and_params('createOrderRequest', params)
+        marketType, params = self.handle_market_type_and_params('createOrderRequest', market, params)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
+        if marginMode is not None:
+            accountCategory = 'margin'
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
@@ -1460,11 +1463,6 @@ class ascendex(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, False, params)
         reduceOnly = self.safe_value(params, 'reduceOnly', False)
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice'])
-        if reduceOnly:
-            if marketType != 'swap':
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for perpetuals only')
-            request['execInst'] = 'ReduceOnly'
         if isLimitOrder:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         if timeInForce == 'IOC':
@@ -1481,18 +1479,47 @@ class ascendex(Exchange, ImplicitAPI):
                 request['orderType'] = 'stop_market'
         if clientOrderId is not None:
             request['id'] = clientOrderId
-        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryPostOrder')
-        method = self.get_supported_mapping(marketType, {
-            'spot': defaultMethod,
-            'margin': defaultMethod,
-            'swap': 'v2PrivateAccountGroupPostFuturesOrder',
-        })
-        if method == 'v1PrivateAccountCategoryPostOrder':
+        if market['spot']:
             if accountCategory is not None:
                 request['category'] = accountCategory
         else:
             request['account-category'] = accountCategory
-        response = getattr(self, method)(self.extend(request, params))
+            if reduceOnly:
+                request['execInst'] = 'ReduceOnly'
+            if postOnly:
+                request['execInst'] = 'Post'
+        params = self.omit(params, ['reduceOnly', 'triggerPrice'])
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order on the exchange
+        :see: https://ascendex.github.io/ascendex-pro-api/#place-order
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+        :param str symbol: unified CCXT market symbol
+        :param str type: "limit" or "market"
+        :param str side: "buy" or "sell"
+        :param float amount: the amount of currency to trade
+        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param bool [params.postOnly]: True or False
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered(perpetual swap markets only)
+        :param float [params.takeProfit.triggerPrice]: *swap only* take profit trigger price
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered(perpetual swap markets only)
+        :param float [params.stopLoss.triggerPrice]: *swap only* stop loss trigger price
+        :returns: `An order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        self.load_accounts()
+        market = self.market(symbol)
+        request = self.create_order_request(symbol, type, side, amount, price, params)
+        response = None
+        if market['swap']:
+            response = self.v2PrivateAccountGroupPostFuturesOrder(request)
+        else:
+            response = self.v1PrivateAccountCategoryPostOrder(request)
         #
         # spot
         #
@@ -1512,7 +1539,6 @@ class ascendex(Exchange, ImplicitAPI):
         #              }
         #          }
         #      }
-        #
         #
         # swap
         #
@@ -1560,6 +1586,92 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         order = self.safe_value_2(data, 'order', 'info', {})
         return self.parse_order(order, market)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
+        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the ascendex api endpoint
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
+        :param bool [params.postOnly]: True or False
+        :param float [params.stopPrice]: the price at which a trigger order is triggered at
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        self.load_accounts()
+        ordersRequests = []
+        symbol = None
+        marginMode = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
+            currentMarginMode = marginResult[0]
+            if currentMarginMode is not None:
+                if marginMode is None:
+                    marginMode = currentMarginMode
+                else:
+                    if marginMode != currentMarginMode:
+                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
+            orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            ordersRequests.append(orderRequest)
+        market = self.market(symbol)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountCategory = self.safe_string(accountsByType, market['type'], 'cash')
+        if marginMode is not None:
+            accountCategory = 'margin'
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_value(account, 'id')
+        request = {}
+        response = None
+        if market['swap']:
+            raise NotSupported(self.id + ' createOrders() is not currently supported for swap markets on ascendex')
+            # request['account-group'] = accountGroup
+            # request['category'] = accountCategory
+            # request['orders'] = ordersRequests
+            # response = self.v2PrivateAccountGroupPostFuturesOrderBatch(request)
+        else:
+            request['account-group'] = accountGroup
+            request['account-category'] = accountCategory
+            request['orders'] = ordersRequests
+            response = self.v1PrivateAccountCategoryPostOrderBatch(request)
+        #
+        # spot
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "cshdAKBO43TKIh2kJtq7FVVb42KIePyS",
+        #             "ac": "CASH",
+        #             "action": "batch-place-order",
+        #             "status": "Ack",
+        #             "info": [
+        #                 {
+        #                     "symbol": "BTC/USDT",
+        #                     "orderType": "Limit",
+        #                     "timestamp": 1699326589344,
+        #                     "id": "",
+        #                     "orderId": "a18ba7c1f6efU0711043490p3HvjjN5x"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        info = self.safe_value(data, 'info', [])
+        return self.parse_orders(info, market)
 
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """

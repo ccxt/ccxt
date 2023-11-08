@@ -9,9 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1533,7 +1531,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         "1545904980",             # Start time of the candle cycle
@@ -2348,7 +2346,7 @@ class kucoin(Exchange, ImplicitAPI):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #

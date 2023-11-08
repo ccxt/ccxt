@@ -78,7 +78,7 @@ export default class cryptocom extends Exchange {
     };
     parseTicker(ticker: any, market?: any): Ticker;
     parseTrade(trade: any, market?: any): Trade;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): Order;

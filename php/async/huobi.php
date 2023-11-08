@@ -2772,7 +2772,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "amount":1.2082,
@@ -4377,7 +4377,7 @@ class huobi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //
@@ -4783,6 +4783,7 @@ class huobi extends Exchange {
              * @param {string} [$params->offset] *contract only* 'open', 'close', or 'both', required in hedge mode
              * @param {bool} [$params->postOnly] *contract only* true or false
              * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+             * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             Async\await($this->load_markets());
@@ -4853,6 +4854,12 @@ class huobi extends Exchange {
             if ($postOnly) {
                 $orderType = 'limit-maker';
             }
+            $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+            if ($timeInForce === 'FOK') {
+                $orderType = $orderType . '-fok';
+            } elseif ($timeInForce === 'IOC') {
+                $orderType = 'ioc';
+            }
             $request['type'] = $side . '-' . $orderType;
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
             if ($clientOrderId === null) {
@@ -4894,7 +4901,7 @@ class huobi extends Exchange {
             if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator' ));
+            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
             $response = Async\await($this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params)));
             //
             // spot
@@ -4940,6 +4947,7 @@ class huobi extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
             $market = $this->market($symbol);
@@ -4952,6 +4960,12 @@ class huobi extends Exchange {
             list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
             if ($postOnly) {
                 $type = 'post_only';
+            }
+            $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
+            if ($timeInForce === 'FOK') {
+                $type = 'fok';
+            } elseif ($timeInForce === 'IOC') {
+                $type = 'ioc';
             }
             $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
             $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
@@ -5002,7 +5016,7 @@ class huobi extends Exchange {
                 $request['lever_rate'] = $leverRate;
                 $request['order_price_type'] = $type;
             }
-            $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate' ));
+            $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ));
             $broker = $this->safe_value($this->options, 'broker', array());
             $brokerId = $this->safe_string($broker, 'id');
             $request['channel_code'] = $brokerId;
@@ -8393,7 +8407,7 @@ class huobi extends Exchange {
         //
         $marketId = $this->safe_string($liquidation, 'contract_code');
         $timestamp = $this->safe_integer($liquidation, 'created_at');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol($marketId, $market),
             'contracts' => $this->safe_number($liquidation, 'volume'),
@@ -8403,6 +8417,6 @@ class huobi extends Exchange {
             'quoteValue' => $this->safe_number($liquidation, 'trade_turnover'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 }

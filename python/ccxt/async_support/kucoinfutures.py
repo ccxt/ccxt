@@ -5,8 +5,7 @@
 
 from ccxt.async_support.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import PermissionDenied
@@ -588,7 +587,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    [
         #        "1545904980000",          # Start time of the candle cycle
@@ -728,9 +727,6 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         return self.parse_ticker(response['data'], market)
-
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
-        raise NotSupported(self.id + ' fetchTickers() is not supported yet')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -1560,7 +1556,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         responseData = self.safe_value(response, 'data')
         return self.parse_order(responseData, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrder, fetchOrdersByStatus
         #
