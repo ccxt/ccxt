@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitpanda import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -317,8 +317,8 @@ class bitpanda(Exchange, ImplicitAPI):
         response = await self.publicGetTime(params)
         #
         #     {
-        #         iso: '2020-07-10T05:17:26.716Z',
-        #         epoch_millis: 1594358246716,
+        #         "iso": "2020-07-10T05:17:26.716Z",
+        #         "epoch_millis": 1594358246716,
         #     }
         #
         return self.safe_integer(response, 'epoch_millis')
@@ -371,12 +371,12 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             state: 'ACTIVE',
-        #             base: {code: 'ETH', precision: 8},
-        #             quote: {code: 'CHF', precision: 2},
-        #             amount_precision: 4,
-        #             market_precision: 2,
-        #             min_size: '10.0'
+        #             "state": "ACTIVE",
+        #             "base": {code: "ETH", precision: 8},
+        #             "quote": {code: "CHF", precision: 2},
+        #             "amount_precision": 4,
+        #             "market_precision": 2,
+        #             "min_size": "10.0"
         #         }
         #     ]
         #
@@ -557,7 +557,7 @@ class bitpanda(Exchange, ImplicitAPI):
             'taker': takerFees,
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker, fetchTickers
         #
@@ -843,7 +843,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -960,7 +960,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -1233,7 +1233,7 @@ class bitpanda(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits, fetchWithdrawals
         #

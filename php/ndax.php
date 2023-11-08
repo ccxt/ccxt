@@ -591,7 +591,7 @@ class ndax extends Exchange {
         return $this->parse_order_book($response, $symbol);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -774,7 +774,7 @@ class ndax extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1005,7 +1005,7 @@ class ndax extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -2148,7 +2148,7 @@ class ndax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2241,6 +2241,7 @@ class ndax extends Exchange {
             'status' => $this->parse_transaction_status_by_type($transactionStatus, $type),
             'updated' => $updated,
             'fee' => $fee,
+            'network' => null,
         );
     }
 
@@ -2279,10 +2280,10 @@ class ndax extends Exchange {
         $withdrawTemplateTypesResponse = $this->privateGetGetWithdrawTemplateTypes ($withdrawTemplateTypesRequest);
         //
         //     {
-        //         result => true,
-        //         errormsg => null,
-        //         statuscode => "0",
-        //         TemplateTypes => array(
+        //         "result" => true,
+        //         "errormsg" => null,
+        //         "statuscode" => "0",
+        //         "TemplateTypes" => array(
         //             array( AccountProviderId => "14", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "BitgoRPC-BTC" ),
         //             array( AccountProviderId => "20", TemplateName => "ToExternalBitcoinAddress", AccountProviderName => "TrezorBTC" ),
         //             array( AccountProviderId => "31", TemplateName => "BTC", AccountProviderName => "BTC Fireblocks 1" )
@@ -2305,10 +2306,10 @@ class ndax extends Exchange {
         $withdrawTemplateResponse = $this->privateGetGetWithdrawTemplate ($withdrawTemplateRequest);
         //
         //     {
-        //         result => true,
-        //         errormsg => null,
-        //         statuscode => "0",
-        //         Template => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
+        //         "result" => true,
+        //         "errormsg" => null,
+        //         "statuscode" => "0",
+        //         "Template" => "array(\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\")"
         //     }
         //
         $template = $this->safe_string($withdrawTemplateResponse, 'Template');

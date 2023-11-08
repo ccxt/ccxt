@@ -515,7 +515,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -546,7 +546,7 @@ class probit extends Exchange {
             $response = Async\await($this->privateGetBalance ($params));
             //
             //     {
-            //         data => array(
+            //         "data" => array(
             //             {
             //                 "currency_id":"XRP",
             //                 "total":"100",
@@ -667,7 +667,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -744,7 +744,7 @@ class probit extends Exchange {
             $response = Async\await($this->privateGetTradeHistory (array_merge($request, $params)));
             //
             //     {
-            //         $data => array(
+            //         "data" => array(
             //             {
             //                 "id":"BTC-USDT:183566",
             //                 "order_id":"17209376",
@@ -819,7 +819,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1136,17 +1136,17 @@ class probit extends Exchange {
         //         $id,
         //         user_id,
         //         market_id,
-        //         $type => 'orderType',
-        //         $side => 'side',
+        //         "type" => "orderType",
+        //         "side" => "side",
         //         quantity,
         //         limit_price,
-        //         time_in_force => 'timeInForce',
+        //         "time_in_force" => "timeInForce",
         //         filled_cost,
         //         filled_quantity,
         //         open_quantity,
         //         cancelled_quantity,
-        //         $status => 'orderStatus',
-        //         time => 'date',
+        //         "status" => "orderStatus",
+        //         "time" => "date",
         //         client_order_id,
         //     }
         //
@@ -1260,21 +1260,21 @@ class probit extends Exchange {
             $response = Async\await($this->privatePostNewOrder (array_merge($request, $query)));
             //
             //     {
-            //         $data => {
+            //         "data" => {
             //             id,
             //             user_id,
             //             market_id,
-            //             $type => 'orderType',
-            //             $side => 'side',
+            //             "type" => "orderType",
+            //             "side" => "side",
             //             quantity,
             //             limit_price,
-            //             time_in_force => 'timeInForce',
+            //             "time_in_force" => "timeInForce",
             //             filled_cost,
             //             filled_quantity,
             //             open_quantity,
             //             cancelled_quantity,
-            //             status => 'orderStatus',
-            //             time => 'date',
+            //             "status" => "orderStatus",
+            //             "time" => "date",
             //             client_order_id,
             //         }
             //     }
@@ -1565,7 +1565,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1716,36 +1716,36 @@ class probit extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         // {
-        //     id => 'USDT',
-        //     display_name => array( 'ko-kr' => '테더', 'en-us' => 'Tether' ),
-        //     show_in_ui => true,
-        //     platform => [
+        //     "id" => "USDT",
+        //     "display_name" => array( "ko-kr" => '테더', "en-us" => "Tether" ),
+        //     "show_in_ui" => true,
+        //     "platform" => [
         //       array(
-        //         id => 'ETH',
-        //         priority => '1',
-        //         deposit => true,
-        //         withdrawal => true,
-        //         currency_id => 'USDT',
-        //         precision => '6',
-        //         min_confirmation_count => '15',
-        //         require_destination_tag => false,
-        //         allow_withdrawal_destination_tag => false,
-        //         display_name => [Object],
-        //         min_deposit_amount => '0',
-        //         min_withdrawal_amount => '1',
-        //         withdrawal_fee => [Array],
-        //         deposit_fee => array(),
-        //         suspended_reason => '',
-        //         deposit_suspended => false,
-        //         withdrawal_suspended => false,
-        //         platform_currency_display_name => [Object]
+        //         "id" => "ETH",
+        //         "priority" => "1",
+        //         "deposit" => true,
+        //         "withdrawal" => true,
+        //         "currency_id" => "USDT",
+        //         "precision" => "6",
+        //         "min_confirmation_count" => "15",
+        //         "require_destination_tag" => false,
+        //         "allow_withdrawal_destination_tag" => false,
+        //         "display_name" => [Object],
+        //         "min_deposit_amount" => "0",
+        //         "min_withdrawal_amount" => "1",
+        //         "withdrawal_fee" => [Array],
+        //         "deposit_fee" => array(),
+        //         "suspended_reason" => '',
+        //         "deposit_suspended" => false,
+        //         "withdrawal_suspended" => false,
+        //         "platform_currency_display_name" => [Object]
         //       ),
         //     ],
-        //     internal_transfer => array( suspended_reason => null, suspended => false ),
-        //     stakeable => false,
-        //     unstakeable => false,
-        //     auto_stake => false,
-        //     auto_stake_amount => '0'
+        //     "internal_transfer" => array( suspended_reason => null, suspended => false ),
+        //     "stakeable" => false,
+        //     "unstakeable" => false,
+        //     "auto_stake" => false,
+        //     "auto_stake_amount" => "0"
         //   }
         //
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
@@ -1844,9 +1844,9 @@ class probit extends Exchange {
             $response = Async\await($this->accountsPostToken (array_merge($request, $params)));
             //
             //     {
-            //         access_token => '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-            //         token_type => 'bearer',
-            //         expires_in => 900
+            //         "access_token" => "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+            //         "token_type" => "bearer",
+            //         "expires_in" => 900
             //     }
             //
             $expiresIn = $this->safe_integer($response, 'expires_in');

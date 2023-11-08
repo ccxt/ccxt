@@ -1315,27 +1315,27 @@ class okx extends Exchange {
         //     }
         //
         //     {
-        //         alias => "",
-        //         baseCcy => "",
-        //         category => "1",
-        //         ctMult => "0.1",
-        //         ctType => "",
-        //         ctVal => "1",
-        //         ctValCcy => "BTC",
-        //         expTime => "1648195200000",
-        //         instId => "BTC-USD-220325-194000-P",
-        //         instType => "OPTION",
-        //         lever => "",
-        //         listTime => "1631262612280",
-        //         lotSz => "1",
-        //         minSz => "1",
-        //         optType => "P",
-        //         quoteCcy => "",
-        //         settleCcy => "BTC",
-        //         state => "live",
-        //         stk => "194000",
-        //         tickSz => "0.0005",
-        //         uly => "BTC-USD"
+        //         "alias" => "",
+        //         "baseCcy" => "",
+        //         "category" => "1",
+        //         "ctMult" => "0.1",
+        //         "ctType" => "",
+        //         "ctVal" => "1",
+        //         "ctValCcy" => "BTC",
+        //         "expTime" => "1648195200000",
+        //         "instId" => "BTC-USD-220325-194000-P",
+        //         "instType" => "OPTION",
+        //         "lever" => "",
+        //         "listTime" => "1631262612280",
+        //         "lotSz" => "1",
+        //         "minSz" => "1",
+        //         "optType" => "P",
+        //         "quoteCcy" => "",
+        //         "settleCcy" => "BTC",
+        //         "state" => "live",
+        //         "stk" => "194000",
+        //         "tickSz" => "0.0005",
+        //         "uly" => "BTC-USD"
         //     }
         //
         $id = $this->safe_string($market, 'instId');
@@ -1687,7 +1687,7 @@ class okx extends Exchange {
         return $this->parse_order_book($first, $symbol, $timestamp);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "instType" => "SPOT",
@@ -1852,7 +1852,7 @@ class okx extends Exchange {
         return $this->fetch_tickers_by_type($type, $symbols, $query);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -2308,9 +2308,9 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instType' => $this->convert_to_instrument_type($market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'instId' => $market['id'], // only applicable to SPOT/MARGIN
-            // 'uly' => $market['id'], // only applicable to FUTURES/SWAP/OPTION
-            // 'category' => '1', // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+            // "instId" => $market["id"], // only applicable to SPOT/MARGIN
+            // "uly" => $market["id"], // only applicable to FUTURES/SWAP/OPTION
+            // "category" => "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         );
         if ($market['spot']) {
             $request['instId'] = $market['id'];
@@ -4657,23 +4657,23 @@ class okx extends Exchange {
         $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
         //
         //    {
-        //        $code => '0',
-        //        $data => array(
+        //        "code" => "0",
+        //        "data" => array(
         //            {
-        //                chain => 'USDT-TRC20',
-        //                clientId => '',
-        //                fee => '0.8',
-        //                ccy => 'USDT',
-        //                amt => '54.561',
-        //                txId => '00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70',
-        //                from => 'example@email.com',
-        //                to => 'TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp',
-        //                state => '2',
-        //                ts => '1641376485000',
-        //                wdId => '25147041'
+        //                "chain" => "USDT-TRC20",
+        //                "clientId" => '',
+        //                "fee" => "0.8",
+        //                "ccy" => "USDT",
+        //                "amt" => "54.561",
+        //                "txId" => "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
+        //                "from" => "example@email.com",
+        //                "to" => "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+        //                "state" => "2",
+        //                "ts" => "1641376485000",
+        //                "wdId" => "25147041"
         //            }
         //        ),
-        //        msg => ''
+        //        "msg" => ''
         //    }
         //
         $data = $this->safe_value($response, 'data');
@@ -4686,23 +4686,23 @@ class okx extends Exchange {
         // deposit $statuses
         //
         //     {
-        //         '0' => 'waiting for confirmation',
-        //         '1' => 'deposit credited',
-        //         '2' => 'deposit successful'
+        //         "0" => "waiting for confirmation",
+        //         "1" => "deposit credited",
+        //         "2" => "deposit successful"
         //     }
         //
         // withdrawal $statuses
         //
         //     {
-        //        '-3' => 'pending cancel',
-        //        '-2' => 'canceled',
-        //        '-1' => 'failed',
-        //         '0' => 'pending',
-        //         '1' => 'sending',
-        //         '2' => 'sent',
-        //         '3' => 'awaiting email verification',
-        //         '4' => 'awaiting manual verification',
-        //         '5' => 'awaiting identity verification'
+        //        '-3' => "pending cancel",
+        //        "-2" => "canceled",
+        //        "-1" => "failed",
+        //         "0" => "pending",
+        //         "1" => "sending",
+        //         "2" => "sent",
+        //         "3" => "awaiting email verification",
+        //         "4" => "awaiting manual verification",
+        //         "5" => "awaiting identity verification"
         //     }
         //
         $statuses = array(
@@ -4719,7 +4719,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
@@ -4739,9 +4739,9 @@ class okx extends Exchange {
         //         "ccy" => "ETH",
         //         "from" => "13426335357",
         //         "to" => "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag',
-        //         'pmtId',
-        //         'memo',
+        //         "tag",
+        //         "pmtId",
+        //         "memo",
         //         "ts" => "1597026383085",
         //         "state" => "2"
         //     }
@@ -5618,9 +5618,9 @@ class okx extends Exchange {
             //     202 System transfer out
             //     203 Manually transfer out
             //
-            // 'after' => 'id', // earlier than the requested bill ID
-            // 'before' => 'id', // newer than the requested bill ID
-            // 'limit' => '100', // default 100, max 100
+            // "after" => "id", // earlier than the requested bill ID
+            // "before" => "id", // newer than the requested bill ID
+            // "limit" => "100", // default 100, max 100
         );
         if ($limit !== null) {
             $request['limit'] = (string) $limit; // default 100, max 100
@@ -6423,7 +6423,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-open-interest
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -6468,7 +6468,7 @@ class okx extends Exchange {
          * @param {int} [$limit] Not used by okx, but parsed internally by CCXT
          * @param {array} [$params] Exchange specific parameters
          * @param {int} [$params->until] The time in ms of the latest record to retrieve unix timestamp
-         * @return An array of {@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure open interest structures}
+         * @return An array of {@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure open interest structures}
          */
         $options = $this->safe_value($this->options, 'fetchOpenInterestHistory', array());
         $timeframes = $this->safe_value($options, 'timeframes', array());
@@ -6509,16 +6509,16 @@ class okx extends Exchange {
         }
         //
         //    {
-        //        code => '0',
-        //        $data => array(
+        //        "code" => "0",
+        //        "data" => array(
         //            array(
-        //                '1648221300000',  // timestamp
-        //                '2183354317.945',  // open interest (USD)
-        //                '74285877.617',  // volume (USD)
+        //                "1648221300000",  // timestamp
+        //                "2183354317.945",  // open interest (USD)
+        //                "74285877.617",  // volume (USD)
         //            ),
         //            ...
         //        ),
-        //        msg => ''
+        //        "msg" => ''
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -6530,9 +6530,9 @@ class okx extends Exchange {
         // fetchOpenInterestHistory
         //
         //    array(
-        //        '1648221300000',  // $timestamp
-        //        '2183354317.945',  // open $interest (USD) - (coin) for options
-        //        '74285877.617',  // volume (USD) - (coin) for options
+        //        "1648221300000",  // $timestamp
+        //        "2183354317.945",  // open $interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
         //    )
         //
         // fetchOpenInterest

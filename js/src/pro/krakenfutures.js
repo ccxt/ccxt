@@ -481,10 +481,10 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "reason": "new_placed_order_by_user"
         //    }
         //    {
-        //        feed: 'open_orders',
-        //        order_id: 'ea8a7144-37db-449b-bb4a-b53c814a0f43',
-        //        is_cancel: true,
-        //        reason: 'cancelled_by_user'
+        //        "feed": "open_orders",
+        //        "order_id": "ea8a7144-37db-449b-bb4a-b53c814a0f43",
+        //        "is_cancel": true,
+        //        "reason": "cancelled_by_user"
         //    }
         //
         let orders = this.orders;
@@ -723,33 +723,33 @@ export default class krakenfutures extends krakenfuturesRest {
     handleTicker(client, message) {
         //
         //    {
-        //        time: 1680811086487,
-        //        product_id: 'PI_XBTUSD',
-        //        funding_rate: 7.792297e-12,
-        //        funding_rate_prediction: -4.2671095e-11,
-        //        relative_funding_rate: 2.18013888889e-7,
-        //        relative_funding_rate_prediction: -0.0000011974,
-        //        next_funding_rate_time: 1680811200000,
-        //        feed: 'ticker',
-        //        bid: 28060,
-        //        ask: 28070,
-        //        bid_size: 2844,
-        //        ask_size: 1902,
-        //        volume: 19628180,
-        //        dtm: 0,
-        //        leverage: '50x',
-        //        index: 28062.14,
-        //        premium: 0,
-        //        last: 28053.5,
-        //        change: -0.7710945651981715,
-        //        suspended: false,
-        //        tag: 'perpetual',
-        //        pair: 'XBT:USD',
-        //        openInterest: 28875946,
-        //        markPrice: 28064.92082724592,
-        //        maturityTime: 0,
-        //        post_only: false,
-        //        volumeQuote: 19628180
+        //        "time": 1680811086487,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": 7.792297e-12,
+        //        "funding_rate_prediction": -4.2671095e-11,
+        //        "relative_funding_rate": 2.18013888889e-7,
+        //        "relative_funding_rate_prediction": -0.0000011974,
+        //        "next_funding_rate_time": 1680811200000,
+        //        "feed": "ticker",
+        //        "bid": 28060,
+        //        "ask": 28070,
+        //        "bid_size": 2844,
+        //        "ask_size": 1902,
+        //        "volume": 19628180,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 28062.14,
+        //        "premium": 0,
+        //        "last": 28053.5,
+        //        "change": -0.7710945651981715,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 28875946,
+        //        "markPrice": 28064.92082724592,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 19628180
         //    }
         //
         // ticker_lite
@@ -784,33 +784,33 @@ export default class krakenfutures extends krakenfuturesRest {
     parseWsTicker(ticker, market = undefined) {
         //
         //    {
-        //        time: 1680811086487,
-        //        product_id: 'PI_XBTUSD',
-        //        funding_rate: 7.792297e-12,
-        //        funding_rate_prediction: -4.2671095e-11,
-        //        relative_funding_rate: 2.18013888889e-7,
-        //        relative_funding_rate_prediction: -0.0000011974,
-        //        next_funding_rate_time: 1680811200000,
-        //        feed: 'ticker',
-        //        bid: 28060,
-        //        ask: 28070,
-        //        bid_size: 2844,
-        //        ask_size: 1902,
-        //        volume: 19628180,
-        //        dtm: 0,
-        //        leverage: '50x',
-        //        index: 28062.14,
-        //        premium: 0,
-        //        last: 28053.5,
-        //        change: -0.7710945651981715,
-        //        suspended: false,
-        //        tag: 'perpetual',
-        //        pair: 'XBT:USD',
-        //        openInterest: 28875946,
-        //        markPrice: 28064.92082724592,
-        //        maturityTime: 0,
-        //        post_only: false,
-        //        volumeQuote: 19628180
+        //        "time": 1680811086487,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": 7.792297e-12,
+        //        "funding_rate_prediction": -4.2671095e-11,
+        //        "relative_funding_rate": 2.18013888889e-7,
+        //        "relative_funding_rate_prediction": -0.0000011974,
+        //        "next_funding_rate_time": 1680811200000,
+        //        "feed": "ticker",
+        //        "bid": 28060,
+        //        "ask": 28070,
+        //        "bid_size": 2844,
+        //        "ask_size": 1902,
+        //        "volume": 19628180,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 28062.14,
+        //        "premium": 0,
+        //        "last": 28053.5,
+        //        "change": -0.7710945651981715,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 28875946,
+        //        "markPrice": 28064.92082724592,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 19628180
         //    }
         //
         // ticker_lite

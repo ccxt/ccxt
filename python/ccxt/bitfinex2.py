@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -621,58 +621,58 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         # sym
         #         # maps symbols to their API symbols, BAB > BCH
         #         [
-        #             ['BAB', 'BCH'],
-        #             ['CNHT', 'CNHt'],
-        #             ['DSH', 'DASH'],
-        #             ['IOT', 'IOTA'],
-        #             ['LES', 'LEO-EOS'],
-        #             ['LET', 'LEO-ERC20'],
-        #             ['STJ', 'STORJ'],
-        #             ['TSD', 'TUSD'],
-        #             ['UDC', 'USDC'],
-        #             ['USK', 'USDK'],
-        #             ['UST', 'USDt'],
-        #             ['USTF0', 'USDt0'],
-        #             ['XCH', 'XCHF'],
-        #             ['YYW', 'YOYOW'],
+        #             ["BAB", "BCH"],
+        #             ["CNHT", "CNHt"],
+        #             ["DSH", "DASH"],
+        #             ["IOT", "IOTA"],
+        #             ["LES", "LEO-EOS"],
+        #             ["LET", "LEO-ERC20"],
+        #             ["STJ", "STORJ"],
+        #             ["TSD", "TUSD"],
+        #             ["UDC", "USDC"],
+        #             ["USK", "USDK"],
+        #             ["UST", "USDt"],
+        #             ["USTF0", "USDt0"],
+        #             ["XCH", "XCHF"],
+        #             ["YYW", "YOYOW"],
         #             # ...
         #         ],
         #         # label
         #         # verbose friendly names, BNT > Bancor
         #         [
-        #             ['BAB', 'Bitcoin Cash'],
-        #             ['BCH', 'Bitcoin Cash'],
-        #             ['LEO', 'Unus Sed LEO'],
-        #             ['LES', 'Unus Sed LEO(EOS)'],
-        #             ['LET', 'Unus Sed LEO(ERC20)'],
+        #             ["BAB", "Bitcoin Cash"],
+        #             ["BCH", "Bitcoin Cash"],
+        #             ["LEO", "Unus Sed LEO"],
+        #             ["LES", "Unus Sed LEO(EOS)"],
+        #             ["LET", "Unus Sed LEO(ERC20)"],
         #             # ...
         #         ],
         #         # unit
         #         # maps symbols to unit of measure where applicable
         #         [
-        #             ['IOT', 'Mi|MegaIOTA'],
+        #             ["IOT", "Mi|MegaIOTA"],
         #         ],
         #         # undl
         #         # maps derivatives symbols to their underlying currency
         #         [
-        #             ['USTF0', 'UST'],
-        #             ['BTCF0', 'BTC'],
-        #             ['ETHF0', 'ETH'],
+        #             ["USTF0", "UST"],
+        #             ["BTCF0", "BTC"],
+        #             ["ETHF0", "ETH"],
         #         ],
         #         # pool
         #         # maps symbols to underlying network/protocol they operate on
         #         [
-        #             ['SAN', 'ETH'], ['OMG', 'ETH'], ['AVT', 'ETH'], ['EDO', 'ETH'],
-        #             ['ESS', 'ETH'], ['ATD', 'EOS'], ['ADD', 'EOS'], ['MTO', 'EOS'],
-        #             ['PNK', 'ETH'], ['BAB', 'BCH'], ['WLO', 'XLM'], ['VLD', 'ETH'],
-        #             ['BTT', 'TRX'], ['IMP', 'ETH'], ['SCR', 'ETH'], ['GNO', 'ETH'],
+        #             ['SAN', 'ETH'], ['OMG', 'ETH'], ['AVT', 'ETH'], ["EDO", "ETH"],
+        #             ['ESS', 'ETH'], ['ATD', 'EOS'], ['ADD', 'EOS'], ["MTO", "EOS"],
+        #             ['PNK', 'ETH'], ['BAB', 'BCH'], ['WLO', 'XLM'], ["VLD", "ETH"],
+        #             ['BTT', 'TRX'], ['IMP', 'ETH'], ['SCR', 'ETH'], ["GNO", "ETH"],
         #             # ...
         #         ],
         #         # explorer
         #         # maps symbols to their recognised block explorer URLs
         #         [
         #             [
-        #                 'AIO',
+        #                 "AIO",
         #                 [
         #                     "https://mainnet.aion.network",
         #                     "https://mainnet.aion.network/#/account/VAL",
@@ -947,9 +947,9 @@ class bitfinex2(Exchange, ImplicitAPI):
     def convert_derivatives_id(self, currency, type):
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         # {
-        #   id: 'fUSTF0',
-        #   code: 'USTF0',
-        #   info: ['USTF0', [], [], [], ['USTF0', 'UST']],
+        #   "id": "fUSTF0",
+        #   "code": "USTF0",
+        #   "info": ['USTF0', [], [], [], ["USTF0", "UST"]],
         info = self.safe_value(currency, 'info')
         transferId = self.safe_string(info, 0)
         underlying = self.safe_value(info, 4, [])
@@ -1007,7 +1007,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # on trading pairs(ex. tBTCUSD)
         #
@@ -1156,7 +1156,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1535,7 +1535,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         #      [
         #          1653325121,   # Timestamp in milliseconds
-        #          "on-req",     # Purpose of notification('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        #          "on-req",     # Purpose of notification('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
         #          null,         # unique ID of the message
         #          null,
         #              [
@@ -1898,20 +1898,20 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         #     [
         #         1582269616687,  # MTS Millisecond Time Stamp of the update
-        #         'acc_dep',  # TYPE Purpose of notification 'acc_dep' for account deposit
+        #         "acc_dep",  # TYPE Purpose of notification "acc_dep" for account deposit
         #         null,  # MESSAGE_ID unique ID of the message
         #         null,  # not documented
         #         [
         #             null,  # PLACEHOLDER
-        #             'BITCOIN',  # METHOD Method of deposit
-        #             'BTC',  # CURRENCY_CODE Currency code of new address
+        #             "BITCOIN",  # METHOD Method of deposit
+        #             "BTC",  # CURRENCY_CODE Currency code of new address
         #             null,  # PLACEHOLDER
-        #             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG',  # ADDRESS
+        #             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG",  # ADDRESS
         #             null,  # POOL_ADDRESS
         #         ],
         #         null,  # CODE null or integer work in progress
-        #         'SUCCESS',  # STATUS Status of the notification, SUCCESS, ERROR, FAILURE
-        #         'success',  # TEXT Text of the notification
+        #         "SUCCESS",  # STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        #         "success",  # TEXT Text of the notification
         #     ]
         #
         result = self.safe_value(response, 4, [])
@@ -1943,13 +1943,13 @@ class bitfinex2(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
         #     [
         #         1582271520931,  # MTS Millisecond Time Stamp of the update
-        #         "acc_wd-req",  # TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        #         "acc_wd-req",  # TYPE Purpose of notification "acc_wd-req" account withdrawal request
         #         null,  # MESSAGE_ID unique ID of the message
         #         null,  # not documented
         #         [
@@ -1972,26 +1972,26 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         #     [
         #         13293039,  # ID
-        #         'ETH',  # CURRENCY
-        #         'ETHEREUM',  # CURRENCY_NAME
+        #         "ETH",  # CURRENCY
+        #         "ETHEREUM",  # CURRENCY_NAME
         #         null,
         #         null,
         #         1574175052000,  # MTS_STARTED
         #         1574181326000,  # MTS_UPDATED
         #         null,
         #         null,
-        #         'CANCELED',  # STATUS
+        #         "CANCELED",  # STATUS
         #         null,
         #         null,
         #         -0.24,  # AMOUNT, negative for withdrawals
         #         -0.00135,  # FEES
         #         null,
         #         null,
-        #         '0x38110e0Fc932CB2BE...........',  # DESTINATION_ADDRESS
+        #         "0x38110e0Fc932CB2BE...........",  # DESTINATION_ADDRESS
         #         null,
         #         null,
         #         null,
-        #         '0x523ec8945500.....................................',  # TRANSACTION_ID
+        #         "0x523ec8945500.....................................",  # TRANSACTION_ID
         #         "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE, might also be: null
         #     ]
         #
@@ -2131,13 +2131,13 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         [
         #          [
         #              {
-        #              curr: 'Total(USD)',
-        #              vol: '0',
-        #              vol_safe: '0',
-        #              vol_maker: '0',
-        #              vol_BFX: '0',
-        #              vol_BFX_safe: '0',
-        #              vol_BFX_maker: '0'
+        #              "curr": "Total(USD)",
+        #              "vol": "0",
+        #              "vol_safe": "0",
+        #              "vol_maker": "0",
+        #              "vol_BFX": "0",
+        #              "vol_BFX_safe": "0",
+        #              "vol_BFX_maker": "0"
         #              }
         #          ],
         #          {},
@@ -2146,7 +2146,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #         [null, {}, 0],
         #         null,
         #         null,
-        #         {leo_lev: '0', leo_amount_avg: '0'}
+        #         {leo_lev: "0", leo_amount_avg: "0"}
         #     ]
         #
         result = {}
@@ -2210,26 +2210,26 @@ class bitfinex2(Exchange, ImplicitAPI):
         #     [
         #         [
         #             13293039,  # ID
-        #             'ETH',  # CURRENCY
-        #             'ETHEREUM',  # CURRENCY_NAME
+        #             "ETH",  # CURRENCY
+        #             "ETHEREUM",  # CURRENCY_NAME
         #             null,
         #             null,
         #             1574175052000,  # MTS_STARTED
         #             1574181326000,  # MTS_UPDATED
         #             null,
         #             null,
-        #             'CANCELED',  # STATUS
+        #             "CANCELED",  # STATUS
         #             null,
         #             null,
         #             -0.24,  # AMOUNT, negative for withdrawals
         #             -0.00135,  # FEES
         #             null,
         #             null,
-        #             '0x38110e0Fc932CB2BE...........',  # DESTINATION_ADDRESS
+        #             "0x38110e0Fc932CB2BE...........",  # DESTINATION_ADDRESS
         #             null,
         #             null,
         #             null,
-        #             '0x523ec8945500.....................................',  # TRANSACTION_ID
+        #             "0x523ec8945500.....................................",  # TRANSACTION_ID
         #             "Purchase of 100 pizzas",  # WITHDRAW_TRANSACTION_NOTE, might also be: null
         #         ]
         #     ]
@@ -2276,7 +2276,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         #     [
         #         1582271520931,  # MTS Millisecond Time Stamp of the update
-        #         "acc_wd-req",  # TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        #         "acc_wd-req",  # TYPE Purpose of notification "acc_wd-req" account withdrawal request
         #         null,  # MESSAGE_ID unique ID of the message
         #         null,  # not documented
         #         [
@@ -2464,7 +2464,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody):
-        # ['error', 11010, 'ratelimit: error']
+        # ["error", 11010, "ratelimit: error"]
         if response is not None:
             if not isinstance(response, list):
                 message = self.safe_string_2(response, 'message', 'error')

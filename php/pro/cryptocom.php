@@ -118,14 +118,14 @@ class cryptocom extends \ccxt\async\cryptocom {
         //     "depth":150,
         //     "data" => [
         //          {
-        //              'bids' => [
+        //              "bids" => [
         //                  [122.21, 0.74041, 4]
         //              ],
-        //              'asks' => [
+        //              "asks" => [
         //                  [122.29, 0.00002, 1]
         //              ]
-        //              't' => 1648123943803,
-        //              's':754560122
+        //              "t" => 1648123943803,
+        //              "s":754560122
         //          }
         //      ]
         // }
@@ -207,13 +207,13 @@ class cryptocom extends \ccxt\async\cryptocom {
     public function handle_trades(Client $client, $message) {
         //
         // {
-        //     code => 0,
-        //     method => 'subscribe',
-        //     result => {
-        //       instrument_name => 'BTC_USDT',
-        //       subscription => 'trade.BTC_USDT',
-        //       $channel => 'trade',
-        //       $data => array(
+        //     "code" => 0,
+        //     "method" => "subscribe",
+        //     "result" => {
+        //       "instrument_name" => "BTC_USDT",
+        //       "subscription" => "trade.BTC_USDT",
+        //       "channel" => "trade",
+        //       "data" => array(
         //             {
         //                 "dataTime":1648122434405,
         //                 "d":"2358394540212355488",
@@ -360,12 +360,12 @@ class cryptocom extends \ccxt\async\cryptocom {
     public function handle_ohlcv(Client $client, $message) {
         //
         //  {
-        //       instrument_name => 'BTC_USDT',
-        //       subscription => 'candlestick.1m.BTC_USDT',
-        //       channel => 'candlestick',
-        //       depth => 300,
-        //       $interval => '1m',
-        //       $data => [ [Object] ]
+        //       "instrument_name" => "BTC_USDT",
+        //       "subscription" => "candlestick.1m.BTC_USDT",
+        //       "channel" => "candlestick",
+        //       "depth" => 300,
+        //       "interval" => "1m",
+        //       "data" => [ [Object] ]
         //   }
         //
         $messageHash = $this->safe_string($message, 'subscription');
@@ -713,10 +713,10 @@ class cryptocom extends \ccxt\async\cryptocom {
     public function handle_error_message(Client $client, $message) {
         //
         //    {
-        //        id => 0,
-        //        code => 10004,
-        //        method => 'subscribe',
-        //        $message => 'invalid channel array("channels":["trade.BTCUSD-PERP"])'
+        //        "id" => 0,
+        //        "code" => 10004,
+        //        "method" => "subscribe",
+        //        "message" => "invalid channel array("channels":["trade.BTCUSD-PERP"])"
         //    }
         //
         $errorCode = $this->safe_string($message, 'code');
@@ -779,18 +779,18 @@ class cryptocom extends \ccxt\async\cryptocom {
         //        "code" => 0
         //    }
         // auth
-        //     array( id => 1648132625434, $method => 'public/auth', code => 0 )
+        //     array( id => 1648132625434, $method => "public/auth", code => 0 )
         // ohlcv
         //    {
-        //        code => 0,
-        //        $method => 'subscribe',
-        //        result => {
-        //          instrument_name => 'BTC_USDT',
-        //          subscription => 'candlestick.1m.BTC_USDT',
-        //          channel => 'candlestick',
-        //          depth => 300,
-        //          interval => '1m',
-        //          data => [ [Object] ]
+        //        "code" => 0,
+        //        "method" => "subscribe",
+        //        "result" => {
+        //          "instrument_name" => "BTC_USDT",
+        //          "subscription" => "candlestick.1m.BTC_USDT",
+        //          "channel" => "candlestick",
+        //          "depth" => 300,
+        //          "interval" => "1m",
+        //          "data" => [ [Object] ]
         //        }
         //      }
         // ticker
@@ -852,7 +852,7 @@ class cryptocom extends \ccxt\async\cryptocom {
 
     public function handle_authenticate(Client $client, $message) {
         //
-        //  array( id => 1648132625434, method => 'public/auth', code => 0 )
+        //  array( id => 1648132625434, method => "public/auth", code => 0 )
         //
         $future = $this->safe_value($client->futures, 'authenticated');
         $future->resolve (true);

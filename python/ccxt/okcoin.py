@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -613,12 +613,12 @@ class okcoin(Exchange, ImplicitAPI):
         # spot markets
         #
         #     {
-        #         base_currency: "EOS",
-        #         instrument_id: "EOS-OKB",
-        #         min_size: "0.01",
-        #         quote_currency: "OKB",
-        #         size_increment: "0.000001",
-        #         tick_size: "0.0001"
+        #         "base_currency": "EOS",
+        #         "instrument_id": "EOS-OKB",
+        #         "min_size": "0.01",
+        #         "quote_currency": "OKB",
+        #         "size_increment": "0.000001",
+        #         "tick_size": "0.0001"
         #     }
         #
         id = self.safe_string(market, 'instId')
@@ -824,7 +824,7 @@ class okcoin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "instType": "SPOT",
@@ -939,7 +939,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1104,16 +1104,16 @@ class okcoin(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             balance:  0,
-        #             available:  0,
-        #             currency: "BTC",
-        #             hold:  0
+        #             "balance":  0,
+        #             "available":  0,
+        #             "currency": "BTC",
+        #             "hold":  0
         #         },
         #         {
-        #             balance:  0,
-        #             available:  0,
-        #             currency: "ETH",
-        #             hold:  0
+        #             "balance":  0,
+        #             "available":  0,
+        #             "currency": "ETH",
+        #             "hold":  0
         #         }
         #     ]
         #
@@ -1121,22 +1121,22 @@ class okcoin(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             frozen: "0",
-        #             hold: "0",
-        #             id: "2149632",
-        #             currency: "BTC",
-        #             balance: "0.0000000497717339",
-        #             available: "0.0000000497717339",
-        #             holds: "0"
+        #             "frozen": "0",
+        #             "hold": "0",
+        #             "id": "2149632",
+        #             "currency": "BTC",
+        #             "balance": "0.0000000497717339",
+        #             "available": "0.0000000497717339",
+        #             "holds": "0"
         #         },
         #         {
-        #             frozen: "0",
-        #             hold: "0",
-        #             id: "2149632",
-        #             currency: "ICN",
-        #             balance: "0.00000000925",
-        #             available: "0.00000000925",
-        #             holds: "0"
+        #             "frozen": "0",
+        #             "hold": "0",
+        #             "id": "2149632",
+        #             "currency": "ICN",
+        #             "balance": "0.00000000925",
+        #             "available": "0.00000000925",
+        #             "holds": "0"
         #         }
         #     ]
         #
@@ -2004,29 +2004,29 @@ class okcoin(Exchange, ImplicitAPI):
         #      }
         # network information from currency['networks'] field:
         # Polygon: {
-        #        info: {
-        #            canDep: False,
-        #            canInternal: False,
-        #            canWd: False,
-        #            ccy: 'USDT',
-        #            chain: 'USDT-Polygon-Bridge',
-        #            mainNet: False,
-        #            maxFee: '26.879528',
-        #            minFee: '13.439764',
-        #            minWd: '0.001',
-        #            name: ''
+        #        "info": {
+        #            "canDep": False,
+        #            "canInternal": False,
+        #            "canWd": False,
+        #            "ccy": "USDT",
+        #            "chain": "USDT-Polygon-Bridge",
+        #            "mainNet": False,
+        #            "maxFee": "26.879528",
+        #            "minFee": "13.439764",
+        #            "minWd": "0.001",
+        #            "name": ''
         #        },
-        #        id: 'USDT-Polygon-Bridge',
-        #        network: 'Polygon',
-        #        active: False,
-        #        deposit: False,
-        #        withdraw: False,
-        #        fee: 13.439764,
-        #        precision: None,
-        #        limits: {
-        #            withdraw: {
-        #                min: 0.001,
-        #                max: None
+        #        "id": "USDT-Polygon-Bridge",
+        #        "network": "Polygon",
+        #        "active": False,
+        #        "deposit": False,
+        #        "withdraw": False,
+        #        "fee": 13.439764,
+        #        "precision": None,
+        #        "limits": {
+        #            "withdraw": {
+        #                "min": 0.001,
+        #                "max": None
         #            }
         #        }
         #     },
@@ -2427,23 +2427,23 @@ class okcoin(Exchange, ImplicitAPI):
         # deposit statuses
         #
         #     {
-        #         '0': 'waiting for confirmation',
-        #         '1': 'confirmation account',
-        #         '2': 'recharge success'
+        #         "0": "waiting for confirmation",
+        #         "1": "confirmation account",
+        #         "2": "recharge success"
         #     }
         #
         # withdrawal statues
         #
         #     {
-        #        '-3': 'pending cancel',
-        #        '-2': 'cancelled',
-        #        '-1': 'failed',
-        #         '0': 'pending',
-        #         '1': 'sending',
-        #         '2': 'sent',
-        #         '3': 'email confirmation',
-        #         '4': 'manual confirmation',
-        #         '5': 'awaiting identity confirmation'
+        #        '-3': "pending cancel",
+        #        "-2": "cancelled",
+        #        "-1": "failed",
+        #         "0": "pending",
+        #         "1": "sending",
+        #         "2": "sent",
+        #         "3": "email confirmation",
+        #         "4": "manual confirmation",
+        #         "5": "awaiting identity confirmation"
         #     }
         #
         statuses = {
@@ -2459,7 +2459,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -2479,9 +2479,9 @@ class okcoin(Exchange, ImplicitAPI):
         #         "ccy": "ETH",
         #         "from": "13426335357",
         #         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        #         'tag',
-        #         'pmtId',
-        #         'memo',
+        #         "tag",
+        #         "pmtId",
+        #         "memo",
         #         "ts": "1597026383085",
         #         "state": "2"
         #     }

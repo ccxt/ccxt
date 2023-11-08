@@ -692,8 +692,8 @@ export default class poloniex extends Exchange {
         //                 "delisted": false,
         //                 "tradingState": "NORMAL",
         //                 "walletState": "DISABLED",
-        //                 "walletDepositState": 'DISABLED',
-        //                 "walletWithdrawalState": 'DISABLED',
+        //                 "walletDepositState": "DISABLED",
+        //                 "walletWithdrawalState": "DISABLED",
         //                 "parentChain": null,
         //                 "isMultiChain": false,
         //                 "isChildChain": false,
@@ -1889,9 +1889,9 @@ export default class poloniex extends Exchange {
         const response = await this.privatePostWalletsWithdraw(this.extend(request, params));
         //
         //     {
-        //         response: 'Withdrew 1.00000000 USDT.',
-        //         email2FA: false,
-        //         withdrawalNumber: 13449869
+        //         "response": "Withdrew 1.00000000 USDT.",
+        //         "email2FA": false,
+        //         "withdrawalNumber": 13449869
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1911,22 +1911,22 @@ export default class poloniex extends Exchange {
         //         "adjustments":[],
         //         "deposits":[
         //             {
-        //                 currency: "BTC",
-        //                 address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                 amount: "0.01063000",
-        //                 confirmations:  1,
-        //                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                 timestamp:  1507916888,
-        //                 status: "COMPLETE"
+        //                 "currency": "BTC",
+        //                 "address": "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                 "amount": "0.01063000",
+        //                 "confirmations":  1,
+        //                 "txid": "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                 "timestamp":  1507916888,
+        //                 "status": "COMPLETE"
         //             },
         //             {
-        //                 currency: "ETH",
-        //                 address: "0x20108ba20b65c04d82909e91df06618107460197",
-        //                 amount: "4.00000000",
-        //                 confirmations: 38,
-        //                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                 timestamp: 1525060430,
-        //                 status: "COMPLETE"
+        //                 "currency": "ETH",
+        //                 "address": "0x20108ba20b65c04d82909e91df06618107460197",
+        //                 "amount": "4.00000000",
+        //                 "confirmations": 38,
+        //                 "txid": "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                 "timestamp": 1525060430,
+        //                 "status": "COMPLETE"
         //             }
         //         ],
         //         "withdrawals":[
@@ -1945,34 +1945,34 @@ export default class poloniex extends Exchange {
         //                 "scope":"crypto"
         //             },
         //             {
-        //                 withdrawalNumber: 8224394,
-        //                 currency: "EMC2",
-        //                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                 amount: "63.10796020",
-        //                 fee: "0.01000000",
-        //                 timestamp: 1510819838,
-        //                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 8224394,
+        //                 "currency": "EMC2",
+        //                 "address": "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                 "amount": "63.10796020",
+        //                 "fee": "0.01000000",
+        //                 "timestamp": 1510819838,
+        //                 "status": "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                 "ipAddress": "x.x.x.x"
         //             },
         //             {
-        //                 withdrawalNumber: 9290444,
-        //                 currency: "ETH",
-        //                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                 amount: "0.15500000",
-        //                 fee: "0.00500000",
-        //                 timestamp: 1514099289,
-        //                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 9290444,
+        //                 "currency": "ETH",
+        //                 "address": "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                 "amount": "0.15500000",
+        //                 "fee": "0.00500000",
+        //                 "timestamp": 1514099289,
+        //                 "status": "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                 "ipAddress": "x.x.x.x"
         //             },
         //             {
-        //                 withdrawalNumber: 11518260,
-        //                 currency: "BTC",
-        //                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                 amount: "0.20000000",
-        //                 fee: "0.00050000",
-        //                 timestamp: 1527918155,
-        //                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 11518260,
+        //                 "currency": "BTC",
+        //                 "address": "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                 "amount": "0.20000000",
+        //                 "fee": "0.00050000",
+        //                 "timestamp": 1527918155,
+        //                 "status": "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                 "ipAddress": "x.x.x.x"
         //             }
         //         ]
         //     }

@@ -369,19 +369,19 @@ class huobijp extends Exchange {
             $response = Async\await($this->publicGetCommonExchange (array_merge($request, $params)));
             //
             //     { status =>   "ok",
-            //         data => {                                  symbol => "aidocbtc",
-            //                              'buy-limit-must-less-than' =>  1.1,
-            //                          'sell-limit-must-greater-than' =>  0.9,
-            //                         'limit-order-must-greater-than' =>  1,
-            //                            'limit-order-must-less-than' =>  5000000,
-            //                    'market-buy-order-must-greater-than' =>  0.0001,
-            //                       'market-buy-order-must-less-than' =>  100,
-            //                   'market-sell-order-must-greater-than' =>  1,
-            //                      'market-sell-order-must-less-than' =>  500000,
-            //                       'circuit-break-when-greater-than' =>  10000,
-            //                          'circuit-break-when-less-than' =>  10,
-            //                 'market-sell-order-rate-must-less-than' =>  0.1,
-            //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
+            //         "data" => {                                  symbol => "aidocbtc",
+            //                              "buy-limit-must-less-than" =>  1.1,
+            //                          "sell-limit-must-greater-than" =>  0.9,
+            //                         "limit-order-must-greater-than" =>  1,
+            //                            "limit-order-must-less-than" =>  5000000,
+            //                    "market-buy-order-must-greater-than" =>  0.0001,
+            //                       "market-buy-order-must-less-than" =>  100,
+            //                   "market-sell-order-must-greater-than" =>  1,
+            //                      "market-sell-order-must-less-than" =>  500000,
+            //                       "circuit-break-when-greater-than" =>  10000,
+            //                          "circuit-break-when-less-than" =>  10,
+            //                 "market-sell-order-rate-must-less-than" =>  0.1,
+            //                  "market-buy-order-rate-must-less-than" =>  0.1        } }
             //
             return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
         }) ();
@@ -390,18 +390,18 @@ class huobijp extends Exchange {
     public function parse_trading_limits($limits, ?string $symbol = null, $params = array ()) {
         //
         //   {                                  $symbol => "aidocbtc",
-        //                  'buy-limit-must-less-than' =>  1.1,
-        //              'sell-limit-must-greater-than' =>  0.9,
-        //             'limit-order-must-greater-than' =>  1,
-        //                'limit-order-must-less-than' =>  5000000,
-        //        'market-buy-order-must-greater-than' =>  0.0001,
-        //           'market-buy-order-must-less-than' =>  100,
-        //       'market-sell-order-must-greater-than' =>  1,
-        //          'market-sell-order-must-less-than' =>  500000,
-        //           'circuit-break-when-greater-than' =>  10000,
-        //              'circuit-break-when-less-than' =>  10,
-        //     'market-sell-order-rate-must-less-than' =>  0.1,
-        //      'market-buy-order-rate-must-less-than' =>  0.1        }
+        //                  "buy-limit-must-less-than" =>  1.1,
+        //              "sell-limit-must-greater-than" =>  0.9,
+        //             "limit-order-must-greater-than" =>  1,
+        //                "limit-order-must-less-than" =>  5000000,
+        //        "market-buy-order-must-greater-than" =>  0.0001,
+        //           "market-buy-order-must-less-than" =>  100,
+        //       "market-sell-order-must-greater-than" =>  1,
+        //          "market-sell-order-must-less-than" =>  500000,
+        //           "circuit-break-when-greater-than" =>  10000,
+        //              "circuit-break-when-less-than" =>  10,
+        //     "market-sell-order-rate-must-less-than" =>  0.1,
+        //      "market-buy-order-rate-must-less-than" =>  0.1        }
         //
         return array(
             'info' => $limits,
@@ -534,7 +534,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -554,18 +554,18 @@ class huobijp extends Exchange {
         //
         // fetchTickers
         //     {
-        //         $symbol => "bhdht",
-        //         $open =>  2.3938,
-        //         high =>  2.4151,
-        //         low =>  2.3323,
-        //         $close =>  2.3909,
-        //         amount =>  628.992,
-        //         vol =>  1493.71841095,
-        //         count =>  2088,
-        //         $bid =>  2.3643,
-        //         bidSize =>  0.7136,
-        //         $ask =>  2.4061,
-        //         askSize =>  0.4156
+        //         "symbol" => "bhdht",
+        //         "open" =>  2.3938,
+        //         "high" =>  2.4151,
+        //         "low" =>  2.3323,
+        //         "close" =>  2.3909,
+        //         "amount" =>  628.992,
+        //         "vol" =>  1493.71841095,
+        //         "count" =>  2088,
+        //         "bid" =>  2.3643,
+        //         "bidSize" =>  0.7136,
+        //         "ask" =>  2.4061,
+        //         "askSize" =>  0.4156
         //     }
         //
         $symbol = $this->safe_symbol(null, $market);
@@ -740,7 +740,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -756,21 +756,21 @@ class huobijp extends Exchange {
         // fetchMyTrades (private)
         //
         //     array(
-        //          'symbol' => 'swftcbtc',
-        //          'fee-currency' => 'swftc',
-        //          'filled-fees' => '0',
-        //          'source' => 'spot-api',
-        //          'id' => 83789509854000,
-        //          'type' => 'buy-limit',
-        //          'order-id' => 83711103204909,
-        //          'filled-points' => '0.005826843283532154',
-        //          'fee-deduct-currency' => 'ht',
-        //          'filled-amount' => '45941.53',
-        //          'price' => '0.0000001401',
-        //          'created-at' => 1597933260729,
-        //          'match-id' => 100087455560,
-        //          'role' => 'maker',
-        //          'trade-id' => 100050305348
+        //          "symbol" => "swftcbtc",
+        //          "fee-currency" => "swftc",
+        //          "filled-fees" => "0",
+        //          "source" => "spot-api",
+        //          "id" => 83789509854000,
+        //          "type" => "buy-limit",
+        //          "order-$id" => 83711103204909,
+        //          'filled-points' => "0.005826843283532154",
+        //          "fee-deduct-currency" => "ht",
+        //          'filled-amount' => "45941.53",
+        //          "price" => "0.0000001401",
+        //          "created-at" => 1597933260729,
+        //          "match-$id" => 100087455560,
+        //          "role" => "maker",
+        //          "trade-$id" => 100050305348
         //     ),
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -1102,7 +1102,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1158,21 +1158,21 @@ class huobijp extends Exchange {
             $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            //     { status =>   "ok",
-            //         data => array( {                  id =>  13997833014,
-            //                                $symbol => "ethbtc",
-            //                          'account-id' =>  3398321,
-            //                                amount => "0.045000000000000000",
-            //                                 price => "0.034014000000000000",
-            //                          'created-at' =>  1545836976871,
-            //                                  type => "sell-$limit",
-            //                        'field-amount' => "0.045000000000000000",
-            //                   'field-cash-amount' => "0.001530630000000000",
-            //                          'field-fees' => "0.000003061260000000",
-            //                         'finished-at' =>  1545837948214,
-            //                                source => "spot-api",
-            //                                 state => "filled",
-            //                         'canceled-at' =>  0                      }  ) }
+            //     { "status" =>   "ok",
+            //         "data" => array( {                  id =>  13997833014,
+            //                                "symbol" => "ethbtc",
+            //                          "account-id" =>  3398321,
+            //                                "amount" => "0.045000000000000000",
+            //                                 "price" => "0.034014000000000000",
+            //                          "created-at" =>  1545836976871,
+            //                                  "type" => "sell-$limit",
+            //                        "field-amount" => "0.045000000000000000",
+            //                   "field-cash-amount" => "0.001530630000000000",
+            //                          "field-fees" => "0.000003061260000000",
+            //                         "finished-at" =>  1545837948214,
+            //                                "source" => "spot-api",
+            //                                 "state" => "filled",
+            //                         "canceled-at" =>  0                      }  ) }
             //
             return $this->parse_orders($response['data'], $market, $since, $limit);
         }) ();
@@ -1317,34 +1317,34 @@ class huobijp extends Exchange {
     public function parse_order($order, $market = null): array {
         //
         //     {                  $id =>  13997833014,
-        //                    symbol => "ethbtc",
-        //              'account-id' =>  3398321,
-        //                    $amount => "0.045000000000000000",
-        //                     $price => "0.034014000000000000",
-        //              'created-at' =>  1545836976871,
-        //                      $type => "sell-limit",
-        //            'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545837948214,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        //                    "symbol" => "ethbtc",
+        //              "account-$id" =>  3398321,
+        //                    "amount" => "0.045000000000000000",
+        //                     "price" => "0.034014000000000000",
+        //              "created-at" =>  1545836976871,
+        //                      "type" => "sell-limit",
+        //            "field-$amount" => "0.045000000000000000", // they have fixed it for $filled-$amount
+        //       "field-cash-$amount" => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
+        //              "field-fees" => "0.000003061260000000", // they have fixed it for $filled-fees
+        //             "finished-at" =>  1545837948214,
+        //                    "source" => "spot-api",
+        //                     "state" => "filled",
+        //             "canceled-at" =>  0                      }
         //
         //     {                  $id =>  20395337822,
-        //                    symbol => "ethbtc",
-        //              'account-id' =>  5685075,
-        //                    $amount => "0.001000000000000000",
-        //                     $price => "0.0",
-        //              'created-at' =>  1545831584023,
-        //                      $type => "buy-$market",
-        //            'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //              'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
-        //             'finished-at' =>  1545831584181,
-        //                    source => "spot-api",
-        //                     state => "filled",
-        //             'canceled-at' =>  0                      }
+        //                    "symbol" => "ethbtc",
+        //              "account-$id" =>  5685075,
+        //                    "amount" => "0.001000000000000000",
+        //                     "price" => "0.0",
+        //              "created-at" =>  1545831584023,
+        //                      "type" => "buy-$market",
+        //            "field-$amount" => "0.029100000000000000", // they have fixed it for $filled-$amount
+        //       "field-cash-$amount" => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
+        //              "field-fees" => "0.000058200000000000", // they have fixed it for $filled-fees
+        //             "finished-at" =>  1545831584181,
+        //                    "source" => "spot-api",
+        //                     "state" => "filled",
+        //             "canceled-at" =>  0                      }
         //
         $id = $this->safe_string($order, 'id');
         $side = null;
@@ -1492,8 +1492,8 @@ class huobijp extends Exchange {
             $response = Async\await($this->privatePostOrderOrdersIdSubmitcancel (array( 'id' => $id )));
             //
             //     {
-            //         'status' => 'ok',
-            //         'data' => '10138899000',
+            //         "status" => "ok",
+            //         "data" => "10138899000",
             //     }
             //
             return array_merge($this->parse_order($response), array(
@@ -1582,8 +1582,8 @@ class huobijp extends Exchange {
             $response = Async\await($this->privatePostOrderOrdersBatchCancelOpenOrders (array_merge($request, $params)));
             //
             //     {
-            //         code => 200,
-            //         data => {
+            //         "code" => 200,
+            //         "data" => {
             //             "success-count" => 2,
             //             "failed-count" => 0,
             //             "next-id" => 5454600
@@ -1611,10 +1611,10 @@ class huobijp extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         $currency => "usdt",
-        //         $address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //         addressTag => "",
-        //         chain => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
+        //         "currency" => "usdt",
+        //         "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         "addressTag" => "",
+        //         "chain" => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -1705,40 +1705,40 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
         //     {
-        //         'id' => 8211029,
-        //         'type' => 'deposit',
-        //         'currency' => 'eth',
-        //         'chain' => 'eth',
-        //         'tx-hash' => 'bd315....',
-        //         'amount' => 0.81162421,
-        //         'address' => '4b8b....',
-        //         'address-tag' => '',
-        //         'fee' => 0,
-        //         'state' => 'safe',
-        //         'created-at' => 1542180380965,
-        //         'updated-at' => 1542180788077
+        //         "id" => 8211029,
+        //         "type" => "deposit",
+        //         "currency" => "eth",
+        //         "chain" => "eth",
+        //         'tx-hash' => "bd315....",
+        //         "amount" => 0.81162421,
+        //         "address" => "4b8b....",
+        //         'address-tag" => '",
+        //         "fee" => 0,
+        //         "state" => "safe",
+        //         "created-at" => 1542180380965,
+        //         "updated-at" => 1542180788077
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         'id' => 6908275,
-        //         'type' => 'withdraw',
-        //         'currency' => 'btc',
-        //         'chain' => 'btc',
-        //         'tx-hash' => 'c1a1a....',
-        //         'amount' => 0.80257005,
-        //         'address' => '1QR....',
-        //         'address-tag' => '',
-        //         'fee' => 0.0005,
-        //         'state' => 'confirmed',
-        //         'created-at' => 1552107295685,
-        //         'updated-at' => 1552108032859
+        //         "id" => 6908275,
+        //         "type" => "withdraw",
+        //         "currency" => "btc",
+        //         "chain" => "btc",
+        //         'tx-hash' => "c1a1a....",
+        //         "amount" => 0.80257005,
+        //         "address" => "1QR....",
+        //         'address-tag" => '",
+        //         "fee" => 0.0005,
+        //         "state" => "confirmed",
+        //         "created-at" => 1552107295685,
+        //         "updated-at" => 1552108032859
         //     }
         //
         // withdraw

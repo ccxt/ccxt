@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mercado import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -259,7 +259,7 @@ class mercado(Exchange, ImplicitAPI):
         response = await self.publicGetCoinOrderbook(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "high":"103.96000000",
@@ -328,7 +328,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
         market = self.safe_market(None, market)
         id = self.safe_string_2(trade, 'tid', 'operation_id')
@@ -383,7 +383,7 @@ class mercado(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'response_data', {})
         balances = self.safe_value(data, 'balance', {})
         result = {'info': response}
@@ -464,25 +464,25 @@ class mercado(Exchange, ImplicitAPI):
         response = await self.privatePostCancelOrder(self.extend(request, params))
         #
         #     {
-        #         response_data: {
-        #             order: {
-        #                 order_id: 2176769,
-        #                 coin_pair: 'BRLBCH',
-        #                 order_type: 2,
-        #                 status: 3,
-        #                 has_fills: False,
-        #                 quantity: '0.10000000',
-        #                 limit_price: '1996.15999',
-        #                 executed_quantity: '0.00000000',
-        #                 executed_price_avg: '0.00000',
-        #                 fee: '0.00000000',
-        #                 created_timestamp: '1536956488',
-        #                 updated_timestamp: '1536956499',
-        #                 operations: []
+        #         "response_data": {
+        #             "order": {
+        #                 "order_id": 2176769,
+        #                 "coin_pair": "BRLBCH",
+        #                 "order_type": 2,
+        #                 "status": 3,
+        #                 "has_fills": False,
+        #                 "quantity": "0.10000000",
+        #                 "limit_price": "1996.15999",
+        #                 "executed_quantity": "0.00000000",
+        #                 "executed_price_avg": "0.00000",
+        #                 "fee": "0.00000000",
+        #                 "created_timestamp": "1536956488",
+        #                 "updated_timestamp": "1536956499",
+        #                 "operations": []
         #             }
         #         },
-        #         status_code: 100,
-        #         server_unix_timestamp: '1536956499'
+        #         "status_code": 100,
+        #         "server_unix_timestamp": "1536956499"
         #     }
         #
         responseData = self.safe_value(response, 'response_data', {})
@@ -645,7 +645,7 @@ class mercado(Exchange, ImplicitAPI):
         withdrawal = self.safe_value(responseData, 'withdrawal')
         return self.parse_transaction(withdrawal, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #     {
         #         "id": 1,

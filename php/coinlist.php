@@ -385,25 +385,25 @@ class coinlist extends Exchange {
         $response = $this->publicGetV1Symbols ($params);
         //
         //     {
-        //         symbols => array(
+        //         "symbols" => array(
         //             array(
-        //                 symbol => 'CQT-USDT',
-        //                 base_currency => 'CQT',
-        //                 is_trader_geofenced => false,
-        //                 list_time => '2021-06-15T00:00:00.000Z',
-        //                 type => 'spot',
-        //                 series_code => 'CQT-USDT-SPOT',
-        //                 long_name => 'Covalent',
-        //                 asset_class => 'CRYPTO',
-        //                 minimum_price_increment => '0.0001',
-        //                 minimum_size_increment => '0.0001',
-        //                 quote_currency => 'USDT',
-        //                 index_code => null,
-        //                 price_band_threshold_market => '0.05',
-        //                 price_band_threshold_limit => '0.25',
-        //                 last_price => '0.12160000',
-        //                 fair_price => '0.12300000',
-        //                 index_price => null
+        //                 "symbol" => "CQT-USDT",
+        //                 "base_currency" => "CQT",
+        //                 "is_trader_geofenced" => false,
+        //                 "list_time" => "2021-06-15T00:00:00.000Z",
+        //                 "type" => "spot",
+        //                 "series_code" => "CQT-USDT-SPOT",
+        //                 "long_name" => "Covalent",
+        //                 "asset_class" => "CRYPTO",
+        //                 "minimum_price_increment" => "0.0001",
+        //                 "minimum_size_increment" => "0.0001",
+        //                 "quote_currency" => "USDT",
+        //                 "index_code" => null,
+        //                 "price_band_threshold_market" => "0.05",
+        //                 "price_band_threshold_limit" => "0.25",
+        //                 "last_price" => "0.12160000",
+        //                 "fair_price" => "0.12300000",
+        //                 "index_price" => null
         //             ),
         //         )
         //     }
@@ -477,7 +477,7 @@ class coinlist extends Exchange {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
-         * @param {string[]|} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the coinlist api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
@@ -546,7 +546,7 @@ class coinlist extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "type":"spot",
@@ -778,7 +778,7 @@ class coinlist extends Exchange {
         return $this->parse_trades($auctions, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //     {
@@ -793,15 +793,15 @@ class coinlist extends Exchange {
         //
         // fetchMyTrades
         //     {
-        //         $symbol => 'ETH-USDT',
-        //         auction_code => 'ETH-USDT-2023-10-20T13:22:14.000Z',
-        //         order_id => '83ed365f-497d-433b-96c1-9d08c1a12842',
-        //         quantity => '0.0008',
-        //         price => '1615.24000000',
-        //         $fee => '0.005815',
-        //         fee_type => 'taker',
-        //         fee_currency => 'USDT',
-        //         logical_time => '2023-10-20T13:22:14.000Z'
+        //         "symbol" => "ETH-USDT",
+        //         "auction_code" => "ETH-USDT-2023-10-20T13:22:14.000Z",
+        //         "order_id" => "83ed365f-497d-433b-96c1-9d08c1a12842",
+        //         "quantity" => "0.0008",
+        //         "price" => "1615.24000000",
+        //         "fee" => "0.005815",
+        //         "fee_type" => "taker",
+        //         "fee_currency" => "USDT",
+        //         "logical_time" => "2023-10-20T13:22:14.000Z"
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -1085,7 +1085,7 @@ class coinlist extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //     {
         //         "asset_balances" => array(
@@ -1151,28 +1151,28 @@ class coinlist extends Exchange {
         $response = $this->privateGetV1Fills (array_merge($request, $params));
         //
         //     {
-        //         $fills => array(
+        //         "fills" => array(
         //             array(
-        //                 $symbol => 'ETH-USDT',
-        //                 auction_code => 'ETH-USDT-2023-10-20T13:16:30.000Z',
-        //                 order_id => '39911d5f-c789-4a7d-ad34-820a804d1da6',
-        //                 quantity => '-0.0009',
-        //                 price => '1608.83000000',
-        //                 fee => '0.006516',
-        //                 fee_type => 'taker',
-        //                 fee_currency => 'USDT',
-        //                 logical_time => '2023-10-20T13:16:30.000Z'
+        //                 "symbol" => "ETH-USDT",
+        //                 "auction_code" => "ETH-USDT-2023-10-20T13:16:30.000Z",
+        //                 "order_id" => "39911d5f-c789-4a7d-ad34-820a804d1da6",
+        //                 "quantity" => "-0.0009",
+        //                 "price" => "1608.83000000",
+        //                 "fee" => "0.006516",
+        //                 "fee_type" => "taker",
+        //                 "fee_currency" => "USDT",
+        //                 "logical_time" => "2023-10-20T13:16:30.000Z"
         //             ),
         //             array(
-        //                 $symbol => 'ETH-USDT',
-        //                 auction_code => 'ETH-USDT-2023-10-20T13:22:14.000Z',
-        //                 order_id => '83ed365f-497d-433b-96c1-9d08c1a12842',
-        //                 quantity => '0.0008',
-        //                 price => '1615.24000000',
-        //                 fee => '0.005815',
-        //                 fee_type => 'taker',
-        //                 fee_currency => 'USDT',
-        //                 logical_time => '2023-10-20T13:22:14.000Z'
+        //                 "symbol" => "ETH-USDT",
+        //                 "auction_code" => "ETH-USDT-2023-10-20T13:22:14.000Z",
+        //                 "order_id" => "83ed365f-497d-433b-96c1-9d08c1a12842",
+        //                 "quantity" => "0.0008",
+        //                 "price" => "1615.24000000",
+        //                 "fee" => "0.005815",
+        //                 "fee_type" => "taker",
+        //                 "fee_currency" => "USDT",
+        //                 "logical_time" => "2023-10-20T13:22:14.000Z"
         //             ),
         //         )
         //     }
@@ -1378,8 +1378,8 @@ class coinlist extends Exchange {
         $response = $this->privateDeleteV1Orders (array_merge($request, $params));
         //
         //     {
-        //         message => 'Order cancellation $request received.',
-        //         timestamp => '2023-10-26T10:29:28.652Z'
+        //         "message" => "Order cancellation $request received.",
+        //         "timestamp" => "2023-10-26T10:29:28.652Z"
         //     }
         //
         $orders = array( $response );
@@ -1402,9 +1402,9 @@ class coinlist extends Exchange {
         $response = $this->privateDeleteV1OrdersOrderId (array_merge($request, $params));
         //
         //     {
-        //         message => 'Cancel order $request received.',
-        //         order_id => 'd36e7588-6525-485c-b768-8ad8b3f745f9',
-        //         timestamp => '2023-10-26T14:36:37.559Z'
+        //         "message" => "Cancel order $request received.",
+        //         "order_id" => "d36e7588-6525-485c-b768-8ad8b3f745f9",
+        //         "timestamp" => "2023-10-26T14:36:37.559Z"
         //     }
         //
         return $this->parse_order($response);
@@ -1585,21 +1585,21 @@ class coinlist extends Exchange {
         //
         // cancelOrder
         //     {
-        //         message => 'Cancel $order request received.',
-        //         order_id => 'd36e7588-6525-485c-b768-8ad8b3f745f9',
-        //         $timestamp => '2023-10-26T14:36:37.559Z'
+        //         "message" => "Cancel $order request received.",
+        //         "order_id" => "d36e7588-6525-485c-b768-8ad8b3f745f9",
+        //         "timestamp" => "2023-10-26T14:36:37.559Z"
         //     }
         //
         // cancelOrders
         //     {
-        //         message => 'Order cancellation request received.',
-        //         $timestamp => '2023-10-26T10:29:28.652Z'
+        //         "message" => "Order cancellation request received.",
+        //         "timestamp" => "2023-10-26T10:29:28.652Z"
         //     }
         //
         // cancelAllOrders
         //     {
-        //         message => 'Order cancellation request received.',
-        //         $timestamp => '2023-10-26T10:29:28.652Z'
+        //         "message" => "Order cancellation request received.",
+        //         "timestamp" => "2023-10-26T10:29:28.652Z"
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
@@ -1953,7 +1953,7 @@ class coinlist extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         // withdraw
         //
         //     {
@@ -2060,65 +2060,65 @@ class coinlist extends Exchange {
         $response = $this->privateGetV1AccountsTraderIdLedger (array_merge($request, $params));
         //
         //     {
-        //         transactions => array(
+        //         "transactions" => array(
         //             array(
-        //                 transaction_id => '0288634e-49bd-494d-b04a-18fd1832d394',
-        //                 transaction_type => 'XFER',
-        //                 type => 'deposit',
-        //                 asset => 'ETH',
-        //                 symbol => null,
-        //                 amount => '0.010000000000000000',
-        //                 details => null,
-        //                 created_at => '2023-10-20T13:15:39.443Z'
+        //                 "transaction_id" => "0288634e-49bd-494d-b04a-18fd1832d394",
+        //                 "transaction_type" => "XFER",
+        //                 "type" => "deposit",
+        //                 "asset" => "ETH",
+        //                 "symbol" => null,
+        //                 "amount" => "0.010000000000000000",
+        //                 "details" => null,
+        //                 "created_at" => "2023-10-20T13:15:39.443Z"
         //             ),
         //             array(
-        //                 transaction_id => '47a45928-abcd-4c12-8bd6-587c3028025f',
-        //                 transaction_type => 'SWAP',
-        //                 type => 'atomic token swap',
-        //                 asset => 'USDT',
-        //                 symbol => 'ETH-USDT',
-        //                 amount => '1.447947',
-        //                 details => null,
-        //                 created_at => '2023-10-20T13:16:30.373Z'
+        //                 "transaction_id" => "47a45928-abcd-4c12-8bd6-587c3028025f",
+        //                 "transaction_type" => "SWAP",
+        //                 "type" => "atomic token swap",
+        //                 "asset" => "USDT",
+        //                 "symbol" => "ETH-USDT",
+        //                 "amount" => "1.447947",
+        //                 "details" => null,
+        //                 "created_at" => "2023-10-20T13:16:30.373Z"
         //             ),
         //             {
-        //                 transaction_id => '1ffe3a54-916e-41f0-b957-3a01309eb009',
-        //                 transaction_type => 'FEE',
-        //                 type => 'fee',
-        //                 asset => 'USDT',
-        //                 symbol => 'ETH-USDT',
-        //                 amount => '-0.006516',
-        //                 details => array(
-        //                     fee_details => array(
+        //                 "transaction_id" => "1ffe3a54-916e-41f0-b957-3a01309eb009",
+        //                 "transaction_type" => "FEE",
+        //                 "type" => "fee",
+        //                 "asset" => "USDT",
+        //                 "symbol" => "ETH-USDT",
+        //                 "amount" => "-0.006516",
+        //                 "details" => array(
+        //                     "fee_details" => array(
         //                         array(
-        //                             insurance_fee => '0',
-        //                             order_id => '39911d5f-c789-4a7d-ad34-820a804d1da6',
-        //                             fee_type => 'taker',
-        //                             fee_currency => 'USDT'
+        //                             "insurance_fee" => "0",
+        //                             "order_id" => "39911d5f-c789-4a7d-ad34-820a804d1da6",
+        //                             "fee_type" => "taker",
+        //                             "fee_currency" => "USDT"
         //                         }
         //                     )
         //                 ),
-        //                 created_at => '2023-10-20T13:16:30.373Z'
+        //                 "created_at" => "2023-10-20T13:16:30.373Z"
         //             ),
         //             array(
-        //                 transaction_id => '3930e8a3-2218-481f-8c3c-2219287e205e',
-        //                 transaction_type => 'SWAP',
-        //                 type => 'atomic token swap',
-        //                 asset => 'ETH',
-        //                 symbol => 'ETH-USDT',
-        //                 amount => '-0.000900000000000000',
-        //                 details => null,
-        //                 created_at => '2023-10-20T13:16:30.373Z'
+        //                 "transaction_id" => "3930e8a3-2218-481f-8c3c-2219287e205e",
+        //                 "transaction_type" => "SWAP",
+        //                 "type" => "atomic token swap",
+        //                 "asset" => "ETH",
+        //                 "symbol" => "ETH-USDT",
+        //                 "amount" => "-0.000900000000000000",
+        //                 "details" => null,
+        //                 "created_at" => "2023-10-20T13:16:30.373Z"
         //             ),
         //             {
-        //                 transaction_id => 'a6c65cb3-95d0-44e2-8202-f70581d6e55c',
-        //                 transaction_type => 'XFER',
-        //                 type => 'withdrawal',
-        //                 asset => 'USD',
-        //                 symbol => null,
-        //                 amount => '-3.00',
-        //                 details => null,
-        //                 created_at => '2023-10-26T14:32:24.887Z'
+        //                 "transaction_id" => "a6c65cb3-95d0-44e2-8202-f70581d6e55c",
+        //                 "transaction_type" => "XFER",
+        //                 "type" => "withdrawal",
+        //                 "asset" => "USD",
+        //                 "symbol" => null,
+        //                 "amount" => "-3.00",
+        //                 "details" => null,
+        //                 "created_at" => "2023-10-26T14:32:24.887Z"
         //             }
         //         )
         //     }
@@ -2131,71 +2131,71 @@ class coinlist extends Exchange {
         //
         // deposit transaction from wallet (funding) to pro (trading)
         //     {
-        //         transaction_id => '0288634e-49bd-494d-b04a-18fd1832d394',
-        //         transaction_type => 'XFER',
-        //         $type => 'deposit',
-        //         asset => 'ETH',
-        //         symbol => null,
-        //         $amount => '0.010000000000000000',
-        //         details => null,
-        //         created_at => '2023-10-20T13:15:39.443Z'
+        //         "transaction_id" => "0288634e-49bd-494d-b04a-18fd1832d394",
+        //         "transaction_type" => "XFER",
+        //         "type" => "deposit",
+        //         "asset" => "ETH",
+        //         "symbol" => null,
+        //         "amount" => "0.010000000000000000",
+        //         "details" => null,
+        //         "created_at" => "2023-10-20T13:15:39.443Z"
         //     }
         //
         // withdrawal transaction from pro (trading) to wallet (funding)
         //     {
-        //         transaction_id => 'a6c65cb3-95d0-44e2-8202-f70581d6e55c',
-        //         transaction_type => 'XFER',
-        //         $type => 'withdrawal',
-        //         asset => 'USD',
-        //         symbol => null,
-        //         $amount => '-3.00',
-        //         details => null,
-        //         created_at => '2023-10-26T14:32:24.887Z'
+        //         "transaction_id" => "a6c65cb3-95d0-44e2-8202-f70581d6e55c",
+        //         "transaction_type" => "XFER",
+        //         "type" => "withdrawal",
+        //         "asset" => "USD",
+        //         "symbol" => null,
+        //         "amount" => "-3.00",
+        //         "details" => null,
+        //         "created_at" => "2023-10-26T14:32:24.887Z"
         //     }
         //
         // sell trade
         //     {
-        //         transaction_id => '47a45928-abcd-4c12-8bd6-587c3028025f',
-        //         transaction_type => 'SWAP',
-        //         $type => 'atomic token swap',
-        //         asset => 'USDT',
-        //         symbol => 'ETH-USDT',
-        //         $amount => '1.447947',
-        //         details => null,
-        //         created_at => '2023-10-20T13:16:30.373Z'
+        //         "transaction_id" => "47a45928-abcd-4c12-8bd6-587c3028025f",
+        //         "transaction_type" => "SWAP",
+        //         "type" => "atomic token swap",
+        //         "asset" => "USDT",
+        //         "symbol" => "ETH-USDT",
+        //         "amount" => "1.447947",
+        //         "details" => null,
+        //         "created_at" => "2023-10-20T13:16:30.373Z"
         //     }
         //
         // buy trade
         //     array(
-        //         transaction_id => '46d20a93-45c4-4441-a238-f89602eb8c8c',
-        //         transaction_type => 'SWAP',
-        //         $type => 'atomic token swap',
-        //         asset => 'ETH',
-        //         symbol => 'ETH-USDT',
-        //         $amount => '0.000800000000000000',
-        //         details => null,
-        //         created_at => '2023-10-20T13:22:14.256Z'
+        //         "transaction_id" => "46d20a93-45c4-4441-a238-f89602eb8c8c",
+        //         "transaction_type" => "SWAP",
+        //         "type" => "atomic token swap",
+        //         "asset" => "ETH",
+        //         "symbol" => "ETH-USDT",
+        //         "amount" => "0.000800000000000000",
+        //         "details" => null,
+        //         "created_at" => "2023-10-20T13:22:14.256Z"
         //     ),
         //
         //  fee
         //     {
-        //         transaction_id => '57fd526c-36b1-4721-83ce-42aadcb1e953',
-        //         transaction_type => 'FEE',
-        //         $type => 'fee',
-        //         asset => 'USDT',
-        //         symbol => 'BTC-USDT',
-        //         $amount => '-0.047176',
-        //         details => {
-        //             fee_details => array(
+        //         "transaction_id" => "57fd526c-36b1-4721-83ce-42aadcb1e953",
+        //         "transaction_type" => "FEE",
+        //         "type" => "fee",
+        //         "asset" => "USDT",
+        //         "symbol" => "BTC-USDT",
+        //         "amount" => "-0.047176",
+        //         "details" => {
+        //             "fee_details" => array(
         //                 array(
-        //                     insurance_fee => '0',
-        //                     order_id => 'c0bc33cd-eeb9-40a0-ab5f-2d99f323ef58',
-        //                     fee_type => 'taker',
-        //                     fee_currency => 'USDT'
+        //                     "insurance_fee" => "0",
+        //                     "order_id" => "c0bc33cd-eeb9-40a0-ab5f-2d99f323ef58",
+        //                     "fee_type" => "taker",
+        //                     "fee_currency" => "USDT"
         //                 }
         //             )
         //         ),
-        //         created_at => '2023-10-25T16:46:24.294Z'
+        //         "created_at" => "2023-10-25T16:46:24.294Z"
         //     }
         //
         $id = $this->safe_string($item, 'transaction_id');

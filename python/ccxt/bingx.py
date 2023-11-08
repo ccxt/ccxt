@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bingx import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -398,32 +398,32 @@ class bingx(Exchange, ImplicitAPI):
         response = self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
-        #        'code': 0,
-        #        'timestamp': 1688045966616,
-        #        'data': [
+        #        "code": 0,
+        #        "timestamp": 1688045966616,
+        #        "data": [
         #            {
-        #              coin: 'BTC',
-        #              name: 'BTC',
-        #              networkList: [
+        #              "coin": "BTC",
+        #              "name": "BTC",
+        #              "networkList": [
         #                {
-        #                  name: 'BTC',
-        #                  network: 'BTC',
-        #                  isDefault: True,
-        #                  minConfirm: '2',
-        #                  withdrawEnable: True,
-        #                  withdrawFee: '0.00035',
-        #                  withdrawMax: '1.62842',
-        #                  withdrawMin: '0.0005'
+        #                  "name": "BTC",
+        #                  "network": "BTC",
+        #                  "isDefault": True,
+        #                  "minConfirm": "2",
+        #                  "withdrawEnable": True,
+        #                  "withdrawFee": "0.00035",
+        #                  "withdrawMax": "1.62842",
+        #                  "withdrawMin": "0.0005"
         #                },
         #                {
-        #                  name: 'BTC',
-        #                  network: 'BEP20',
-        #                  isDefault: False,
-        #                  minConfirm: '15',
-        #                  withdrawEnable: True,
-        #                  withdrawFee: '0.00001',
-        #                  withdrawMax: '1.62734',
-        #                  withdrawMin: '0.0001'
+        #                  "name": "BTC",
+        #                  "network": "BEP20",
+        #                  "isDefault": False,
+        #                  "minConfirm": "15",
+        #                  "withdrawEnable": True,
+        #                  "withdrawFee": "0.00001",
+        #                  "withdrawMax": "1.62734",
+        #                  "withdrawMin": "0.0001"
         #                }
         #              ]
         #          },
@@ -800,7 +800,7 @@ class bingx(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # spot
         # fetchTrades
@@ -828,15 +828,15 @@ class bingx(Exchange, ImplicitAPI):
         # fetchMyTrades
         #
         #    {
-        #        volume: '0.1',
-        #        price: '106.75',
-        #        amount: '10.6750',
-        #        commission: '-0.0053',
-        #        currency: 'USDT',
-        #        orderId: '1676213270274379776',
-        #        liquidatedPrice: '0.00',
-        #        liquidatedMarginRatio: '0.00',
-        #        filledTime: '2023-07-04T20:56:01.000+0800'
+        #        "volume": "0.1",
+        #        "price": "106.75",
+        #        "amount": "10.6750",
+        #        "commission": "-0.0053",
+        #        "currency": "USDT",
+        #        "orderId": "1676213270274379776",
+        #        "liquidatedPrice": "0.00",
+        #        "liquidatedMarginRatio": "0.00",
+        #        "filledTime": "2023-07-04T20:56:01.000+0800"
         #    }
         #
         #
@@ -845,24 +845,24 @@ class bingx(Exchange, ImplicitAPI):
         # spot
         #
         #    {
-        #        E: 1690214529432,
-        #        T: 1690214529386,
-        #        e: 'trade',
-        #        m: True,
-        #        p: '29110.19',
-        #        q: '0.1868',
-        #        s: 'BTC-USDT',
-        #        t: '57903921'
+        #        "E": 1690214529432,
+        #        "T": 1690214529386,
+        #        "e": "trade",
+        #        "m": True,
+        #        "p": "29110.19",
+        #        "q": "0.1868",
+        #        "s": "BTC-USDT",
+        #        "t": "57903921"
         #    }
         #
         # swap
         #
         #    {
-        #        q: '0.0421',
-        #        p: '29023.5',
-        #        T: 1690221401344,
-        #        m: False,
-        #        s: 'BTC-USDT'
+        #        "q": "0.0421",
+        #        "p": "29023.5",
+        #        "T": 1690221401344,
+        #        "m": False,
+        #        "s": "BTC-USDT"
         #    }
         #
         time = self.safe_integer_n(trade, ['time', 'filledTm', 'T'])
@@ -1121,7 +1121,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1255,19 +1255,19 @@ class bingx(Exchange, ImplicitAPI):
         tickers = self.safe_value(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot
         #    {
-        #        symbol: 'BTC-USDT',
-        #        openPrice: '26032.08',
-        #        highPrice: '26178.86',
-        #        lowPrice: '25968.18',
-        #        lastPrice: '26113.60',
-        #        volume: '1161.79',
-        #        quoteVolume: '30288466.44',
-        #        openTime: '1693081020762',
-        #        closeTime: '1693167420762'
+        #        "symbol": "BTC-USDT",
+        #        "openPrice": "26032.08",
+        #        "highPrice": "26178.86",
+        #        "lowPrice": "25968.18",
+        #        "lastPrice": "26113.60",
+        #        "volume": "1161.79",
+        #        "quoteVolume": "30288466.44",
+        #        "openTime": "1693081020762",
+        #        "closeTime": "1693167420762"
         #    }
         # swap
         #
@@ -1409,7 +1409,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data')
         balances = self.safe_value_2(data, 'balance', 'balances', data)
         result = {'info': response}
@@ -1817,20 +1817,20 @@ class bingx(Exchange, ImplicitAPI):
         # fetchOrder
         #
         #    {
-        #        symbol: 'ETH-USDT',
-        #        orderId: '1660602123001266176',
-        #        price: '1700',
-        #        origQty: '0.003',
-        #        executedQty: '0',
-        #        cummulativeQuoteQty: '0',
-        #        status: 'PENDING',
-        #        type: 'LIMIT',
-        #        side: 'BUY',
-        #        time: '1684753373276',
-        #        updateTime: '1684753373276',
-        #        origQuoteOrderQty: '0',
-        #        fee: '0',
-        #        feeAsset: 'ETH'
+        #        "symbol": "ETH-USDT",
+        #        "orderId": "1660602123001266176",
+        #        "price": "1700",
+        #        "origQty": "0.003",
+        #        "executedQty": "0",
+        #        "cummulativeQuoteQty": "0",
+        #        "status": "PENDING",
+        #        "type": "LIMIT",
+        #        "side": "BUY",
+        #        "time": "1684753373276",
+        #        "updateTime": "1684753373276",
+        #        "origQuoteOrderQty": "0",
+        #        "fee": "0",
+        #        "feeAsset": "ETH"
         #    }
         #
         # fetchOpenOrders, fetchClosedOrders
@@ -2450,8 +2450,8 @@ class bingx(Exchange, ImplicitAPI):
         response = self.spotV3PrivateGetAssetTransfer(self.extend(request, params))
         #
         #     {
-        #         total: 3,
-        #         rows: [
+        #         "total": 3,
+        #         "rows": [
         #             {
         #                 "asset":"USDT",
         #                 "amount":"-100.00000000000000000000",
@@ -2511,19 +2511,19 @@ class bingx(Exchange, ImplicitAPI):
         response = self.walletsV1PrivateGetCapitalDepositAddress(self.extend(request, params))
         #
         #     {
-        #         code: '0',
-        #         timestamp: '1695200226859',
-        #         data: {
-        #           data: [
+        #         "code": "0",
+        #         "timestamp": "1695200226859",
+        #         "data": {
+        #           "data": [
         #             {
-        #               coinId: '799',
-        #               coin: 'USDT',
-        #               network: 'BEP20',
-        #               address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        #               tag: ''
+        #               "coinId": "799",
+        #               "coin": "USDT",
+        #               "network": "BEP20",
+        #               "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        #               "tag": ''
         #             }
         #           ],
-        #           total: '1'
+        #           "total": "1"
         #         }
         #     }
         #
@@ -2534,11 +2534,11 @@ class bingx(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         coinId: '799',
-        #         coin: 'USDT',
-        #         network: 'BEP20',
-        #         address: '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        #         tag: ''
+        #         "coinId": "799",
+        #         "coin": "USDT",
+        #         "network": "BEP20",
+        #         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        #         "tag": ''
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -2640,7 +2640,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2877,19 +2877,19 @@ class bingx(Exchange, ImplicitAPI):
         response = self.swapV2PrivateGetTradeAllFillOrders(self.extend(request, query))
         #
         #    {
-        #       code: '0',
-        #       msg: '',
-        #       data: {fill_orders: [
+        #       "code": "0",
+        #       "msg": '',
+        #       "data": {fill_orders: [
         #          {
-        #              volume: '0.1',
-        #              price: '106.75',
-        #              amount: '10.6750',
-        #              commission: '-0.0053',
-        #              currency: 'USDT',
-        #              orderId: '1676213270274379776',
-        #              liquidatedPrice: '0.00',
-        #              liquidatedMarginRatio: '0.00',
-        #              filledTime: '2023-07-04T20:56:01.000+0800'
+        #              "volume": "0.1",
+        #              "price": "106.75",
+        #              "amount": "10.6750",
+        #              "commission": "-0.0053",
+        #              "currency": "USDT",
+        #              "orderId": "1676213270274379776",
+        #              "liquidatedPrice": "0.00",
+        #              "liquidatedMarginRatio": "0.00",
+        #              "filledTime": "2023-07-04T20:56:01.000+0800"
         #          }
         #        ]
         #      }
@@ -2902,28 +2902,28 @@ class bingx(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         #    {
-        #        coin: 'BTC',
-        #        name: 'BTC',
-        #        networkList: [
+        #        "coin": "BTC",
+        #        "name": "BTC",
+        #        "networkList": [
         #          {
-        #            name: 'BTC',
-        #            network: 'BTC',
-        #            isDefault: True,
-        #            minConfirm: '2',
-        #            withdrawEnable: True,
-        #            withdrawFee: '0.00035',
-        #            withdrawMax: '1.62842',
-        #            withdrawMin: '0.0005'
+        #            "name": "BTC",
+        #            "network": "BTC",
+        #            "isDefault": True,
+        #            "minConfirm": "2",
+        #            "withdrawEnable": True,
+        #            "withdrawFee": "0.00035",
+        #            "withdrawMax": "1.62842",
+        #            "withdrawMin": "0.0005"
         #          },
         #          {
-        #            name: 'BTC',
-        #            network: 'BEP20',
-        #            isDefault: False,
-        #            minConfirm: '15',
-        #            withdrawEnable: True,
-        #            withdrawFee: '0.00001',
-        #            withdrawMax: '1.62734',
-        #            withdrawMin: '0.0001'
+        #            "name": "BTC",
+        #            "network": "BEP20",
+        #            "isDefault": False,
+        #            "minConfirm": "15",
+        #            "withdrawEnable": True,
+        #            "withdrawFee": "0.00001",
+        #            "withdrawMax": "1.62734",
+        #            "withdrawMin": "0.0001"
         #          }
         #        ]
         #    }
@@ -3172,7 +3172,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         #    {
         #        "code": 80014,
-        #        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        #        "msg": "Invalid parameters, err:Key: 'GetTickerRequest.Symbol' Error:Field validation for "Symbol" failed on the "len=0|endswith=-USDT" tag",
         #        "data": {
         #        }
         #    }

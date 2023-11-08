@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.currencycom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -348,13 +348,13 @@ class currencycom(Exchange, ImplicitAPI):
         #             "minDeposit": "90.0",
         #         },
         #         {
-        #             name: "Bitcoin",
-        #             displaySymbol: "BTC",
-        #             precision: "8",
-        #             type: "CRYPTO",  # only a few major currencies have self value, others like USDT have a value of "TOKEN"
-        #             minWithdrawal: "0.00020",
-        #             commissionFixed: "0.00010",
-        #             minDeposit: "0.00010",
+        #             "name": "Bitcoin",
+        #             "displaySymbol": "BTC",
+        #             "precision": "8",
+        #             "type": "CRYPTO",  # only a few major currencies have self value, others like USDT have a value of "TOKEN"
+        #             "minWithdrawal": "0.00020",
+        #             "commissionFixed": "0.00010",
+        #             "minDeposit": "0.00010",
         #         },
         #     ]
         #
@@ -401,49 +401,49 @@ class currencycom(Exchange, ImplicitAPI):
         response = await self.publicGetV2ExchangeInfo(params)
         #
         #     {
-        #         timezone: "UTC",
-        #         serverTime: "1645186287261",
-        #         rateLimits: [
+        #         "timezone": "UTC",
+        #         "serverTime": "1645186287261",
+        #         "rateLimits": [
         #             {rateLimitType: "REQUEST_WEIGHT", interval: "MINUTE", intervalNum: "1", limit: "1200"},
         #             {rateLimitType: "ORDERS", interval: "SECOND", intervalNum: "1", limit: "10"},
         #             {rateLimitType: "ORDERS", interval: "DAY", intervalNum: "1", limit: "864000"},
         #         ],
-        #         exchangeFilters: [],
-        #         symbols: [
+        #         "exchangeFilters": [],
+        #         "symbols": [
         #             {
-        #                 symbol: "BTC/USDT",  # BTC/USDT, BTC/USDT_LEVERAGE
-        #                 name: "Bitcoin / Tether",
-        #                 status: "TRADING",  # TRADING, BREAK, HALT
-        #                 baseAsset: "BTC",
-        #                 baseAssetPrecision: "4",
-        #                 quoteAsset: "USDT",
-        #                 quoteAssetId: "USDT",  # USDT, USDT_LEVERAGE
-        #                 quotePrecision: "4",
-        #                 orderTypes: ["LIMIT", "MARKET"],  # LIMIT, MARKET, STOP
-        #                 filters: [
+        #                 "symbol": "BTC/USDT",  # BTC/USDT, BTC/USDT_LEVERAGE
+        #                 "name": "Bitcoin / Tether",
+        #                 "status": "TRADING",  # TRADING, BREAK, HALT
+        #                 "baseAsset": "BTC",
+        #                 "baseAssetPrecision": "4",
+        #                 "quoteAsset": "USDT",
+        #                 "quoteAssetId": "USDT",  # USDT, USDT_LEVERAGE
+        #                 "quotePrecision": "4",
+        #                 "orderTypes": ["LIMIT", "MARKET"],  # LIMIT, MARKET, STOP
+        #                 "filters": [
         #                     {filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001",},
         #                     {filterType: "MIN_NOTIONAL", minNotional: "5",},
         #                 ],
-        #                 marketModes: ["REGULAR"],  # CLOSE_ONLY, LONG_ONLY, REGULAR
-        #                 marketType: "SPOT",  # SPOT, LEVERAGE
-        #                 longRate: -0.0684932,  # LEVERAGE only
-        #                 shortRate: -0.0684932,  # LEVERAGE only
-        #                 swapChargeInterval: 1440,  # LEVERAGE only
-        #                 country: "",
-        #                 sector: "",
-        #                 industry: "",
-        #                 tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-        #                 tickSize: "0.01",
-        #                 tickValue: "403.4405",  # not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-        #                 exchangeFee: "0.2",  # SPOT only
-        #                 tradingFee: 0.075,  # LEVERAGE only
-        #                 makerFee: -0.025,  # LEVERAGE only
-        #                 takerFee: 0.06,  # LEVERAGE only
-        #                 maxSLGap: 50,  # LEVERAGE only
-        #                 minSLGap: 1,  # LEVERAGE only
-        #                 maxTPGap: 50,  # LEVERAGE only
-        #                 minTPGap: 0.5,  # LEVERAGE only
-        #                 assetType: "CRYPTOCURRENCY",
+        #                 "marketModes": ["REGULAR"],  # CLOSE_ONLY, LONG_ONLY, REGULAR
+        #                 "marketType": "SPOT",  # SPOT, LEVERAGE
+        #                 "longRate": -0.0684932,  # LEVERAGE only
+        #                 "shortRate": -0.0684932,  # LEVERAGE only
+        #                 "swapChargeInterval": 1440,  # LEVERAGE only
+        #                 "country": "",
+        #                 "sector": "",
+        #                 "industry": "",
+        #                 "tradingHours": "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        #                 "tickSize": "0.01",
+        #                 "tickValue": "403.4405",  # not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        #                 "exchangeFee": "0.2",  # SPOT only
+        #                 "tradingFee": 0.075,  # LEVERAGE only
+        #                 "makerFee": -0.025,  # LEVERAGE only
+        #                 "takerFee": 0.06,  # LEVERAGE only
+        #                 "maxSLGap": 50,  # LEVERAGE only
+        #                 "minSLGap": 1,  # LEVERAGE only
+        #                 "maxTPGap": 50,  # LEVERAGE only
+        #                 "minTPGap": 0.5,  # LEVERAGE only
+        #                 "assetType": "CRYPTOCURRENCY",
         #             },
         #         ]
         #     }
@@ -633,16 +633,16 @@ class currencycom(Exchange, ImplicitAPI):
         response = await self.privateGetV2Account(params)
         #
         #    {
-        #        makerCommission: '0.20',
-        #        takerCommission: '0.20',
-        #        buyerCommission: '0.20',
-        #        sellerCommission: '0.20',
-        #        canTrade: True,
-        #        canWithdraw: True,
-        #        canDeposit: True,
-        #        updateTime: '1645738976',
-        #        userId: '-1924114235',
-        #        balances: []
+        #        "makerCommission": "0.20",
+        #        "takerCommission": "0.20",
+        #        "buyerCommission": "0.20",
+        #        "sellerCommission": "0.20",
+        #        "canTrade": True,
+        #        "canWithdraw": True,
+        #        "canDeposit": True,
+        #        "updateTime": "1645738976",
+        #        "userId": "-1924114235",
+        #        "balances": []
         #    }
         #
         makerFee = self.safe_number(response, 'makerCommission')
@@ -771,7 +771,7 @@ class currencycom(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -963,7 +963,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public aggregate trades)
         #
@@ -1526,7 +1526,7 @@ class currencycom(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #    {
         #        "id": "616769213",

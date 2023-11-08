@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -187,7 +187,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -273,7 +273,7 @@ class bit2c(Exchange, ImplicitAPI):
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         averagePrice = self.safe_string(ticker, 'av')
@@ -662,7 +662,7 @@ class bit2c(Exchange, ImplicitAPI):
             newString += strParts[i]
         return newString
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -776,8 +776,8 @@ class bit2c(Exchange, ImplicitAPI):
         response = await self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
         #
         #     {
-        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        #         'hasTx': False
+        #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        #         "hasTx": False
         #     }
         #
         return self.parse_deposit_address(response, currency)
@@ -785,8 +785,8 @@ class bit2c(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        #         'hasTx': False
+        #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        #         "hasTx": False
         #     }
         #
         address = self.safe_string(depositAddress, 'address')

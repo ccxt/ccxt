@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1318,27 +1318,27 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         #     {
-        #         alias: "",
-        #         baseCcy: "",
-        #         category: "1",
-        #         ctMult: "0.1",
-        #         ctType: "",
-        #         ctVal: "1",
-        #         ctValCcy: "BTC",
-        #         expTime: "1648195200000",
-        #         instId: "BTC-USD-220325-194000-P",
-        #         instType: "OPTION",
-        #         lever: "",
-        #         listTime: "1631262612280",
-        #         lotSz: "1",
-        #         minSz: "1",
-        #         optType: "P",
-        #         quoteCcy: "",
-        #         settleCcy: "BTC",
-        #         state: "live",
-        #         stk: "194000",
-        #         tickSz: "0.0005",
-        #         uly: "BTC-USD"
+        #         "alias": "",
+        #         "baseCcy": "",
+        #         "category": "1",
+        #         "ctMult": "0.1",
+        #         "ctType": "",
+        #         "ctVal": "1",
+        #         "ctValCcy": "BTC",
+        #         "expTime": "1648195200000",
+        #         "instId": "BTC-USD-220325-194000-P",
+        #         "instType": "OPTION",
+        #         "lever": "",
+        #         "listTime": "1631262612280",
+        #         "lotSz": "1",
+        #         "minSz": "1",
+        #         "optType": "P",
+        #         "quoteCcy": "",
+        #         "settleCcy": "BTC",
+        #         "state": "live",
+        #         "stk": "194000",
+        #         "tickSz": "0.0005",
+        #         "uly": "BTC-USD"
         #     }
         #
         id = self.safe_string(market, 'instId')
@@ -1672,7 +1672,7 @@ class okx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(first, 'ts')
         return self.parse_order_book(first, symbol, timestamp)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "instType": "SPOT",
@@ -1830,7 +1830,7 @@ class okx(Exchange, ImplicitAPI):
         type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         return await self.fetch_tickers_by_type(type, symbols, query)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -2252,9 +2252,9 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'instType': self.convert_to_instrument_type(market['type']),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
-            # 'instId': market['id'],  # only applicable to SPOT/MARGIN
-            # 'uly': market['id'],  # only applicable to FUTURES/SWAP/OPTION
-            # 'category': '1',  # 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+            # "instId": market["id"],  # only applicable to SPOT/MARGIN
+            # "uly": market["id"],  # only applicable to FUTURES/SWAP/OPTION
+            # "category": "1",  # 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         }
         if market['spot']:
             request['instId'] = market['id']
@@ -4448,23 +4448,23 @@ class okx(Exchange, ImplicitAPI):
         response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
         #
         #    {
-        #        code: '0',
-        #        data: [
+        #        "code": "0",
+        #        "data": [
         #            {
-        #                chain: 'USDT-TRC20',
-        #                clientId: '',
-        #                fee: '0.8',
-        #                ccy: 'USDT',
-        #                amt: '54.561',
-        #                txId: '00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70',
-        #                from: 'example@email.com',
-        #                to: 'TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp',
-        #                state: '2',
-        #                ts: '1641376485000',
-        #                wdId: '25147041'
+        #                "chain": "USDT-TRC20",
+        #                "clientId": '',
+        #                "fee": "0.8",
+        #                "ccy": "USDT",
+        #                "amt": "54.561",
+        #                "txId": "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
+        #                "from": "example@email.com",
+        #                "to": "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+        #                "state": "2",
+        #                "ts": "1641376485000",
+        #                "wdId": "25147041"
         #            }
         #        ],
-        #        msg: ''
+        #        "msg": ''
         #    }
         #
         data = self.safe_value(response, 'data')
@@ -4476,23 +4476,23 @@ class okx(Exchange, ImplicitAPI):
         # deposit statuses
         #
         #     {
-        #         '0': 'waiting for confirmation',
-        #         '1': 'deposit credited',
-        #         '2': 'deposit successful'
+        #         "0": "waiting for confirmation",
+        #         "1": "deposit credited",
+        #         "2": "deposit successful"
         #     }
         #
         # withdrawal statuses
         #
         #     {
-        #        '-3': 'pending cancel',
-        #        '-2': 'canceled',
-        #        '-1': 'failed',
-        #         '0': 'pending',
-        #         '1': 'sending',
-        #         '2': 'sent',
-        #         '3': 'awaiting email verification',
-        #         '4': 'awaiting manual verification',
-        #         '5': 'awaiting identity verification'
+        #        '-3': "pending cancel",
+        #        "-2": "canceled",
+        #        "-1": "failed",
+        #         "0": "pending",
+        #         "1": "sending",
+        #         "2": "sent",
+        #         "3": "awaiting email verification",
+        #         "4": "awaiting manual verification",
+        #         "5": "awaiting identity verification"
         #     }
         #
         statuses = {
@@ -4508,7 +4508,7 @@ class okx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -4528,9 +4528,9 @@ class okx(Exchange, ImplicitAPI):
         #         "ccy": "ETH",
         #         "from": "13426335357",
         #         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        #         'tag',
-        #         'pmtId',
-        #         'memo',
+        #         "tag",
+        #         "pmtId",
+        #         "memo",
         #         "ts": "1597026383085",
         #         "state": "2"
         #     }
@@ -5358,9 +5358,9 @@ class okx(Exchange, ImplicitAPI):
             #     202 System transfer out
             #     203 Manually transfer out
             #
-            # 'after': 'id',  # earlier than the requested bill ID
-            # 'before': 'id',  # newer than the requested bill ID
-            # 'limit': '100',  # default 100, max 100
+            # "after": "id",  # earlier than the requested bill ID
+            # "before": "id",  # newer than the requested bill ID
+            # "limit": "100",  # default 100, max 100
         }
         if limit is not None:
             request['limit'] = str(limit)  # default 100, max 100
@@ -6103,7 +6103,7 @@ class okx(Exchange, ImplicitAPI):
         :see: https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -6146,7 +6146,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [limit]: Not used by okx, but parsed internally by CCXT
         :param dict [params]: Exchange specific parameters
         :param int [params.until]: The time in ms of the latest record to retrieve unix timestamp
-        :returns: An array of `open interest structures <https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure>`
+        :returns: An array of `open interest structures <https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure>`
         """
         options = self.safe_value(self.options, 'fetchOpenInterestHistory', {})
         timeframes = self.safe_value(options, 'timeframes', {})
@@ -6182,16 +6182,16 @@ class okx(Exchange, ImplicitAPI):
             response = await self.publicGetRubikStatContractsOpenInterestVolume(self.extend(request, params))
         #
         #    {
-        #        code: '0',
-        #        data: [
+        #        "code": "0",
+        #        "data": [
         #            [
-        #                '1648221300000',  # timestamp
-        #                '2183354317.945',  # open interest(USD)
-        #                '74285877.617',  # volume(USD)
+        #                "1648221300000",  # timestamp
+        #                "2183354317.945",  # open interest(USD)
+        #                "74285877.617",  # volume(USD)
         #            ],
         #            ...
         #        ],
-        #        msg: ''
+        #        "msg": ''
         #    }
         #
         data = self.safe_value(response, 'data', [])
@@ -6202,9 +6202,9 @@ class okx(Exchange, ImplicitAPI):
         # fetchOpenInterestHistory
         #
         #    [
-        #        '1648221300000',  # timestamp
-        #        '2183354317.945',  # open interest(USD) - (coin) for options
-        #        '74285877.617',  # volume(USD) - (coin) for options
+        #        "1648221300000",  # timestamp
+        #        "2183354317.945",  # open interest(USD) - (coin) for options
+        #        "74285877.617",  # volume(USD) - (coin) for options
         #    ]
         #
         # fetchOpenInterest
