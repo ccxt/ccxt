@@ -5,7 +5,6 @@ import json
 # import logging
 import os
 import sys
-import time  # noqa: F401
 from traceback import format_tb, format_exception
 
 import importlib  # noqa: E402
