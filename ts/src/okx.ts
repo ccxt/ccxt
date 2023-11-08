@@ -6537,7 +6537,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6584,7 +6584,7 @@ export default class okx extends Exchange {
          * @param {int} [limit] Not used by okx, but parsed internally by CCXT
          * @param {object} [params] Exchange specific parameters
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
-         * @returns An array of [open interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns An array of [open interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         const options = this.safeValue (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeValue (options, 'timeframes', {});
