@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -527,7 +527,7 @@ class lbank2(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -783,7 +783,7 @@ class lbank2(Exchange, ImplicitAPI):
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(old) spotPublicGetTrades
         #
@@ -993,7 +993,7 @@ class lbank2(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         # spotPrivatePostUserInfo
         #
@@ -1926,7 +1926,7 @@ class lbank2(Exchange, ImplicitAPI):
         }
         return self.safe_string(self.safe_value(statuses, type, {}), status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits(private)
         #
@@ -2202,23 +2202,23 @@ class lbank2(Exchange, ImplicitAPI):
         response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
-        #        result: 'true',
-        #        data: [
+        #        "result": "true",
+        #        "data": [
         #          {
-        #            amountScale: '4',
-        #            chain: 'heco',
-        #            assetCode: 'lbk',
-        #            min: '200',
-        #            transferAmtScale: '4',
-        #            canWithDraw: True,
-        #            fee: '100',
-        #            minTransfer: '0.0001',
-        #            type: '1'
+        #            "amountScale": "4",
+        #            "chain": "heco",
+        #            "assetCode": "lbk",
+        #            "min": "200",
+        #            "transferAmtScale": "4",
+        #            "canWithDraw": True,
+        #            "fee": "100",
+        #            "minTransfer": "0.0001",
+        #            "type": "1"
         #          },
         #          ...
         #        ],
-        #        error_code: '0',
-        #        ts: '1663364435973'
+        #        "error_code": "0",
+        #        "ts": "1663364435973"
         #    }
         #
         result = self.safe_value(response, 'data', [])
@@ -2311,23 +2311,23 @@ class lbank2(Exchange, ImplicitAPI):
         response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
-        #        result: 'true',
-        #        data: [
+        #        "result": "true",
+        #        "data": [
         #            {
-        #                amountScale: '4',
-        #                chain: 'heco',
-        #                assetCode: 'lbk',
-        #                min: '200',
-        #                transferAmtScale: '4',
-        #                canWithDraw: True,
-        #                fee: '100',
-        #                minTransfer: '0.0001',
-        #                type: '1'
+        #                "amountScale": "4",
+        #                "chain": "heco",
+        #                "assetCode": "lbk",
+        #                "min": "200",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "100",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
         #            },
         #            ...
         #        ],
-        #        error_code: '0',
-        #        ts: '1663364435973'
+        #        "error_code": "0",
+        #        "ts": "1663364435973"
         #    }
         #
         data = self.safe_value(response, 'data', [])
@@ -2337,15 +2337,15 @@ class lbank2(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            amountScale: '4',
-        #            chain: 'heco',
-        #            assetCode: 'lbk',
-        #            min: '200',
-        #            transferAmtScale: '4',
-        #            canWithDraw: True,
-        #            fee: '100',
-        #            minTransfer: '0.0001',
-        #            type: '1'
+        #            "amountScale": "4",
+        #            "chain": "heco",
+        #            "assetCode": "lbk",
+        #            "min": "200",
+        #            "transferAmtScale": "4",
+        #            "canWithDraw": True,
+        #            "fee": "100",
+        #            "minTransfer": "0.0001",
+        #            "type": "1"
         #        },
         #        ...
         #    ]

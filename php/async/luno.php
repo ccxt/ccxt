@@ -276,7 +276,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $wallets = $this->safe_value($response, 'balance', array());
         $result = array(
             'info' => $response,
@@ -316,11 +316,11 @@ class luno extends Exchange {
             $response = Async\await($this->privateGetBalance ($params));
             //
             //     {
-            //         'balance' => [
-            //             array('account_id' => '119...1336','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
-            //             array('account_id' => '66...289','asset' => 'XBT','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
-            //             array('account_id' => '718...5300','asset' => 'ETH','balance' => '0.00','reserved' => '0.00','unconfirmed' => '0.00'),
-            //             array('account_id' => '818...7072','asset' => 'ZAR','balance' => '0.001417','reserved' => '0.00','unconfirmed' => '0.00')]}
+            //         "balance" => [
+            //             array('account_id' => '119...1336','asset' => 'XBT','balance' => '0.00','reserved' => '0.00',"unconfirmed" => "0.00"),
+            //             array('account_id' => '66...289','asset' => 'XBT','balance' => '0.00','reserved' => '0.00',"unconfirmed" => "0.00"),
+            //             array('account_id' => '718...5300','asset' => 'ETH','balance' => '0.00','reserved' => '0.00',"unconfirmed" => "0.00"),
+            //             array('account_id' => '818...7072','asset' => 'ZAR','balance' => '0.001417','reserved' => '0.00',"unconfirmed" => "0.00")]}
             //         ]
             //     }
             //
@@ -514,7 +514,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -604,7 +604,7 @@ class luno extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //

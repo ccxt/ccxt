@@ -264,7 +264,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -437,7 +437,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $response['data'];
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($data); $i++) {
@@ -467,7 +467,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "buy":7.04E-7,

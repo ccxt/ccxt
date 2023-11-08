@@ -902,7 +902,7 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $responseResult = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($responseResult, 'data', array());
         $positionBalances = $this->safe_value($data[0], 'position_balances', array());
@@ -1936,18 +1936,18 @@ class cryptocom extends Exchange {
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //     {
-            //       id => '1641032709328',
-            //       $method => 'private/deriv/get-$transfer-history',
-            //       $code => '0',
-            //       result => {
-            //         transfer_list => array(
+            //       "id" => "1641032709328",
+            //       "method" => "private/deriv/get-$transfer-history",
+            //       "code" => "0",
+            //       "result" => {
+            //         "transfer_list" => array(
             //           {
-            //             direction => 'IN',
-            //             time => '1641025185223',
-            //             amount => '109.56',
-            //             status => 'COMPLETED',
-            //             information => 'From Spot Wallet',
-            //             $currency => 'USDC'
+            //             "direction" => "IN",
+            //             "time" => "1641025185223",
+            //             "amount" => "109.56",
+            //             "status" => "COMPLETED",
+            //             "information" => "From Spot Wallet",
+            //             "currency" => "USDC"
             //           }
             //         )
             //       }
@@ -1972,19 +1972,19 @@ class cryptocom extends Exchange {
     public function parse_transfer($transfer, $currency = null) {
         //
         //   {
-        //     $response => {
-        //       id => '1641032709328',
-        //       $method => 'private/deriv/get-$transfer-history',
-        //       $code => '0',
-        //       $result => {
-        //         transfer_list => array(
+        //     "response" => {
+        //       "id" => "1641032709328",
+        //       "method" => "private/deriv/get-$transfer-history",
+        //       "code" => "0",
+        //       "result" => {
+        //         "transfer_list" => array(
         //           {
-        //             $direction => 'IN',
-        //             time => '1641025185223',
-        //             $amount => '109.56',
-        //             $status => 'COMPLETED',
-        //             $information => 'From Spot Wallet',
-        //             $currency => 'USDC'
+        //             "direction" => "IN",
+        //             "time" => "1641025185223",
+        //             "amount" => "109.56",
+        //             "status" => "COMPLETED",
+        //             "information" => "From Spot Wallet",
+        //             "currency" => "USDC"
         //           }
         //         )
         //       }
@@ -2044,7 +2044,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -2105,7 +2105,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -2327,7 +2327,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2594,16 +2594,16 @@ class cryptocom extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         //    {
-        //        full_name => 'Alchemix',
-        //        default_network => 'ETH',
-        //        network_list => array(
+        //        "full_name" => "Alchemix",
+        //        "default_network" => "ETH",
+        //        "network_list" => array(
         //          {
-        //            network_id => 'ETH',
-        //            withdrawal_fee => '0.25000000',
-        //            withdraw_enabled => true,
-        //            min_withdrawal_amount => '0.5',
-        //            deposit_enabled => true,
-        //            confirmation_required => '0'
+        //            "network_id" => "ETH",
+        //            "withdrawal_fee" => "0.25000000",
+        //            "withdraw_enabled" => true,
+        //            "min_withdrawal_amount" => "0.5",
+        //            "deposit_enabled" => true,
+        //            "confirmation_required" => "0"
         //          }
         //        )
         //    }

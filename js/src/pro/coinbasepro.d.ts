@@ -1,5 +1,5 @@
 import coinbaseproRest from '../coinbasepro.js';
-import { Int } from '../base/types.js';
+import { Int, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbasepro extends coinbaseproRest {
     describe(): any;
@@ -28,7 +28,7 @@ export default class coinbasepro extends coinbaseproRest {
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleTicker(client: Client, message: any): any;
-    parseTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
+    parseTicker(ticker: any, market?: any): Ticker;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;

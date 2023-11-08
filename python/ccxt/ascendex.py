@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -736,7 +736,7 @@ class ascendex(Exchange, ImplicitAPI):
             },
         ]
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         timestamp = self.milliseconds()
         result = {
             'info': response,
@@ -825,12 +825,12 @@ class ascendex(Exchange, ImplicitAPI):
         # cash
         #
         #     {
-        #         'code': 0,
-        #         'data': [
+        #         "code": 0,
+        #         "data": [
         #             {
-        #                 'asset': 'BCHSV',
-        #                 'totalBalance': '64.298000048',
-        #                 'availableBalance': '64.298000048',
+        #                 "asset": "BCHSV",
+        #                 "totalBalance": "64.298000048",
+        #                 "availableBalance": "64.298000048",
         #             },
         #         ]
         #     }
@@ -838,14 +838,14 @@ class ascendex(Exchange, ImplicitAPI):
         # margin
         #
         #     {
-        #         'code': 0,
-        #         'data': [
+        #         "code": 0,
+        #         "data": [
         #             {
-        #                 'asset': 'BCHSV',
-        #                 'totalBalance': '64.298000048',
-        #                 'availableBalance': '64.298000048',
-        #                 'borrowed': '0',
-        #                 'interest': '0',
+        #                 "asset": "BCHSV",
+        #                 "totalBalance": "64.298000048",
+        #                 "availableBalance": "64.298000048",
+        #                 "borrowed": "0",
+        #                 "interest": "0",
         #             },
         #         ]
         #     }
@@ -915,7 +915,7 @@ class ascendex(Exchange, ImplicitAPI):
         result['nonce'] = self.safe_integer(orderbook, 'seqnum')
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "symbol":"QTUM/BTC",
@@ -1120,7 +1120,7 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1389,15 +1389,15 @@ class ascendex(Exchange, ImplicitAPI):
         response = self.v1PrivateAccountGroupGetSpotFee(self.extend(request, params))
         #
         #      {
-        #         code: '0',
-        #         data: {
-        #           domain: 'spot',
-        #           userUID: 'U1479576458',
-        #           vipLevel: '0',
-        #           fees: [
-        #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: '0.001'}},
-        #             {symbol: 'LAMB/BTC', fee: {taker: '0.002', maker: '0.002'}},
-        #             {symbol: 'STOS/USDT', fee: {taker: '0.002', maker: '0.002'}},
+        #         "code": "0",
+        #         "data": {
+        #           "domain": "spot",
+        #           "userUID": "U1479576458",
+        #           "vipLevel": "0",
+        #           "fees": [
+        #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: "0.001"}},
+        #             {symbol: 'LAMB/BTC', fee: {taker: '0.002', maker: "0.002"}},
+        #             {symbol: 'STOS/USDT', fee: {taker: '0.002', maker: "0.002"}},
         #             ...
         #           ]
         #         }
@@ -2231,15 +2231,15 @@ class ascendex(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        #         destTag: "",
-        #         tagType: "",
-        #         tagId: "",
-        #         chainName: "ERC20",
-        #         numConfirmations: 20,
-        #         withdrawalFee: 1,
-        #         nativeScale: 4,
-        #         tips: []
+        #         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        #         "destTag": "",
+        #         "tagType": "",
+        #         "tagId": "",
+        #         "chainName": "ERC20",
+        #         "numConfirmations": 20,
+        #         "withdrawalFee": 1,
+        #         "nativeScale": 4,
+        #         "tips": []
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -2398,26 +2398,26 @@ class ascendex(Exchange, ImplicitAPI):
         response = self.v1PrivateGetWalletTransactions(self.extend(request, params))
         #
         #     {
-        #         code: 0,
-        #         data: {
-        #             data: [
+        #         "code": 0,
+        #         "data": {
+        #             "data": [
         #                 {
-        #                     requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        #                     time: 1591606166000,
-        #                     asset: "USDT",
-        #                     transactionType: "deposit",
-        #                     amount: "25",
-        #                     commission: "0",
-        #                     networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        #                     status: "pending",
-        #                     numConfirmed: 8,
-        #                     numConfirmations: 20,
-        #                     destAddress: {address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722"}
+        #                     "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        #                     "time": 1591606166000,
+        #                     "asset": "USDT",
+        #                     "transactionType": "deposit",
+        #                     "amount": "25",
+        #                     "commission": "0",
+        #                     "networkTransactionId": "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        #                     "status": "pending",
+        #                     "numConfirmed": 8,
+        #                     "numConfirmations": 20,
+        #                     "destAddress": {address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722"}
         #                 }
         #             ],
-        #             page: 1,
-        #             pageSize: 20,
-        #             hasNext: False
+        #             "page": 1,
+        #             "pageSize": 20,
+        #             "hasNext": False
         #         }
         #     }
         #
@@ -2434,22 +2434,22 @@ class ascendex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #     {
-        #         requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        #         time: 1591606166000,
-        #         asset: "USDT",
-        #         transactionType: "deposit",
-        #         amount: "25",
-        #         commission: "0",
-        #         networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        #         status: "pending",
-        #         numConfirmed: 8,
-        #         numConfirmations: 20,
-        #         destAddress: {
-        #             address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        #             destTag: "..."  # for currencies that have it
+        #         "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        #         "time": 1591606166000,
+        #         "asset": "USDT",
+        #         "transactionType": "deposit",
+        #         "amount": "25",
+        #         "commission": "0",
+        #         "networkTransactionId": "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        #         "status": "pending",
+        #         "numConfirmed": 8,
+        #         "numConfirmations": 20,
+        #         "destAddress": {
+        #             "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        #             "destTag": "..."  # for currencies that have it
         #         }
         #     }
         #
@@ -2980,7 +2980,7 @@ class ascendex(Exchange, ImplicitAPI):
         }
         response = self.v1PrivateAccountGroupPostTransfer(self.extend(request, params))
         #
-        #    {code: '0'}
+        #    {"code": "0"}
         #
         transferOptions = self.safe_value(self.options, 'transfer', {})
         fillResponseFromRequest = self.safe_value(transferOptions, 'fillResponseFromRequest', True)
@@ -2994,7 +2994,7 @@ class ascendex(Exchange, ImplicitAPI):
 
     def parse_transfer(self, transfer, currency=None):
         #
-        #    {code: '0'}
+        #    {"code": "0"}
         #
         status = self.safe_integer(transfer, 'code')
         currencyCode = self.safe_currency_code(None, currency)
@@ -3144,8 +3144,8 @@ class ascendex(Exchange, ImplicitAPI):
         if response is None:
             return None  # fallback to default error handler
         #
-        #     {'code': 6010, 'message': 'Not enough balance.'}
-        #     {'code': 60060, 'message': 'The order is already filled or canceled.'}
+        #     {"code": 6010, "message": "Not enough balance."}
+        #     {"code": 60060, "message": "The order is already filled or canceled."}
         #     {"code":2100,"message":"ApiKeyFailure"}
         #     {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
         #

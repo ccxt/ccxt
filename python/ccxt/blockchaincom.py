@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -390,7 +390,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = self.publicGetL2Symbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #     "symbol": "BTC-USD",
@@ -467,20 +467,20 @@ class blockchaincom(Exchange, ImplicitAPI):
     def parse_order(self, order, market=None) -> Order:
         #
         #     {
-        #         clOrdId: '00001',
-        #         ordType: 'MARKET',
-        #         ordStatus: 'FILLED',
-        #         side: 'BUY',
-        #         symbol: 'USDC-USDT',
-        #         exOrdId: '281775861306290',
-        #         price: null,
-        #         text: 'Fill',
-        #         lastShares: '30.0',
-        #         lastPx: '0.9999',
-        #         leavesQty: '0.0',
-        #         cumQty: '30.0',
-        #         avgPx: '0.9999',
-        #         timestamp: '1633940339619'
+        #         "clOrdId": "00001",
+        #         "ordType": "MARKET",
+        #         "ordStatus": "FILLED",
+        #         "side": "BUY",
+        #         "symbol": "USDC-USDT",
+        #         "exOrdId": "281775861306290",
+        #         "price": null,
+        #         "text": "Fill",
+        #         "lastShares": "30.0",
+        #         "lastPx": "0.9999",
+        #         "leavesQty": "0.0",
+        #         "cumQty": "30.0",
+        #         "avgPx": "0.9999",
+        #         "timestamp": "1633940339619"
         #     }
         #
         clientOrderId = self.safe_string(order, 'clOrdId')
@@ -620,9 +620,9 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #     {
-        #         makerRate: "0.002",
-        #         takerRate: "0.004",
-        #         volumeInUSD: "0.0"
+        #         "makerRate": "0.002",
+        #         "takerRate": "0.004",
+        #         "volumeInUSD": "0.0"
         #     }
         #
         makerFee = self.safe_number(response, 'makerRate')
@@ -689,7 +689,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         #     {
         #         "exOrdId":281685751028507,
@@ -790,7 +790,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, state, state)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # deposit
         #
@@ -916,13 +916,13 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = self.privatePostWithdrawals(self.extend(request, params))
         #
         #     {
-        #         amount: "30.0",
-        #         currency: "USDT",
-        #         beneficiary: "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-        #         withdrawalId: "99df5ef7-eab6-4033-be49-312930fbd1ea",
-        #         fee: "34.005078",
-        #         state: "PENDING",
-        #         timestamp: "1634218452595"
+        #         "amount": "30.0",
+        #         "currency": "USDT",
+        #         "beneficiary": "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+        #         "withdrawalId": "99df5ef7-eab6-4033-be49-312930fbd1ea",
+        #         "fee": "34.005078",
+        #         "state": "PENDING",
+        #         "timestamp": "1634218452595"
         #     },
         #
         return self.parse_transaction(response, currency)

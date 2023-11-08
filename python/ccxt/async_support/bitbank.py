@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -257,7 +257,7 @@ class bitbank(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
@@ -320,7 +320,7 @@ class bitbank(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #
@@ -395,26 +395,26 @@ class bitbank(Exchange, ImplicitAPI):
         response = await self.marketsGetSpotPairs(params)
         #
         #     {
-        #         success: '1',
-        #         data: {
-        #           pairs: [
+        #         "success": "1",
+        #         "data": {
+        #           "pairs": [
         #             {
-        #               name: 'btc_jpy',
-        #               base_asset: 'btc',
-        #               quote_asset: 'jpy',
-        #               maker_fee_rate_base: '0',
-        #               taker_fee_rate_base: '0',
-        #               maker_fee_rate_quote: '-0.0002',
-        #               taker_fee_rate_quote: '0.0012',
-        #               unit_amount: '0.0001',
-        #               limit_max_amount: '1000',
-        #               market_max_amount: '10',
-        #               market_allowance_rate: '0.2',
-        #               price_digits: '0',
-        #               amount_digits: '4',
-        #               is_enabled: True,
-        #               stop_order: False,
-        #               stop_order_and_cancel: False
+        #               "name": "btc_jpy",
+        #               "base_asset": "btc",
+        #               "quote_asset": "jpy",
+        #               "maker_fee_rate_base": "0",
+        #               "taker_fee_rate_base": "0",
+        #               "maker_fee_rate_quote": "-0.0002",
+        #               "taker_fee_rate_quote": "0.0012",
+        #               "unit_amount": "0.0001",
+        #               "limit_max_amount": "1000",
+        #               "market_max_amount": "10",
+        #               "market_allowance_rate": "0.2",
+        #               "price_digits": "0",
+        #               "amount_digits": "4",
+        #               "is_enabled": True,
+        #               "stop_order": False,
+        #               "stop_order_and_cancel": False
         #             },
         #             ...
         #           ]
@@ -507,7 +507,7 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_value(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -798,7 +798,7 @@ class bitbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #

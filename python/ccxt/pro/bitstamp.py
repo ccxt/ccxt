@@ -77,22 +77,22 @@ class bitstamp(ccxt.async_support.bitstamp):
         # the feed does not include a snapshot, just the deltas
         #
         #     {
-        #         data: {
-        #             timestamp: '1583656800',
-        #             microtimestamp: '1583656800237527',
-        #             bids: [
+        #         "data": {
+        #             "timestamp": "1583656800",
+        #             "microtimestamp": "1583656800237527",
+        #             "bids": [
         #                 ["8732.02", "0.00002478", "1207590500704256"],
         #                 ["8729.62", "0.01600000", "1207590502350849"],
         #                 ["8727.22", "0.01800000", "1207590504296448"],
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 ["8735.67", "2.00000000", "1207590693249024"],
         #                 ["8735.67", "0.01700000", "1207590693634048"],
         #                 ["8735.68", "1.53294500", "1207590692048896"],
         #             ],
         #         },
-        #         event: 'data',
-        #         channel: 'diff_order_book_btcusd'
+        #         "event": "data",
+        #         "channel": "diff_order_book_btcusd"
         #     }
         #
         channel = self.safe_string(message, 'channel')
@@ -179,16 +179,16 @@ class bitstamp(ccxt.async_support.bitstamp):
     def parse_ws_trade(self, trade, market=None):
         #
         #     {
-        #         buy_order_id: 1211625836466176,
-        #         amount_str: '1.08000000',
-        #         timestamp: '1584642064',
-        #         microtimestamp: '1584642064685000',
-        #         id: 108637852,
-        #         amount: 1.08,
-        #         sell_order_id: 1211625840754689,
-        #         price_str: '6294.77',
-        #         type: 1,
-        #         price: 6294.77
+        #         "buy_order_id": 1211625836466176,
+        #         "amount_str": "1.08000000",
+        #         "timestamp": "1584642064",
+        #         "microtimestamp": "1584642064685000",
+        #         "id": 108637852,
+        #         "amount": 1.08,
+        #         "sell_order_id": 1211625840754689,
+        #         "price_str": "6294.77",
+        #         "type": 1,
+        #         "price": 6294.77
         #     }
         #
         microtimestamp = self.safe_integer(trade, 'microtimestamp')
@@ -218,20 +218,20 @@ class bitstamp(ccxt.async_support.bitstamp):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             buy_order_id: 1207733769326592,
-        #             amount_str: "0.14406384",
-        #             timestamp: "1583691851",
-        #             microtimestamp: "1583691851934000",
-        #             id: 106833903,
-        #             amount: 0.14406384,
-        #             sell_order_id: 1207733765476352,
-        #             price_str: "8302.92",
-        #             type: 0,
-        #             price: 8302.92
+        #         "data": {
+        #             "buy_order_id": 1207733769326592,
+        #             "amount_str": "0.14406384",
+        #             "timestamp": "1583691851",
+        #             "microtimestamp": "1583691851934000",
+        #             "id": 106833903,
+        #             "amount": 0.14406384,
+        #             "sell_order_id": 1207733765476352,
+        #             "price_str": "8302.92",
+        #             "type": 0,
+        #             "price": 8302.92
         #         },
-        #         event: "trade",
-        #         channel: "live_trades_btcusd"
+        #         "event": "trade",
+        #         "channel": "live_trades_btcusd"
         #     }
         #
         # the trade streams push raw trade information in real-time
@@ -366,14 +366,14 @@ class bitstamp(ccxt.async_support.bitstamp):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         'event': "bts:subscription_succeeded",
-        #         'channel': "detail_order_book_btcusd",
-        #         'data': {},
+        #         "event": "bts:subscription_succeeded",
+        #         "channel": "detail_order_book_btcusd",
+        #         "data": {},
         #     }
         #     {
-        #         event: 'bts:subscription_succeeded',
-        #         channel: 'private-my_orders_ltcusd-4848701',
-        #         data: {}
+        #         "event": "bts:subscription_succeeded",
+        #         "channel": "private-my_orders_ltcusd-4848701",
+        #         "data": {}
         #     }
         #
         channel = self.safe_string(message, 'channel')
@@ -383,22 +383,22 @@ class bitstamp(ccxt.async_support.bitstamp):
     def handle_subject(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             timestamp: '1583656800',
-        #             microtimestamp: '1583656800237527',
-        #             bids: [
+        #         "data": {
+        #             "timestamp": "1583656800",
+        #             "microtimestamp": "1583656800237527",
+        #             "bids": [
         #                 ["8732.02", "0.00002478", "1207590500704256"],
         #                 ["8729.62", "0.01600000", "1207590502350849"],
         #                 ["8727.22", "0.01800000", "1207590504296448"],
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 ["8735.67", "2.00000000", "1207590693249024"],
         #                 ["8735.67", "0.01700000", "1207590693634048"],
         #                 ["8735.68", "1.53294500", "1207590692048896"],
         #             ],
         #         },
-        #         event: 'data',
-        #         channel: 'detail_order_book_btcusd'
+        #         "event": "data",
+        #         "channel": "detail_order_book_btcusd"
         #     }
         #
         # private order
@@ -432,9 +432,9 @@ class bitstamp(ccxt.async_support.bitstamp):
 
     def handle_error_message(self, client: Client, message):
         # {
-        #     event: 'bts:error',
-        #     channel: '',
-        #     data: {code: 4009, message: 'Connection is unauthorized.'}
+        #     "event": "bts:error",
+        #     "channel": '',
+        #     "data": {code: 4009, message: "Connection is unauthorized."}
         # }
         event = self.safe_string(message, 'event')
         if event == 'bts:error':
@@ -449,34 +449,34 @@ class bitstamp(ccxt.async_support.bitstamp):
             return
         #
         #     {
-        #         'event': "bts:subscription_succeeded",
-        #         'channel': "detail_order_book_btcusd",
-        #         'data': {},
+        #         "event": "bts:subscription_succeeded",
+        #         "channel": "detail_order_book_btcusd",
+        #         "data": {},
         #     }
         #
         #     {
-        #         data: {
-        #             timestamp: '1583656800',
-        #             microtimestamp: '1583656800237527',
-        #             bids: [
+        #         "data": {
+        #             "timestamp": "1583656800",
+        #             "microtimestamp": "1583656800237527",
+        #             "bids": [
         #                 ["8732.02", "0.00002478", "1207590500704256"],
         #                 ["8729.62", "0.01600000", "1207590502350849"],
         #                 ["8727.22", "0.01800000", "1207590504296448"],
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 ["8735.67", "2.00000000", "1207590693249024"],
         #                 ["8735.67", "0.01700000", "1207590693634048"],
         #                 ["8735.68", "1.53294500", "1207590692048896"],
         #             ],
         #         },
-        #         event: 'data',
-        #         channel: 'detail_order_book_btcusd'
+        #         "event": "data",
+        #         "channel": "detail_order_book_btcusd"
         #     }
         #
         #     {
-        #         event: 'bts:subscription_succeeded',
-        #         channel: 'private-my_orders_ltcusd-4848701',
-        #         data: {}
+        #         "event": "bts:subscription_succeeded",
+        #         "channel": "private-my_orders_ltcusd-4848701",
+        #         "data": {}
         #     }
         #
         event = self.safe_string(message, 'event')

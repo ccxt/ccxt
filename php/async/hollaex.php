@@ -215,46 +215,46 @@ class hollaex extends Exchange {
             $response = Async\await($this->publicGetConstants ($params));
             //
             //     {
-            //         coins => array(
-            //             xmr => array(
-            //                 id => 7,
-            //                 fullname => "Monero",
-            //                 symbol => "xmr",
-            //                 active => true,
-            //                 allow_deposit => true,
-            //                 allow_withdrawal => true,
-            //                 withdrawal_fee => 0.02,
-            //                 min => 0.001,
-            //                 max => 100000,
-            //                 increment_unit => 0.001,
-            //                 deposit_limits => array( '1' => 0, '2' => 0, '3' => 0, '4' => 0, '5' => 0, '6' => 0 ),
-            //                 withdrawal_limits => array( '1' => 10, '2' => 15, '3' => 100, '4' => 100, '5' => 200, '6' => 300, '7' => 350, '8' => 400, '9' => 500, '10' => -1 ),
-            //                 created_at => "2019-12-09T07:14:02.720Z",
-            //                 updated_at => "2020-01-16T12:12:53.162Z"
+            //         "coins" => array(
+            //             "xmr" => array(
+            //                 "id" => 7,
+            //                 "fullname" => "Monero",
+            //                 "symbol" => "xmr",
+            //                 "active" => true,
+            //                 "allow_deposit" => true,
+            //                 "allow_withdrawal" => true,
+            //                 "withdrawal_fee" => 0.02,
+            //                 "min" => 0.001,
+            //                 "max" => 100000,
+            //                 "increment_unit" => 0.001,
+            //                 "deposit_limits" => array( '1' => 0, '2' => 0, '3' => 0, '4' => 0, "5" => 0, "6" => 0 ),
+            //                 "withdrawal_limits" => array( '1' => 10, '2' => 15, '3' => 100, '4' => 100, '5' => 200, '6' => 300, '7' => 350, '8' => 400, "9" => 500, "10" => -1 ),
+            //                 "created_at" => "2019-12-09T07:14:02.720Z",
+            //                 "updated_at" => "2020-01-16T12:12:53.162Z"
             //             ),
             //             // ...
             //         ),
-            //         $pairs => array(
-            //             'btc-usdt' => array(
-            //                 id => 2,
-            //                 name => "btc-usdt",
-            //                 pair_base => "btc",
-            //                 pair_2 => "usdt",
-            //                 taker_fees => array( '1' => 0.3, '2' => 0.25, '3' => 0.2, '4' => 0.18, '5' => 0.1, '6' => 0.09, '7' => 0.08, '8' => 0.06, '9' => 0.04, '10' => 0 ),
-            //                 maker_fees => array( '1' => 0.1, '2' => 0.08, '3' => 0.05, '4' => 0.03, '5' => 0, '6' => 0, '7' => 0, '8' => 0, '9' => 0, '10' => 0 ),
-            //                 min_size => 0.0001,
-            //                 max_size => 1000,
-            //                 min_price => 100,
-            //                 max_price => 100000,
-            //                 increment_size => 0.0001,
-            //                 increment_price => 0.05,
-            //                 active => true,
-            //                 created_at => "2019-12-09T07:15:54.537Z",
-            //                 updated_at => "2019-12-09T07:15:54.537Z"
+            //         "pairs" => array(
+            //             "btc-usdt" => array(
+            //                 "id" => 2,
+            //                 "name" => "btc-usdt",
+            //                 "pair_base" => "btc",
+            //                 "pair_2" => "usdt",
+            //                 "taker_fees" => array( '1' => 0.3, '2' => 0.25, '3' => 0.2, '4' => 0.18, '5' => 0.1, '6' => 0.09, '7' => 0.08, '8' => 0.06, "9" => 0.04, "10" => 0 ),
+            //                 "maker_fees" => array( '1' => 0.1, '2' => 0.08, '3' => 0.05, '4' => 0.03, '5' => 0, '6' => 0, '7' => 0, '8' => 0, "9" => 0, "10" => 0 ),
+            //                 "min_size" => 0.0001,
+            //                 "max_size" => 1000,
+            //                 "min_price" => 100,
+            //                 "max_price" => 100000,
+            //                 "increment_size" => 0.0001,
+            //                 "increment_price" => 0.05,
+            //                 "active" => true,
+            //                 "created_at" => "2019-12-09T07:15:54.537Z",
+            //                 "updated_at" => "2019-12-09T07:15:54.537Z"
             //             ),
             //         ),
-            //         config => array( tiers => 10 ),
-            //         status => true
+            //         "config" => array( tiers => 10 ),
+            //         "status" => true
             //     }
             //
             $pairs = $this->safe_value($response, 'pairs', array());
@@ -489,13 +489,13 @@ class hollaex extends Exchange {
             $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
             //
             //     {
-            //         open => 8615.55,
-            //         close => 8841.05,
-            //         high => 8921.1,
-            //         low => 8607,
-            //         last => 8841.05,
-            //         volume => 20.2802,
-            //         timestamp => '2020-03-03T03:11:18.964Z'
+            //         "open" => 8615.55,
+            //         "close" => 8841.05,
+            //         "high" => 8921.1,
+            //         "low" => 8607,
+            //         "last" => 8841.05,
+            //         "volume" => 20.2802,
+            //         "timestamp" => "2020-03-03T03:11:18.964Z"
             //     }
             //
             return $this->parse_ticker($response, $market);
@@ -546,18 +546,18 @@ class hollaex extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
         //     {
-        //         open => 8615.55,
-        //         $close => 8841.05,
-        //         high => 8921.1,
-        //         low => 8607,
-        //         last => 8841.05,
-        //         volume => 20.2802,
-        //         $timestamp => '2020-03-03T03:11:18.964Z',
+        //         "open" => 8615.55,
+        //         "close" => 8841.05,
+        //         "high" => 8921.1,
+        //         "low" => 8607,
+        //         "last" => 8841.05,
+        //         "volume" => 20.2802,
+        //         "timestamp" => "2020-03-03T03:11:18.964Z",
         //     }
         //
         // fetchTickers
@@ -636,7 +636,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -703,28 +703,28 @@ class hollaex extends Exchange {
             $response = Async\await($this->publicGetTiers ($params));
             //
             //     {
-            //         '1' => {
-            //             id => '1',
-            //             name => 'Silver',
-            //             icon => '',
-            //             description => 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
-            //             deposit_limit => '0',
-            //             withdrawal_limit => '1000',
-            //             $fees => array(
-            //                 maker => array(
-            //                     'eth-btc' => '0.1',
-            //                     'ada-usdt' => '0.1',
+            //         "1" => {
+            //             "id" => "1",
+            //             "name" => "Silver",
+            //             "icon" => '',
+            //             "description" => "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+            //             "deposit_limit" => "0",
+            //             "withdrawal_limit" => "1000",
+            //             "fees" => array(
+            //                 "maker" => array(
+            //                     'eth-btc' => "0.1",
+            //                     'ada-usdt' => "0.1",
             //                     ...
             //                 ),
-            //                 taker => array(
-            //                     'eth-btc' => '0.1',
-            //                     'ada-usdt' => '0.1',
+            //                 "taker" => array(
+            //                     'eth-btc' => "0.1",
+            //                     'ada-usdt' => "0.1",
             //                     ...
             //                 }
             //             ),
-            //             note => '<ul>\n<li>Login and verify email</li>\n</ul>\n',
-            //             created_at => '2021-03-22T03:51:39.129Z',
-            //             updated_at => '2021-11-01T02:51:56.214Z'
+            //             "note" => "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+            //             "created_at" => "2021-03-22T03:51:39.129Z",
+            //             "updated_at" => "2021-11-01T02:51:56.214Z"
             //         ),
             //         ...
             //     }
@@ -828,7 +828,7 @@ class hollaex extends Exchange {
         );
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $timestamp = $this->parse8601($this->safe_string($response, 'updated_at'));
         $result = array(
             'info' => $response,
@@ -1588,7 +1588,7 @@ class hollaex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchWithdrawals, fetchDeposits
         //
@@ -1612,12 +1612,12 @@ class hollaex extends Exchange {
         // withdraw
         //
         //     {
-        //         message => 'Withdrawal request is in the queue and will be processed.',
-        //         transaction_id => '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        //         $amount => 1,
-        //         $currency => 'xht',
-        //         $fee => 0,
-        //         fee_coin => 'xht'
+        //         "message" => "Withdrawal request is in the queue and will be processed.",
+        //         "transaction_id" => "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        //         "amount" => 1,
+        //         "currency" => "xht",
+        //         "fee" => 0,
+        //         "fee_coin" => "xht"
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -1717,12 +1717,12 @@ class hollaex extends Exchange {
             $response = Async\await($this->privatePostUserWithdrawal (array_merge($request, $params)));
             //
             //     {
-            //         message => 'Withdrawal $request is in the queue and will be processed.',
-            //         transaction_id => '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-            //         $amount => 1,
-            //         $currency => 'xht',
-            //         fee => 0,
-            //         fee_coin => 'xht'
+            //         "message" => "Withdrawal $request is in the queue and will be processed.",
+            //         "transaction_id" => "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+            //         "amount" => 1,
+            //         "currency" => "xht",
+            //         "fee" => 0,
+            //         "fee_coin" => "xht"
             //     }
             //
             return $this->parse_transaction($response, $currency);

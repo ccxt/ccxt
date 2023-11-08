@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -239,7 +239,7 @@ class coinone(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -327,7 +327,7 @@ class coinone(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "currency":"xec",
@@ -371,7 +371,7 @@ class coinone(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -787,15 +787,15 @@ class coinone(Exchange, ImplicitAPI):
         response = self.privatePostAccountDepositAddress(params)
         #
         #     {
-        #         result: 'success',
-        #         errorCode: '0',
-        #         walletAddress: {
-        #             matic: null,
-        #             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        #             xrp: null,
-        #             xrp_tag: '-1',
-        #             kava: null,
-        #             kava_memo: null,
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "walletAddress": {
+        #             "matic": null,
+        #             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        #             "xrp": null,
+        #             "xrp_tag": "-1",
+        #             "kava": null,
+        #             "kava_memo": null,
         #         }
         #     }
         #

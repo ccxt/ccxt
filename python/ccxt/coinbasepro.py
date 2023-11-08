@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -249,25 +249,25 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             id: 'XTZ',
-        #             name: 'Tezos',
-        #             min_size: '0.000001',
-        #             status: 'online',
-        #             message: '',
-        #             max_precision: '0.000001',
-        #             convertible_to: [],
-        #             details: {
-        #                 type: 'crypto',
-        #                 symbol: 'Τ',
-        #                 network_confirmations: 60,
-        #                 sort_order: 53,
-        #                 crypto_address_link: 'https://tzstats.com/{{address}}',
-        #                 crypto_transaction_link: 'https://tzstats.com/{{txId}}',
-        #                 push_payment_methods: ['crypto'],
-        #                 group_types: [],
-        #                 display_name: '',
-        #                 processing_time_seconds: 0,
-        #                 min_withdrawal_amount: 1
+        #             "id": "XTZ",
+        #             "name": "Tezos",
+        #             "min_size": "0.000001",
+        #             "status": "online",
+        #             "message": '',
+        #             "max_precision": "0.000001",
+        #             "convertible_to": [],
+        #             "details": {
+        #                 "type": "crypto",
+        #                 "symbol": "Τ",
+        #                 "network_confirmations": 60,
+        #                 "sort_order": 53,
+        #                 "crypto_address_link": "https://tzstats.com/{{address}}",
+        #                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
+        #                 "push_payment_methods": ["crypto"],
+        #                 "group_types": [],
+        #                 "display_name": '',
+        #                 "processing_time_seconds": 0,
+        #                 "min_withdrawal_amount": 1
         #             }
         #         }
         #     ]
@@ -316,48 +316,48 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             id: 'BTCAUCTION-USD',
-        #             base_currency: 'BTC',
-        #             quote_currency: 'USD',
-        #             base_min_size: '0.000016',
-        #             base_max_size: '1500',
-        #             quote_increment: '0.01',
-        #             base_increment: '0.00000001',
-        #             display_name: 'BTCAUCTION/USD',
-        #             min_market_funds: '1',
-        #             max_market_funds: '20000000',
-        #             margin_enabled: False,
-        #             fx_stablecoin: False,
-        #             max_slippage_percentage: '0.02000000',
-        #             post_only: False,
-        #             limit_only: False,
-        #             cancel_only: True,
-        #             trading_disabled: False,
-        #             status: 'online',
-        #             status_message: '',
-        #             auction_mode: False
+        #             "id": "BTCAUCTION-USD",
+        #             "base_currency": "BTC",
+        #             "quote_currency": "USD",
+        #             "base_min_size": "0.000016",
+        #             "base_max_size": "1500",
+        #             "quote_increment": "0.01",
+        #             "base_increment": "0.00000001",
+        #             "display_name": "BTCAUCTION/USD",
+        #             "min_market_funds": "1",
+        #             "max_market_funds": "20000000",
+        #             "margin_enabled": False,
+        #             "fx_stablecoin": False,
+        #             "max_slippage_percentage": "0.02000000",
+        #             "post_only": False,
+        #             "limit_only": False,
+        #             "cancel_only": True,
+        #             "trading_disabled": False,
+        #             "status": "online",
+        #             "status_message": '',
+        #             "auction_mode": False
         #         },
         #         {
-        #             id: 'BTC-USD',
-        #             base_currency: 'BTC',
-        #             quote_currency: 'USD',
-        #             base_min_size: '0.000016',
-        #             base_max_size: '1500',
-        #             quote_increment: '0.01',
-        #             base_increment: '0.00000001',
-        #             display_name: 'BTC/USD',
-        #             min_market_funds: '1',
-        #             max_market_funds: '20000000',
-        #             margin_enabled: False,
-        #             fx_stablecoin: False,
-        #             max_slippage_percentage: '0.02000000',
-        #             post_only: False,
-        #             limit_only: False,
-        #             cancel_only: False,
-        #             trading_disabled: False,
-        #             status: 'online',
-        #             status_message: '',
-        #             auction_mode: False
+        #             "id": "BTC-USD",
+        #             "base_currency": "BTC",
+        #             "quote_currency": "USD",
+        #             "base_min_size": "0.000016",
+        #             "base_max_size": "1500",
+        #             "quote_increment": "0.01",
+        #             "base_increment": "0.00000001",
+        #             "display_name": "BTC/USD",
+        #             "min_market_funds": "1",
+        #             "max_market_funds": "20000000",
+        #             "margin_enabled": False,
+        #             "fx_stablecoin": False,
+        #             "max_slippage_percentage": "0.02000000",
+        #             "post_only": False,
+        #             "limit_only": False,
+        #             "cancel_only": False,
+        #             "trading_disabled": False,
+        #             "status": "online",
+        #             "status_message": '',
+        #             "auction_mode": False
         #         }
         #     ]
         #
@@ -434,20 +434,20 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        #             currency: 'BTC',
-        #             balance: '0.0000000000000000',
-        #             available: '0',
-        #             hold: '0.0000000000000000',
-        #             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #             "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        #             "currency": "BTC",
+        #             "balance": "0.0000000000000000",
+        #             "available": "0",
+        #             "hold": "0.0000000000000000",
+        #             "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         #         },
         #         {
-        #             id: 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
-        #             currency: 'USDC',
-        #             balance: '0.0000000000000000',
-        #             available: '0',
-        #             hold: '0.0000000000000000',
-        #             profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #             "id": "f75fa69a-1ad1-4a80-bd61-ee7faa6135a3",
+        #             "currency": "USDC",
+        #             "balance": "0.0000000000000000",
+        #             "available": "0",
+        #             "hold": "0.0000000000000000",
+        #             "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         #         },
         #     ]
         #
@@ -456,12 +456,12 @@ class coinbasepro(Exchange, ImplicitAPI):
     def parse_account(self, account):
         #
         #     {
-        #         id: '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        #         currency: 'BTC',
-        #         balance: '0.0000000000000000',
-        #         available: '0',
-        #         hold: '0.0000000000000000',
-        #         profile_id: 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        #         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        #         "currency": "BTC",
+        #         "balance": "0.0000000000000000",
+        #         "available": "0",
+        #         "hold": "0.0000000000000000",
+        #         "profile_id": "b709263e-f42a-4c7d-949a-a95c83d065da"
         #     }
         #
         currencyId = self.safe_string(account, 'currency')
@@ -472,7 +472,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -532,7 +532,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTickers
         #
@@ -694,27 +694,27 @@ class coinbasepro(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         #     {
-        #         type: 'match',
-        #         trade_id: 82047307,
-        #         maker_order_id: '0f358725-2134-435e-be11-753912a326e0',
-        #         taker_order_id: '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        #         order_id: 'd50ec984-77a8-460a-b958-66f114b0de9b',
-        #         side: 'sell',
-        #         size: '0.00513192',
-        #         price: '9314.78',
-        #         product_id: 'BTC-USD',
-        #         profile_id: '6244401d-c078-40d9-b305-7ad3551bc3b0',
-        #         sequence: 12038915443,
-        #         time: '2020-01-31T20:03:41.158814Z'
-        #         created_at: '2014-11-07T22:19:28.578544Z',
-        #         liquidity: 'T',
-        #         fee: '0.00025',
-        #         settled: True,
-        #         usd_volume: '0.0924556000000000',
-        #         user_id: '595eb864313c2b02ddf2937d'
+        #         "type": "match",
+        #         "trade_id": 82047307,
+        #         "maker_order_id": "0f358725-2134-435e-be11-753912a326e0",
+        #         "taker_order_id": "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        #         "order_id": "d50ec984-77a8-460a-b958-66f114b0de9b",
+        #         "side": "sell",
+        #         "size": "0.00513192",
+        #         "price": "9314.78",
+        #         "product_id": "BTC-USD",
+        #         "profile_id": "6244401d-c078-40d9-b305-7ad3551bc3b0",
+        #         "sequence": 12038915443,
+        #         "time": "2020-01-31T20:03:41.158814Z"
+        #         "created_at": "2014-11-07T22:19:28.578544Z",
+        #         "liquidity": "T",
+        #         "fee": "0.00025",
+        #         "settled": True,
+        #         "usd_volume": "0.0924556000000000",
+        #         "user_id": "595eb864313c2b02ddf2937d"
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
@@ -1347,27 +1347,27 @@ class coinbasepro(Exchange, ImplicitAPI):
 
     def parse_ledger_entry(self, item, currency=None):
         #  {
-        #      id: '12087495079',
-        #      amount: '-0.0100000000000000',
-        #      balance: '0.0645419900000000',
-        #      created_at: '2021-10-28T17:14:32.593168Z',
-        #      type: 'transfer',
-        #      details: {
-        #          from: '2f74edf7-1440-4586-86dc-ae58c5693691',
-        #          profile_transfer_id: '3ef093ad-2482-40d1-8ede-2f89cff5099e',
-        #          to: 'dda99503-4980-4b60-9549-0b770ee51336'
+        #      "id": "12087495079",
+        #      "amount": "-0.0100000000000000",
+        #      "balance": "0.0645419900000000",
+        #      "created_at": "2021-10-28T17:14:32.593168Z",
+        #      "type": "transfer",
+        #      "details": {
+        #          "from": "2f74edf7-1440-4586-86dc-ae58c5693691",
+        #          "profile_transfer_id": "3ef093ad-2482-40d1-8ede-2f89cff5099e",
+        #          "to": "dda99503-4980-4b60-9549-0b770ee51336"
         #      }
         #  },
         #  {
-        #     id: '11740725774',
-        #     amount: '-1.7565669701255000',
-        #     balance: '0.0016490047745000',
-        #     created_at: '2021-10-22T03:47:34.764122Z',
-        #     type: 'fee',
-        #     details: {
-        #         order_id: 'ad06abf4-95ab-432a-a1d8-059ef572e296',
-        #         product_id: 'ETH-DAI',
-        #         trade_id: '1740617'
+        #     "id": "11740725774",
+        #     "amount": "-1.7565669701255000",
+        #     "balance": "0.0016490047745000",
+        #     "created_at": "2021-10-22T03:47:34.764122Z",
+        #     "type": "fee",
+        #     "details": {
+        #         "order_id": "ad06abf4-95ab-432a-a1d8-059ef572e296",
+        #         "product_id": "ETH-DAI",
+        #         "trade_id": "1740617"
         #     }
         #  }
         id = self.safe_string(item, 'id')
@@ -1590,7 +1590,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         else:
             return 'pending'
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # privateGetTransfers
         #

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -511,7 +511,7 @@ class probit(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -539,7 +539,7 @@ class probit(Exchange, ImplicitAPI):
         response = self.privateGetBalance(params)
         #
         #     {
-        #         data: [
+        #         "data": [
         #             {
         #                 "currency_id":"XRP",
         #                 "total":"100",
@@ -647,7 +647,7 @@ class probit(Exchange, ImplicitAPI):
             raise BadResponse(self.id + ' fetchTicker() returned an empty response')
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "last":"0.022902",
@@ -719,7 +719,7 @@ class probit(Exchange, ImplicitAPI):
         response = self.privateGetTradeHistory(self.extend(request, params))
         #
         #     {
-        #         data: [
+        #         "data": [
         #             {
         #                 "id":"BTC-USDT:183566",
         #                 "order_id":"17209376",
@@ -787,7 +787,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1069,17 +1069,17 @@ class probit(Exchange, ImplicitAPI):
         #         id,
         #         user_id,
         #         market_id,
-        #         type: 'orderType',
-        #         side: 'side',
+        #         "type": "orderType",
+        #         "side": "side",
         #         quantity,
         #         limit_price,
-        #         time_in_force: 'timeInForce',
+        #         "time_in_force": "timeInForce",
         #         filled_cost,
         #         filled_quantity,
         #         open_quantity,
         #         cancelled_quantity,
-        #         status: 'orderStatus',
-        #         time: 'date',
+        #         "status": "orderStatus",
+        #         "time": "date",
         #         client_order_id,
         #     }
         #
@@ -1182,21 +1182,21 @@ class probit(Exchange, ImplicitAPI):
         response = self.privatePostNewOrder(self.extend(request, query))
         #
         #     {
-        #         data: {
+        #         "data": {
         #             id,
         #             user_id,
         #             market_id,
-        #             type: 'orderType',
-        #             side: 'side',
+        #             "type": "orderType",
+        #             "side": "side",
         #             quantity,
         #             limit_price,
-        #             time_in_force: 'timeInForce',
+        #             "time_in_force": "timeInForce",
         #             filled_cost,
         #             filled_quantity,
         #             open_quantity,
         #             cancelled_quantity,
-        #             status: 'orderStatus',
-        #             time: 'date',
+        #             "status": "orderStatus",
+        #             "time": "date",
         #             client_order_id,
         #         }
         #     }
@@ -1451,7 +1451,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #     {
         #         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1596,36 +1596,36 @@ class probit(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         # {
-        #     id: 'USDT',
-        #     display_name: {'ko-kr': '테더', 'en-us': 'Tether'},
-        #     show_in_ui: True,
-        #     platform: [
+        #     "id": "USDT",
+        #     "display_name": {"ko-kr": '테더', "en-us": "Tether"},
+        #     "show_in_ui": True,
+        #     "platform": [
         #       {
-        #         id: 'ETH',
-        #         priority: '1',
-        #         deposit: True,
-        #         withdrawal: True,
-        #         currency_id: 'USDT',
-        #         precision: '6',
-        #         min_confirmation_count: '15',
-        #         require_destination_tag: False,
-        #         allow_withdrawal_destination_tag: False,
-        #         display_name: [Object],
-        #         min_deposit_amount: '0',
-        #         min_withdrawal_amount: '1',
-        #         withdrawal_fee: [Array],
-        #         deposit_fee: {},
-        #         suspended_reason: '',
-        #         deposit_suspended: False,
-        #         withdrawal_suspended: False,
-        #         platform_currency_display_name: [Object]
+        #         "id": "ETH",
+        #         "priority": "1",
+        #         "deposit": True,
+        #         "withdrawal": True,
+        #         "currency_id": "USDT",
+        #         "precision": "6",
+        #         "min_confirmation_count": "15",
+        #         "require_destination_tag": False,
+        #         "allow_withdrawal_destination_tag": False,
+        #         "display_name": [Object],
+        #         "min_deposit_amount": "0",
+        #         "min_withdrawal_amount": "1",
+        #         "withdrawal_fee": [Array],
+        #         "deposit_fee": {},
+        #         "suspended_reason": '',
+        #         "deposit_suspended": False,
+        #         "withdrawal_suspended": False,
+        #         "platform_currency_display_name": [Object]
         #       },
         #     ],
-        #     internal_transfer: {suspended_reason: null, suspended: False},
-        #     stakeable: False,
-        #     unstakeable: False,
-        #     auto_stake: False,
-        #     auto_stake_amount: '0'
+        #     "internal_transfer": {suspended_reason: null, suspended: False},
+        #     "stakeable": False,
+        #     "unstakeable": False,
+        #     "auto_stake": False,
+        #     "auto_stake_amount": "0"
         #   }
         #
         depositWithdrawFee = self.deposit_withdraw_fee({})
@@ -1710,9 +1710,9 @@ class probit(Exchange, ImplicitAPI):
         response = self.accountsPostToken(self.extend(request, params))
         #
         #     {
-        #         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-        #         token_type: 'bearer',
-        #         expires_in: 900
+        #         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+        #         "token_type": "bearer",
+        #         "expires_in": 900
         #     }
         #
         expiresIn = self.safe_integer(response, 'expires_in')

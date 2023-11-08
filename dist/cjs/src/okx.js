@@ -1317,27 +1317,27 @@ class okx extends okx$1 {
         //     }
         //
         //     {
-        //         alias: "",
-        //         baseCcy: "",
-        //         category: "1",
-        //         ctMult: "0.1",
-        //         ctType: "",
-        //         ctVal: "1",
-        //         ctValCcy: "BTC",
-        //         expTime: "1648195200000",
-        //         instId: "BTC-USD-220325-194000-P",
-        //         instType: "OPTION",
-        //         lever: "",
-        //         listTime: "1631262612280",
-        //         lotSz: "1",
-        //         minSz: "1",
-        //         optType: "P",
-        //         quoteCcy: "",
-        //         settleCcy: "BTC",
-        //         state: "live",
-        //         stk: "194000",
-        //         tickSz: "0.0005",
-        //         uly: "BTC-USD"
+        //         "alias": "",
+        //         "baseCcy": "",
+        //         "category": "1",
+        //         "ctMult": "0.1",
+        //         "ctType": "",
+        //         "ctVal": "1",
+        //         "ctValCcy": "BTC",
+        //         "expTime": "1648195200000",
+        //         "instId": "BTC-USD-220325-194000-P",
+        //         "instType": "OPTION",
+        //         "lever": "",
+        //         "listTime": "1631262612280",
+        //         "lotSz": "1",
+        //         "minSz": "1",
+        //         "optType": "P",
+        //         "quoteCcy": "",
+        //         "settleCcy": "BTC",
+        //         "state": "live",
+        //         "stk": "194000",
+        //         "tickSz": "0.0005",
+        //         "uly": "BTC-USD"
         //     }
         //
         const id = this.safeString(market, 'instId');
@@ -2321,9 +2321,9 @@ class okx extends okx$1 {
         const market = this.market(symbol);
         const request = {
             'instType': this.convertToInstrumentType(market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
-            // 'instId': market['id'], // only applicable to SPOT/MARGIN
-            // 'uly': market['id'], // only applicable to FUTURES/SWAP/OPTION
-            // 'category': '1', // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
+            // "instId": market["id"], // only applicable to SPOT/MARGIN
+            // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
+            // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
         };
         if (market['spot']) {
             request['instId'] = market['id'];
@@ -4723,23 +4723,23 @@ class okx extends okx$1 {
         const response = await this.privateGetAssetWithdrawalHistory(this.extend(request, params));
         //
         //    {
-        //        code: '0',
-        //        data: [
+        //        "code": "0",
+        //        "data": [
         //            {
-        //                chain: 'USDT-TRC20',
-        //                clientId: '',
-        //                fee: '0.8',
-        //                ccy: 'USDT',
-        //                amt: '54.561',
-        //                txId: '00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70',
-        //                from: 'example@email.com',
-        //                to: 'TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp',
-        //                state: '2',
-        //                ts: '1641376485000',
-        //                wdId: '25147041'
+        //                "chain": "USDT-TRC20",
+        //                "clientId": '',
+        //                "fee": "0.8",
+        //                "ccy": "USDT",
+        //                "amt": "54.561",
+        //                "txId": "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
+        //                "from": "example@email.com",
+        //                "to": "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+        //                "state": "2",
+        //                "ts": "1641376485000",
+        //                "wdId": "25147041"
         //            }
         //        ],
-        //        msg: ''
+        //        "msg": ''
         //    }
         //
         const data = this.safeValue(response, 'data');
@@ -4751,23 +4751,23 @@ class okx extends okx$1 {
         // deposit statuses
         //
         //     {
-        //         '0': 'waiting for confirmation',
-        //         '1': 'deposit credited',
-        //         '2': 'deposit successful'
+        //         "0": "waiting for confirmation",
+        //         "1": "deposit credited",
+        //         "2": "deposit successful"
         //     }
         //
         // withdrawal statuses
         //
         //     {
-        //        '-3': 'pending cancel',
-        //        '-2': 'canceled',
-        //        '-1': 'failed',
-        //         '0': 'pending',
-        //         '1': 'sending',
-        //         '2': 'sent',
-        //         '3': 'awaiting email verification',
-        //         '4': 'awaiting manual verification',
-        //         '5': 'awaiting identity verification'
+        //        '-3': "pending cancel",
+        //        "-2": "canceled",
+        //        "-1": "failed",
+        //         "0": "pending",
+        //         "1": "sending",
+        //         "2": "sent",
+        //         "3": "awaiting email verification",
+        //         "4": "awaiting manual verification",
+        //         "5": "awaiting identity verification"
         //     }
         //
         const statuses = {
@@ -4803,9 +4803,9 @@ class okx extends okx$1 {
         //         "ccy": "ETH",
         //         "from": "13426335357",
         //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag',
-        //         'pmtId',
-        //         'memo',
+        //         "tag",
+        //         "pmtId",
+        //         "memo",
         //         "ts": "1597026383085",
         //         "state": "2"
         //     }
@@ -5694,9 +5694,9 @@ class okx extends okx$1 {
             //     202 System transfer out
             //     203 Manually transfer out
             //
-            // 'after': 'id', // earlier than the requested bill ID
-            // 'before': 'id', // newer than the requested bill ID
-            // 'limit': '100', // default 100, max 100
+            // "after": "id", // earlier than the requested bill ID
+            // "before": "id", // newer than the requested bill ID
+            // "limit": "100", // default 100, max 100
         };
         if (limit !== undefined) {
             request['limit'] = limit.toString(); // default 100, max 100
@@ -6508,7 +6508,7 @@ class okx extends okx$1 {
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -6554,7 +6554,7 @@ class okx extends okx$1 {
          * @param {int} [limit] Not used by okx, but parsed internally by CCXT
          * @param {object} [params] Exchange specific parameters
          * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
-         * @returns An array of [open interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns An array of [open interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         const options = this.safeValue(this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeValue(options, 'timeframes', {});
@@ -6597,16 +6597,16 @@ class okx extends okx$1 {
         }
         //
         //    {
-        //        code: '0',
-        //        data: [
+        //        "code": "0",
+        //        "data": [
         //            [
-        //                '1648221300000',  // timestamp
-        //                '2183354317.945',  // open interest (USD)
-        //                '74285877.617',  // volume (USD)
+        //                "1648221300000",  // timestamp
+        //                "2183354317.945",  // open interest (USD)
+        //                "74285877.617",  // volume (USD)
         //            ],
         //            ...
         //        ],
-        //        msg: ''
+        //        "msg": ''
         //    }
         //
         const data = this.safeValue(response, 'data', []);
@@ -6617,9 +6617,9 @@ class okx extends okx$1 {
         // fetchOpenInterestHistory
         //
         //    [
-        //        '1648221300000',  // timestamp
-        //        '2183354317.945',  // open interest (USD) - (coin) for options
-        //        '74285877.617',  // volume (USD) - (coin) for options
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
         //    ]
         //
         // fetchOpenInterest

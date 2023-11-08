@@ -309,8 +309,8 @@ class bitpanda extends Exchange {
             $response = Async\await($this->publicGetTime ($params));
             //
             //     {
-            //         iso => '2020-07-10T05:17:26.716Z',
-            //         epoch_millis => 1594358246716,
+            //         "iso" => "2020-07-10T05:17:26.716Z",
+            //         "epoch_millis" => 1594358246716,
             //     }
             //
             return $this->safe_integer($response, 'epoch_millis');
@@ -370,12 +370,12 @@ class bitpanda extends Exchange {
             //
             //     array(
             //         {
-            //             $state => 'ACTIVE',
-            //             $base => array( code => 'ETH', precision => 8 ),
-            //             $quote => array( code => 'CHF', precision => 2 ),
-            //             amount_precision => 4,
-            //             market_precision => 2,
-            //             min_size => '10.0'
+            //             "state" => "ACTIVE",
+            //             "base" => array( code => "ETH", precision => 8 ),
+            //             "quote" => array( code => "CHF", precision => 2 ),
+            //             "amount_precision" => 4,
+            //             "market_precision" => 2,
+            //             "min_size" => "10.0"
             //         }
             //     )
             //
@@ -573,7 +573,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -877,7 +877,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1001,7 +1001,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1307,7 +1307,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //

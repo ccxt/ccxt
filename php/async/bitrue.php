@@ -499,17 +499,17 @@ class bitrue extends Exchange {
             //         ],
             //         "coins":array(
             //           array(
-            //               coin => "near",
-            //               coinFulName => "NEAR Protocol",
-            //               chains => array( "BEP20", ),
-            //               chainDetail => array(
+            //               "coin" => "near",
+            //               "coinFulName" => "NEAR Protocol",
+            //               "chains" => array( "BEP20", ),
+            //               "chainDetail" => array(
             //                 array(
-            //                     chain => "BEP20",
-            //                     $enableWithdraw => true,
-            //                     $enableDeposit => true,
-            //                     withdrawFee => "0.2000",
-            //                     minWithdraw => "5.0000",
-            //                     maxWithdraw => "1000000000000000.0000",
+            //                     "chain" => "BEP20",
+            //                     "enableWithdraw" => true,
+            //                     "enableDeposit" => true,
+            //                     "withdrawFee" => "0.2000",
+            //                     "minWithdraw" => "5.0000",
+            //                     "maxWithdraw" => "1000000000000000.0000",
             //                 ),
             //               ),
             //           ),
@@ -720,7 +720,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
         );
@@ -809,7 +809,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchBidsAsks
         //
@@ -1053,7 +1053,7 @@ class bitrue extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // aggregate trades
         //  - "T" is $timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual $timestamp of trades matter
@@ -1527,9 +1527,9 @@ class bitrue extends Exchange {
             $origClientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
             $request = array(
                 'symbol' => $market['id'],
-                // 'orderId' => $id,
-                // 'origClientOrderId' => $id,
-                // 'newClientOrderId' => $id,
+                // "orderId" => $id,
+                // "origClientOrderId" => $id,
+                // "newClientOrderId" => $id,
             );
             if ($origClientOrderId === null) {
                 $request['orderId'] = $id;
@@ -1744,7 +1744,7 @@ class bitrue extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1934,10 +1934,10 @@ class bitrue extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         //   {
-        //       coin => 'adx',
-        //       coinFulName => 'Ambire AdEx',
-        //       chains => array( 'BSC' ),
-        //       $chainDetail => [ [Object] ]
+        //       "coin" => "adx",
+        //       "coinFulName" => "Ambire AdEx",
+        //       "chains" => array( "BSC" ),
+        //       "chainDetail" => [ [Object] ]
         //   }
         //
         $chainDetails = $this->safe_value($fee, 'chainDetail', array());

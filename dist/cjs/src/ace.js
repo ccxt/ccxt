@@ -992,9 +992,9 @@ class ace extends ace$1 {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance(balances);

@@ -271,7 +271,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -352,7 +352,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //   {
         //     "pair" => "BTCTRY",
@@ -431,7 +431,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //     {
@@ -539,12 +539,12 @@ class btcturk extends Exchange {
     public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
-        //        'timestamp' => 1661990400,
-        //        'high' => 368388.0,
-        //        'open' => 368388.0,
-        //        'low' => 368388.0,
-        //        'close' => 368388.0,
-        //        'volume' => 0.00035208,
+        //        "timestamp" => 1661990400,
+        //        "high" => 368388.0,
+        //        "open" => 368388.0,
+        //        "low" => 368388.0,
+        //        "close" => 368388.0,
+        //        "volume" => 0.00035208,
         //    }
         //
         return array(

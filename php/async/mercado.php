@@ -265,7 +265,7 @@ class mercado extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "high":"103.96000000",
@@ -338,7 +338,7 @@ class mercado extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'executed_timestamp');
         $market = $this->safe_market(null, $market);
         $id = $this->safe_string_2($trade, 'tid', 'operation_id');
@@ -400,7 +400,7 @@ class mercado extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'response_data', array());
         $balances = $this->safe_value($data, 'balance', array());
         $result = array( 'info' => $response );
@@ -495,25 +495,25 @@ class mercado extends Exchange {
             $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
             //
             //     {
-            //         response_data => {
-            //             $order => array(
-            //                 order_id => 2176769,
-            //                 coin_pair => 'BRLBCH',
-            //                 order_type => 2,
-            //                 status => 3,
-            //                 has_fills => false,
-            //                 quantity => '0.10000000',
-            //                 limit_price => '1996.15999',
-            //                 executed_quantity => '0.00000000',
-            //                 executed_price_avg => '0.00000',
-            //                 fee => '0.00000000',
-            //                 created_timestamp => '1536956488',
-            //                 updated_timestamp => '1536956499',
-            //                 operations => array()
+            //         "response_data" => {
+            //             "order" => array(
+            //                 "order_id" => 2176769,
+            //                 "coin_pair" => "BRLBCH",
+            //                 "order_type" => 2,
+            //                 "status" => 3,
+            //                 "has_fills" => false,
+            //                 "quantity" => "0.10000000",
+            //                 "limit_price" => "1996.15999",
+            //                 "executed_quantity" => "0.00000000",
+            //                 "executed_price_avg" => "0.00000",
+            //                 "fee" => "0.00000000",
+            //                 "created_timestamp" => "1536956488",
+            //                 "updated_timestamp" => "1536956499",
+            //                 "operations" => array()
             //             }
             //         ),
-            //         status_code => 100,
-            //         server_unix_timestamp => '1536956499'
+            //         "status_code" => 100,
+            //         "server_unix_timestamp" => "1536956499"
             //     }
             //
             $responseData = $this->safe_value($response, 'response_data', array());
@@ -694,7 +694,7 @@ class mercado extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id" => 1,
