@@ -4,43 +4,80 @@
     "outputType": "json",
     "methods": {
         "createOrder": [
-            {
-                "description": "Spot market buy",
-                "method": "createOrder",
-                "url": "https://api.hitbtc.com/api/3/spot/order",
-                "input": [
-                    "TRX/USDT",
-                    "market",
-                    "buy",
-                    10
-                ],
-                "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
-            },
-            {
-                "description": "Spot market sell",
-                "method": "createOrder",
-                "url": "https://api.hitbtc.com/api/3/spot/order",
-                "input": [
-                    "TRX/USDT",
-                    "market",
-                    "sell",
-                    10
-                ],
-                "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
-            },
-            {
-                "description": "Spot limit buy",
-                "method": "createOrder",
-                "url": "https://api.hitbtc.com/api/3/spot/order",
-                "input": [
-                    "TRX/USDT",
-                    "limit",
-                    "buy",
-                    10,
-                    0.05
-                ],
-                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
-            }
+          {
+            "description": "Spot market buy",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order",
+            "input": [
+              "TRX/USDT",
+              "market",
+              "buy",
+              10
+            ],
+            "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+          },
+          {
+            "description": "Spot market sell",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order",
+            "input": [
+              "TRX/USDT",
+              "market",
+              "sell",
+              10
+            ],
+            "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\"}"
+          },
+          {
+            "description": "Spot limit buy",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/spot/order",
+            "input": [
+              "TRX/USDT",
+              "limit",
+              "buy",
+              10,
+              0.05
+            ],
+            "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT\",\"price\":\"0.05\"}"
+          },
+          {
+            "description": "Swap market buy",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/futures/order",
+            "input": [
+              "TRX/USDT:USDT",
+              "market",
+              "buy",
+              10
+            ],
+            "output": "{\"type\":\"market\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+          },
+          {
+            "description": "Swap market sell",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/futures/order",
+            "input": [
+              "TRX/USDT:USDT",
+              "market",
+              "sell",
+              10
+            ],
+            "output": "{\"type\":\"market\",\"side\":\"sell\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\"}"
+          },
+          {
+            "description": "Swap limit buy",
+            "method": "createOrder",
+            "url": "https://api.hitbtc.com/api/3/futures/order",
+            "input": [
+              "TRX/USDT:USDT",
+              "limit",
+              "buy",
+              10,
+              0.05
+            ],
+            "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"10\",\"symbol\":\"TRXUSDT_PERP\",\"margin_mode\":\"cross\",\"price\":\"0.05\"}"
+          }
         ],
         "cancelOrder": [
             {
