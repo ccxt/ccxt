@@ -1660,6 +1660,9 @@ export default class hitbtc extends Exchange {
          * @name hitbtc#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://api.hitbtc.com/#candles
+         * @see https://api.hitbtc.com/#futures-index-price-candles
+         * @see https://api.hitbtc.com/#futures-mark-price-candles
+         * @see https://api.hitbtc.com/#futures-premium-index-candles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1677,7 +1680,7 @@ export default class hitbtc extends Exchange {
         }
         const market = this.market (symbol);
         let request = {
-            'symbols': market['id'],
+            'symbol': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         [ request, params ] = this.handleUntilOption ('till', request, params);
@@ -1689,48 +1692,44 @@ export default class hitbtc extends Exchange {
         }
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let method = 'publicGetPublicCandles';
+        let response = undefined;
         if (price === 'mark') {
-            method = 'publicGetPublicFuturesCandlesMarkPrice';
+            response = await this.publicGetPublicFuturesCandlesMarkPriceSymbol (this.extend (request, params));
         } else if (price === 'index') {
-            method = 'publicGetPublicFuturesCandlesIndexPrice';
+            response = await this.publicGetPublicFuturesCandlesIndexPriceSymbol (this.extend (request, params));
         } else if (price === 'premiumIndex') {
-            method = 'publicGetPublicFuturesCandlesPremiumIndex';
+            response = await this.publicGetPublicFuturesCandlesPremiumIndexSymbol (this.extend (request, params));
+        } else {
+            response = await this.publicGetPublicCandlesSymbol (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
         // Spot and Swap
         //
-        //     {
-        //         "ETHUSDT": [
-        //             {
-        //                 "timestamp": "2021-10-25T07:38:00.000Z",
-        //                 "open": "4173.391",
-        //                 "close": "4170.923",
-        //                 "min": "4170.923",
-        //                 "max": "4173.986",
-        //                 "volume": "0.1879",
-        //                 "volume_quote": "784.2517846"
-        //             }
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "timestamp": "2021-10-25T07:38:00.000Z",
+        //             "open": "4173.391",
+        //             "close": "4170.923",
+        //             "min": "4170.923",
+        //             "max": "4173.986",
+        //             "volume": "0.1879",
+        //             "volume_quote": "784.2517846"
+        //         }
+        //     ]
         //
         // Mark, Index and Premium Index
         //
-        //     {
-        //         "BTCUSDT_PERP": [
-        //             {
-        //                 "timestamp": "2022-04-01T01:28:00.000Z",
-        //                 "open": "45146.39",
-        //                 "close": "45219.43",
-        //                 "min": "45146.39",
-        //                 "max": "45219.43"
-        //             },
-        //         ]
-        //     }
+        //     [
+        //         {
+        //             "timestamp": "2022-04-01T01:28:00.000Z",
+        //             "open": "45146.39",
+        //             "close": "45219.43",
+        //             "min": "45146.39",
+        //             "max": "45219.43"
+        //         },
+        //     ]
         //
-        const ohlcvs = this.safeValue (response, market['id']);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined): OHLCV {
