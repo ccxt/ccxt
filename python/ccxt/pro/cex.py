@@ -10,7 +10,6 @@ from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
 
 
@@ -367,8 +366,7 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        self.check_required_symbol('watchOrders', symbol)
         await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']
@@ -401,8 +399,7 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        self.check_required_symbol('watchMyTrades', symbol)
         await self.load_markets()
         await self.authenticate(params)
         url = self.urls['api']['ws']

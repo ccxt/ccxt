@@ -783,9 +783,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param dict [params]: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
-        #
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2234,8 +2232,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')

@@ -7,7 +7,6 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
@@ -356,8 +355,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the whitebit api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
+        self.check_required_symbol('watchMyTrades', symbol)
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
@@ -445,12 +443,11 @@ class whitebit(ccxt.async_support.whitebit):
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the whitebit api endpoint
         :returns dict[]: a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
+        self.check_required_symbol('watchOrders', symbol)
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)

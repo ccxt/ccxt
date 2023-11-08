@@ -859,8 +859,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -885,8 +884,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         request = {
             'orderId': id,
         }
@@ -1156,12 +1154,11 @@ class coinsph(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve(default 500, max 1000)
+        :param int [limit]: the maximum number of order structures to retrieve(default 500, max 1000)
         :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.check_required_symbol('fetchClosedOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1202,8 +1199,7 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinsph api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         await self.load_markets()
         market = None
         request = {}

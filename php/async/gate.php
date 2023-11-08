@@ -2952,9 +2952,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if (!$market['swap']) {
@@ -5001,9 +4999,7 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the gate api endpoint
              * @return {array} $response from the exchange
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
+            $this->check_required_symbol('setLeverage', $symbol);
             // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             if (($leverage < 0) || ($leverage > 100)) {

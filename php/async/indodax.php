@@ -616,9 +616,7 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the indodax api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -680,13 +678,11 @@ class indodax extends Exchange {
              * fetches information on multiple closed $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the indodax api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchClosedOrders', $symbol);
             Async\await($this->load_markets());
             $request = array();
             $market = null;
@@ -750,9 +746,7 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the indodax api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             $side = $this->safe_value($params, 'side');
             if ($side === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "side" param');

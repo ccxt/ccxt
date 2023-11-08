@@ -8113,19 +8113,10 @@ class huobi extends huobi$1 {
          * @param {int} [params.code] unified currency code, can be used when symbol is undefined
          * @returns {object[]} a list of [settlement history objects]{@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure}
          */
-        const code = this.safeString(params, 'code');
+        this.checkRequiredSymbol('fetchSettlementHistory', symbol);
         const until = this.safeInteger2(params, 'until', 'till');
         params = this.omit(params, ['until', 'till']);
-        const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const [type, query] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
-        if (type === 'future') {
-            if (symbol === undefined && code === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' requires a symbol argument or params["code"] for fetchSettlementHistory future');
-            }
-        }
-        else if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' requires a symbol argument for fetchSettlementHistory swap');
-        }
+        const market = this.market(symbol);
         const request = {};
         if (market['future']) {
             request['symbol'] = market['baseId'];
@@ -8151,7 +8142,7 @@ class huobi extends huobi$1 {
                 method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
             }
         }
-        const response = await this[method](this.extend(request, query));
+        const response = await this[method](this.extend(request, params));
         //
         // linear swap, coin-m swap
         //

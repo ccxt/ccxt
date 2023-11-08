@@ -1194,9 +1194,7 @@ class huobijp extends huobijp$1 {
         return await this[method](symbol, since, limit, params);
     }
     async fetchOpenOrdersV1(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrdersV1() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrdersV1', symbol);
         return await this.fetchOrdersByStates('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -514,8 +514,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinone api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -711,8 +710,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinone api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {

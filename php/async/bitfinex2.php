@@ -1926,9 +1926,7 @@ class bitfinex2 extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrderTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $orderId = intval($id);

@@ -719,9 +719,7 @@ export default class bithumb extends Exchange {
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -875,13 +873,11 @@ export default class bithumb extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         if (limit === undefined) {
@@ -926,12 +922,10 @@ export default class bithumb extends Exchange {
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        this.checkRequiredSymbol('cancelOrder', symbol);
         const side_in_params = ('side' in params);
         if (!side_in_params) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
         }
         const market = this.market(symbol);
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';

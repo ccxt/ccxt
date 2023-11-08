@@ -5095,9 +5095,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrderTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $this->safe_string($params, 'type', $market['type']);
@@ -7801,9 +7799,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setLeverage', $symbol);
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (($leverage < 1) || ($leverage > 125)) {
@@ -7836,9 +7832,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the binance api endpoint
          * @return {array} $response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setMarginMode', $symbol);
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //

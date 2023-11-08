@@ -1177,8 +1177,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a 'symbol' argument")
+        self.check_required_symbol('cancelAllOrders', symbol)
         await self.load_markets()
         request = {}
         market = None

@@ -383,9 +383,7 @@ class cex extends cex$1 {
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol('watchOrders', symbol);
         await this.loadMarkets();
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
@@ -421,9 +419,7 @@ class cex extends cex$1 {
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol('watchMyTrades', symbol);
         await this.loadMarkets();
         await this.authenticate(params);
         const url = this.urls['api']['ws'];

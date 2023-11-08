@@ -551,8 +551,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitflyer api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a `symbol` argument')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         request = {
             'product_code': self.market_id(symbol),
@@ -625,8 +624,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitflyer api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
+        self.check_required_symbol('fetchOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -677,8 +675,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitflyer api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a `symbol` argument')
+        self.check_required_symbol('fetchOrder', symbol)
         orders = self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
@@ -695,8 +692,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitflyer api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {

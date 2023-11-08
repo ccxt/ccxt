@@ -4888,8 +4888,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -7403,8 +7402,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
@@ -7434,8 +7432,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #

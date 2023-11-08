@@ -642,9 +642,7 @@ class bitbns extends Exchange {
          * @param {boolean} [$params->trigger] true if cancelling a trigger order
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
@@ -671,9 +669,7 @@ class bitbns extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitbns api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -727,9 +723,7 @@ class bitbns extends Exchange {
          * @param {boolean} [$params->trigger] true if fetching trigger orders
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOpenOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
@@ -855,9 +849,7 @@ class bitbns extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitbns api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -922,9 +914,7 @@ class bitbns extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitbns api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

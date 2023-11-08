@@ -896,9 +896,6 @@ class coinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
-        }
         $this->load_markets();
         $market = $this->market($symbol);
         if ($limit === null) {
@@ -2270,9 +2267,7 @@ class coinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancellAllOrders() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelAllOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $marketId = $market['id'];
@@ -2318,9 +2313,7 @@ class coinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $swap = $market['swap'];
@@ -3214,9 +3207,7 @@ class coinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setMarginMode', $symbol);
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
             throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
@@ -3487,9 +3478,7 @@ class coinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchFundingHistory', $symbol);
         $limit = ($limit === null) ? 100 : $limit;
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3808,9 +3797,7 @@ class coinex extends Exchange {
          * @param {int} [$params->until] $timestamp in ms of the latest funding rate
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
@@ -4524,9 +4511,7 @@ class coinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the coinex api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
-        }
+        $this->check_required_symbol('borrowMargin', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $currency = $this->currency($code);
@@ -4564,9 +4549,7 @@ class coinex extends Exchange {
          * @param {string} [$params->loan_id] extra parameter that is not required
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
-        }
+        $this->check_required_symbol('repayMargin', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $currency = $this->currency($code);

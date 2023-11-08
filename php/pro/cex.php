@@ -7,7 +7,6 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 
@@ -400,9 +399,7 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-            }
+            $this->check_required_symbol('watchOrders', $symbol);
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
@@ -439,9 +436,7 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-            }
+            $this->check_required_symbol('watchMyTrades', $symbol);
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];

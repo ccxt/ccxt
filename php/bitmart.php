@@ -2319,9 +2319,7 @@ class bitmart extends Exchange {
     }
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrdersByStatus', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['spot']) {
@@ -2994,10 +2992,8 @@ class bitmart extends Exchange {
          * @param {string} [$params->marginMode] 'isolated' is the default and 'cross' is unavailable
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
+        $this->check_required_symbol('repayMargin', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument');
-        }
         $market = $this->market($symbol);
         $currency = $this->currency($code);
         $request = array(
@@ -3036,10 +3032,8 @@ class bitmart extends Exchange {
          * @param {string} [$params->marginMode] 'isolated' is the default and 'cross' is unavailable
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
+        $this->check_required_symbol('borrowMargin', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument');
-        }
         $market = $this->market($symbol);
         $currency = $this->currency($code);
         $request = array(
@@ -3490,9 +3484,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitmart api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-$interest-structure borrow $interest structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchBorrowInterest() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchBorrowInterest', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

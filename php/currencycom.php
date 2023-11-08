@@ -1430,9 +1430,7 @@ class currencycom extends Exchange {
          * @param {array} [$params] extra parameters specific to the currencycom api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
@@ -1472,9 +1470,7 @@ class currencycom extends Exchange {
          * @param {array} [$params] extra parameters specific to the currencycom api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

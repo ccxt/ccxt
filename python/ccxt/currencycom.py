@@ -1395,8 +1395,7 @@ class currencycom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the currencycom api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
@@ -1434,8 +1433,7 @@ class currencycom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the currencycom api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {

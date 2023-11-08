@@ -8011,21 +8011,13 @@ class huobi extends Exchange {
              * @param {array} [$params] exchange specific $params
              * @param {int} [$params->until] timestamp in ms, value range = start_time -> current time，default = current time
              * @param {int} [$params->page_index] page index, default page 1 if not filled
-             * @param {int} [$params->code] unified currency $code, can be used when $symbol is null
+             * @param {int} [$params->code] unified currency code, can be used when $symbol is null
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
              */
-            $code = $this->safe_string($params, 'code');
+            $this->check_required_symbol('fetchSettlementHistory', $symbol);
             $until = $this->safe_integer_2($params, 'until', 'till');
             $params = $this->omit($params, array( 'until', 'till' ));
-            $market = ($symbol === null) ? null : $this->market($symbol);
-            list($type, $query) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
-            if ($type === 'future') {
-                if ($symbol === null && $code === null) {
-                    throw new ArgumentsRequired($this->id . ' requires a $symbol argument or $params["code"] for fetchSettlementHistory future');
-                }
-            } elseif ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' requires a $symbol argument for fetchSettlementHistory swap');
-            }
+            $market = $this->market($symbol);
             $request = array();
             if ($market['future']) {
                 $request['symbol'] = $market['baseId'];
@@ -8049,7 +8041,7 @@ class huobi extends Exchange {
                     $method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
                 }
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // linear swap, coin-m swap
             //

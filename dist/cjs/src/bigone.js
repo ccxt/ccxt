@@ -1356,9 +1356,7 @@ class bigone extends bigone$1 {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1406,10 +1404,8 @@ class bigone extends bigone$1 {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         const market = this.market(symbol);
         const request = {
             'asset_pair_name': market['id'],

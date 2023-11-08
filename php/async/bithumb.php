@@ -730,9 +730,7 @@ class bithumb extends Exchange {
              * @param {array} [$params] extra parameters specific to the bithumb api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -888,13 +886,11 @@ class bithumb extends Exchange {
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bithumb api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if ($limit === null) {
@@ -940,12 +936,10 @@ class bithumb extends Exchange {
              * @param {array} [$params] extra parameters specific to the bithumb api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
+            $this->check_required_symbol('cancelOrder', $symbol);
             $side_in_params = (is_array($params) && array_key_exists('side', $params));
             if (!$side_in_params) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
             }
             $market = $this->market($symbol);
             $side = ($params['side'] === 'buy') ? 'bid' : 'ask';

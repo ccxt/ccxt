@@ -588,8 +588,7 @@ class indodax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the indodax api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -641,12 +640,11 @@ class indodax(Exchange, ImplicitAPI):
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the indodax api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.check_required_symbol('fetchClosedOrders', symbol)
         self.load_markets()
         request = {}
         market = None
@@ -701,8 +699,7 @@ class indodax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the indodax api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         side = self.safe_value(params, 'side')
         if side is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires an extra "side" param')

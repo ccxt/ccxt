@@ -1207,9 +1207,7 @@ class hollaex extends Exchange {
          * @param {array} [$params] extra parameters specific to the hollaex api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . " cancelAllOrders() requires a 'symbol' argument");
-        }
+        $this->check_required_symbol('cancelAllOrders', $symbol);
         $this->load_markets();
         $request = array();
         $market = null;

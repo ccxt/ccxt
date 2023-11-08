@@ -7,7 +7,6 @@
 //  ---------------------------------------------------------------------------
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { ArgumentsRequired } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class bitrue extends bitrueRest {
     describe() {
@@ -293,9 +292,6 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' watchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];

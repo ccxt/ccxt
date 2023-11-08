@@ -693,9 +693,7 @@ class ace extends Exchange {
          * @param {array} [$params] extra parameters specific to the ace api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires the $symbol argument');
-        }
+        $this->check_required_symbol('fetchOpenOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

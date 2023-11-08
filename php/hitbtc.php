@@ -3087,10 +3087,8 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
          * @return {array} response from the exchange
          */
+        $this->check_required_symbol('setLeverage', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
         if ($params['margin_balance'] === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
         }

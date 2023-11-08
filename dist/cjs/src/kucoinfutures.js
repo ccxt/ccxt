@@ -798,10 +798,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {object} [params] extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
-        //
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2342,9 +2339,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');

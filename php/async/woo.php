@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\woo as Exchange;
-use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
@@ -424,9 +423,6 @@ class woo extends Exchange {
              * @param {array} [$params] extra parameters specific to the woo api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(

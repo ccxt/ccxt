@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Balances, Order, OrderSide, OrderType, Trade, Transaction
 from typing import Optional
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -709,12 +708,11 @@ class coinmate(Exchange, ImplicitAPI):
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the coinmate api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {

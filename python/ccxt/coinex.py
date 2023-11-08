@@ -893,8 +893,6 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -2194,8 +2192,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancellAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
@@ -2237,8 +2234,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
@@ -3090,8 +3086,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
@@ -3340,8 +3335,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingHistory', symbol)
         limit = 100 if (limit is None) else limit
         self.load_markets()
         market = self.market(symbol)
@@ -3645,8 +3639,7 @@ class coinex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest funding rate
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
@@ -4322,8 +4315,7 @@ class coinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
+        self.check_required_symbol('borrowMargin', symbol)
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4360,8 +4352,7 @@ class coinex(Exchange, ImplicitAPI):
         :param str [params.loan_id]: extra parameter that is not required
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
+        self.check_required_symbol('repayMargin', symbol)
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)

@@ -7,7 +7,6 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
-from ccxt.base.errors import ArgumentsRequired
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -284,8 +283,6 @@ class bitrue(ccxt.async_support.bitrue):
         }, market)
 
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrderBook() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']

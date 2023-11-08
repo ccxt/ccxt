@@ -2493,8 +2493,6 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2551,8 +2549,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2584,8 +2581,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -2608,8 +2604,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         await self.load_markets()
         market = self.market(symbol)
         if market['settle'] == 'USDT':
@@ -2643,12 +2638,11 @@ class phemex(Exchange, ImplicitAPI):
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2676,12 +2670,11 @@ class phemex(Exchange, ImplicitAPI):
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetSpotOrders'
@@ -2712,12 +2705,11 @@ class phemex(Exchange, ImplicitAPI):
         :see: https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.check_required_symbol('fetchClosedOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -2788,8 +2780,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         method = 'privateGetExchangeSpotOrderTrades'
@@ -3392,9 +3383,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the phemex api endpoint
         :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
+        self.check_required_symbol('fetchFundingHistory', symbol)
         await self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3833,8 +3823,7 @@ class phemex(Exchange, ImplicitAPI):
         """
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         if (leverage < 1) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 100')
         await self.load_markets()

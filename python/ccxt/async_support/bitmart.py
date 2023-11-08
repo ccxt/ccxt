@@ -2247,8 +2247,7 @@ class bitmart(Exchange, ImplicitAPI):
         return response
 
     async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
+        self.check_required_symbol('fetchOrdersByStatus', symbol)
         await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
@@ -2878,9 +2877,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
+        self.check_required_symbol('repayMargin', symbol)
         await self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -2918,9 +2916,8 @@ class bitmart(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'isolated' is the default and 'cross' is unavailable
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
+        self.check_required_symbol('borrowMargin', symbol)
         await self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -3347,8 +3344,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitmart api endpoint
         :returns dict[]: a list of `borrow interest structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchBorrowInterest() requires a symbol argument')
+        self.check_required_symbol('fetchBorrowInterest', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {

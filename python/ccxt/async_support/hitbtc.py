@@ -2943,9 +2943,8 @@ class hitbtc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :returns dict: response from the exchange
         """
+        self.check_required_symbol('setLeverage', symbol)
         await self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if params['margin_balance'] is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair')
         market = self.market(symbol)

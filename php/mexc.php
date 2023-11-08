@@ -2314,9 +2314,7 @@ class mexc extends Exchange {
          * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -3622,9 +3620,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
@@ -4006,9 +4002,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the mexc api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -4972,10 +4966,8 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
+        $this->check_required_symbol('borrowMargin', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-        }
         $market = $this->market($symbol);
         $currency = $this->currency($code);
         $request = array(
@@ -5007,10 +4999,8 @@ class mexc extends Exchange {
          * @param {string} [$params->borrowId] $transaction $id '762407666453712896'
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
+        $this->check_required_symbol('repayMargin', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-        }
         $id = $this->safe_string_2($params, 'id', 'borrowId');
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');

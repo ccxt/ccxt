@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\coinfalcon as Exchange;
-use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 
@@ -411,9 +410,7 @@ class coinfalcon extends Exchange {
              * @param {array} [$params] extra parameters specific to the coinfalcon api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
