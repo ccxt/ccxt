@@ -913,8 +913,8 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Trade/ ]
-        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Trade' ]
+        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
+        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Trade', 'Transaction' ]
         const matches = []
         let match
         const listRegex = /: List\[(\w+)\]/g
@@ -1558,7 +1558,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /(?:object|OHLCV|Order|Trade|Balances?)|(?:\w+\[\])/
+            const phpArrayRegex = /(?:object|OHLCV|Order|Ticker|Trade|Transaction|Balances?)|(?:\w+\[\])/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1576,7 +1576,6 @@ class Transpiler {
                     nullable = nullable || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
-                    console.log (type)
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
@@ -1590,7 +1589,7 @@ class Transpiler {
                 if (returnType.match (phpArrayRegex)) {
                     phpReturnType = ': array'
                 } else {
-                    phpReturnType = phpTypes[returnType] ?? returnType
+                    phpReturnType = ': ' + (phpTypes[returnType] ?? returnType)
                 }
             }
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'

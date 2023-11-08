@@ -5,7 +5,7 @@ import Exchange from './abstract/bitpanda.js';
 import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -309,8 +309,8 @@ export default class bitpanda extends Exchange {
         const response = await this.publicGetTime (params);
         //
         //     {
-        //         iso: '2020-07-10T05:17:26.716Z',
-        //         epoch_millis: 1594358246716,
+        //         "iso": "2020-07-10T05:17:26.716Z",
+        //         "epoch_millis": 1594358246716,
         //     }
         //
         return this.safeInteger (response, 'epoch_millis');
@@ -370,12 +370,12 @@ export default class bitpanda extends Exchange {
         //
         //     [
         //         {
-        //             state: 'ACTIVE',
-        //             base: { code: 'ETH', precision: 8 },
-        //             quote: { code: 'CHF', precision: 2 },
-        //             amount_precision: 4,
-        //             market_precision: 2,
-        //             min_size: '10.0'
+        //             "state": "ACTIVE",
+        //             "base": { code: "ETH", precision: 8 },
+        //             "quote": { code: "CHF", precision: 2 },
+        //             "amount_precision": 4,
+        //             "market_precision": 2,
+        //             "min_size": "10.0"
         //         }
         //     ]
         //
@@ -568,7 +568,7 @@ export default class bitpanda extends Exchange {
         };
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTicker, fetchTickers
         //
@@ -1302,7 +1302,7 @@ export default class bitpanda extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits, fetchWithdrawals
         //

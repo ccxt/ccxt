@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -238,7 +238,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "symbol":"btc_usdt",
@@ -761,22 +761,22 @@ export default class lbank extends Exchange {
         const response = this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // withdraw
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         currency = this.safeCurrency (undefined, currency);
