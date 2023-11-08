@@ -320,7 +320,7 @@ export default class gemini extends Exchange {
         //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, precisions seem to be the 5th index
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
         //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
-        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
+        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ],
         //            ...
         //        ],
         //        "networks": [
@@ -758,7 +758,7 @@ export default class gemini extends Exchange {
         return await this.fetchTickerV1AndV2 (symbol, params);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -1638,9 +1638,9 @@ export default class gemini extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //      {
-        //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        //          timestamp: "1636813923098",
-        //          addressVersion: "eV1"                                         }
+        //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          "timestamp": "1636813923098",
+        //          "addressVersion": "eV1"                                         }
         //      }
         //
         const address = this.safeString (depositAddress, 'address');

@@ -94,6 +94,9 @@ setup(
         'qa': [
             'ruff==0.0.292',
         ],
+        'type': [
+            'mypy==1.6.1',
+        ],
     },
     project_urls=project_urls,
 )

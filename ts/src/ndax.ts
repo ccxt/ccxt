@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -604,7 +604,7 @@ export default class ndax extends Exchange {
         return this.parseOrderBook (response, symbol);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -2331,10 +2331,10 @@ export default class ndax extends Exchange {
         const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes (withdrawTemplateTypesRequest);
         //
         //     {
-        //         result: true,
-        //         errormsg: null,
-        //         statuscode: "0",
-        //         TemplateTypes: [
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "TemplateTypes": [
         //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
         //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
         //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
@@ -2357,10 +2357,10 @@ export default class ndax extends Exchange {
         const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate (withdrawTemplateRequest);
         //
         //     {
-        //         result: true,
-        //         errormsg: null,
-        //         statuscode: "0",
-        //         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         //     }
         //
         const template = this.safeString (withdrawTemplateResponse, 'Template');

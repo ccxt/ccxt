@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -251,15 +251,15 @@ export default class btcalpha extends Exchange {
         //
         //    [
         //        {
-        //            timestamp: '1674658.445272',
-        //            pair: 'BTC_USDT',
-        //            last: '22476.85',
-        //            diff: '458.96',
-        //            vol: '6660.847784',
-        //            high: '23106.08',
-        //            low: '22348.29',
-        //            buy: '22508.46',
-        //            sell: '22521.11'
+        //            "timestamp": "1674658.445272",
+        //            "pair": "BTC_USDT",
+        //            "last": "22476.85",
+        //            "diff": "458.96",
+        //            "vol": "6660.847784",
+        //            "high": "23106.08",
+        //            "low": "22348.29",
+        //            "buy": "22508.46",
+        //            "sell": "22521.11"
         //        },
         //        ...
         //    ]
@@ -285,32 +285,32 @@ export default class btcalpha extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         return this.parseTicker (response, market);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         const timestampStr = this.safeString (ticker, 'timestamp');

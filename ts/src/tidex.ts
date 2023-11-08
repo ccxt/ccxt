@@ -470,18 +470,18 @@ export default class tidex extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
-        //         high: 0.03497582,
-        //         low: 0.03248474,
-        //         avg: 0.03373028,
-        //         vol: 120.11485715062999,
-        //         vol_cur: 3572.24914074,
-        //         last: 0.0337611,
-        //         buy: 0.0337442,
-        //         sell: 0.03377798,
-        //         updated: 1537522009
+        //         "high": 0.03497582,
+        //         "low": 0.03248474,
+        //         "avg": 0.03373028,
+        //         "vol": 120.11485715062999,
+        //         "vol_cur": 3572.24914074,
+        //         "last": 0.0337611,
+        //         "buy": 0.0337442,
+        //         "sell": 0.03377798,
+        //         "updated": 1537522009
         //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');

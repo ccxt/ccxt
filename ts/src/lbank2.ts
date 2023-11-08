@@ -530,7 +530,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -2348,23 +2348,23 @@ export default class lbank2 extends Exchange {
         const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
-        //        result: 'true',
-        //        data: [
+        //        "result": "true",
+        //        "data": [
         //          {
-        //            amountScale: '4',
-        //            chain: 'heco',
-        //            assetCode: 'lbk',
-        //            min: '200',
-        //            transferAmtScale: '4',
-        //            canWithDraw: true,
-        //            fee: '100',
-        //            minTransfer: '0.0001',
-        //            type: '1'
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
         //          },
         //          ...
         //        ],
-        //        error_code: '0',
-        //        ts: '1663364435973'
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
         const result = this.safeValue (response, 'data', []);
@@ -2468,23 +2468,23 @@ export default class lbank2 extends Exchange {
         const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
-        //        result: 'true',
-        //        data: [
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                amountScale: '4',
-        //                chain: 'heco',
-        //                assetCode: 'lbk',
-        //                min: '200',
-        //                transferAmtScale: '4',
-        //                canWithDraw: true,
-        //                fee: '100',
-        //                minTransfer: '0.0001',
-        //                type: '1'
+        //                "amountScale": "4",
+        //                "chain": "heco",
+        //                "assetCode": "lbk",
+        //                "min": "200",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "100",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
         //            },
         //            ...
         //        ],
-        //        error_code: '0',
-        //        ts: '1663364435973'
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
         const data = this.safeValue (response, 'data', []);
@@ -2495,15 +2495,15 @@ export default class lbank2 extends Exchange {
         //
         //    [
         //        {
-        //            amountScale: '4',
-        //            chain: 'heco',
-        //            assetCode: 'lbk',
-        //            min: '200',
-        //            transferAmtScale: '4',
-        //            canWithDraw: true,
-        //            fee: '100',
-        //            minTransfer: '0.0001',
-        //            type: '1'
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
         //        },
         //        ...
         //    ]

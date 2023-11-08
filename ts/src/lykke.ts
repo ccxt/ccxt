@@ -5,7 +5,7 @@ import Exchange from './abstract/lykke.js';
 import { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -352,7 +352,7 @@ export default class lykke extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTickers
         //
@@ -531,15 +531,15 @@ export default class lykke extends Exchange {
         //     {
         //         "payload":[
         //             {
-        //                 assetPairId: 'BTCUSD',
-        //                 timestamp: '1643298038203',
-        //                 bids: [
+        //                 "assetPairId": "BTCUSD",
+        //                 "timestamp": "1643298038203",
+        //                 "bids": [
         //                     {
         //                         "v":0.59034382,
         //                         "p":36665.329
         //                     }
         //                 ],
-        //                 asks: [
+        //                 "asks": [
         //                     {
         //                         "v":-0.003,
         //                         "p":36729.686

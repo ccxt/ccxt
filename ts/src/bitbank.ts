@@ -5,7 +5,7 @@ import Exchange from './abstract/bitbank.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -256,7 +256,7 @@ export default class bitbank extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
@@ -408,26 +408,26 @@ export default class bitbank extends Exchange {
         const response = await this.marketsGetSpotPairs (params);
         //
         //     {
-        //         success: '1',
-        //         data: {
-        //           pairs: [
+        //         "success": "1",
+        //         "data": {
+        //           "pairs": [
         //             {
-        //               name: 'btc_jpy',
-        //               base_asset: 'btc',
-        //               quote_asset: 'jpy',
-        //               maker_fee_rate_base: '0',
-        //               taker_fee_rate_base: '0',
-        //               maker_fee_rate_quote: '-0.0002',
-        //               taker_fee_rate_quote: '0.0012',
-        //               unit_amount: '0.0001',
-        //               limit_max_amount: '1000',
-        //               market_max_amount: '10',
-        //               market_allowance_rate: '0.2',
-        //               price_digits: '0',
-        //               amount_digits: '4',
-        //               is_enabled: true,
-        //               stop_order: false,
-        //               stop_order_and_cancel: false
+        //               "name": "btc_jpy",
+        //               "base_asset": "btc",
+        //               "quote_asset": "jpy",
+        //               "maker_fee_rate_base": "0",
+        //               "taker_fee_rate_base": "0",
+        //               "maker_fee_rate_quote": "-0.0002",
+        //               "taker_fee_rate_quote": "0.0012",
+        //               "unit_amount": "0.0001",
+        //               "limit_max_amount": "1000",
+        //               "market_max_amount": "10",
+        //               "market_allowance_rate": "0.2",
+        //               "price_digits": "0",
+        //               "amount_digits": "4",
+        //               "is_enabled": true,
+        //               "stop_order": false,
+        //               "stop_order_and_cancel": false
         //             },
         //             ...
         //           ]
