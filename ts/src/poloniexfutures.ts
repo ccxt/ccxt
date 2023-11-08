@@ -454,7 +454,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseTickers (this.safeValue (response, 'data', []), symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniexfuturesfutures#fetchOrderBook

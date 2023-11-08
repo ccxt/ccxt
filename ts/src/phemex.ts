@@ -975,7 +975,7 @@ export default class phemex extends Exchange {
         return result as any;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name phemex#fetchOrderBook

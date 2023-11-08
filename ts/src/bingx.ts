@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeEr
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -930,7 +930,7 @@ export default class bingx extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bingx#fetchOrderBook

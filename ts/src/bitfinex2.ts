@@ -990,7 +990,7 @@ export default class bitfinex2 extends Exchange {
         return currencyId;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitfinex2#fetchOrderBook

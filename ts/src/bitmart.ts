@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, Permission
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Trade, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Trade, Transaction, Ticker, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1240,7 +1240,7 @@ export default class bitmart extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitmart#fetchOrderBook

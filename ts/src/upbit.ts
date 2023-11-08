@@ -598,7 +598,7 @@ export default class upbit extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name upbit#fetchOrderBook

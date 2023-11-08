@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -360,7 +360,7 @@ export default class alpaca extends Exchange {
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name alpaca#fetchOrderBook

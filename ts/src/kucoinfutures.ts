@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory, Balances, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory, Balances, Ticker, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -655,7 +655,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name kucoinfutures#fetchOrderBook

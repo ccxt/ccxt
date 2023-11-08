@@ -559,7 +559,7 @@ export default class ndax extends Exchange {
         return result as OrderBook;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name ndax#fetchOrderBook
