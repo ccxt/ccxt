@@ -846,8 +846,16 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const keyValue = part.split ('=');
+            const keysLength = keyValue.length;
+            if (keysLength !== 2) {
+                continue;
+            }
             const key = keyValue[0];
-            const value = keyValue[1];
+            let value = keyValue[1];
+            if ((value !== undefined) && ((value.startsWith ('[')) || (value.startsWith ('{')))) {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = jsonParse (value);
+            }
             result[key] = value;
         }
         return result;
@@ -930,11 +938,28 @@ export default class testMainClass extends baseMainTestClass {
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
+    sanitizeDataInput (input) {
+        // remove nulls and replace with unefined instead
+        if (input === undefined) {
+            return undefined;
+        }
+        const newInput = [];
+        for (let i = 0; i < input.length; i++) {
+            const current = input[i];
+            if (current === null) { // noqa: E711
+                newInput.push (undefined);
+            } else {
+                newInput.push (current);
+            }
+        }
+        return newInput;
+    }
+
     async testMethodStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            await callExchangeMethodDynamically (exchange, method, data['input']);
+            await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
         } catch (e) {
             if (!(e instanceof NetworkError)) {
                 // if it's not a network error, it means our request was not created succesfully
@@ -957,7 +982,7 @@ export default class testMainClass extends baseMainTestClass {
 
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
-        return initExchange (exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999 }});
+        return initExchange (exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
     }
 
     async testExchangeStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
