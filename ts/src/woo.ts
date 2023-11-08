@@ -425,7 +425,6 @@ export default class woo extends Exchange {
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        this.checkRequiredSymbol ('fetchTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
