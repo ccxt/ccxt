@@ -3,7 +3,7 @@
 
 import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
+import { AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -385,9 +385,7 @@ export default class whitebit extends whitebitRest {
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchMyTrades', symbol);
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
@@ -483,13 +481,11 @@ export default class whitebit extends whitebitRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchOrders', symbol);
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);

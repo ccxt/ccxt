@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/woo.js';
-import { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
+import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -425,9 +425,6 @@ export default class woo extends Exchange {
          * @param {object} [params] extra parameters specific to the woo api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

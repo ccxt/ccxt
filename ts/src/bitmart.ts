@@ -2360,9 +2360,7 @@ export default class bitmart extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrdersByStatus', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
@@ -3057,10 +3055,8 @@ export default class bitmart extends Exchange {
          * @param {string} [params.marginMode] 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
+        this.checkRequiredSymbol ('repayMargin', symbol);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
@@ -3101,10 +3097,8 @@ export default class bitmart extends Exchange {
          * @param {string} [params.marginMode] 'isolated' is the default and 'cross' is unavailable
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
+        this.checkRequiredSymbol ('borrowMargin', symbol);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
@@ -3565,9 +3559,7 @@ export default class bitmart extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @returns {object[]} a list of [borrow interest structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-interest-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchBorrowInterest() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchBorrowInterest', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
