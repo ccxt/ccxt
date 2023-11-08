@@ -761,9 +761,9 @@ export default class lbank extends Exchange {
         const response = this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         return this.parseTransaction (response, currency);
@@ -774,9 +774,9 @@ export default class lbank extends Exchange {
         // withdraw
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         currency = this.safeCurrency (undefined, currency);

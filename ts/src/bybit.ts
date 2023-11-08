@@ -3513,13 +3513,13 @@ export default class bybit extends Exchange {
         //     }
         // createOrders failed order
         //    {
-        //        category: 'linear',
-        //        symbol: 'LTCUSDT',
-        //        orderId: '',
-        //        orderLinkId: '',
-        //        createAt: '',
-        //        code: '10001',
-        //        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        //        "category": "linear",
+        //        "symbol": "LTCUSDT",
+        //        "orderId": '',
+        //        "orderLinkId": '',
+        //        "createAt": '',
+        //        "code": "10001",
+        //        "msg": "The number of contracts exceeds maximum limit allowed: too large"
         //    }
         //
         const code = this.safeString (order, 'code');
@@ -5056,10 +5056,10 @@ export default class bybit extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         chainType: 'ERC20',
-        //         addressDeposit: '0xf56297c6717c1d1c42c30324468ed50a9b7402ee',
-        //         tagDeposit: '',
-        //         chain: 'ETH'
+        //         "chainType": "ERC20",
+        //         "addressDeposit": "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        //         "tagDeposit": '',
+        //         "chain": "ETH"
         //     }
         //
         const address = this.safeString (depositAddress, 'addressDeposit');
@@ -7619,14 +7619,14 @@ export default class bybit extends Exchange {
         }
         //
         //     {
-        //         ret_code: 10001,
-        //         ret_msg: 'ReadMapCB: expect { or n, but found \u0000, error ' +
-        //         'found in #0 byte of ...||..., bigger context ' +
-        //         '...||...',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: null,
-        //         time_now: '1583934106.590436'
+        //         "ret_code": 10001,
+        //         "ret_msg": "ReadMapCB: expect { or n, but found \u0000, error " +
+        //         "found in #0 byte of ...||..., bigger context " +
+        //         "...||...",
+        //         "ext_code": '',
+        //         "ext_info": '',
+        //         "result": null,
+        //         "time_now": "1583934106.590436"
         //     }
         //
         //     {

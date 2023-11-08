@@ -960,14 +960,14 @@ export default class bitmart extends Exchange {
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
         //     {
-        //         message: 'OK',
-        //         code: '1000',
-        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
-        //         data: {
-        //             today_available_withdraw_BTC: '100.0000',
-        //             min_withdraw: '0.005',
-        //             withdraw_precision: '8',
-        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         "message": "OK",
+        //         "code": "1000",
+        //         "trace": "3ecc0adf-91bd-4de7-aca1-886c1122f54f",
+        //         "data": {
+        //             "today_available_withdraw_BTC": "100.0000",
+        //             "min_withdraw": "0.005",
+        //             "withdraw_precision": "8",
+        //             "withdraw_fee": "0.000500000000000000000000000000"
         //         }
         //     }
         //
@@ -984,10 +984,10 @@ export default class bitmart extends Exchange {
     parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
-        //        today_available_withdraw_BTC: '100.0000',
-        //        min_withdraw: '0.005',
-        //        withdraw_precision: '8',
-        //        withdraw_fee: '0.000500000000000000000000000000'
+        //        "today_available_withdraw_BTC": "100.0000",
+        //        "min_withdraw": "0.005",
+        //        "withdraw_precision": "8",
+        //        "withdraw_fee": "0.000500000000000000000000000000"
         //    }
         //
         return {
@@ -1021,14 +1021,14 @@ export default class bitmart extends Exchange {
         const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
         //     {
-        //         message: 'OK',
-        //         code: '1000',
-        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
-        //         data: {
-        //             today_available_withdraw_BTC: '100.0000',
-        //             min_withdraw: '0.005',
-        //             withdraw_precision: '8',
-        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         "message": "OK",
+        //         "code": "1000",
+        //         "trace": "3ecc0adf-91bd-4de7-aca1-886c1122f54f",
+        //         "data": {
+        //             "today_available_withdraw_BTC": "100.0000",
+        //             "min_withdraw": "0.005",
+        //             "withdraw_precision": "8",
+        //             "withdraw_fee": "0.000500000000000000000000000000"
         //         }
         //     }
         //
@@ -1487,11 +1487,11 @@ export default class bitmart extends Exchange {
         //
         //     [
         //         1631056350, // timestamp
-        //         '46532.83', // oopen
-        //         '46555.71', // high
-        //         '46511.41', // low
-        //         '46555.71', // close
-        //         '0.25', // volume
+        //         "46532.83", // oopen
+        //         "46555.71", // high
+        //         "46511.41", // low
+        //         "46555.71", // close
+        //         "0.25", // volume
         //     ]
         //
         if (Array.isArray (ohlcv)) {
@@ -1922,9 +1922,9 @@ export default class bitmart extends Exchange {
     parseTradingFee (fee, market = undefined) {
         //
         //     {
-        //         symbol: 'ETH_USDT',
-        //         taker_fee_rate: '0.0025',
-        //         maker_fee_rate: '0.0025'
+        //         "symbol": "ETH_USDT",
+        //         "taker_fee_rate": "0.0025",
+        //         "maker_fee_rate": "0.0025"
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
@@ -1957,13 +1957,13 @@ export default class bitmart extends Exchange {
         const response = await this.privateGetSpotV1TradeFee (this.extend (request, params));
         //
         //     {
-        //         message: 'OK',
-        //         code: '1000',
-        //         trace: '5a6f1e40-37fe-4849-a494-03279fadcc62',
-        //         data: {
-        //             symbol: 'ETH_USDT',
-        //             taker_fee_rate: '0.0025',
-        //             maker_fee_rate: '0.0025'
+        //         "message": "OK",
+        //         "code": "1000",
+        //         "trace": "5a6f1e40-37fe-4849-a494-03279fadcc62",
+        //         "data": {
+        //             "symbol": "ETH_USDT",
+        //             "taker_fee_rate": "0.0025",
+        //             "maker_fee_rate": "0.0025"
         //         }
         //     }
         //
@@ -1981,7 +1981,7 @@ export default class bitmart extends Exchange {
         //
         // cancelOrder
         //
-        //     '2707217580' // order id
+        //     "2707217580" // order id
         //
         // spot fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
         //

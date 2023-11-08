@@ -834,8 +834,8 @@ export default class bit2c extends Exchange {
         const response = await this.privatePostFundsAddCoinFundsRequest (this.extend (request, params));
         //
         //     {
-        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx': False
+        //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        //         "hasTx": False
         //     }
         //
         return this.parseDepositAddress (response, currency);
@@ -844,8 +844,8 @@ export default class bit2c extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx': False
+        //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        //         "hasTx": False
         //     }
         //
         const address = this.safeString (depositAddress, 'address');

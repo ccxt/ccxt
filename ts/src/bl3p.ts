@@ -330,29 +330,29 @@ export default class bl3p extends Exchange {
         const response = await this.privatePostGENMKTMoneyInfo (params);
         //
         //     {
-        //         result: 'success',
-        //         data: {
-        //             user_id: '13396',
-        //             wallets: {
-        //                 BTC: {
-        //                     balance: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //         "result": "success",
+        //         "data": {
+        //             "user_id": "13396",
+        //             "wallets": {
+        //                 "BTC": {
+        //                     "balance": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     },
-        //                     available: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //                     "available": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     }
         //                 },
         //                 ...
         //             },
-        //             trade_fee: '0.25'
+        //             "trade_fee": "0.25"
         //         }
         //     }
         //

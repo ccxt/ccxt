@@ -323,28 +323,28 @@ export default class exmo extends Exchange {
         const response = await this.privatePostMarginPairList (params);
         //
         //     {
-        //         pairs: [{
-        //             name: 'EXM_USD',
-        //             buy_price: '0.02728391',
-        //             sell_price: '0.0276',
-        //             last_trade_price: '0.0276',
-        //             ticker_updated: '1646956050056696046',
-        //             is_fair_price: true,
-        //             max_price_precision: '8',
-        //             min_order_quantity: '1',
-        //             max_order_quantity: '50000',
-        //             min_order_price: '0.00000001',
-        //             max_order_price: '1000',
-        //             max_position_quantity: '50000',
-        //             trade_taker_fee: '0.05',
-        //             trade_maker_fee: '0',
-        //             liquidation_fee: '0.5',
-        //             max_leverage: '3',
-        //             default_leverage: '3',
-        //             liquidation_level: '5',
-        //             margin_call_level: '7.5',
-        //             position: '1',
-        //             updated: '1638976144797807397'
+        //         "pairs": [{
+        //             "name": "EXM_USD",
+        //             "buy_price": "0.02728391",
+        //             "sell_price": "0.0276",
+        //             "last_trade_price": "0.0276",
+        //             "ticker_updated": "1646956050056696046",
+        //             "is_fair_price": true,
+        //             "max_price_precision": "8",
+        //             "min_order_quantity": "1",
+        //             "max_order_quantity": "50000",
+        //             "min_order_price": "0.00000001",
+        //             "max_order_price": "1000",
+        //             "max_position_quantity": "50000",
+        //             "trade_taker_fee": "0.05",
+        //             "trade_maker_fee": "0",
+        //             "liquidation_fee": "0.5",
+        //             "max_leverage": "3",
+        //             "default_leverage": "3",
+        //             "liquidation_level": "5",
+        //             "margin_call_level": "7.5",
+        //             "position": "1",
+        //             "updated": "1638976144797807397"
         //         }
         //         ...
         //         ]
@@ -377,16 +377,16 @@ export default class exmo extends Exchange {
         const response = await this.publicGetPairSettings (params);
         //
         //     {
-        //         BTC_USD: {
-        //             min_quantity: '0.00002',
-        //             max_quantity: '1000',
-        //             min_price: '1',
-        //             max_price: '150000',
-        //             max_amount: '500000',
-        //             min_amount: '1',
-        //             price_precision: '2',
-        //             commission_taker_percent: '0.3',
-        //             commission_maker_percent: '0.3'
+        //         "BTC_USD": {
+        //             "min_quantity": "0.00002",
+        //             "max_quantity": "1000",
+        //             "min_price": "1",
+        //             "max_price": "150000",
+        //             "max_amount": "500000",
+        //             "min_amount": "1",
+        //             "price_precision": "2",
+        //             "commission_taker_percent": "0.3",
+        //             "commission_maker_percent": "0.3"
         //         },
         //     }
         //
@@ -1545,8 +1545,8 @@ export default class exmo extends Exchange {
                 response = await this.privatePostOrderCancel (this.extend (request, params));
                 //
                 //    {
-                //        'error': '',
-                //        'result': True
+                //        "error": '',
+                //        "result": True
                 //    }
                 //
             }
@@ -2609,8 +2609,8 @@ export default class exmo extends Exchange {
         }
         if (('error' in response) && !('result' in response)) {
             // error: {
-            //     code: '140434',
-            //     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
+            //     "code": "140434",
+            //     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
             // }
             //
             const errorCode = this.safeValue (response, 'error', {});

@@ -910,12 +910,12 @@ export default class bitopro extends Exchange {
         //
         // createOrder
         //         {
-        //             orderId: '2220595581',
-        //             timestamp: '1644896744886',
-        //             action: 'SELL',
-        //             amount: '0.01',
-        //             price: '15000',
-        //             timeInForce: 'GTC'
+        //             "orderId": "2220595581",
+        //             "timestamp": "1644896744886",
+        //             "action": "SELL",
+        //             "amount": "0.01",
+        //             "price": "15000",
+        //             "timeInForce": "GTC"
         //         }
         //
         // fetchOrder
@@ -1046,12 +1046,12 @@ export default class bitopro extends Exchange {
         const response = await this.privatePostOrdersPair (this.extend (request, params));
         //
         //     {
-        //         orderId: '2220595581',
-        //         timestamp: '1644896744886',
-        //         action: 'SELL',
-        //         amount: '0.01',
-        //         price: '15000',
-        //         timeInForce: 'GTC'
+        //         "orderId": "2220595581",
+        //         "timestamp": "1644896744886",
+        //         "action": "SELL",
+        //         "amount": "0.01",
+        //         "price": "15000",
+        //         "timeInForce": "GTC"
         //     }
         //
         return this.parseOrder (response, market);

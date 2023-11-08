@@ -499,17 +499,17 @@ export default class bitrue extends Exchange {
         //         ],
         //         "coins":[
         //           {
-        //               coin: "near",
-        //               coinFulName: "NEAR Protocol",
-        //               chains: [ "BEP20", ],
-        //               chainDetail: [
+        //               "coin": "near",
+        //               "coinFulName": "NEAR Protocol",
+        //               "chains": [ "BEP20", ],
+        //               "chainDetail": [
         //                 {
-        //                     chain: "BEP20",
-        //                     enableWithdraw: true,
-        //                     enableDeposit: true,
-        //                     withdrawFee: "0.2000",
-        //                     minWithdraw: "5.0000",
-        //                     maxWithdraw: "1000000000000000.0000",
+        //                     "chain": "BEP20",
+        //                     "enableWithdraw": true,
+        //                     "enableDeposit": true,
+        //                     "withdrawFee": "0.2000",
+        //                     "minWithdraw": "5.0000",
+        //                     "maxWithdraw": "1000000000000000.0000",
         //                 },
         //               ],
         //           },
@@ -1527,9 +1527,9 @@ export default class bitrue extends Exchange {
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
-            // 'orderId': id,
-            // 'origClientOrderId': id,
-            // 'newClientOrderId': id,
+            // "orderId": id,
+            // "origClientOrderId": id,
+            // "newClientOrderId": id,
         };
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -1933,10 +1933,10 @@ export default class bitrue extends Exchange {
     parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //   {
-        //       coin: 'adx',
-        //       coinFulName: 'Ambire AdEx',
-        //       chains: [ 'BSC' ],
-        //       chainDetail: [ [Object] ]
+        //       "coin": "adx",
+        //       "coinFulName": "Ambire AdEx",
+        //       "chains": [ "BSC" ],
+        //       "chainDetail": [ [Object] ]
         //   }
         //
         const chainDetails = this.safeValue (fee, 'chainDetail', []);

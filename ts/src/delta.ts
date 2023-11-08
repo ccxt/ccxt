@@ -1915,8 +1915,8 @@ export default class delta extends Exchange {
         const request = {
             'id': parseInt (id),
             'product_id': market['numericId'],
-            // 'limit_price': this.priceToPrecision (symbol, price),
-            // 'size': this.amountToPrecision (symbol, amount),
+            // "limit_price": this.priceToPrecision (symbol, price),
+            // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
             request['size'] = parseInt (this.amountToPrecision (symbol, amount));
