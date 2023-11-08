@@ -2794,6 +2794,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://api.hitbtc.com/#futures-info
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
@@ -2803,31 +2804,26 @@ export default class hitbtc extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
-        const request = {};
-        if (symbol !== undefined) {
-            symbol = market['symbol'];
-            request['symbols'] = market['id'];
-        }
-        const response = await this.publicGetPublicFuturesInfo (this.extend (request, params));
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPublicFuturesInfoSymbol (this.extend (request, params));
         //
         //     {
-        //         "BTCUSDT_PERP": {
-        //             "contract_type": "perpetual",
-        //             "mark_price": "42307.43",
-        //             "index_price": "42303.27",
-        //             "funding_rate": "0.0001",
-        //             "open_interest": "30.9826",
-        //             "next_funding_time": "2022-03-22T16:00:00.000Z",
-        //             "indicative_funding_rate": "0.0001",
-        //             "premium_index": "0",
-        //             "avg_premium_index": "0.000029587712038098",
-        //             "interest_rate": "0.0001",
-        //             "timestamp": "2022-03-22T08:08:26.687Z"
-        //         }
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
         //     }
         //
-        const data = this.safeValue (response, market['id'], {});
-        return this.parseFundingRate (data, market);
+        return this.parseFundingRate (response, market);
     }
 
     parseFundingRate (contract, market = undefined) {
