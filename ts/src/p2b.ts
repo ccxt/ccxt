@@ -809,7 +809,7 @@ export default class p2b extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'type': type,
+            'side': side,
             'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
@@ -858,7 +858,7 @@ export default class p2b extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'orderNo': id,
+            'orderId': id,
         };
         const response = await this.privatePostOrderCancel (this.extend (request, params));
         //
@@ -962,8 +962,11 @@ export default class p2b extends Exchange {
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'orderNo': id,
+            'orderId': id,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privatePostAccountOrder (this.extend (request, params));
         //
         //    {
@@ -1011,6 +1014,7 @@ export default class p2b extends Exchange {
          */
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' fetchClosedOrders must have a symbol argument');
         }
@@ -1019,6 +1023,9 @@ export default class p2b extends Exchange {
         }
         if (until === undefined) {
             throw new BadRequest (this.id + ' fetchClosedOrders must have an extra argument params["until"]');
+        }
+        if ((until - since) > 86400000) {
+            throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
         const request = {
@@ -1079,8 +1086,10 @@ export default class p2b extends Exchange {
          */
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
-        if (symbol === undefined) {
-            throw new BadRequest (this.id + ' fetchClosedOrders must have a symbol argument');
+        params = this.omit (params, 'until');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
         if (since === undefined) {
             throw new BadRequest (this.id + ' fetchClosedOrders must have a since argument');
@@ -1088,12 +1097,16 @@ export default class p2b extends Exchange {
         if (until === undefined) {
             throw new BadRequest (this.id + ' fetchClosedOrders must have an extra argument params["until"]');
         }
-        const market = this.market (symbol);
+        if ((until - since) > 86400000) {
+            throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
+        }
         const request = {
-            'market': market['id'],
             'startTime': since / 1000,
             'endTime': until / 1000,
         };
+        if (market !== undefined) {
+            request['market'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1104,31 +1117,36 @@ export default class p2b extends Exchange {
         //        "errorCode": "",
         //        "message": "",
         //        "result": {
-        //            "total": 2,                           // Total records in the queried range
-        //            "orders": [
+        //            "LTC_USDT": [
         //                {
-        //                    "id": 171366547790,           // Order id
-        //                    "amount": "0.00032",          // Original amount
-        //                    "price": "34293.92",          // Order price
-        //                    "type": "limit",              // Order type
-        //                    "side": "sell",               // Order side
-        //                    "ctime": 1698237533.497241,   // Order creation time
-        //                    "ftime": 1698237535.41196,    // Order fill time
-        //                    "market": "BTC_USDT",         // Market name
-        //                    "takerFee": "0.0018",         // Taker fee
-        //                    "makerFee": "0.0016",         // Market fee
-        //                    "dealFee": "0.01755848704",   // Deal fee
-        //                    "dealStock": "0.00032",       // Filled amount
-        //                    "dealMoney": "10.9740544"     // Filled total
-        //                },
-        //                ...
+        //                    "id": 173985944395,
+        //                    "amount": "0.1",
+        //                    "price": "73",
+        //                    "type": "limit",
+        //                    "side": "sell",
+        //                    "ctime": 1699436194.390845,
+        //                    "ftime": 1699436194.390847,
+        //                    "market": "LTC_USDT",
+        //                    "takerFee": "0.002",
+        //                    "makerFee": "0.002",
+        //                    "dealFee": "0.01474",
+        //                    "dealStock": "0.1",
+        //                    "dealMoney": "7.37"
+        //                }
         //            ]
         //        }
         //    }
         //
         const result = this.safeValue (response, 'result');
-        const orders = this.safeValue (result, 'orders');
-        return this.parseOrders (orders, market, since, limit);
+        let orders = [];
+        const keys = Object.keys (result);
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const marketOrders = result[marketId];
+            const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
+            orders = this.arrayConcat (orders, parsedOrders);
+        }
+        return orders;
     }
 
     parseOrder (order, market = undefined) {
