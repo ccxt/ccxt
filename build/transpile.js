@@ -913,7 +913,7 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances/, /(?:->|:) Order\s/, /-> OrderBook/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
+        const matchAgainst = [ /-> Balances/, /-> Order:/, /-> OrderBook/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
         const objects = [ 'Balances', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Trade', 'Transaction' ]
         const matches = []
         let match
@@ -1560,7 +1560,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:(?:object|OHLCV|Order|Ticker|Trade|Transaction|Balances?)|(?:\w+\[\]))$/
+            const phpArrayRegex = /^(?:object|OHLCV|Order|OrderBook|Ticker|Trade|Transaction|Balances?)$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1589,14 +1589,14 @@ class Transpiler {
             let syncPhpReturnType = ''
             let asyncPhpReturnType = ''
             let promiseReturnTypeMatch = null
-            let syncType = null
+            let syncReturnType = null
             if (returnType) {
                 promiseReturnTypeMatch = returnType.match (/^Promise<(\w+)>$/)
-                syncType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
-                if (syncType.match (phpArrayRegex)) {
+                syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
                 } else {
-                    syncPhpReturnType = ': ' + (phpTypes[syncType] ?? syncType)
+                    syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
                 }
                 if (promiseReturnTypeMatch) {
                     asyncPhpReturnType = ': PromiseInterface'
@@ -1614,9 +1614,16 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'int',
-                'string[]': 'List[str]',
                 'OHLCV': 'list',
-                'FundingHistory[]': 'List[FundingHistory]',
+            }
+            const unwrapLists = (type) => {
+                const output = []
+                let count = 0
+                while (type.slice (-2) == '[]') {
+                    type = type.slice (0, -2)
+                    count++
+                }
+                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -1627,10 +1634,7 @@ class Transpiler {
                     let variable = parts[0]
                     const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
-                    const isList = type.slice (-2) === '[]'
-                    const searchType = isList ? type.slice (0, -2) : type
-                    let rawType = pythonTypes[searchType] ?? searchType
-                    rawType = isList ? 'List[' + rawType + ']' : rawType
+                    const rawType = unwrapLists (type)
                     let resolvedType
                     if (nullable) {
                         resolvedType = 'Optional[' + rawType + ']'
@@ -1655,8 +1659,8 @@ class Transpiler {
 
             // compile the final Python code for the method signature
             let pythonReturnType = ''
-            if (syncType) {
-                pythonReturnType = ' -> ' + (pythonTypes[syncType] ?? syncType)
+            if (syncReturnType) {
+                pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
             }
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
