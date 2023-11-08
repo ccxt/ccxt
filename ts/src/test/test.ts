@@ -775,6 +775,12 @@ export default class testMainClass extends baseMainTestClass {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         for (let i = 0; i < supportedProxyTests.length; i++) {
             const proxyTestName = supportedProxyTests[i];
+            if (proxyTestName in this.skippedMethods) {
+                if (this.info) {
+                    dump (this.addPadding ('[INFO:SKIPPED_TEST]', 25), exchange.id, proxyTestName);
+                }
+                continue;
+            }
             dump (this.addPadding ('[INFO:TESTING]', 25), exchange.id, proxyTestName);
             // try proxy several times
             const maxRetries = 3;
