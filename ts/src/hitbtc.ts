@@ -2162,7 +2162,7 @@ export default class hitbtc extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
         const request = {
             'type': type,
@@ -2218,7 +2218,11 @@ export default class hitbtc extends Exchange {
             throw new ExchangeError (this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit (params, [ 'triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly' ]);
-        if ((marketType === 'swap') && (marginMode !== undefined)) {
+        if (marketType === 'swap') {
+            // set default margin mode to cross
+            if (marginMode === undefined) {
+                marginMode = 'cross';
+            }
             request['margin_mode'] = marginMode;
         }
         let response = undefined;
