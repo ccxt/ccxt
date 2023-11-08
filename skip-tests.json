@@ -490,6 +490,7 @@
     "btcex": {
         "skipWs": true,
         "skipMethods": {
+            "proxies": "they do not permit our proxy location",
             "loadMarkets": {
                 "active": "is undefined",
                 "limits": "sometimes 'max' value is zero, lower than 'min'"
