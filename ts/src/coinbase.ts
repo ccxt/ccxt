@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1398,7 +1398,7 @@ export default class coinbase extends Exchange {
         return ticker;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTickerV2
         //

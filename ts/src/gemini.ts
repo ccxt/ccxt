@@ -758,7 +758,7 @@ export default class gemini extends Exchange {
         return await this.fetchTickerV1AndV2 (symbol, params);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTickers
         //

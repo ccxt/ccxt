@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -145,7 +145,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "volume": "2836.47827985",

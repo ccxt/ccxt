@@ -180,3 +180,26 @@ class Transaction(TypedDict):
     network: str
     comment: str
     internal: bool
+
+
+class Ticker(TypedDict):
+    symbol: str
+    info: Dict[str, Any]
+    timestamp: int
+    datetime: str
+    high: Numeric
+    low: Numeric
+    bid: Numeric
+    bidVolume: Numeric
+    ask: Numeric
+    askVolume: Numeric
+    vwap: Numeric
+    open: Numeric
+    close: Numeric
+    last: Numeric
+    previousClose: Numeric
+    change: Numeric
+    percentage: Numeric
+    average: Numeric
+    quoteVolume: Numeric
+    baseVolume: Numeric

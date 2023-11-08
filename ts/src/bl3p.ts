@@ -5,7 +5,7 @@ import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ export default class bl3p extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "currency":"BTC",

@@ -223,7 +223,7 @@ export default class coinfalcon extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "name":"ETH-BTC",

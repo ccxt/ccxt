@@ -613,7 +613,7 @@ export default class upbit extends Exchange {
         return this.safeValue (orderbooks, symbol) as OrderBook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //       {                market: "BTC-ETH",
         //                    trade_date: "20181122",
