@@ -33,7 +33,7 @@ function testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, tim
     const method = 'fetchOHLCV';
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
-    logText = logText + exchange.json (ohlcvs);
+    logText = logText + '' + exchange.json (ohlcvs); // trick transpiler
     const now = exchange.milliseconds ();
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
