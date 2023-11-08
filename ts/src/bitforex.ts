@@ -5,7 +5,7 @@ import Exchange from './abstract/bitforex.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -265,7 +265,7 @@ export default class bitforex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public) v1
         //
@@ -438,7 +438,7 @@ export default class bitforex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = response['data'];
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
@@ -468,7 +468,7 @@ export default class bitforex extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "buy":7.04E-7,

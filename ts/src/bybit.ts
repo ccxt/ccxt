@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Transaction, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2069,7 +2069,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // spot
         //
@@ -2713,7 +2713,7 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
         if (isSpotTrade) {
             return this.parseSpotTrade (trade, market);
@@ -3081,7 +3081,7 @@ export default class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         // cross
         //     {
@@ -3513,13 +3513,13 @@ export default class bybit extends Exchange {
         //     }
         // createOrders failed order
         //    {
-        //        category: 'linear',
-        //        symbol: 'LTCUSDT',
-        //        orderId: '',
-        //        orderLinkId: '',
-        //        createAt: '',
-        //        code: '10001',
-        //        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        //        "category": "linear",
+        //        "symbol": "LTCUSDT",
+        //        "orderId": '',
+        //        "orderLinkId": '',
+        //        "createAt": '',
+        //        "code": "10001",
+        //        "msg": "The number of contracts exceeds maximum limit allowed: too large"
         //    }
         //
         const code = this.safeString (order, 'code');
@@ -5056,10 +5056,10 @@ export default class bybit extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         chainType: 'ERC20',
-        //         addressDeposit: '0xf56297c6717c1d1c42c30324468ed50a9b7402ee',
-        //         tagDeposit: '',
-        //         chain: 'ETH'
+        //         "chainType": "ERC20",
+        //         "addressDeposit": "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        //         "tagDeposit": '',
+        //         "chain": "ETH"
         //     }
         //
         const address = this.safeString (depositAddress, 'addressDeposit');
@@ -5349,7 +5349,7 @@ export default class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchWithdrawals
         //
@@ -7619,14 +7619,14 @@ export default class bybit extends Exchange {
         }
         //
         //     {
-        //         ret_code: 10001,
-        //         ret_msg: 'ReadMapCB: expect { or n, but found \u0000, error ' +
-        //         'found in #0 byte of ...||..., bigger context ' +
-        //         '...||...',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: null,
-        //         time_now: '1583934106.590436'
+        //         "ret_code": 10001,
+        //         "ret_msg": "ReadMapCB: expect { or n, but found \u0000, error " +
+        //         "found in #0 byte of ...||..., bigger context " +
+        //         "...||...",
+        //         "ext_code": '',
+        //         "ext_info": '',
+        //         "result": null,
+        //         "time_now": "1583934106.590436"
         //     }
         //
         //     {

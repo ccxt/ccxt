@@ -4939,19 +4939,16 @@ class gate(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
+        symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is not None:
-            symbols = self.market_symbols(symbols)
             symbolsLength = len(symbols)
             if symbolsLength > 0:
                 market = self.market(symbols[0])
-                for i in range(1, len(symbols)):
-                    checkMarket = self.market(symbols[i])
-                    if checkMarket['type'] != market['type']:
-                        raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
         type = None
         request = {}
         type, params = self.handle_market_type_and_params('fetchPositions', market, params)
-        self.check_required_argument('fetchPositions', type, 'type', ['swap', 'future', 'option'])
+        if (type is None) or (type == 'spot'):
+            type = 'swap'  # default to swap
         if type == 'option':
             if symbols is not None:
                 marketId = market['id']
@@ -4959,12 +4956,13 @@ class gate(Exchange, ImplicitAPI):
                 request['underlying'] = self.safe_string(optionParts, 0)
         else:
             request, params = self.prepare_request(None, type, params)
-        method = self.get_supported_mapping(type, {
-            'swap': 'privateFuturesGetSettlePositions',
-            'future': 'privateDeliveryGetSettlePositions',
-            'option': 'privateOptionsGetPositions',
-        })
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'swap':
+            response = await self.privateFuturesGetSettlePositions(self.extend(request, params))
+        elif type == 'future':
+            response = await self.privateDeliveryGetSettlePositions(self.extend(request, params))
+        elif type == 'option':
+            response = await self.privateOptionsGetPositions(self.extend(request, params))
         #
         # swap and future
         #

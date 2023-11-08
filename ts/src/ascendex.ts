@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest } from './base/types.js';
+import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -746,7 +746,7 @@ export default class ascendex extends Exchange {
         ];
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const timestamp = this.milliseconds ();
         const result = {
             'info': response,
@@ -844,12 +844,12 @@ export default class ascendex extends Exchange {
         // cash
         //
         //     {
-        //         'code': 0,
-        //         'data': [
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 'asset': 'BCHSV',
-        //                 'totalBalance': '64.298000048',
-        //                 'availableBalance': '64.298000048',
+        //                 "asset": "BCHSV",
+        //                 "totalBalance": "64.298000048",
+        //                 "availableBalance": "64.298000048",
         //             },
         //         ]
         //     }
@@ -857,14 +857,14 @@ export default class ascendex extends Exchange {
         // margin
         //
         //     {
-        //         'code': 0,
-        //         'data': [
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 'asset': 'BCHSV',
-        //                 'totalBalance': '64.298000048',
-        //                 'availableBalance': '64.298000048',
-        //                 'borrowed': '0',
-        //                 'interest': '0',
+        //                 "asset": "BCHSV",
+        //                 "totalBalance": "64.298000048",
+        //                 "availableBalance": "64.298000048",
+        //                 "borrowed": "0",
+        //                 "interest": "0",
         //             },
         //         ]
         //     }
@@ -939,7 +939,7 @@ export default class ascendex extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -1160,7 +1160,7 @@ export default class ascendex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1447,15 +1447,15 @@ export default class ascendex extends Exchange {
         const response = await this.v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
         //
         //      {
-        //         code: '0',
-        //         data: {
-        //           domain: 'spot',
-        //           userUID: 'U1479576458',
-        //           vipLevel: '0',
-        //           fees: [
-        //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: '0.001' } },
-        //             { symbol: 'LAMB/BTC', fee: { taker: '0.002', maker: '0.002' } },
-        //             { symbol: 'STOS/USDT', fee: { taker: '0.002', maker: '0.002' } },
+        //         "code": "0",
+        //         "data": {
+        //           "domain": "spot",
+        //           "userUID": "U1479576458",
+        //           "vipLevel": "0",
+        //           "fees": [
+        //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: "0.001" } },
+        //             { symbol: 'LAMB/BTC', fee: { taker: '0.002', maker: "0.002" } },
+        //             { symbol: 'STOS/USDT', fee: { taker: '0.002', maker: "0.002" } },
         //             ...
         //           ]
         //         }
@@ -2359,15 +2359,15 @@ export default class ascendex extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //         destTag: "",
-        //         tagType: "",
-        //         tagId: "",
-        //         chainName: "ERC20",
-        //         numConfirmations: 20,
-        //         withdrawalFee: 1,
-        //         nativeScale: 4,
-        //         tips: []
+        //         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //         "destTag": "",
+        //         "tagType": "",
+        //         "tagId": "",
+        //         "chainName": "ERC20",
+        //         "numConfirmations": 20,
+        //         "withdrawalFee": 1,
+        //         "nativeScale": 4,
+        //         "tips": []
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
@@ -2544,26 +2544,26 @@ export default class ascendex extends Exchange {
         const response = await this.v1PrivateGetWalletTransactions (this.extend (request, params));
         //
         //     {
-        //         code: 0,
-        //         data: {
-        //             data: [
+        //         "code": 0,
+        //         "data": {
+        //             "data": [
         //                 {
-        //                     requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        //                     time: 1591606166000,
-        //                     asset: "USDT",
-        //                     transactionType: "deposit",
-        //                     amount: "25",
-        //                     commission: "0",
-        //                     networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        //                     status: "pending",
-        //                     numConfirmed: 8,
-        //                     numConfirmations: 20,
-        //                     destAddress: { address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722" }
+        //                     "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        //                     "time": 1591606166000,
+        //                     "asset": "USDT",
+        //                     "transactionType": "deposit",
+        //                     "amount": "25",
+        //                     "commission": "0",
+        //                     "networkTransactionId": "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        //                     "status": "pending",
+        //                     "numConfirmed": 8,
+        //                     "numConfirmations": 20,
+        //                     "destAddress": { address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722" }
         //                 }
         //             ],
-        //             page: 1,
-        //             pageSize: 20,
-        //             hasNext: false
+        //             "page": 1,
+        //             "pageSize": 20,
+        //             "hasNext": false
         //         }
         //     }
         //
@@ -2582,22 +2582,22 @@ export default class ascendex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //     {
-        //         requestId: "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
-        //         time: 1591606166000,
-        //         asset: "USDT",
-        //         transactionType: "deposit",
-        //         amount: "25",
-        //         commission: "0",
-        //         networkTransactionId: "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        //         status: "pending",
-        //         numConfirmed: 8,
-        //         numConfirmations: 20,
-        //         destAddress: {
-        //             address: "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
-        //             destTag: "..." // for currencies that have it
+        //         "requestId": "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
+        //         "time": 1591606166000,
+        //         "asset": "USDT",
+        //         "transactionType": "deposit",
+        //         "amount": "25",
+        //         "commission": "0",
+        //         "networkTransactionId": "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
+        //         "status": "pending",
+        //         "numConfirmed": 8,
+        //         "numConfirmations": 20,
+        //         "destAddress": {
+        //             "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
+        //             "destTag": "..." // for currencies that have it
         //         }
         //     }
         //
@@ -3174,7 +3174,7 @@ export default class ascendex extends Exchange {
         };
         const response = await this.v1PrivateAccountGroupPostTransfer (this.extend (request, params));
         //
-        //    { code: '0' }
+        //    { "code": "0" }
         //
         const transferOptions = this.safeValue (this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
@@ -3190,7 +3190,7 @@ export default class ascendex extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //    { code: '0' }
+        //    { "code": "0" }
         //
         const status = this.safeInteger (transfer, 'code');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
@@ -3363,8 +3363,8 @@ export default class ascendex extends Exchange {
             return undefined; // fallback to default error handler
         }
         //
-        //     {'code': 6010, 'message': 'Not enough balance.'}
-        //     {'code': 60060, 'message': 'The order is already filled or canceled.'}
+        //     {"code": 6010, "message": "Not enough balance."}
+        //     {"code": 60060, "message": "The order is already filled or canceled."}
         //     {"code":2100,"message":"ApiKeyFailure"}
         //     {"code":300001,"message":"Price is too low from market price.","reason":"INVALID_PRICE","accountId":"cshrHKLZCjlZ2ejqkmvIHHtPmLYqdnda","ac":"CASH","action":"place-order","status":"Err","info":{"symbol":"BTC/USDT"}}
         //

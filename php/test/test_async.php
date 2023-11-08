@@ -969,8 +969,15 @@ class testMainClass extends baseMainTestClass {
             if (($storedUrl !== null) && ($requestUrl !== null)) {
                 $storedUrlParts = explode('?', $storedUrl);
                 $newUrlParts = explode('?', $requestUrl);
-                $storedUrlParams = $this->urlencoded_to_dict($storedUrlParts[1]);
-                $newUrlParams = $this->urlencoded_to_dict($newUrlParts[1]);
+                $storedUrlQuery = $exchange->safe_value($storedUrlParts, 1);
+                $newUrlQuery = $exchange->safe_value($newUrlParts, 1);
+                if (($storedUrlQuery === null) && ($newUrlQuery === null)) {
+                    // might be a get request without any query parameters
+                    // example => https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                $storedUrlParams = $this->urlencoded_to_dict($storedUrlQuery);
+                $newUrlParams = $this->urlencoded_to_dict($newUrlQuery);
                 $this->assert_new_and_stored_output($exchange, $skipKeys, $newUrlParams, $storedUrlParams);
                 return;
             }

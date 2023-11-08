@@ -92,18 +92,18 @@ export default class hitbtc extends hitbtcRest {
             this.watch (url, messageHash, request, messageHash);
             //
             //    {
-            //        jsonrpc: '2.0',
-            //        result: true
+            //        "jsonrpc": "2.0",
+            //        "result": true
             //    }
             //
             //    # Failure to return results
             //
             //    {
-            //        jsonrpc: '2.0',
-            //        error: {
-            //            code: 1002,
-            //            message: 'Authorization is required or has been failed',
-            //            description: 'invalid signature format'
+            //        "jsonrpc": "2.0",
+            //        "error": {
+            //            "code": 1002,
+            //            "message": "Authorization is required or has been failed",
+            //            "description": "invalid signature format"
             //        }
             //    }
             //
@@ -997,7 +997,7 @@ export default class hitbtc extends hitbtcRest {
 
     handleNotification (client: Client, message) {
         //
-        //     { jsonrpc: '2.0', result: true, id: null }
+        //     { jsonrpc: "2.0", result: true, id: null }
         //
         return message;
     }
@@ -1036,8 +1036,8 @@ export default class hitbtc extends hitbtcRest {
     handleAuthenticate (client: Client, message) {
         //
         //    {
-        //        jsonrpc: '2.0',
-        //        result: true
+        //        "jsonrpc": "2.0",
+        //        "result": true
         //    }
         //
         const success = this.safeValue (message, 'result');

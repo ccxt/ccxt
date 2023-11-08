@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -227,7 +227,7 @@ export default class bitvavo extends Exchange {
                     '302': AuthenticationError, // Timestamp is invalid. This must be a timestamp in ms. See Bitvavo-Access-Timestamp header or timestamp parameter for websocket.
                     '303': AuthenticationError, // Window must be between 100 and 60000 ms.
                     '304': AuthenticationError, // Request was not received within acceptable window (default 30s, or custom with Bitvavo-Access-Window header) of Bitvavo-Access-Timestamp header (or timestamp parameter for websocket).
-                    // '304': AuthenticationError, // Authentication is required for this endpoint.
+                    // "304": AuthenticationError, // Authentication is required for this endpoint.
                     '305': AuthenticationError, // {"errorCode":305,"error":"No active API key found."}
                     '306': AuthenticationError, // No active API key found. Please ensure that you have confirmed the API key by e-mail.
                     '307': PermissionDenied, // This key does not allow access from this IP.
@@ -541,7 +541,7 @@ export default class bitvavo extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -646,11 +646,11 @@ export default class bitvavo extends Exchange {
         }
         let request = {
             'market': market['id'],
-            // 'limit': 500, // default 500, max 1000
-            // 'start': since,
-            // 'end': this.milliseconds (),
-            // 'tradeIdFrom': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
-            // 'tradeIdTo': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
+            // "limit": 500, // default 500, max 1000
+            // "start": since,
+            // "end": this.milliseconds (),
+            // "tradeIdFrom": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
+            // "tradeIdTo": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
@@ -674,7 +674,7 @@ export default class bitvavo extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -718,17 +718,17 @@ export default class bitvavo extends Exchange {
         // watchMyTrades (private)
         //
         //     {
-        //         event: 'fill',
-        //         timestamp: 1590964470132,
-        //         market: 'ETH-EUR',
-        //         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
-        //         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
-        //         side: 'sell',
-        //         amount: '0.1',
-        //         price: '211.46',
-        //         taker: true,
-        //         fee: '0.056',
-        //         feeCurrency: 'EUR'
+        //         "event": "fill",
+        //         "timestamp": 1590964470132,
+        //         "market": "ETH-EUR",
+        //         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        //         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        //         "side": "sell",
+        //         "amount": "0.1",
+        //         "price": "211.46",
+        //         "taker": true,
+        //         "fee": "0.056",
+        //         "feeCurrency": "EUR"
         //     }
         //
         const priceString = this.safeString (trade, 'price');
@@ -895,9 +895,9 @@ export default class bitvavo extends Exchange {
         let request = {
             'market': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
-            // 'limit': 1440, // default 1440, max 1440
-            // 'start': since,
-            // 'end': this.milliseconds (),
+            // "limit": 1440, // default 1440, max 1440
+            // "start": since,
+            // "end": this.milliseconds (),
         };
         if (since !== undefined) {
             // https://github.com/ccxt/ccxt/issues/9227
@@ -923,7 +923,7 @@ export default class bitvavo extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1286,11 +1286,11 @@ export default class bitvavo extends Exchange {
         const market = this.market (symbol);
         let request = {
             'market': market['id'],
-            // 'limit': 500,
-            // 'start': since,
-            // 'end': this.milliseconds (),
-            // 'orderIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
-            // 'orderIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            // "limit": 500,
+            // "start": since,
+            // "end": this.milliseconds (),
+            // "orderIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            // "orderIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
         };
         if (since !== undefined) {
             request['start'] = since;
@@ -1352,7 +1352,7 @@ export default class bitvavo extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
+            // "market": market["id"], // rate limit 25 without a market, 1 with market specified
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1549,11 +1549,11 @@ export default class bitvavo extends Exchange {
         const market = this.market (symbol);
         let request = {
             'market': market['id'],
-            // 'limit': 500,
-            // 'start': since,
-            // 'end': this.milliseconds (),
-            // 'tradeIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
-            // 'tradeIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            // "limit": 500,
+            // "start": since,
+            // "end": this.milliseconds (),
+            // "tradeIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            // "tradeIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
         };
         if (since !== undefined) {
             request['start'] = since;
@@ -1603,8 +1603,8 @@ export default class bitvavo extends Exchange {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'address': address, // address or IBAN
-            // 'internal': false, // transfer to another Bitvavo user address, no fees
-            // 'addWithdrawalFee': false, // true = add the fee on top, otherwise the fee is subtracted from the amount
+            // "internal": false, // transfer to another Bitvavo user address, no fees
+            // "addWithdrawalFee": false, // true = add the fee on top, otherwise the fee is subtracted from the amount
         };
         if (tag !== undefined) {
             request['paymentId'] = tag;
@@ -1727,7 +1727,7 @@ export default class bitvavo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1802,6 +1802,7 @@ export default class bitvavo extends Exchange {
             'status': status,
             'updated': undefined,
             'fee': fee,
+            'network': undefined,
         };
     }
 

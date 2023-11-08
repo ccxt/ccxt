@@ -5264,23 +5264,19 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = null;
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols !== null) {
-                $symbols = $this->market_symbols($symbols);
                 $symbolsLength = count($symbols);
                 if ($symbolsLength > 0) {
                     $market = $this->market($symbols[0]);
-                    for ($i = 1; $i < count($symbols); $i++) {
-                        $checkMarket = $this->market($symbols[$i]);
-                        if ($checkMarket['type'] !== $market['type']) {
-                            throw new BadRequest($this->id . ' fetchPositions() does not support multiple types of positions at the same time');
-                        }
-                    }
                 }
             }
             $type = null;
             $request = array();
             list($type, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
-            $this->check_required_argument('fetchPositions', $type, 'type', array( 'swap', 'future', 'option' ));
+            if (($type === null) || ($type === 'spot')) {
+                $type = 'swap'; // default to swap
+            }
             if ($type === 'option') {
                 if ($symbols !== null) {
                     $marketId = $market['id'];
@@ -5290,12 +5286,14 @@ class gate extends Exchange {
             } else {
                 list($request, $params) = $this->prepare_request(null, $type, $params);
             }
-            $method = $this->get_supported_mapping($type, array(
-                'swap' => 'privateFuturesGetSettlePositions',
-                'future' => 'privateDeliveryGetSettlePositions',
-                'option' => 'privateOptionsGetPositions',
-            ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = null;
+            if ($type === 'swap') {
+                $response = Async\await($this->privateFuturesGetSettlePositions (array_merge($request, $params)));
+            } elseif ($type === 'future') {
+                $response = Async\await($this->privateDeliveryGetSettlePositions (array_merge($request, $params)));
+            } elseif ($type === 'option') {
+                $response = Async\await($this->privateOptionsGetPositions (array_merge($request, $params)));
+            }
             //
             // swap and future
             //
