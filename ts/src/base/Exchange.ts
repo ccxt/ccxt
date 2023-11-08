@@ -1536,48 +1536,72 @@ export default class Exchange {
         const length = usedProxies.length;
         if (length > 1) {
             const joinedProxyNames = usedProxies.join (',');
-            throw new ExchangeError (this.id + ' you have multiple conflicting settings: proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
+            throw new ExchangeError (this.id + ' you have multiple conflicting proxy_url settings (' + joinedProxyNames + '), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback');
         }
         return proxyUrl;
     }
 
     checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
-        let httpProxy = (this.httpProxy !== undefined) ? this.httpProxy : this.http_proxy;
-        const httpProxyCallback = (this.httpProxyCallback !== undefined) ? this.httpProxyCallback : this.http_proxy_callback;
-        if (httpProxyCallback !== undefined) {
-            httpProxy = httpProxyCallback (url, method, headers, body);
+        let usedProxies = [];
+        let httpProxy = undefined;
+        let httpsProxy = undefined;
+        let socksProxy = undefined;
+        // httpProxy
+        if (this.httpProxy !== undefined) {
+            usedProxies.push ('httpProxy');
+            httpProxy = this.httpProxy;
         }
-        let httpsProxy = (this.httpsProxy !== undefined) ? this.httpsProxy : this.https_proxy;
-        const httpsProxyCallback = (this.httpsProxyCallback !== undefined) ? this.httpsProxyCallback : this.https_proxy_callback;
-        if (httpsProxyCallback !== undefined) {
-            httpsProxy = httpsProxyCallback (url, method, headers, body);
+        if (this.http_proxy !== undefined) {
+            usedProxies.push ('http_proxy');
+            httpProxy = this.http_proxy;
         }
-        let socksProxy = (this.socksProxy !== undefined) ? this.socksProxy : this.socks_proxy;
-        const socksProxyCallback = (this.socksProxyCallback !== undefined) ? this.socksProxyCallback : this.socks_proxy_callback;
-        if (socksProxyCallback !== undefined) {
-            socksProxy = socksProxyCallback (url, method, headers, body);
+        if (this.httpProxyCallback !== undefined) {
+            usedProxies.push ('httpProxyCallback');
+            httpProxy = this.httpProxyCallback (url, method, headers, body);
         }
-        let val = 0;
-        if (httpProxy !== undefined) {
-            val = val + 1;
+        if (this.http_proxy_callback !== undefined) {
+            usedProxies.push ('http_proxy_callback');
+            httpProxy = this.http_proxy_callback (url, method, headers, body);
         }
-        if (httpProxyCallback !== undefined) {
-            val = val + 1;
+        // httpsProxy
+        if (this.httpsProxy !== undefined) {
+            usedProxies.push ('httpsProxy');
+            httpsProxy = this.httpsProxy;
         }
-        if (httpsProxy !== undefined) {
-            val = val + 1;
+        if (this.https_proxy !== undefined) {
+            usedProxies.push ('https_proxy');
+            httpsProxy = this.https_proxy;
         }
-        if (httpsProxyCallback !== undefined) {
-            val = val + 1;
+        if (this.httpsProxyCallback !== undefined) {
+            usedProxies.push ('httpsProxyCallback');
+            httpsProxy = this.httpsProxyCallback (url, method, headers, body);
         }
-        if (socksProxy !== undefined) {
-            val = val + 1;
+        if (this.https_proxy_callback !== undefined) {
+            usedProxies.push ('https_proxy_callback');
+            httpsProxy = this.https_proxy_callback (url, method, headers, body);
         }
-        if (socksProxyCallback !== undefined) {
-            val = val + 1;
+        // socksProxy
+        if (this.socksProxy !== undefined) {
+            usedProxies.push ('socksProxy');
+            socksProxy = this.socksProxy;
         }
-        if (val > 1) {
-            throw new ExchangeError (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        if (this.socks_proxy !== undefined) {
+            usedProxies.push ('socks_proxy');
+            socksProxy = this.socks_proxy;
+        }
+        if (this.socksProxyCallback !== undefined) {
+            usedProxies.push ('socksProxyCallback');
+            socksProxy = this.socksProxyCallback (url, method, headers, body);
+        }
+        if (this.socks_proxy_callback !== undefined) {
+            usedProxies.push ('socks_proxy_callback');
+            socksProxy = this.socks_proxy_callback (url, method, headers, body);
+        }
+        // check
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join (',');
+            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
     }
