@@ -772,9 +772,9 @@ export default class p2b extends Exchange {
         const result = {
             'info': response,
         };
-        const keys = response.keys ();
+        const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
-            const currencyId = response[i];
+            const currencyId = keys[i];
             const balance = response[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             const used = this.safeString (balance, 'freeze');
