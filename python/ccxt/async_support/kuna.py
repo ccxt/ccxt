@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -650,7 +650,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #    {
         #        "pair": "BTC_USDT",                                   # Traded pair
@@ -811,7 +811,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -828,17 +828,17 @@ class kuna(Exchange, ImplicitAPI):
         # fetchMyTrades, fetchOrder(private)
         #
         #    {
-        #        id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
-        #        orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
-        #        pair: "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
-        #        quantity: "1.5862",                                # Traded quantity of base asset
-        #        price: "19087",                                    # Price of the trade
-        #        isTaker: True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
-        #        fee: "0.0039655",                                  # Exchange commission fee
-        #        feeCurrency: "BTC",                                # Currency of the commission
-        #        isBuyer: True,                                     # Buy or sell the base asset
-        #        quoteQuantity: "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
-        #        createdAt: "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
+        #        "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
+        #        "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
+        #        "pair": "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
+        #        "quantity": "1.5862",                                # Traded quantity of base asset
+        #        "price": "19087",                                    # Price of the trade
+        #        "isTaker": True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
+        #        "fee": "0.0039655",                                  # Exchange commission fee
+        #        "feeCurrency": "BTC",                                # Currency of the commission
+        #        "isBuyer": True,                                     # Buy or sell the base asset
+        #        "quoteQuantity": "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
+        #        "createdAt": "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
         #    }
         #
         datetime = self.safe_string(trade, 'createdAt')
@@ -868,7 +868,7 @@ class kuna(Exchange, ImplicitAPI):
             },
         }, market)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #    [
         #        {
@@ -1316,17 +1316,17 @@ class kuna(Exchange, ImplicitAPI):
         #    {
         #        "data": [
         #            {
-        #                id: "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
-        #                orderId: "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
-        #                pair: "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
-        #                quantity: "1.5862",                                # Traded quantity of base asset
-        #                price: "19087",                                    # Price of the trade
-        #                isTaker: True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
-        #                fee: "0.0039655",                                  # Exchange commission fee
-        #                feeCurrency: "BTC",                                # Currency of the commission
-        #                isBuyer: True,                                     # Buy or sell the base asset
-        #                quoteQuantity: "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
-        #                createdAt: "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
+        #                "id": "edb17459-c9bf-4148-9ae6-7367d7f55d71",        # Unique identifier of a trade
+        #                "orderId": "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   # Unique identifier of an order associated with the trade
+        #                "pair": "BTC_USDT",                                  # Traded pair, base asset first, followed by quoted asset
+        #                "quantity": "1.5862",                                # Traded quantity of base asset
+        #                "price": "19087",                                    # Price of the trade
+        #                "isTaker": True,                                     # Various fees for Makers and Takers; "Market" orders are always `true`
+        #                "fee": "0.0039655",                                  # Exchange commission fee
+        #                "feeCurrency": "BTC",                                # Currency of the commission
+        #                "isBuyer": True,                                     # Buy or sell the base asset
+        #                "quoteQuantity": "30275.7994",                       # Quote asset quantity spent to fulfill the base amount
+        #                "createdAt": "2022-09-29T13:43:53.824Z",             # Date-time of trade execution, UTC
         #            },
         #        ]
         #    }
@@ -1664,7 +1664,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #    {
         #        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               # Unique ID of deposit
@@ -1711,7 +1711,7 @@ class kuna(Exchange, ImplicitAPI):
             'tagTo': None,
             'comment': self.safe_string(transaction, 'memo'),
             'fee': {
-                'cost': self.safe_string(transaction, 'fee'),
+                'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,
             },
         }

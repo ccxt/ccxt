@@ -480,58 +480,58 @@ class coinsph extends Exchange {
             $response = Async\await($this->publicGetOpenapiV1ExchangeInfo ($params));
             //
             //     {
-            //         timezone => 'UTC',
-            //         serverTime => '1677449496897',
-            //         exchangeFilters => array(),
-            //         symbols => array(
+            //         "timezone" => "UTC",
+            //         "serverTime" => "1677449496897",
+            //         "exchangeFilters" => array(),
+            //         "symbols" => array(
             //             array(
-            //                 symbol => 'XRPPHP',
-            //                 status => 'TRADING',
-            //                 baseAsset => 'XRP',
-            //                 baseAssetPrecision => '2',
-            //                 quoteAsset => 'PHP',
-            //                 quoteAssetPrecision => '4',
-            //                 orderTypes => array(
-            //                     'LIMIT',
-            //                     'MARKET',
-            //                     'LIMIT_MAKER',
-            //                     'STOP_LOSS_LIMIT',
-            //                     'STOP_LOSS',
-            //                     'TAKE_PROFIT_LIMIT',
-            //                     'TAKE_PROFIT'
+            //                 "symbol" => "XRPPHP",
+            //                 "status" => "TRADING",
+            //                 "baseAsset" => "XRP",
+            //                 "baseAssetPrecision" => "2",
+            //                 "quoteAsset" => "PHP",
+            //                 "quoteAssetPrecision" => "4",
+            //                 "orderTypes" => array(
+            //                     "LIMIT",
+            //                     "MARKET",
+            //                     "LIMIT_MAKER",
+            //                     "STOP_LOSS_LIMIT",
+            //                     "STOP_LOSS",
+            //                     "TAKE_PROFIT_LIMIT",
+            //                     "TAKE_PROFIT"
             //                 ),
-            //                 filters => array(
+            //                 "filters" => array(
             //                     array(
-            //                         minPrice => '0.01',
-            //                         maxPrice => '99999999.00000000',
-            //                         tickSize => '0.01',
-            //                         filterType => 'PRICE_FILTER'
+            //                         "minPrice" => "0.01",
+            //                         "maxPrice" => "99999999.00000000",
+            //                         "tickSize" => "0.01",
+            //                         "filterType" => "PRICE_FILTER"
             //                     ),
             //                     array(
-            //                         minQty => '0.01',
-            //                         maxQty => '99999999999.00000000',
-            //                         stepSize => '0.01',
-            //                         filterType => 'LOT_SIZE'
+            //                         "minQty" => "0.01",
+            //                         "maxQty" => "99999999999.00000000",
+            //                         "stepSize" => "0.01",
+            //                         "filterType" => "LOT_SIZE"
             //                     ),
-            //                     array( minNotional => '50', filterType => 'NOTIONAL' ),
-            //                     array( minNotional => '50', filterType => 'MIN_NOTIONAL' ),
+            //                     array( minNotional => "50", filterType => "NOTIONAL" ),
+            //                     array( minNotional => "50", filterType => "MIN_NOTIONAL" ),
             //                     array(
-            //                         priceUp => '99999999',
-            //                         priceDown => '0.01',
-            //                         filterType => 'STATIC_PRICE_RANGE'
-            //                     ),
-            //                     array(
-            //                         multiplierUp => '1.1',
-            //                         multiplierDown => '0.9',
-            //                         filterType => 'PERCENT_PRICE_INDEX'
+            //                         "priceUp" => "99999999",
+            //                         "priceDown" => "0.01",
+            //                         "filterType" => "STATIC_PRICE_RANGE"
             //                     ),
             //                     array(
-            //                         multiplierUp => '1.1',
-            //                         multiplierDown => '0.9',
-            //                         filterType => 'PERCENT_PRICE_ORDER_SIZE'
+            //                         "multiplierUp" => "1.1",
+            //                         "multiplierDown" => "0.9",
+            //                         "filterType" => "PERCENT_PRICE_INDEX"
             //                     ),
-            //                     array( maxNumOrders => '200', filterType => 'MAX_NUM_ORDERS' ),
-            //                     array( maxNumAlgoOrders => '5', filterType => 'MAX_NUM_ALGO_ORDERS' )
+            //                     array(
+            //                         "multiplierUp" => "1.1",
+            //                         "multiplierDown" => "0.9",
+            //                         "filterType" => "PERCENT_PRICE_ORDER_SIZE"
+            //                     ),
+            //                     array( maxNumOrders => "200", filterType => "MAX_NUM_ORDERS" ),
+            //                     array( maxNumAlgoOrders => "5", filterType => "MAX_NUM_ALGO_ORDERS" )
             //                 )
             //             ),
             //         )
@@ -655,31 +655,31 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
-        //         symbol => 'ETHUSDT',
-        //         priceChange => '41.440000000000000000',
-        //         priceChangePercent => '0.0259',
-        //         weightedAvgPrice => '1631.169825783972125436',
-        //         prevClosePrice => '1601.520000000000000000',
-        //         lastPrice => '1642.96',
-        //         lastQty => '0.000001000000000000',
-        //         bidPrice => '1638.790000000000000000',
-        //         bidQty => '0.280075000000000000',
-        //         askPrice => '1647.340000000000000000',
-        //         askQty => '0.165183000000000000',
-        //         openPrice => '1601.52',
-        //         highPrice => '1648.28',
-        //         lowPrice => '1601.52',
-        //         volume => '0.000287',
-        //         $quoteVolume => '0.46814574',
-        //         openTime => '1677417000000',
-        //         closeTime => '1677503415200',
-        //         firstId => '1364680572697591809',
-        //         lastId => '1365389809203560449',
-        //         count => '100'
+        //         "symbol" => "ETHUSDT",
+        //         "priceChange" => "41.440000000000000000",
+        //         "priceChangePercent" => "0.0259",
+        //         "weightedAvgPrice" => "1631.169825783972125436",
+        //         "prevClosePrice" => "1601.520000000000000000",
+        //         "lastPrice" => "1642.96",
+        //         "lastQty" => "0.000001000000000000",
+        //         "bidPrice" => "1638.790000000000000000",
+        //         "bidQty" => "0.280075000000000000",
+        //         "askPrice" => "1647.340000000000000000",
+        //         "askQty" => "0.165183000000000000",
+        //         "openPrice" => "1601.52",
+        //         "highPrice" => "1648.28",
+        //         "lowPrice" => "1601.52",
+        //         "volume" => "0.000287",
+        //         "quoteVolume" => "0.46814574",
+        //         "openTime" => "1677417000000",
+        //         "closeTime" => "1677503415200",
+        //         "firstId" => "1364680572697591809",
+        //         "lastId" => "1365389809203560449",
+        //         "count" => "100"
         //     }
         //
         // publicGetOpenapiQuoteV1TickerPrice
@@ -792,7 +792,7 @@ class coinsph extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 $request['limit'] = 1000;
-                // $since work properly only when it is "younger" than last 'limit' candle
+                // $since work properly only when it is "younger" than last "limit" candle
                 if ($limit !== null) {
                     $duration = $this->parse_timeframe($timeframe) * 1000;
                     $request['endTime'] = $this->sum($since, $duration * ($limit - 1));
@@ -864,13 +864,13 @@ class coinsph extends Exchange {
             //
             //     array(
             //         array(
-            //             price => '89685.8',
-            //             id => '1365561108437680129',
-            //             qty => '0.000004',
-            //             quoteQty => '0.000004000000000000',
-            //             time => '1677523569575',
-            //             isBuyerMaker => false,
-            //             isBestMatch => true
+            //             "price" => "89685.8",
+            //             "id" => "1365561108437680129",
+            //             "qty" => "0.000004",
+            //             "quoteQty" => "0.000004000000000000",
+            //             "time" => "1677523569575",
+            //             "isBuyerMaker" => false,
+            //             "isBestMatch" => true
             //         ),
             //     )
             //
@@ -929,17 +929,17 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //     array(
-        //         price => '89685.8',
-        //         $id => '1365561108437680129',
-        //         qty => '0.000004',
-        //         quoteQty => '0.000004000000000000', // warning => report to exchange - this is not quote quantity, this is base quantity
-        //         time => '1677523569575',
-        //         isBuyerMaker => false,
-        //         isBestMatch => true
+        //         "price" => "89685.8",
+        //         "id" => "1365561108437680129",
+        //         "qty" => "0.000004",
+        //         "quoteQty" => "0.000004000000000000", // warning => report to exchange - this is not quote quantity, this is base quantity
+        //         "time" => "1677523569575",
+        //         "isBuyerMaker" => false,
+        //         "isBestMatch" => true
         //     ),
         //
         // fetchMyTrades
@@ -1027,8 +1027,8 @@ class coinsph extends Exchange {
             $response = Async\await($this->privateGetOpenapiV1Account ($params));
             //
             //     {
-            //         accountType => 'SPOT',
-            //         balances => array(
+            //         "accountType" => "SPOT",
+            //         "balances" => array(
             //             array(
             //                 "asset" => "BTC",
             //                 "free" => "4723846.89208129",
@@ -1040,17 +1040,17 @@ class coinsph extends Exchange {
             //                 "locked" => "0.00000000"
             //             }
             //         ),
-            //         canDeposit => true,
-            //         canTrade => true,
-            //         canWithdraw => true,
-            //         updateTime => '1677430932528'
+            //         "canDeposit" => true,
+            //         "canTrade" => true,
+            //         "canWithdraw" => true,
+            //         "updateTime" => "1677430932528"
             //     }
             //
             return $this->parse_balance($response);
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $timestamp = $this->milliseconds();
         $result = array(
@@ -1143,27 +1143,27 @@ class coinsph extends Exchange {
             $response = Async\await($this->privatePostOpenapiV1Order (array_merge($request, $params)));
             //
             //     {
-            //         $symbol => 'ETHUSDT',
-            //         orderId => '1375407140139731486',
-            //         clientOrderId => '1375407140139733169',
-            //         transactTime => '1678697308023',
-            //         $price => '1600',
-            //         origQty => '0.02',
-            //         executedQty => '0.02',
-            //         cummulativeQuoteQty => '31.9284',
-            //         status => 'FILLED',
-            //         timeInForce => 'GTC',
-            //         $type => 'LIMIT',
-            //         $side => 'BUY',
-            //         $stopPrice => '0',
-            //         origQuoteOrderQty => '0',
-            //         fills => array(
+            //         "symbol" => "ETHUSDT",
+            //         "orderId" => "1375407140139731486",
+            //         "clientOrderId" => "1375407140139733169",
+            //         "transactTime" => "1678697308023",
+            //         "price" => "1600",
+            //         "origQty" => "0.02",
+            //         "executedQty" => "0.02",
+            //         "cummulativeQuoteQty" => "31.9284",
+            //         "status" => "FILLED",
+            //         "timeInForce" => "GTC",
+            //         "type" => "LIMIT",
+            //         "side" => "BUY",
+            //         "stopPrice" => "0",
+            //         "origQuoteOrderQty" => "0",
+            //         "fills" => array(
             //             array(
-            //                 $price => '1596.42',
-            //                 qty => '0.02',
-            //                 commission => '0',
-            //                 commissionAsset => 'ETH',
-            //                 tradeId => '1375407140281532417'
+            //                 "price" => "1596.42",
+            //                 "qty" => "0.02",
+            //                 "commission" => "0",
+            //                 "commissionAsset" => "ETH",
+            //                 "tradeId" => "1375407140281532417"
             //             }
             //         )
             //     ),
@@ -1500,14 +1500,14 @@ class coinsph extends Exchange {
             //
             //     array(
             //         array(
-            //             $symbol => 'ETHPHP',
-            //             makerCommission => '0.0025',
-            //             takerCommission => '0.003'
+            //             "symbol" => "ETHPHP",
+            //             "makerCommission" => "0.0025",
+            //             "takerCommission" => "0.003"
             //         ),
             //         array(
-            //             $symbol => 'UNIPHP',
-            //             makerCommission => '0.0025',
-            //             takerCommission => '0.003'
+            //             "symbol" => "UNIPHP",
+            //             "makerCommission" => "0.0025",
+            //             "takerCommission" => "0.003"
             //         ),
             //     )
             //
@@ -1731,7 +1731,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //     {

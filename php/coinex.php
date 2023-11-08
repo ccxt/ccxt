@@ -304,8 +304,8 @@ class coinex extends Exchange {
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCommonAssetConfig ($params);
         //     {
-        //         $code => 0,
-        //         $data => array(
+        //         "code" => 0,
+        //         "data" => array(
         //             "USDT-ERC20" => array(
         //                  "asset" => "USDT",
         //                  "chain" => "ERC20",
@@ -319,7 +319,7 @@ class coinex extends Exchange {
         //             ),
         //             ...
         //         ),
-        //         message => 'Success',
+        //         "message" => "Success",
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -635,7 +635,7 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // Spot fetchTicker, fetchTickers
         //
@@ -880,9 +880,9 @@ class coinex extends Exchange {
         $response = $this->perpetualPublicGetTime ($params);
         //
         //     {
-        //         code => '0',
-        //         data => '1653261274414',
-        //         message => 'OK'
+        //         "code" => "0",
+        //         "data" => "1653261274414",
+        //         "message" => "OK"
         //     }
         //
         return $this->safe_integer($response, 'data');
@@ -961,7 +961,7 @@ class coinex extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -2692,12 +2692,12 @@ class coinex extends Exchange {
         $response = $this->privatePutBalanceDepositAddressCoinType (array_merge($request, $params));
         //
         //     {
-        //         $code => 0,
-        //         $data => array(
-        //             coin_address => 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        //             is_bitcoin_cash => false
+        //         "code" => 0,
+        //         "data" => array(
+        //             "coin_address" => "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        //             "is_bitcoin_cash" => false
         //         ),
-        //         message => 'Success'
+        //         "message" => "Success"
         //     }
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
@@ -2734,13 +2734,13 @@ class coinex extends Exchange {
         $response = $this->privateGetBalanceDepositAddressCoinType (array_merge($request, $params));
         //
         //      {
-        //          $code => 0,
-        //          $data => array(
-        //            coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //            // coin_address => 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
-        //            is_bitcoin_cash => false
+        //          "code" => 0,
+        //          "data" => array(
+        //            "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //            // coin_address => "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
+        //            "is_bitcoin_cash" => false
         //          ),
-        //          message => 'Success'
+        //          "message" => "Success"
         //      }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2774,8 +2774,8 @@ class coinex extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //         is_bitcoin_cash => false
+        //         "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "is_bitcoin_cash" => false
         //     }
         //
         $coinAddress = $this->safe_string($depositAddress, 'coin_address');
@@ -3871,7 +3871,7 @@ class coinex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

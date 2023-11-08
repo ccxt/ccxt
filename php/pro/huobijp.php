@@ -83,18 +83,18 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $ch => 'market.btcusdt.detail',
-        //         ts => 1583494163784,
-        //         $tick => {
-        //             id => 209988464418,
-        //             low => 8988,
-        //             high => 9155.41,
-        //             open => 9078.91,
-        //             close => 9136.46,
-        //             vol => 237813910.5928412,
-        //             amount => 26184.202558551195,
-        //             version => 209988464418,
-        //             count => 265673
+        //         "ch" => "market.btcusdt.detail",
+        //         "ts" => 1583494163784,
+        //         "tick" => {
+        //             "id" => 209988464418,
+        //             "low" => 8988,
+        //             "high" => 9155.41,
+        //             "open" => 9078.91,
+        //             "close" => 9136.46,
+        //             "vol" => 237813910.5928412,
+        //             "amount" => 26184.202558551195,
+        //             "version" => 209988464418,
+        //             "count" => 265673
         //         }
         //     }
         //
@@ -153,19 +153,19 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         $ch => "market.btcusdt.trade.detail",
-        //         ts => 1583495834011,
-        //         $tick => {
-        //             id => 105004645372,
-        //             ts => 1583495833751,
-        //             $data => array(
+        //         "ch" => "market.btcusdt.trade.detail",
+        //         "ts" => 1583495834011,
+        //         "tick" => {
+        //             "id" => 105004645372,
+        //             "ts" => 1583495833751,
+        //             "data" => array(
         //                 {
-        //                     id => 1.050046453727319e+22,
-        //                     ts => 1583495833751,
-        //                     tradeId => 102090727790,
-        //                     amount => 0.003893,
-        //                     price => 9150.01,
-        //                     direction => "sell"
+        //                     "id" => 1.050046453727319e+22,
+        //                     "ts" => 1583495833751,
+        //                     "tradeId" => 102090727790,
+        //                     "amount" => 0.003893,
+        //                     "price" => 9150.01,
+        //                     "direction" => "sell"
         //                 }
         //             )
         //         }
@@ -234,17 +234,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $ch => 'market.btcusdt.kline.1min',
-        //         ts => 1583501786794,
-        //         $tick => {
-        //             id => 1583501760,
-        //             open => 9094.5,
-        //             close => 9094.51,
-        //             low => 9094.5,
-        //             high => 9094.51,
-        //             amount => 0.44639786263800907,
-        //             vol => 4059.76919054,
-        //             count => 16
+        //         "ch" => "market.btcusdt.kline.1min",
+        //         "ts" => 1583501786794,
+        //         "tick" => {
+        //             "id" => 1583501760,
+        //             "open" => 9094.5,
+        //             "close" => 9094.51,
+        //             "low" => 9094.5,
+        //             "high" => 9094.51,
+        //             "amount" => 0.44639786263800907,
+        //             "vol" => 4059.76919054,
+        //             "count" => 16
         //         }
         //     }
         //
@@ -310,17 +310,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_order_book_snapshot(Client $client, $message, $subscription) {
         //
         //     {
-        //         id => 1583473663565,
-        //         rep => 'market.btcusdt.mbp.150',
-        //         status => 'ok',
-        //         $data => {
-        //             seqNum => 104999417756,
-        //             bids => [
+        //         "id" => 1583473663565,
+        //         "rep" => "market.btcusdt.mbp.150",
+        //         "status" => "ok",
+        //         "data" => {
+        //             "seqNum" => 104999417756,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -393,17 +393,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
-        //         ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         $tick => {
-        //             $seqNum => 104998984994,
-        //             $prevSeqNum => 104998984977,
-        //             $bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             $asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -432,17 +432,17 @@ class huobijp extends \ccxt\async\huobijp {
         // deltas
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -507,8 +507,8 @@ class huobijp extends \ccxt\async\huobijp {
         // involves system status and maintenance updates
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -517,17 +517,17 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_subject(Client $client, $message) {
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -572,11 +572,11 @@ class huobijp extends \ccxt\async\huobijp {
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         ts => 1586323747018,
-        //         $status => 'error',
-        //         'err-code' => 'bad-request',
-        //         'err-msg' => 'invalid mbp.150.symbol linkusdt',
-        //         $id => '2'
+        //         "ts" => 1586323747018,
+        //         "status" => "error",
+        //         'err-code' => "bad-request",
+        //         'err-msg' => "invalid mbp.150.symbol linkusdt",
+        //         "id" => "2"
         //     }
         //
         $status = $this->safe_string($message, 'status');
@@ -611,7 +611,7 @@ class huobijp extends \ccxt\async\huobijp {
             //
             // sometimes huobijp responds with half of a JSON response like
             //
-            //     ' {"ch":"market.ethbtc.m '
+            //     " {"ch":"market.ethbtc.m "
             //
             // this is passed to handleMessage string since it failed to be decoded
             //

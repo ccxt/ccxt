@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -289,7 +289,7 @@ class yobit(Exchange, ImplicitAPI):
             'orders': {},  # orders cache / emulation
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'return', {})
         timestamp = self.safe_integer(balances, 'server_time')
         result = {
@@ -497,18 +497,18 @@ class yobit(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
-        #         high: 0.03497582,
-        #         low: 0.03248474,
-        #         avg: 0.03373028,
-        #         vol: 120.11485715062999,
-        #         vol_cur: 3572.24914074,
-        #         last: 0.0337611,
-        #         buy: 0.0337442,
-        #         sell: 0.03377798,
-        #         updated: 1537522009
+        #         "high": 0.03497582,
+        #         "low": 0.03248474,
+        #         "avg": 0.03373028,
+        #         "vol": 120.11485715062999,
+        #         "vol_cur": 3572.24914074,
+        #         "last": 0.0337611,
+        #         "buy": 0.0337442,
+        #         "sell": 0.03377798,
+        #         "updated": 1537522009
         #     }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
@@ -586,7 +586,7 @@ class yobit(Exchange, ImplicitAPI):
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #

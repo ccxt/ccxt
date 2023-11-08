@@ -247,7 +247,7 @@ class ace extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "base_volume":229196.34035399999,
@@ -740,7 +740,7 @@ class ace extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchOrderTrades
         //         {
@@ -933,7 +933,7 @@ class ace extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //     array(
         //         {
@@ -984,9 +984,9 @@ class ace extends Exchange {
         //                 "currencyName" => "BTC"
         //             }
         //         ),
-        //         message => null,
-        //         parameters => null,
-        //         status => '200'
+        //         "message" => null,
+        //         "parameters" => null,
+        //         "status" => "200"
         //     }
         //
         return $this->parse_balance($balances);

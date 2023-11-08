@@ -1,5 +1,5 @@
 import bitfinexRest from '../bitfinex.js';
-import { Int } from '../base/types.js';
+import { Int, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitfinex extends bitfinexRest {
     describe(): any;
@@ -7,7 +7,7 @@ export default class bitfinex extends bitfinexRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any, subscription: any): any;
-    parseTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseTrade(trade: any, market?: any): Trade;
     handleTicker(client: Client, message: any, subscription: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any, subscription: any): void;

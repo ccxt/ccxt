@@ -1171,38 +1171,38 @@ class hitbtc extends hitbtc$1 {
         // createOrder (market)
         //
         //  {
-        //      id: '1569252895',
-        //      position_id: '0',
-        //      quantity: '10',
-        //      price: '0.03919424',
-        //      fee: '0.000979856000',
-        //      timestamp: '2022-01-25T19:38:36.153Z',
-        //      taker: true
+        //      "id": "1569252895",
+        //      "position_id": "0",
+        //      "quantity": "10",
+        //      "price": "0.03919424",
+        //      "fee": "0.000979856000",
+        //      "timestamp": "2022-01-25T19:38:36.153Z",
+        //      "taker": true
         //  }
         //
         // fetchTrades
         //
         //  {
-        //      id: 974786185,
-        //      price: '0.032462',
-        //      qty: '0.3673',
-        //      side: 'buy',
-        //      timestamp: '2020-10-16T12:57:39.846Z'
+        //      "id": 974786185,
+        //      "price": "0.032462",
+        //      "qty": "0.3673",
+        //      "side": "buy",
+        //      "timestamp": "2020-10-16T12:57:39.846Z"
         //  }
         //
         // fetchMyTrades spot
         //
         //  {
-        //      id: 277210397,
-        //      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        //      orderId: 28102855393,
-        //      symbol: 'ETHBTC',
-        //      side: 'sell',
-        //      quantity: '0.002',
-        //      price: '0.073365',
-        //      fee: '0.000000147',
-        //      timestamp: '2018-04-28T18:39:55.345Z',
-        //      taker: true
+        //      "id": 277210397,
+        //      "clientOrderId": "6e102f3e7f3f4e04aeeb1cdc95592f1a",
+        //      "orderId": 28102855393,
+        //      "symbol": "ETHBTC",
+        //      "side": "sell",
+        //      "quantity": "0.002",
+        //      "price": "0.073365",
+        //      "fee": "0.000000147",
+        //      "timestamp": "2018-04-28T18:39:55.345Z",
+        //      "taker": true
         //  }
         //
         // fetchMyTrades swap and margin
@@ -1391,7 +1391,6 @@ class hitbtc extends hitbtc$1 {
             'id': id,
             'txid': txhash,
             'type': type,
-            'code': code,
             'currency': code,
             'network': undefined,
             'amount': amount,
@@ -2301,7 +2300,7 @@ class hitbtc extends hitbtc$1 {
         const response = await this.privatePostWalletTransfer(this.extend(request, params));
         //
         //     [
-        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
         return this.parseTransfer(response, currency);
@@ -2311,7 +2310,7 @@ class hitbtc extends hitbtc$1 {
         // transfer
         //
         //     [
-        //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         //     ]
         //
         const timestamp = this.milliseconds();
@@ -2782,8 +2781,8 @@ class hitbtc extends hitbtc$1 {
         const request = {
             'symbol': market['id'],
             'margin_balance': amount, // swap and margin
-            // 'leverage': '10', // swap only required
-            // 'strict_validate': false, // swap and margin
+            // "leverage": "10", // swap only required
+            // "strict_validate": false, // swap and margin
         };
         if (leverage !== undefined) {
             request['leverage'] = leverage;

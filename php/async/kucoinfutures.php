@@ -532,8 +532,8 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPublicGetTimestamp ($params));
             //
             //    {
-            //        code => "200000",
-            //        data => 1637385119302,
+            //        "code" => "200000",
+            //        "data" => 1637385119302,
             //    }
             //
             return $this->safe_integer($response, 'data');
@@ -754,7 +754,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "code" => "200000",
@@ -1204,9 +1204,9 @@ class kucoinfutures extends kucoin {
             }
             //
             //    {
-            //        code => "200000",
-            //        $data => array(
-            //            orderId => "619717484f1d010001510cde",
+            //        "code" => "200000",
+            //        "data" => array(
+            //            "orderId" => "619717484f1d010001510cde",
             //        ),
             //    }
             //
@@ -1254,9 +1254,9 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPrivateDeleteOrdersOrderId (array_merge($request, $params)));
             //
             //   {
-            //       code => "200000",
-            //       data => array(
-            //           cancelledOrderIds => array(
+            //       "code" => "200000",
+            //       "data" => array(
+            //           "cancelledOrderIds" => array(
             //                "619714b8b6353000014c505a",
             //           ),
             //       ),
@@ -1285,9 +1285,9 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //   {
-            //       code => "200000",
-            //       data => array(
-            //           cancelledOrderIds => array(
+            //       "code" => "200000",
+            //       "data" => array(
+            //           "cancelledOrderIds" => array(
             //                "619714b8b6353000014c505a",
             //           ),
             //       ),
@@ -1317,44 +1317,44 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPrivatePostPositionMarginDepositMargin (array_merge($request, $params)));
             //
             //    {
-            //        code => '200000',
-            //        $data => {
-            //            id => '62311d26064e8f00013f2c6d',
-            //            $symbol => 'XRPUSDTM',
-            //            autoDeposit => false,
-            //            maintMarginReq => 0.01,
-            //            riskLimit => 200000,
-            //            realLeverage => 0.88,
-            //            crossMode => false,
-            //            delevPercentage => 0.4,
-            //            openingTimestamp => 1647385894798,
-            //            currentTimestamp => 1647414510672,
-            //            currentQty => -1,
-            //            currentCost => -7.658,
-            //            currentComm => 0.0053561,
-            //            unrealisedCost => -7.658,
-            //            realisedGrossCost => 0,
-            //            realisedCost => 0.0053561,
-            //            isOpen => true,
-            //            markPrice => 0.7635,
-            //            markValue => -7.635,
-            //            posCost => -7.658,
-            //            posCross => 1.00016084,
-            //            posInit => 7.658,
-            //            posComm => 0.00979006,
-            //            posLoss => 0,
-            //            posMargin => 8.6679509,
-            //            posMaint => 0.08637006,
-            //            maintMargin => 8.6909509,
-            //            realisedGrossPnl => 0,
-            //            realisedPnl => -0.0038335,
-            //            unrealisedPnl => 0.023,
-            //            unrealisedPnlPcnt => 0.003,
-            //            unrealisedRoePcnt => 0.003,
-            //            avgEntryPrice => 0.7658,
-            //            liquidationPrice => 1.6239,
-            //            bankruptPrice => 1.6317,
-            //            settleCurrency => 'USDT'
+            //        "code" => "200000",
+            //        "data" => {
+            //            "id" => "62311d26064e8f00013f2c6d",
+            //            "symbol" => "XRPUSDTM",
+            //            "autoDeposit" => false,
+            //            "maintMarginReq" => 0.01,
+            //            "riskLimit" => 200000,
+            //            "realLeverage" => 0.88,
+            //            "crossMode" => false,
+            //            "delevPercentage" => 0.4,
+            //            "openingTimestamp" => 1647385894798,
+            //            "currentTimestamp" => 1647414510672,
+            //            "currentQty" => -1,
+            //            "currentCost" => -7.658,
+            //            "currentComm" => 0.0053561,
+            //            "unrealisedCost" => -7.658,
+            //            "realisedGrossCost" => 0,
+            //            "realisedCost" => 0.0053561,
+            //            "isOpen" => true,
+            //            "markPrice" => 0.7635,
+            //            "markValue" => -7.635,
+            //            "posCost" => -7.658,
+            //            "posCross" => 1.00016084,
+            //            "posInit" => 7.658,
+            //            "posComm" => 0.00979006,
+            //            "posLoss" => 0,
+            //            "posMargin" => 8.6679509,
+            //            "posMaint" => 0.08637006,
+            //            "maintMargin" => 8.6909509,
+            //            "realisedGrossPnl" => 0,
+            //            "realisedPnl" => -0.0038335,
+            //            "unrealisedPnl" => 0.023,
+            //            "unrealisedPnlPcnt" => 0.003,
+            //            "unrealisedRoePcnt" => 0.003,
+            //            "avgEntryPrice" => 0.7658,
+            //            "liquidationPrice" => 1.6239,
+            //            "bankruptPrice" => 1.6317,
+            //            "settleCurrency" => "USDT"
             //        }
             //    }
             //
@@ -1375,42 +1375,42 @@ class kucoinfutures extends kucoin {
     public function parse_margin_modification($info, $market = null) {
         //
         //    {
-        //        $id => '62311d26064e8f00013f2c6d',
-        //        symbol => 'XRPUSDTM',
-        //        autoDeposit => false,
-        //        maintMarginReq => 0.01,
-        //        riskLimit => 200000,
-        //        realLeverage => 0.88,
-        //        $crossMode => false,
-        //        delevPercentage => 0.4,
-        //        openingTimestamp => 1647385894798,
-        //        currentTimestamp => 1647414510672,
-        //        currentQty => -1,
-        //        currentCost => -7.658,
-        //        currentComm => 0.0053561,
-        //        unrealisedCost => -7.658,
-        //        realisedGrossCost => 0,
-        //        realisedCost => 0.0053561,
-        //        isOpen => true,
-        //        markPrice => 0.7635,
-        //        markValue => -7.635,
-        //        posCost => -7.658,
-        //        posCross => 1.00016084,
-        //        posInit => 7.658,
-        //        posComm => 0.00979006,
-        //        posLoss => 0,
-        //        posMargin => 8.6679509,
-        //        posMaint => 0.08637006,
-        //        maintMargin => 8.6909509,
-        //        realisedGrossPnl => 0,
-        //        realisedPnl => -0.0038335,
-        //        unrealisedPnl => 0.023,
-        //        unrealisedPnlPcnt => 0.003,
-        //        unrealisedRoePcnt => 0.003,
-        //        avgEntryPrice => 0.7658,
-        //        liquidationPrice => 1.6239,
-        //        bankruptPrice => 1.6317,
-        //        settleCurrency => 'USDT'
+        //        "id" => "62311d26064e8f00013f2c6d",
+        //        "symbol" => "XRPUSDTM",
+        //        "autoDeposit" => false,
+        //        "maintMarginReq" => 0.01,
+        //        "riskLimit" => 200000,
+        //        "realLeverage" => 0.88,
+        //        "crossMode" => false,
+        //        "delevPercentage" => 0.4,
+        //        "openingTimestamp" => 1647385894798,
+        //        "currentTimestamp" => 1647414510672,
+        //        "currentQty" => -1,
+        //        "currentCost" => -7.658,
+        //        "currentComm" => 0.0053561,
+        //        "unrealisedCost" => -7.658,
+        //        "realisedGrossCost" => 0,
+        //        "realisedCost" => 0.0053561,
+        //        "isOpen" => true,
+        //        "markPrice" => 0.7635,
+        //        "markValue" => -7.635,
+        //        "posCost" => -7.658,
+        //        "posCross" => 1.00016084,
+        //        "posInit" => 7.658,
+        //        "posComm" => 0.00979006,
+        //        "posLoss" => 0,
+        //        "posMargin" => 8.6679509,
+        //        "posMaint" => 0.08637006,
+        //        "maintMargin" => 8.6909509,
+        //        "realisedGrossPnl" => 0,
+        //        "realisedPnl" => -0.0038335,
+        //        "unrealisedPnl" => 0.023,
+        //        "unrealisedPnlPcnt" => 0.003,
+        //        "unrealisedRoePcnt" => 0.003,
+        //        "avgEntryPrice" => 0.7658,
+        //        "liquidationPrice" => 1.6239,
+        //        "bankruptPrice" => 1.6317,
+        //        "settleCurrency" => "USDT"
         //    }
         //
         //    {
@@ -1769,13 +1769,13 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPublicGetFundingRateSymbolCurrent (array_merge($request, $params)));
             //
             //    {
-            //        code => "200000",
-            //        $data => array(
-            //            $symbol => ".ETHUSDTMFPI8H",
-            //            granularity => 28800000,
-            //            timePoint => 1637380800000,
-            //            value => 0.0001,
-            //            predictedValue => 0.0001,
+            //        "code" => "200000",
+            //        "data" => array(
+            //            "symbol" => ".ETHUSDTMFPI8H",
+            //            "granularity" => 28800000,
+            //            "timePoint" => 1637380800000,
+            //            "value" => 0.0001,
+            //            "predictedValue" => 0.0001,
             //        ),
             //    }
             //
@@ -1804,7 +1804,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1840,16 +1840,16 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPrivateGetAccountOverview (array_merge($request, $params)));
             //
             //     {
-            //         $code => '200000',
-            //         data => {
-            //             accountEquity => 0.00005,
-            //             unrealisedPNL => 0,
-            //             marginBalance => 0.00005,
-            //             positionMargin => 0,
-            //             orderMargin => 0,
-            //             frozenFunds => 0,
-            //             availableBalance => 0.00005,
-            //             $currency => 'XBT'
+            //         "code" => "200000",
+            //         "data" => {
+            //             "accountEquity" => 0.00005,
+            //             "unrealisedPNL" => 0,
+            //             "marginBalance" => 0.00005,
+            //             "positionMargin" => 0,
+            //             "orderMargin" => 0,
+            //             "frozenFunds" => 0,
+            //             "availableBalance" => 0.00005,
+            //             "currency" => "XBT"
             //         }
             //     }
             //
@@ -2040,7 +2040,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -2103,17 +2103,17 @@ class kucoinfutures extends kucoin {
         // watchTrades
         //
         //    {
-        //        makerUserId => '62286a4d720edf0001e81961',
-        //        symbol => 'ADAUSDTM',
-        //        sequence => 41320766,
-        //        $side => 'sell',
-        //        size => 2,
-        //        price => 0.35904,
-        //        takerOrderId => '636dd9da9857ba00010cfa44',
-        //        makerOrderId => '636dd9c8df149d0001e62bc8',
-        //        takerUserId => '6180be22b6ab210001fa3371',
-        //        tradeId => '636dd9da0000d400d477eca7',
-        //        ts => 1668143578987357700
+        //        "makerUserId" => "62286a4d720edf0001e81961",
+        //        "symbol" => "ADAUSDTM",
+        //        "sequence" => 41320766,
+        //        "side" => "sell",
+        //        "size" => 2,
+        //        "price" => 0.35904,
+        //        "takerOrderId" => "636dd9da9857ba00010cfa44",
+        //        "makerOrderId" => "636dd9c8df149d0001e62bc8",
+        //        "takerUserId" => "6180be22b6ab210001fa3371",
+        //        "tradeId" => "636dd9da0000d400d477eca7",
+        //        "ts" => 1668143578987357700
         //    }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -2201,8 +2201,8 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPrivateGetDepositList (array_merge($request, $params)));
             //
             //     {
-            //         $code => '200000',
-            //         data => {
+            //         "code" => "200000",
+            //         "data" => {
             //             "currentPage" => 1,
             //             "pageSize" => 5,
             //             "totalNum" => 2,
@@ -2257,8 +2257,8 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->futuresPrivateGetWithdrawalList (array_merge($request, $params)));
             //
             //     {
-            //         $code => '200000',
-            //         data => {
+            //         "code" => "200000",
+            //         "data" => {
             //             "currentPage" => 1,
             //             "pageSize" => 5,
             //             "totalNum" => 2,
@@ -2389,21 +2389,21 @@ class kucoinfutures extends kucoin {
             $response = Async\await($this->webExchangeGetContractSymbolFundingRates (array_merge($request, $params)));
             //
             //    {
-            //        success => true,
-            //        code => '200',
-            //        msg => 'success',
-            //        retry => false,
-            //        $data => {
-            //            $dataList => array(
+            //        "success" => true,
+            //        "code" => "200",
+            //        "msg" => "success",
+            //        "retry" => false,
+            //        "data" => {
+            //            "dataList" => array(
             //                array(
-            //                    $symbol => 'XBTUSDTM',
-            //                    granularity => 28800000,
-            //                    timePoint => 1675108800000,
-            //                    value => 0.0001
+            //                    "symbol" => "XBTUSDTM",
+            //                    "granularity" => 28800000,
+            //                    "timePoint" => 1675108800000,
+            //                    "value" => 0.0001
             //                ),
             //                ...
             //            ),
-            //            hasMore => true
+            //            "hasMore" => true
             //        }
             //    }
             //

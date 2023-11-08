@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -253,7 +253,7 @@ class ace(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "base_volume":229196.34035399999,
@@ -720,7 +720,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchOrderTrades
         #         {
@@ -904,7 +904,7 @@ class ace(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'attachment', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #     [
         #         {
@@ -953,9 +953,9 @@ class ace(Exchange, ImplicitAPI):
         #                 "currencyName": "BTC"
         #             }
         #         ],
-        #         message: null,
-        #         parameters: null,
-        #         status: '200'
+        #         "message": null,
+        #         "parameters": null,
+        #         "status": "200"
         #     }
         #
         return self.parse_balance(balances)

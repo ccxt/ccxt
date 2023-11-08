@@ -221,7 +221,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "name":"ETH-BTC",
@@ -341,7 +341,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -497,10 +497,10 @@ class coinfalcon extends Exchange {
             $response = Async\await($this->privateGetUserFees ($params));
             //
             //    {
-            //        $data => {
-            //            maker_fee => '0.0',
-            //            taker_fee => '0.2',
-            //            btc_volume_30d => '0.0'
+            //        "data" => {
+            //            "maker_fee" => "0.0",
+            //            "taker_fee" => "0.2",
+            //            "btc_volume_30d" => "0.0"
             //        }
             //    }
             //
@@ -525,7 +525,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -589,9 +589,9 @@ class coinfalcon extends Exchange {
             $response = Async\await($this->privateGetAccountDepositAddress (array_merge($request, $params)));
             //
             //     {
-            //         $data => {
-            //             address => '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-            //             tag:null
+            //         "data" => {
+            //             "address" => "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+            //             "tag":null
             //         }
             //     }
             //
@@ -794,16 +794,16 @@ class coinfalcon extends Exchange {
             }
             $response = Async\await($this->privateGetAccountDeposits (array_merge($request, $params)));
             //
-            //     data => array(
+            //     "data" => array(
             //         array(
-            //             id => '6e2f18b5-f80e-xxx-xxx-xxx',
-            //             amount => '0.1',
-            //             status => 'completed',
-            //             currency_code => 'eth',
-            //             txid => '0xxxx',
-            //             address => '0xxxx',
-            //             tag => null,
-            //             type => 'deposit'
+            //             "id" => "6e2f18b5-f80e-xxx-xxx-xxx",
+            //             "amount" => "0.1",
+            //             "status" => "completed",
+            //             "currency_code" => "eth",
+            //             "txid" => "0xxxx",
+            //             "address" => "0xxxx",
+            //             "tag" => null,
+            //             "type" => "deposit"
             //         ),
             //     )
             //
@@ -841,17 +841,17 @@ class coinfalcon extends Exchange {
             }
             $response = Async\await($this->privateGetAccountWithdrawals (array_merge($request, $params)));
             //
-            //     data => array(
+            //     "data" => array(
             //         array(
-            //             id => '25f6f144-3666-xxx-xxx-xxx',
-            //             amount => '0.01',
-            //             status => 'completed',
-            //             fee => '0.0005',
-            //             currency_code => 'btc',
-            //             txid => '4xxx',
-            //             address => 'bc1xxx',
-            //             tag => null,
-            //             type => 'withdraw'
+            //             "id" => "25f6f144-3666-xxx-xxx-xxx",
+            //             "amount" => "0.01",
+            //             "status" => "completed",
+            //             "fee" => "0.0005",
+            //             "currency_code" => "btc",
+            //             "txid" => "4xxx",
+            //             "address" => "bc1xxx",
+            //             "tag" => null,
+            //             "type" => "withdraw"
             //         ),
             //     )
             //
@@ -887,17 +887,17 @@ class coinfalcon extends Exchange {
             }
             $response = Async\await($this->privatePostAccountWithdraw (array_merge($request, $params)));
             //
-            //     data => array(
+            //     "data" => array(
             //         array(
-            //             id => '25f6f144-3666-xxx-xxx-xxx',
-            //             $amount => '0.01',
-            //             status => 'approval_pending',
-            //             fee => '0.0005',
-            //             currency_code => 'btc',
-            //             txid => null,
-            //             $address => 'bc1xxx',
-            //             $tag => null,
-            //             type => 'withdraw'
+            //             "id" => "25f6f144-3666-xxx-xxx-xxx",
+            //             "amount" => "0.01",
+            //             "status" => "approval_pending",
+            //             "fee" => "0.0005",
+            //             "currency_code" => "btc",
+            //             "txid" => null,
+            //             "address" => "bc1xxx",
+            //             "tag" => null,
+            //             "type" => "withdraw"
             //         ),
             //     )
             //
@@ -915,33 +915,33 @@ class coinfalcon extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchWithdrawals, withdraw
         //
         //     array(
-        //         $id => '25f6f144-3666-xxx-xxx-xxx',
-        //         $amount => '0.01',
-        //         $status => 'completed',
-        //         fee => '0.0005',
-        //         currency_code => 'btc',
-        //         $txid => '4xxx',
-        //         $address => 'bc1xxx',
-        //         $tag => null,
-        //         $type => 'withdraw'
+        //         "id" => "25f6f144-3666-xxx-xxx-xxx",
+        //         "amount" => "0.01",
+        //         "status" => "completed",
+        //         "fee" => "0.0005",
+        //         "currency_code" => "btc",
+        //         "txid" => "4xxx",
+        //         "address" => "bc1xxx",
+        //         "tag" => null,
+        //         "type" => "withdraw"
         //     ),
         //
         // fetchDeposits
         //
         //     array(
-        //         $id => '6e2f18b5-f80e-xxx-xxx-xxx',
-        //         $amount => '0.1',
-        //         $status => 'completed',
-        //         currency_code => 'eth',
-        //         $txid => '0xxxx',
-        //         $address => '0xxxx',
-        //         $tag => null,
-        //         $type => 'deposit'
+        //         "id" => "6e2f18b5-f80e-xxx-xxx-xxx",
+        //         "amount" => "0.1",
+        //         "status" => "completed",
+        //         "currency_code" => "eth",
+        //         "txid" => "0xxxx",
+        //         "address" => "0xxxx",
+        //         "tag" => null,
+        //         "type" => "deposit"
         //     ),
         //
         $id = $this->safe_string($transaction, 'id');

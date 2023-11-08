@@ -1,5 +1,5 @@
 import Exchange from './abstract/alpaca.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Trade } from './base/types.js';
 /**
  * @class alpaca
  * @extends Exchange
@@ -7,7 +7,7 @@ import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
 export default class alpaca extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
@@ -18,7 +18,7 @@ export default class alpaca extends Exchange {
     parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    parseTrade(trade: any, market?: any): Trade;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

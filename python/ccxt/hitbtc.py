@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -930,7 +930,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             entry = response[i]
@@ -1025,7 +1025,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #       "ask": "62756.01",
@@ -1133,43 +1133,43 @@ class hitbtc(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # createOrder(market)
         #
         #  {
-        #      id: '1569252895',
-        #      position_id: '0',
-        #      quantity: '10',
-        #      price: '0.03919424',
-        #      fee: '0.000979856000',
-        #      timestamp: '2022-01-25T19:38:36.153Z',
-        #      taker: True
+        #      "id": "1569252895",
+        #      "position_id": "0",
+        #      "quantity": "10",
+        #      "price": "0.03919424",
+        #      "fee": "0.000979856000",
+        #      "timestamp": "2022-01-25T19:38:36.153Z",
+        #      "taker": True
         #  }
         #
         # fetchTrades
         #
         #  {
-        #      id: 974786185,
-        #      price: '0.032462',
-        #      qty: '0.3673',
-        #      side: 'buy',
-        #      timestamp: '2020-10-16T12:57:39.846Z'
+        #      "id": 974786185,
+        #      "price": "0.032462",
+        #      "qty": "0.3673",
+        #      "side": "buy",
+        #      "timestamp": "2020-10-16T12:57:39.846Z"
         #  }
         #
         # fetchMyTrades spot
         #
         #  {
-        #      id: 277210397,
-        #      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        #      orderId: 28102855393,
-        #      symbol: 'ETHBTC',
-        #      side: 'sell',
-        #      quantity: '0.002',
-        #      price: '0.073365',
-        #      fee: '0.000000147',
-        #      timestamp: '2018-04-28T18:39:55.345Z',
-        #      taker: True
+        #      "id": 277210397,
+        #      "clientOrderId": "6e102f3e7f3f4e04aeeb1cdc95592f1a",
+        #      "orderId": 28102855393,
+        #      "symbol": "ETHBTC",
+        #      "side": "sell",
+        #      "quantity": "0.002",
+        #      "price": "0.073365",
+        #      "fee": "0.000000147",
+        #      "timestamp": "2018-04-28T18:39:55.345Z",
+        #      "taker": True
         #  }
         #
         # fetchMyTrades swap and margin
@@ -1289,7 +1289,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # transaction
         #
@@ -1351,7 +1351,6 @@ class hitbtc(Exchange, ImplicitAPI):
             'id': id,
             'txid': txhash,
             'type': type,
-            'code': code,  # kept here for backward-compatibility, but will be removed soon
             'currency': code,
             'network': None,
             'amount': amount,
@@ -2178,7 +2177,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = self.privatePostWalletTransfer(self.extend(request, params))
         #
         #     [
-        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         #     ]
         #
         return self.parse_transfer(response, currency)
@@ -2188,7 +2187,7 @@ class hitbtc(Exchange, ImplicitAPI):
         # transfer
         #
         #     [
-        #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
         #     ]
         #
         timestamp = self.milliseconds()
@@ -2627,8 +2626,8 @@ class hitbtc(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
-            # 'leverage': '10',  # swap only required
-            # 'strict_validate': False,  # swap and margin
+            # "leverage": "10",  # swap only required
+            # "strict_validate": False,  # swap and margin
         }
         if leverage is not None:
             request['leverage'] = leverage
