@@ -1589,7 +1589,7 @@ class Transpiler {
                 if (returnType.match (phpArrayRegex)) {
                     phpReturnType = ': array'
                 } else {
-                    phpReturnType = phpTypes[returnType] ?? returnType
+                    phpReturnType = ': ' + (phpTypes[returnType] ?? returnType)
                 }
             }
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
