@@ -6,7 +6,7 @@ import { ExchangeError, InvalidOrder, OrderNotFound, RateLimitExceeded, Insuffic
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
