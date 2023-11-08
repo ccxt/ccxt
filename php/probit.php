@@ -979,7 +979,7 @@ class probit extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "market_id":"ETH-BTC",
@@ -1096,7 +1096,7 @@ class probit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         $id,
@@ -1458,6 +1458,7 @@ class probit extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch transactions for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
+         * @param {int} [$params->until] the latest time in ms to fetch transactions for
          * @param {array} [$params] extra parameters specific to the probit api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structures}
          */
@@ -1470,6 +1471,15 @@ class probit extends Exchange {
         }
         if ($since !== null) {
             $request['start_time'] = $this->iso8601($since);
+        } else {
+            $request['start_time'] = $this->iso8601(1);
+        }
+        $until = $this->safe_integer_2($params, 'till', 'until');
+        if ($until !== null) {
+            $request['end_time'] = $this->iso8601($until);
+            $params = $this->omit($params, array( 'until', 'till' ));
+        } else {
+            $request['end_time'] = $this->iso8601($this->milliseconds());
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1506,7 +1516,29 @@ class probit extends Exchange {
     }
 
     public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        //         "type" => "deposit",
+        //         "status" => "done",
+        //         "amount" => "0.01",
+        //         "address" => "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        //         "time" => "2023-06-14T12:03:11.000Z",
+        //         "hash" => "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        //         "currency_id" => "ETH",
+        //         "confirmations":0,
+        //         "fee" => "0",
+        //         "destination_tag" => null,
+        //         "platform_id" => "ETH",
+        //         "fee_currency_id" => "ETH",
+        //         "payment_service_name":null,
+        //         "payment_service_display_name":null,
+        //         "crypto":null
+        //     }
+        //
         $id = $this->safe_string($transaction, 'id');
+        $networkId = $this->safe_string($transaction, 'platform_id');
+        $networkCode = $this->network_id_to_code($networkId);
         $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'destination_tag');
@@ -1528,7 +1560,7 @@ class probit extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
-            'network' => null,
+            'network' => $networkCode,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,

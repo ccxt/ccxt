@@ -433,6 +433,7 @@ class bybit extends Exchange {
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/get-member-type' => 5,
                         'v5/user/aff-customer-info' => 5,
+                        'v5/user/del-submember' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -2368,7 +2369,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "1621162800",
@@ -3441,7 +3442,7 @@ class bybit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // v1 for usdc normal account
         //     {

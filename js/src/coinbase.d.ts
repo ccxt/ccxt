@@ -7,9 +7,9 @@ import { Int, OrderSide, OrderType, Order, Trade, OHLCV } from './base/types.js'
 export default class coinbase extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchAccounts(params?: {}): Promise<any[]>;
-    fetchAccountsV2(params?: {}): Promise<any[]>;
-    fetchAccountsV3(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<any>;
+    fetchAccountsV2(params?: {}): Promise<any>;
+    fetchAccountsV3(params?: {}): Promise<any>;
     parseAccount(account: any): {
         id: string;
         type: string;

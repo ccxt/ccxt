@@ -1,5 +1,5 @@
 import Exchange from './abstract/zonda.js';
-import { Int, OHLCV, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
 /**
  * @class zonda
  * @extends Exchange
@@ -7,8 +7,8 @@ import { Int, OHLCV, OrderBook, OrderSide, OrderType, Trade } from './base/types
 export default class zonda extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    parseOrder(order: any, market?: any): Order;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
@@ -39,7 +39,7 @@ export default class zonda extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     isFiat(currency: any): any;
     parseDepositAddress(depositAddress: any, currency?: any): {

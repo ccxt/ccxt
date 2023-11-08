@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bittrex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -511,6 +510,7 @@ class bittrex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
@@ -856,7 +856,7 @@ class bittrex(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "startsAt":"2020-06-12T02:35:00Z",
@@ -1576,7 +1576,7 @@ class bittrex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         #

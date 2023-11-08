@@ -2698,16 +2698,16 @@ class mexc extends mexc$1 {
         await this.loadMarkets();
         const request = {};
         let market = undefined;
+        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
         }
-        let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument for spot market');
             }
+            request['symbol'] = market['id'];
             let method = 'spotPrivateGetOpenOrders';
             const [marginMode, query] = this.handleMarginModeAndParams('fetchOpenOrders', params);
             if (marginMode !== undefined) {
@@ -2804,7 +2804,6 @@ class mexc extends mexc$1 {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
         }
         const [marketType] = this.handleMarketTypeAndParams('fetchOrdersByState', market, params);
         if (marketType === 'spot') {

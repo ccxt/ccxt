@@ -1,5 +1,5 @@
 {
-    "exchange": "krakenfutures",
+    "exchange": "kraken",
     "skipKeys": ["nonce"],
     "outputType": "urlencoded",
     "methods": {

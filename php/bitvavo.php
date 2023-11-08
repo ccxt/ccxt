@@ -828,7 +828,7 @@ class bitvavo extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1590383700000,
@@ -1379,7 +1379,7 @@ class bitvavo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // cancelOrder, cancelAllOrders
         //

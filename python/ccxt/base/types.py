@@ -1,13 +1,14 @@
 import sys
 import types
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Any
 from decimal import Decimal
 
 if sys.version_info.minor > 7:
-    from typing import TypedDict, Literal
+    from typing import TypedDict, Literal, Dict
 else:
-    TypedDict = dict
+    from typing import Dict
     from typing_extensions import Literal
+    TypedDict = Dict
 
 
 OrderSide = Literal['buy', 'sell']
@@ -41,11 +42,17 @@ class Entry:
 IndexType = Union[str, int]
 Numeric = Union[None, str, float, int, Decimal]
 
-
 class Balance(TypedDict):
     free: Numeric
     used: Numeric
     total: Numeric
+
+
+class Fee(TypedDict):
+    type: Optional[str]
+    currency: Optional[str]
+    rate: Optional[Numeric]
+    cost: Numeric
 
 
 class Trade(TypedDict):
@@ -61,7 +68,7 @@ class Trade(TypedDict):
     symbol: str
     takerOrMaker: str
     cost: Numeric
-    fee: TypedDict
+    fee: Fee
 
 
 class Position(TypedDict):
@@ -91,7 +98,7 @@ class Position(TypedDict):
     percentage: Numeric
     stopLossPrice: Numeric
     takeProfitPrice: Numeric
-    info: TypedDict
+    info: Dict[str, Any]
 
 
 class OrderRequest(TypedDict):
@@ -100,7 +107,7 @@ class OrderRequest(TypedDict):
     side: str
     amount: Union[None, float]
     price: Union[None, float]
-    params: TypedDict
+    params: Dict[str, Any]
 
 
 class Order(TypedDict):
@@ -125,12 +132,12 @@ class Order(TypedDict):
     stopLossPrice: Optional[Numeric]
     cost: Numeric
     trades: List[Trade]
-    fee: TypedDict
-    info: TypedDict
+    fee: Fee
+    info: Dict[str, Any]
 
 
 class FundingHistory(TypedDict):
-    info: TypedDict
+    info: Dict[str, Any]
     symbol: str
     code: str
     timestamp: Optional[int]
@@ -139,7 +146,37 @@ class FundingHistory(TypedDict):
     amount: Numeric
 
 
-class Balances(TypedDict[Balance]):
-    info: TypedDict
-    timestamp: Optional[int]
+class Balances(Dict[str, Balance]):
     datetime: Optional[str]
+    timestamp: Optional[int]
+
+
+class OrderBook(TypedDict):
+    asks: List[Numeric]
+    bids: List[Numeric]
+    datetime: str
+    timestamp: int
+    nonce: int
+
+
+class Transaction(TypedDict):
+    info: Dict[str, any]
+    id: str
+    txid: Optional[str]
+    timestamp: int
+    datetime: str
+    address: str
+    addressFrom: str
+    addressTo: str
+    tag: str
+    tagFrom: str
+    tagTo: str
+    type: str
+    amount: Numeric
+    currency: str
+    status: str
+    updated: int
+    fee: Fee
+    network: str
+    comment: str
+    internal: bool

@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.huobi import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2660,7 +2659,7 @@ class huobi(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -4123,7 +4122,7 @@ class huobi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #
@@ -4522,6 +4521,7 @@ class huobi(Exchange, ImplicitAPI):
         :param str [params.offset]: *contract only* 'open', 'close', or 'both', required in hedge mode
         :param bool [params.postOnly]: *contract only* True or False
         :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+        :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -4584,6 +4584,11 @@ class huobi(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(orderType == 'market', orderType == 'limit-maker', params)
         if postOnly:
             orderType = 'limit-maker'
+        timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
+        if timeInForce == 'FOK':
+            orderType = orderType + '-fok'
+        elif timeInForce == 'IOC':
+            orderType = 'ioc'
         request['type'] = side + '-' + orderType
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
@@ -4619,7 +4624,7 @@ class huobi(Exchange, ImplicitAPI):
         limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
         if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
-        params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator'])
+        params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         response = await self.spotPrivatePostV1OrderOrdersPlace(self.extend(request, params))
         #
         # spot
@@ -4662,6 +4667,7 @@ class huobi(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         market = self.market(symbol)
@@ -4674,6 +4680,11 @@ class huobi(Exchange, ImplicitAPI):
         postOnly, params = self.handle_post_only(type == 'market', type == 'post_only', params)
         if postOnly:
             type = 'post_only'
+        timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
+        if timeInForce == 'FOK':
+            type = 'fok'
+        elif timeInForce == 'IOC':
+            type = 'ioc'
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
@@ -4714,7 +4725,7 @@ class huobi(Exchange, ImplicitAPI):
                 request['reduce_only'] = 1
             request['lever_rate'] = leverRate
             request['order_price_type'] = type
-        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate'])
+        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce'])
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId

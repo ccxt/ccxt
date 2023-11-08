@@ -324,6 +324,7 @@ class coinbase extends Exchange {
             /**
              * fetch all the accounts associated with a profile
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+             * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure account structures} indexed by the account type
              */
             $method = $this->safe_string($this->options, 'fetchAccounts', 'fetchAccountsV3');
@@ -337,6 +338,11 @@ class coinbase extends Exchange {
     public function fetch_accounts_v2($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'next_starting_after', 'starting_after', null, 100));
+            }
             $request = array(
                 'limit' => 100,
             );
@@ -386,6 +392,15 @@ class coinbase extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
+            $pagination = $this->safe_value($response, 'pagination', array());
+            $cursor = $this->safe_string($pagination, 'next_starting_after');
+            $accounts = $this->safe_value($response, 'data', array());
+            $lastIndex = strlen($accounts) - 1;
+            $last = $this->safe_value($accounts, $lastIndex);
+            if (($cursor !== null) && ($cursor !== '')) {
+                $last['next_starting_after'] = $cursor;
+                $accounts[$lastIndex] = $last;
+            }
             return $this->parse_accounts($data, $params);
         }) ();
     }
@@ -393,6 +408,11 @@ class coinbase extends Exchange {
     public function fetch_accounts_v3($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchAccounts', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchAccounts', null, null, null, $params, 'cursor', 'cursor', null, 100));
+            }
             $request = array(
                 'limit' => 100,
             );
@@ -427,8 +447,15 @@ class coinbase extends Exchange {
             //         "size" => 9
             //     }
             //
-            $data = $this->safe_value($response, 'accounts', array());
-            return $this->parse_accounts($data, $params);
+            $accounts = $this->safe_value($response, 'accounts', array());
+            $lastIndex = strlen($accounts) - 1;
+            $last = $this->safe_value($accounts, $lastIndex);
+            $cursor = $this->safe_string($response, 'cursor');
+            if (($cursor !== null) && ($cursor !== '')) {
+                $last['cursor'] = $cursor;
+                $accounts[$lastIndex] = $last;
+            }
+            return $this->parse_accounts($accounts, $params);
         }) ();
     }
 
@@ -2172,7 +2199,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -2741,7 +2768,7 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         array(

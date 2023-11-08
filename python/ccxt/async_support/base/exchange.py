@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.36'
+__version__ = '4.1.43'
 
 # -----------------------------------------------------------------------------
 
@@ -125,7 +125,6 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        self.last_request_headers = request_headers
         # ##### PROXY & HEADERS #####
         final_proxy = None  # set default
         final_session = None
@@ -775,6 +774,16 @@ class Exchange(BaseExchange):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
+
+    def parse_to_numeric(self, number):
+        stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        # keep self in mind:
+        # in JS: 1 == 1.0 is True
+        # in Python: 1 == 1.0 is True
+        # in PHP 1 == 1.0 is False
+        if stringVersion.find('.') > 0:
+            return float(stringVersion)
+        return int(stringVersion)
 
     def after_construct(self):
         self.create_networks_by_id_object()
@@ -1681,7 +1690,7 @@ class Exchange(BaseExchange):
                 result.append(objects[i])
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         if isinstance(ohlcv, list):
             return [
                 self.safe_integer(ohlcv, 0),  # timestamp
@@ -3321,7 +3330,11 @@ class Exchange(BaseExchange):
                     if cursorIncrement is not None:
                         cursorValue = self.parseToInt(cursorValue) + cursorIncrement
                     params[cursorSent] = cursorValue
-                response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                response = None
+                if method == 'fetchAccounts':
+                    response = await getattr(self, method)(params)
+                else:
+                    response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

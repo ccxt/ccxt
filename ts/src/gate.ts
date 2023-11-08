@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Transaction } from './base/types.js';
 
 /**
  * @class gate
@@ -3306,7 +3306,7 @@ export default class gate extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public
         //
@@ -3598,7 +3598,7 @@ export default class gate extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // deposits
         //
@@ -5249,23 +5249,19 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
         if (symbols !== undefined) {
-            symbols = this.marketSymbols (symbols);
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 market = this.market (symbols[0]);
-                for (let i = 1; i < symbols.length; i++) {
-                    const checkMarket = this.market (symbols[i]);
-                    if (checkMarket['type'] !== market['type']) {
-                        throw new BadRequest (this.id + ' fetchPositions() does not support multiple types of positions at the same time');
-                    }
-                }
             }
         }
         let type = undefined;
         let request = {};
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        this.checkRequiredArgument ('fetchPositions', type, 'type', [ 'swap', 'future', 'option' ]);
+        if ((type === undefined) || (type === 'spot')) {
+            type = 'swap'; // default to swap
+        }
         if (type === 'option') {
             if (symbols !== undefined) {
                 const marketId = market['id'];
@@ -5275,12 +5271,14 @@ export default class gate extends Exchange {
         } else {
             [ request, params ] = this.prepareRequest (undefined, type, params);
         }
-        const method = this.getSupportedMapping (type, {
-            'swap': 'privateFuturesGetSettlePositions',
-            'future': 'privateDeliveryGetSettlePositions',
-            'option': 'privateOptionsGetPositions',
-        });
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.privateFuturesGetSettlePositions (this.extend (request, params));
+        } else if (type === 'future') {
+            response = await this.privateDeliveryGetSettlePositions (this.extend (request, params));
+        } else if (type === 'option') {
+            response = await this.privateOptionsGetPositions (this.extend (request, params));
+        }
         //
         // swap and future
         //

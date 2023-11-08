@@ -1411,7 +1411,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1663,7 +1663,7 @@ class bitmex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.36';
+$version = '4.1.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.36';
+    const VERSION = '4.1.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -410,6 +410,7 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
+        'coinlist',
         'coinmate',
         'coinone',
         'coinsph',
@@ -2508,6 +2509,18 @@ class Exchange {
         return intval($convertedNumber);
     }
 
+    public function parse_to_numeric($number) {
+        $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS => 1 == 1.0 is true
+        // in Python => 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (mb_strpos($stringVersion, '.') > 0) {
+            return floatval($stringVersion);
+        }
+        return intval($stringVersion);
+    }
+
     public function after_construct() {
         $this->create_networks_by_id_object();
     }
@@ -3586,7 +3599,7 @@ class Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
@@ -5603,7 +5616,12 @@ class Exchange {
                     }
                     $params[$cursorSent] = $cursorValue;
                 }
-                $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
+                $response = null;
+                if ($method === 'fetchAccounts') {
+                    $response = $this->$method ($params);
+                } else {
+                    $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
+                }
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {

@@ -1600,7 +1600,7 @@ class binance extends Exchange {
         ));
     }
 
-    public function is_inverse($type, $subType = null) {
+    public function is_inverse($type, $subType = null): bool {
         if ($subType === null) {
             return $type === 'delivery';
         } else {
@@ -1608,7 +1608,7 @@ class binance extends Exchange {
         }
     }
 
-    public function is_linear($type, $subType = null) {
+    public function is_linear($type, $subType = null): bool {
         if ($subType === null) {
             return ($type === 'future') || ($type === 'swap');
         } else {
@@ -2407,7 +2407,7 @@ class binance extends Exchange {
         return $account;
     }
 
-    public function parse_balance($response, $type = null, $marginMode = null) {
+    public function parse_balance($response, $type = null, $marginMode = null): Balances {
         $result = array(
             'info' => $response,
         );
@@ -3190,7 +3190,7 @@ class binance extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
         //         1591478520000, // open time
@@ -4026,7 +4026,7 @@ class binance extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot
         //

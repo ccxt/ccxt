@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV } from './base/types.js';
+import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -921,7 +921,7 @@ export default class exmo extends Exchange {
         ];
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const wallets = this.safeValue (response, 'wallets');
         if (wallets !== undefined) {
@@ -1161,7 +1161,7 @@ export default class exmo extends Exchange {
         return this.parseTicker (response[market['id']], market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -2175,7 +2175,7 @@ export default class exmo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -2228,9 +2228,9 @@ export default class exmo extends Exchange {
         //    }
         //
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
-        let amount = this.safeString (transaction, 'amount');
-        if (amount !== undefined) {
-            amount = Precise.stringAbs (amount);
+        let amountString = this.safeString (transaction, 'amount');
+        if (amountString !== undefined) {
+            amountString = Precise.stringAbs (amountString);
         }
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
@@ -2281,7 +2281,7 @@ export default class exmo extends Exchange {
             if (feeCost !== undefined) {
                 // withdrawal amount includes the fee
                 if (type === 'withdrawal') {
-                    amount = Precise.stringSub (amount, feeCost);
+                    amountString = Precise.stringSub (amountString, feeCost);
                 }
                 fee['cost'] = this.parseNumber (feeCost);
                 fee['currency'] = code;
@@ -2294,7 +2294,7 @@ export default class exmo extends Exchange {
             'type': type,
             'currency': code,
             'network': this.safeString (transaction, 'provider'),
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             'status': this.parseTransactionStatus (this.safeStringLower (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

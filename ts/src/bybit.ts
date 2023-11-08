@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -429,6 +429,7 @@ export default class bybit extends Exchange {
                         'v5/user/query-api': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
+                        'v5/user/del-submember': 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
@@ -2712,7 +2713,7 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
         if (isSpotTrade) {
             return this.parseSpotTrade (trade, market);
@@ -3080,7 +3081,7 @@ export default class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         // cross
         //     {
@@ -5348,7 +5349,7 @@ export default class bybit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchWithdrawals
         //

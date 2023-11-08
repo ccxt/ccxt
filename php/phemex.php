@@ -1073,7 +1073,7 @@ class phemex extends Exchange {
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -1968,6 +1968,9 @@ class phemex extends Exchange {
             'Filled' => 'closed',
             'Canceled' => 'canceled',
             '1' => 'open',
+            '2' => 'canceled',
+            '3' => 'closed',
+            '4' => 'canceled',
             '5' => 'open',
             '6' => 'open',
             '7' => 'closed',
@@ -2291,7 +2294,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $isSwap = $this->safe_value($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {

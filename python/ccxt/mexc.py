@@ -6,10 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
-from ccxt.base.types import IndexType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, IndexType
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1675,7 +1672,7 @@ class mexc(Exchange, ImplicitAPI):
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -2559,14 +2556,14 @@ class mexc(Exchange, ImplicitAPI):
         self.load_markets()
         request = {}
         market = None
+        marketType = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
+            request['symbol'] = market['id']
             method = 'spotPrivateGetOpenOrders'
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             if marginMode is not None:
@@ -2655,7 +2652,6 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
         marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
@@ -2868,7 +2864,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data', [])
             return self.parse_orders(data, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot: createOrder
         #
@@ -3220,7 +3216,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    def custom_parse_balance(self, response, marketType):
+    def custom_parse_balance(self, response, marketType) -> Balances:
         #
         # spot
         #

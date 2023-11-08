@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, ArgumentsRequired, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -511,7 +511,7 @@ export default class probit extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -815,7 +815,7 @@ export default class probit extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1504,6 +1504,7 @@ export default class probit extends Exchange {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
          * @param {int} [limit] the maximum number of transaction structures to retrieve
+         * @param {int} [params.until] the latest time in ms to fetch transactions for
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
@@ -1516,6 +1517,15 @@ export default class probit extends Exchange {
         }
         if (since !== undefined) {
             request['start_time'] = this.iso8601 (since);
+        } else {
+            request['start_time'] = this.iso8601 (1);
+        }
+        const until = this.safeInteger2 (params, 'till', 'until');
+        if (until !== undefined) {
+            request['end_time'] = this.iso8601 (until);
+            params = this.omit (params, [ 'until', 'till' ]);
+        } else {
+            request['end_time'] = this.iso8601 (this.milliseconds ());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1551,8 +1561,30 @@ export default class probit extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
+        //
+        //     {
+        //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        //         "type": "deposit",
+        //         "status": "done",
+        //         "amount": "0.01",
+        //         "address": "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        //         "time": "2023-06-14T12:03:11.000Z",
+        //         "hash": "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        //         "currency_id": "ETH",
+        //         "confirmations":0,
+        //         "fee": "0",
+        //         "destination_tag": null,
+        //         "platform_id": "ETH",
+        //         "fee_currency_id": "ETH",
+        //         "payment_service_name":null,
+        //         "payment_service_display_name":null,
+        //         "crypto":null
+        //     }
+        //
         const id = this.safeString (transaction, 'id');
+        const networkId = this.safeString (transaction, 'platform_id');
+        const networkCode = this.networkIdToCode (networkId);
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'destination_tag');
@@ -1574,7 +1606,7 @@ export default class probit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,

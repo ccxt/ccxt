@@ -5,8 +5,11 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int, OrderSide, OrderType, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { rsa } from '../base/functions/rsa.js';
+import { eddsa } from '../base/functions/crypto.js';
+import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import Client from '../base/ws/Client.js';
 
 // -----------------------------------------------------------------------------
@@ -572,7 +575,7 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public watchTrades
         //
@@ -1226,27 +1229,39 @@ export default class binance extends binanceRest {
             params['recvWindow'] = recvWindow;
         }
         extendedParams = this.keysort (extendedParams);
-        extendedParams['signature'] = this.hmac (this.encode (this.urlencode (extendedParams)), this.encode (this.secret), sha256);
+        const query = this.urlencode (extendedParams);
+        let signature = undefined;
+        if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+            if (this.secret.length > 120) {
+                signature = rsa (query, this.secret, sha256);
+            } else {
+                signature = eddsa (this.encode (query), this.secret, ed25519);
+            }
+        } else {
+            signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+        }
+        extendedParams['signature'] = signature;
         return extendedParams;
     }
 
     async authenticate (params = {}) {
         const time = this.milliseconds ();
-        let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
-        type = this.safeString (params, 'type', type);
+        let query = undefined;
+        let type = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('authenticate', undefined, query);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
+        [ marginMode, query ] = this.handleMarginModeAndParams ('authenticate', query);
         const isIsolatedMargin = (marginMode === 'isolated');
         const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
-        const symbol = this.safeString (params, 'symbol');
-        params = this.omit (params, 'symbol');
+        const symbol = this.safeString (query, 'symbol');
+        query = this.omit (query, 'symbol');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
@@ -1265,9 +1280,9 @@ export default class binance extends binanceRest {
                     throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId (symbol);
-                params = this.extend (params, { 'symbol': marketId });
+                query = this.extend (query, { 'symbol': marketId });
             }
-            const response = await this[method] (params);
+            const response = await this[method] (query);
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1280,8 +1295,8 @@ export default class binance extends binanceRest {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
+        const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
+        const subType = subTypeInfo[0];
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
@@ -2066,7 +2081,7 @@ export default class binance extends binanceRest {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params = this.extend (params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
+            params = this.extend (params, { 'type': market['type'], 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate (params);
         let type = undefined;
@@ -2078,7 +2093,11 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        let urlType = type;
+        if (type === 'margin') {
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
@@ -2422,10 +2441,15 @@ export default class binance extends binanceRest {
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
@@ -2435,10 +2459,14 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
-            params = this.extend (params, { 'symbol': symbol });
+            params = this.extend (params, { 'type': market['type'], 'symbol': symbol });
         }
         await this.authenticate (params);
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        let urlType = type; // we don't change type because the listening key is different
+        if (type === 'margin') {
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
@@ -2552,6 +2580,15 @@ export default class binance extends binanceRest {
     }
 
     handleWsError (client: Client, message) {
+        //
+        //    {
+        //        "error": {
+        //            "code": 2,
+        //            "msg": "Invalid request: invalid stream"
+        //        },
+        //        "id": 1
+        //    }
+        //
         const id = this.safeString (message, 'id');
         let rejected = false;
         const error = this.safeValue (message, 'error', {});
@@ -2561,7 +2598,17 @@ export default class binance extends binanceRest {
             this.handleErrors (code, msg, client.url, undefined, undefined, this.json (error), error, undefined, undefined);
         } catch (e) {
             rejected = true;
+            // private endpoint uses id as messageHash
             client.reject (e, id);
+            // public endpoint stores messageHash in subscriptios
+            const subscriptionKeys = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptionKeys.length; i++) {
+                const subscriptionHash = subscriptionKeys[i];
+                const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                if (id === subscriptionId) {
+                    client.reject (e, subscriptionHash);
+                }
+            }
         }
         if (!rejected) {
             client.reject (message, id);
@@ -2575,7 +2622,8 @@ export default class binance extends binanceRest {
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
         const status = this.safeString (message, 'status');
-        if (status !== undefined && status !== '200') {
+        const error = this.safeValue (message, 'error');
+        if ((error !== undefined) || (status !== undefined && status !== '200')) {
             return this.handleWsError (client, message);
         }
         const id = this.safeString (message, 'id');

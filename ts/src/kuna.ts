@@ -5,9 +5,9 @@ import Exchange from './abstract/kuna.js';
 import { ArgumentsRequired, InsufficientFunds, OrderNotFound, NotSupported, BadRequest, ExchangeError, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Precise } from '../ccxt.js';
+import { Precise } from './base/Precise.js';
 
 // ---------------------------------------------------------------------------
 
@@ -838,7 +838,7 @@ export default class kuna extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -897,7 +897,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         //    [
         //        {
@@ -1777,7 +1777,7 @@ export default class kuna extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //    {
         //        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1824,7 +1824,7 @@ export default class kuna extends Exchange {
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'memo'),
             'fee': {
-                'cost': this.safeString (transaction, 'fee'),
+                'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,
             },
         };

@@ -296,6 +296,7 @@ class Transpiler {
             [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
+            [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -908,16 +909,20 @@ class Transpiler {
                 }
             }
         }
+
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /: OrderSide/, /: OrderType/, /: IndexType/, /-> Order/, /\[FundingHistory/, /\[OrderRequest/, /-> Balances/ ]
-        const objects = [ 'OrderSide', 'OrderType', 'IndexType', 'Order', 'FundingHistory', 'OrderRequest', 'Balances' ]
+        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Trade/, /-> Transaction/ ]
+        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Trade', 'Transaction' ]
         const matches = []
         let match
-        const listRegex = new RegExp (': List\[(' + objects.join ('|') + ')\]', 'g')
+        const listRegex = /: List\[(\w+)\]/g
+        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
         while (match = listRegex.exec (bodyAsString)) {
-            matches.push (match[1])
+            if (!pythonBuiltIns.includes (match[1])) {
+                matches.push (match[1])
+            }
         }
         for (let i = 0; i < matchAgainst.length; i++) {
             const regex = matchAgainst[i]
@@ -936,6 +941,10 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
+        }
+
+        if (bodyAsString.match (/-> Any/)) {
+            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -1544,18 +1553,12 @@ class Transpiler {
                 'number': 'float',
                 'boolean': 'bool',
                 'Promise<any>': 'mixed',
-                'Balance': 'array',
                 'IndexType': 'int|string',
                 'Int': 'int',
-                'object': 'array',
-                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
-                'OHLCV': 'array',
-                'Order': 'array',
-                'FundingHistory[]': 'array',
-                'OrderRequest[]': 'array',
             }
+            const phpArrayRegex = /(?:object|OHLCV|Order|Trade|Transaction|Balances?)|(?:\w+\[\])/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1574,14 +1577,21 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
+                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
                 .replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? (phpArgs) : ''
-            const phpReturnType = returnType ? ': ' + (phpTypes[returnType] ?? returnType) : ''
+            let phpReturnType = ''
+            if (returnType) {
+                if (returnType.match (phpArrayRegex)) {
+                    phpReturnType = ': array'
+                } else {
+                    phpReturnType = ': ' + (phpTypes[returnType] ?? returnType)
+                }
+            }
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
@@ -1592,10 +1602,8 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
-                'OHLCV': 'List',
-                'Order': 'Order',
+                'OHLCV': 'list',
                 'FundingHistory[]': 'List[FundingHistory]',
-                'OrderRequest[]': 'List[OrderRequest]'
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {

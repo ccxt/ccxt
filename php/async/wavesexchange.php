@@ -1038,7 +1038,7 @@ class wavesexchange extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         __type => 'candle',
@@ -1716,7 +1716,7 @@ class wavesexchange extends Exchange {
         return $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -2293,7 +2293,7 @@ class wavesexchange extends Exchange {
         ), $market);
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null): mixed {
         $depositWithdrawFees = array();
         $codes = $this->market_codes($codes);
         for ($i = 0; $i < count($response); $i++) {
