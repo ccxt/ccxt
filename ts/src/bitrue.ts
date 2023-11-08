@@ -1430,15 +1430,35 @@ export default class bitrue extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let market = undefined;
-        const request = {};
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
             market = this.market (first);
-            request['symbol'] = market['id'];
         }
-        const response = await this.spotV1PublicGetTickerBookTicker (this.extend (request, params));
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        if (market['future']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV1PublicGetTicker (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV1PublicGetTicker (this.extend (request, params));
+            }
+        } else {
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.spotV1PublicGetTickerBookTicker (this.extend (request, params));
+        }
+        //
+        // spot
+        //
         //     {
         //         "symbol": "LTCBTC",
         //         "bidPrice": "4.00000000",
@@ -1446,6 +1466,20 @@ export default class bitrue extends Exchange {
         //         "askPrice": "4.00000200",
         //         "askQty": "9.00000000"
         //     }
+        //
+        // future
+        //
+        //     {
+        //         "high": "35296",
+        //         "vol": "779308354",
+        //         "last": "34884.1",
+        //         "low": "34806.7",
+        //         "buy": 34883.9,
+        //         "sell": 34884,
+        //         "rose": "-0.0027957315",
+        //         "time": 1699348013000
+        //     }
+        //
         const data = {};
         data[market['id']] = response;
         return this.parseTickers (data, symbols);
