@@ -2626,7 +2626,6 @@ export default class phemex extends Exchange {
          * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        this.checkRequiredSymbol ('editOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
