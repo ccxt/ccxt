@@ -62,6 +62,8 @@ export default class hitbtc extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -2842,6 +2844,71 @@ export default class hitbtc extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        const datetime = this.safeString (interest, 'timestamp');
+        const value = this.safeNumber (interest, 'open_interest');
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': undefined,
+            'openInterestValue': value,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'info': interest,
+        }, market);
+    }
+
+    async fetchOpenInterest (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://api.hitbtc.com/#futures-info
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPublicFuturesInfoSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "contract_type": "perpetual",
+        //         "mark_price": "42307.43",
+        //         "index_price": "42303.27",
+        //         "funding_rate": "0.0001",
+        //         "open_interest": "30.9826",
+        //         "next_funding_time": "2022-03-22T16:00:00.000Z",
+        //         "indicative_funding_rate": "0.0001",
+        //         "premium_index": "0",
+        //         "avg_premium_index": "0.000029587712038098",
+        //         "interest_rate": "0.0001",
+        //         "timestamp": "2022-03-22T08:08:26.687Z"
+        //     }
+        //
+        return this.parseOpenInterest (response, market);
     }
 
     async fetchFundingRate (symbol: string, params = {}) {
