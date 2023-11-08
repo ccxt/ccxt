@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.40'
+__version__ = '4.1.44'
 
 # -----------------------------------------------------------------------------
 
@@ -774,6 +774,16 @@ class Exchange(BaseExchange):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
+
+    def parse_to_numeric(self, number):
+        stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        # keep self in mind:
+        # in JS: 1 == 1.0 is True
+        # in Python: 1 == 1.0 is True
+        # in PHP 1 == 1.0 is False
+        if stringVersion.find('.') > 0:
+            return float(stringVersion)
+        return int(stringVersion)
 
     def after_construct(self):
         self.create_networks_by_id_object()

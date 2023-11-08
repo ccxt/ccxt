@@ -1614,5 +1614,16 @@
                 "liquidationPrice": "undefined"
             }
         }
+    },
+    "coinlist": {
+        "skipMethods": {
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
+                "ask": "invalid"
+            }
+        }
     }
 }

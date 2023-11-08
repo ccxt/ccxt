@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import { Int, OrderSide, Balances, OrderType, OHLCV, Order } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Trade, Transaction, Ticker } from './base/types.js';
 /**
  * @class bitmart
  * @extends Exchange
@@ -47,16 +47,16 @@ export default class bitmart extends Exchange {
         };
         networks: {};
     }>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     customParseBalance(response: any, marketType: any): Balances;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -93,69 +93,12 @@ export default class bitmart extends Exchange {
     safeNetwork(networkId: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     fetchTransactionsByType(type: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        address: string;
-        addressFrom: any;
-        addressTo: any;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    }>;
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        address: string;
-        addressFrom: any;
-        addressTo: any;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    }>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        address: string;
-        addressFrom: any;
-        addressTo: any;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {

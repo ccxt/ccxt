@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import AccountSuspended
@@ -225,59 +225,59 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #  "code": "200000",
         #  "data": [
         #     {
-        #       symbol: 'APTUSDTPERP',
-        #       takerFixFee: '0E-10',
-        #       nextFundingRateTime: '20145603',
-        #       makerFixFee: '0E-10',
-        #       type: 'FFWCSX',
-        #       predictedFundingFeeRate: '0.000000',
-        #       turnoverOf24h: '386037.46704292',
-        #       initialMargin: '0.05',
-        #       isDeleverage: True,
-        #       createdAt: '1666681959000',
-        #       fundingBaseSymbol: '.APTINT8H',
-        #       lowPriceOf24h: '4.34499979019165',
-        #       lastTradePrice: '4.4090000000',
-        #       indexPriceTickSize: '0.001',
-        #       fairMethod: 'FundingRate',
-        #       takerFeeRate: '0.00040',
-        #       order: '102',
-        #       updatedAt: '1671076377000',
-        #       displaySettleCurrency: 'USDT',
-        #       indexPrice: '4.418',
-        #       multiplier: '1.0',
-        #       maxLeverage: '20',
-        #       fundingQuoteSymbol: '.USDTINT8H',
-        #       quoteCurrency: 'USDT',
-        #       maxOrderQty: '1000000',
-        #       maxPrice: '1000000.0000000000',
-        #       maintainMargin: '0.025',
-        #       status: 'Open',
-        #       displayNameMap: [Object],
-        #       openInterest: '2367',
-        #       highPriceOf24h: '4.763999938964844',
-        #       fundingFeeRate: '0.000000',
-        #       volumeOf24h: '83540.00000000',
-        #       riskStep: '500000',
-        #       isQuanto: True,
-        #       maxRiskLimit: '20000',
-        #       rootSymbol: 'USDT',
-        #       baseCurrency: 'APT',
-        #       firstOpenDate: '1666701000000',
-        #       tickSize: '0.001',
-        #       markMethod: 'FairPrice',
-        #       indexSymbol: '.PAPTUSDT',
-        #       markPrice: '4.418',
-        #       minRiskLimit: '1000000',
-        #       settlementFixFee: '0E-10',
-        #       settlementSymbol: '',
-        #       priceChgPctOf24h: '-0.0704',
-        #       fundingRateSymbol: '.APTUSDTPERPFPI8H',
-        #       makerFeeRate: '0.00010',
-        #       isInverse: False,
-        #       lotSize: '1',
-        #       settleCurrency: 'USDT',
-        #       settlementFeeRate: '0.0'
+        #       "symbol": "APTUSDTPERP",
+        #       "takerFixFee": "0E-10",
+        #       "nextFundingRateTime": "20145603",
+        #       "makerFixFee": "0E-10",
+        #       "type": "FFWCSX",
+        #       "predictedFundingFeeRate": "0.000000",
+        #       "turnoverOf24h": "386037.46704292",
+        #       "initialMargin": "0.05",
+        #       "isDeleverage": True,
+        #       "createdAt": "1666681959000",
+        #       "fundingBaseSymbol": ".APTINT8H",
+        #       "lowPriceOf24h": "4.34499979019165",
+        #       "lastTradePrice": "4.4090000000",
+        #       "indexPriceTickSize": "0.001",
+        #       "fairMethod": "FundingRate",
+        #       "takerFeeRate": "0.00040",
+        #       "order": "102",
+        #       "updatedAt": "1671076377000",
+        #       "displaySettleCurrency": "USDT",
+        #       "indexPrice": "4.418",
+        #       "multiplier": "1.0",
+        #       "maxLeverage": "20",
+        #       "fundingQuoteSymbol": ".USDTINT8H",
+        #       "quoteCurrency": "USDT",
+        #       "maxOrderQty": "1000000",
+        #       "maxPrice": "1000000.0000000000",
+        #       "maintainMargin": "0.025",
+        #       "status": "Open",
+        #       "displayNameMap": [Object],
+        #       "openInterest": "2367",
+        #       "highPriceOf24h": "4.763999938964844",
+        #       "fundingFeeRate": "0.000000",
+        #       "volumeOf24h": "83540.00000000",
+        #       "riskStep": "500000",
+        #       "isQuanto": True,
+        #       "maxRiskLimit": "20000",
+        #       "rootSymbol": "USDT",
+        #       "baseCurrency": "APT",
+        #       "firstOpenDate": "1666701000000",
+        #       "tickSize": "0.001",
+        #       "markMethod": "FairPrice",
+        #       "indexSymbol": ".PAPTUSDT",
+        #       "markPrice": "4.418",
+        #       "minRiskLimit": "1000000",
+        #       "settlementFixFee": "0E-10",
+        #       "settlementSymbol": '',
+        #       "priceChgPctOf24h": "-0.0704",
+        #       "fundingRateSymbol": ".APTUSDTPERPFPI8H",
+        #       "makerFeeRate": "0.00010",
+        #       "isInverse": False,
+        #       "lotSize": "1",
+        #       "settleCurrency": "USDT",
+        #       "settlementFeeRate": "0.0"
         #     },
         #   ]
         # }
@@ -355,7 +355,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #    {
         #        "symbol": "BTCUSDTPERP",                   # Market of the symbol
@@ -423,19 +423,19 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         # {
-        #     code: '200000',
-        #     data: {
-        #       sequence: '11574719',
-        #       symbol: 'BTCUSDTPERP',
-        #       side: 'sell',
-        #       size: '1',
-        #       price: '16990.1',
-        #       bestBidSize: '3',
-        #       bestBidPrice: '16990.1',
-        #       bestAskPrice: '16991.0',
-        #       tradeId: '639c8a529fd7cf0001af4157',
-        #       bestAskSize: '505',
-        #       ts: '1671203410721232337'
+        #     "code": "200000",
+        #     "data": {
+        #       "sequence": "11574719",
+        #       "symbol": "BTCUSDTPERP",
+        #       "side": "sell",
+        #       "size": "1",
+        #       "price": "16990.1",
+        #       "bestBidSize": "3",
+        #       "bestBidPrice": "16990.1",
+        #       "bestAskPrice": "16991.0",
+        #       "tradeId": "639c8a529fd7cf0001af4157",
+        #       "bestAskSize": "505",
+        #       "ts": "1671203410721232337"
         #     }
         # }
         #
@@ -546,7 +546,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.fetch_order_book(market['id'], None, {'level': 3})
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -731,7 +731,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -764,16 +764,16 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.privateGetAccountOverview(self.extend(request, params))
         #
         #     {
-        #         code: '200000',
-        #         data: {
-        #             accountEquity: 0.00005,
-        #             unrealisedPNL: 0,
-        #             marginBalance: 0.00005,
-        #             positionMargin: 0,
-        #             orderMargin: 0,
-        #             frozenFunds: 0,
-        #             availableBalance: 0.00005,
-        #             currency: 'XBT'
+        #         "code": "200000",
+        #         "data": {
+        #             "accountEquity": 0.00005,
+        #             "unrealisedPNL": 0,
+        #             "marginBalance": 0.00005,
+        #             "positionMargin": 0,
+        #             "orderMargin": 0,
+        #             "frozenFunds": 0,
+        #             "availableBalance": 0.00005,
+        #             "currency": "XBT"
         #         }
         #     }
         #
@@ -845,9 +845,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.privatePostOrders(self.extend(request, params))
         #
         #    {
-        #        code: "200000",
-        #        data: {
-        #            orderId: "619717484f1d010001510cde",
+        #        "code": "200000",
+        #        "data": {
+        #            "orderId": "619717484f1d010001510cde",
         #        },
         #    }
         #
@@ -892,15 +892,15 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.privateDeleteOrdersOrderId(self.extend(request, params))
         #
         #    {
-        #        code: "200000",
-        #        data: {
-        #            cancelledOrderIds: [
+        #        "code": "200000",
+        #        "data": {
+        #            "cancelledOrderIds": [
         #                "619714b8b6353000014c505a",
         #            ],
-        #            cancelFailedOrders: [
+        #            "cancelFailedOrders": [
         #                {
-        #                    orderId: "63a9c5c2b9e7d70007eb0cd5",
-        #                    orderState: "2"
+        #                    "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        #                    "orderState": "2"
         #                }
         #            ],
         #        },
@@ -1147,9 +1147,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         #
         #   {
-        #       code: "200000",
-        #       data: {
-        #           cancelledOrderIds: [
+        #       "code": "200000",
+        #       "data": {
+        #           "cancelledOrderIds": [
         #                "619714b8b6353000014c505a",
         #           ],
         #       },
@@ -1389,9 +1389,9 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # createOrder
         #
         #    {
-        #        code: "200000",
-        #        data: {
-        #            orderId: "619717484f1d010001510cde",
+        #        "code": "200000",
+        #        "data": {
+        #            "orderId": "619717484f1d010001510cde",
         #        },
         #    }
         #
@@ -1441,13 +1441,13 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # cancelOrder
         #
         #    {
-        #        cancelledOrderIds: [
+        #        "cancelledOrderIds": [
         #            "619714b8b6353000014c505a",
         #        ],
-        #        cancelFailedOrders: [
+        #        "cancelFailedOrders": [
         #            {
-        #                orderId: "63a9c5c2b9e7d70007eb0cd5",
-        #                orderState: "2"
+        #                "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        #                "orderState": "2"
         #            }
         #        ],
         #    },
@@ -1680,7 +1680,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         # bad
         #     {"code": "400100", "msg": "validation.createOrder.clientOidIsRequired"}
         # good
-        #     {code: '200000', data: {...}}
+        #     {code: "200000", data: {...}}
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg', '')

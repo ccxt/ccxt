@@ -387,9 +387,9 @@ export default class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-tests, see comments under 'testSafe' method
-            const failedMsg = errors ? errors.join(', ') : undefined;
             let errorsInMessage = '';
-            if (errors !== undefined) {
+            if (errors) {
+                const failedMsg = errors.join(', ');
                 errorsInMessage = ' | Failed methods : ' + failedMsg;
             }
             const messageContent = '[INFO:PUBLIC_TESTS_END] ' + market['type'] + errorsInMessage;
@@ -778,12 +778,12 @@ export default class testMainClass extends baseMainTestClass {
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        const filename = './ts/src/test/static/markets/' + id + '.json';
+        const filename = rootDir + './ts/src/test/static/markets/' + id + '.json';
         const content = ioFileRead(filename);
         return content;
     }
     loadStaticData(targetExchange = undefined) {
-        const folder = './ts/src/test/static/data/';
+        const folder = rootDir + './ts/src/test/static/data/';
         const result = {};
         if (targetExchange) {
             // read a single exchange
@@ -834,29 +834,40 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
     assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput) {
-        const storedOutputKeys = Object.keys(storedOutput);
-        const newOutputKeys = Object.keys(newOutput);
-        const storedLenght = storedOutputKeys.length;
-        const newLength = newOutputKeys.length;
-        this.assertStaticError(storedLenght === newLength, 'output length mismatch', storedOutput, newOutput);
-        for (let i = 0; i < storedOutputKeys.length; i++) {
-            const key = storedOutputKeys[i];
-            if (exchange.inArray(key, skipKeys)) {
-                continue;
-            }
-            if (!(exchange.inArray(key, newOutputKeys))) {
-                this.assertStaticError(false, 'output key missing: ' + key, storedOutput, newOutput);
-            }
-            const storedValue = storedOutput[key];
-            const newValue = newOutput[key];
-            if (typeof storedValue === 'object') {
-                if (typeof newValue === 'object') {
-                    // recursive objects
-                    return this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue);
+        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+            const storedOutputKeys = Object.keys(storedOutput);
+            const newOutputKeys = Object.keys(newOutput);
+            const storedKeysLength = storedOutputKeys.length;
+            const newKeysLength = newOutputKeys.length;
+            this.assertStaticError(storedKeysLength === newKeysLength, 'output length mismatch', storedOutput, newOutput);
+            // iterate over the keys
+            for (let i = 0; i < storedOutputKeys.length; i++) {
+                const key = storedOutputKeys[i];
+                if (exchange.inArray(key, skipKeys)) {
+                    continue;
                 }
+                if (!(exchange.inArray(key, newOutputKeys))) {
+                    this.assertStaticError(false, 'output key missing: ' + key, storedOutput, newOutput);
+                }
+                const storedValue = storedOutput[key];
+                const newValue = newOutput[key];
+                this.assertNewAndStoredOutput(exchange, skipKeys, newValue, storedValue);
             }
-            const messageError = 'output value mismatch for: ' + key + ' : ' + storedValue.toString() + ' != ' + newValue.toString();
-            this.assertStaticError(storedValue === newValue, messageError, storedOutput, newOutput);
+        }
+        else if (Array.isArray(storedOutput) && (Array.isArray(newOutput))) {
+            const storedArrayLength = storedOutput.length;
+            const newArrayLength = newOutput.length;
+            this.assertStaticError(storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
+            for (let i = 0; i < storedOutput.length; i++) {
+                const storedItem = storedOutput[i];
+                const newItem = newOutput[i];
+                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem);
+            }
+        }
+        else {
+            // built-in types like strings, numbers, booleans
+            const messageError = 'output value mismatch:' + newOutput.toString() + ' != ' + storedOutput.toString();
+            this.assertStaticError(newOutput === storedOutput, messageError, storedOutput, newOutput);
         }
     }
     assertStaticOutput(exchange, type, skipKeys, storedUrl, requestUrl, storedOutput, newOutput) {
@@ -872,8 +883,15 @@ export default class testMainClass extends baseMainTestClass {
             if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
                 const storedUrlParts = storedUrl.split('?');
                 const newUrlParts = requestUrl.split('?');
-                const storedUrlParams = this.urlencodedToDict(storedUrlParts[1]);
-                const newUrlParams = this.urlencodedToDict(newUrlParts[1]);
+                const storedUrlQuery = exchange.safeValue(storedUrlParts, 1);
+                const newUrlQuery = exchange.safeValue(newUrlParts, 1);
+                if ((storedUrlQuery === undefined) && (newUrlQuery === undefined)) {
+                    // might be a get request without any query parameters
+                    // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                const storedUrlParams = this.urlencodedToDict(storedUrlQuery);
+                const newUrlParams = this.urlencodedToDict(newUrlQuery);
                 this.assertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams);
                 return;
             }
@@ -891,19 +909,7 @@ export default class testMainClass extends baseMainTestClass {
             storedOutput = this.urlencodedToDict(storedOutput);
             newOutput = this.urlencodedToDict(newOutput);
         }
-        if (Array.isArray(storedOutput)) {
-            if (!Array.isArray(newOutput)) {
-                this.assertStaticError(false, 'output type mismatch', storedOutput, newOutput);
-            }
-            for (let i = 0; i < storedOutput.length; i++) {
-                const storedItem = storedOutput[i];
-                const newItem = newOutput[i];
-                this.assertNewAndStoredOutput(exchange, skipKeys, newItem, storedItem);
-            }
-        }
-        else {
-            this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
-        }
+        this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
     }
     async testMethodStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
@@ -932,7 +938,7 @@ export default class testMainClass extends baseMainTestClass {
     }
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
-        return initExchange(exchangeName, { 'markets': markets, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false } });
+        return initExchange(exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999 } });
     }
     async testExchangeStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request

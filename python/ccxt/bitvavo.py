@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -244,7 +244,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     '302': AuthenticationError,  # Timestamp is invalid. This must be a timestamp in ms. See Bitvavo-Access-Timestamp header or timestamp parameter for websocket.
                     '303': AuthenticationError,  # Window must be between 100 and 60000 ms.
                     '304': AuthenticationError,  # Request was not received within acceptable window(default 30s, or custom with Bitvavo-Access-Window header) of Bitvavo-Access-Timestamp header(or timestamp parameter for websocket).
-                    # '304': AuthenticationError,  # Authentication is required for self endpoint.
+                    # "304": AuthenticationError,  # Authentication is required for self endpoint.
                     '305': AuthenticationError,  # {"errorCode":305,"error":"No active API key found."}
                     '306': AuthenticationError,  # No active API key found. Please ensure that you have confirmed the API key by e-mail.
                     '307': PermissionDenied,  # This key does not allow access from self IP.
@@ -539,7 +539,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -637,11 +637,11 @@ class bitvavo(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         request = {
             'market': market['id'],
-            # 'limit': 500,  # default 500, max 1000
-            # 'start': since,
-            # 'end': self.milliseconds(),
-            # 'tradeIdFrom': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
-            # 'tradeIdTo': '57b1159b-6bf5-4cde-9e2c-6bd6a5678baf',
+            # "limit": 500,  # default 500, max 1000
+            # "start": since,
+            # "end": self.milliseconds(),
+            # "tradeIdFrom": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
+            # "tradeIdTo": "57b1159b-6bf5-4cde-9e2c-6bd6a5678baf",
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
@@ -662,7 +662,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -706,17 +706,17 @@ class bitvavo(Exchange, ImplicitAPI):
         # watchMyTrades(private)
         #
         #     {
-        #         event: 'fill',
-        #         timestamp: 1590964470132,
-        #         market: 'ETH-EUR',
-        #         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
-        #         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
-        #         side: 'sell',
-        #         amount: '0.1',
-        #         price: '211.46',
-        #         taker: True,
-        #         fee: '0.056',
-        #         feeCurrency: 'EUR'
+        #         "event": "fill",
+        #         "timestamp": 1590964470132,
+        #         "market": "ETH-EUR",
+        #         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        #         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        #         "side": "sell",
+        #         "amount": "0.1",
+        #         "price": "211.46",
+        #         "taker": True,
+        #         "fee": "0.056",
+        #         "feeCurrency": "EUR"
         #     }
         #
         priceString = self.safe_string(trade, 'price')
@@ -868,9 +868,9 @@ class bitvavo(Exchange, ImplicitAPI):
         request = {
             'market': market['id'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-            # 'limit': 1440,  # default 1440, max 1440
-            # 'start': since,
-            # 'end': self.milliseconds(),
+            # "limit": 1440,  # default 1440, max 1440
+            # "start": since,
+            # "end": self.milliseconds(),
         }
         if since is not None:
             # https://github.com/ccxt/ccxt/issues/9227
@@ -892,7 +892,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1215,11 +1215,11 @@ class bitvavo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            # 'limit': 500,
-            # 'start': since,
-            # 'end': self.milliseconds(),
-            # 'orderIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
-            # 'orderIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            # "limit": 500,
+            # "start": since,
+            # "end": self.milliseconds(),
+            # "orderIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            # "orderIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
         }
         if since is not None:
             request['start'] = since
@@ -1276,7 +1276,7 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         self.load_markets()
         request = {
-            # 'market': market['id'],  # rate limit 25 without a market, 1 with market specified
+            # "market": market["id"],  # rate limit 25 without a market, 1 with market specified
         }
         market = None
         if symbol is not None:
@@ -1463,11 +1463,11 @@ class bitvavo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            # 'limit': 500,
-            # 'start': since,
-            # 'end': self.milliseconds(),
-            # 'tradeIdFrom': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
-            # 'tradeIdTo': 'af76d6ce-9f7c-4006-b715-bb5d430652d0',
+            # "limit": 500,
+            # "start": since,
+            # "end": self.milliseconds(),
+            # "tradeIdFrom": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
+            # "tradeIdTo": "af76d6ce-9f7c-4006-b715-bb5d430652d0",
         }
         if since is not None:
             request['start'] = since
@@ -1512,8 +1512,8 @@ class bitvavo(Exchange, ImplicitAPI):
             'symbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'address': address,  # address or IBAN
-            # 'internal': False,  # transfer to another Bitvavo user address, no fees
-            # 'addWithdrawalFee': False,  # True = add the fee on top, otherwise the fee is subtracted from the amount
+            # "internal": False,  # transfer to another Bitvavo user address, no fees
+            # "addWithdrawalFee": False,  # True = add the fee on top, otherwise the fee is subtracted from the amount
         }
         if tag is not None:
             request['paymentId'] = tag
@@ -1621,7 +1621,7 @@ class bitvavo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -1694,6 +1694,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'status': status,
             'updated': None,
             'fee': fee,
+            'network': None,
         }
 
     def parse_deposit_withdraw_fee(self, fee, currency=None):

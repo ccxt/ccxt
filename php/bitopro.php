@@ -364,7 +364,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "pair":"btc_twd",
@@ -504,7 +504,7 @@ class bitopro extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //         {
@@ -816,7 +816,7 @@ class bitopro extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //     [array(
         //         "currency":"twd",
@@ -887,12 +887,12 @@ class bitopro extends Exchange {
         //
         // createOrder
         //         {
-        //             orderId => '2220595581',
-        //             $timestamp => '1644896744886',
-        //             action => 'SELL',
-        //             $amount => '0.01',
-        //             $price => '15000',
-        //             $timeInForce => 'GTC'
+        //             "orderId" => "2220595581",
+        //             "timestamp" => "1644896744886",
+        //             "action" => "SELL",
+        //             "amount" => "0.01",
+        //             "price" => "15000",
+        //             "timeInForce" => "GTC"
         //         }
         //
         // fetchOrder
@@ -1021,12 +1021,12 @@ class bitopro extends Exchange {
         $response = $this->privatePostOrdersPair (array_merge($request, $params));
         //
         //     {
-        //         orderId => '2220595581',
-        //         timestamp => '1644896744886',
-        //         action => 'SELL',
-        //         $amount => '0.01',
-        //         $price => '15000',
-        //         timeInForce => 'GTC'
+        //         "orderId" => "2220595581",
+        //         "timestamp" => "1644896744886",
+        //         "action" => "SELL",
+        //         "amount" => "0.01",
+        //         "price" => "15000",
+        //         "timeInForce" => "GTC"
         //     }
         //
         return $this->parse_order($response, $market);
@@ -1314,7 +1314,7 @@ class bitopro extends Exchange {
         return $this->safe_string($states, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

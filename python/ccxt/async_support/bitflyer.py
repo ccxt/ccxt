@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -293,7 +293,7 @@ class bitflyer(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -352,7 +352,7 @@ class bitflyer(Exchange, ImplicitAPI):
         orderbook = await self.publicGetGetboard(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_string(ticker, 'ltp')
@@ -395,7 +395,7 @@ class bitflyer(Exchange, ImplicitAPI):
         response = await self.publicGetGetticker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public) v1
         #
@@ -869,7 +869,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

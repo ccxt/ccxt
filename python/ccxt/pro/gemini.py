@@ -72,13 +72,13 @@ class gemini(ccxt.async_support.gemini):
     def parse_ws_trade(self, trade, market=None):
         #
         #     {
-        #         type: 'trade',
-        #         symbol: 'BTCUSD',
-        #         event_id: 122258166738,
-        #         timestamp: 1655330221424,
-        #         price: '22269.14',
-        #         quantity: '0.00004473',
-        #         side: 'buy'
+        #         "type": "trade",
+        #         "symbol": "BTCUSD",
+        #         "event_id": 122258166738,
+        #         "timestamp": 1655330221424,
+        #         "price": "22269.14",
+        #         "quantity": "0.00004473",
+        #         "side": "buy"
         #     }
         #
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -107,13 +107,13 @@ class gemini(ccxt.async_support.gemini):
     def handle_trade(self, client: Client, message):
         #
         #     {
-        #         type: 'trade',
-        #         symbol: 'BTCUSD',
-        #         event_id: 122278173770,
-        #         timestamp: 1655335880981,
-        #         price: '22530.80',
-        #         quantity: '0.04',
-        #         side: 'buy'
+        #         "type": "trade",
+        #         "symbol": "BTCUSD",
+        #         "event_id": 122278173770,
+        #         "timestamp": 1655335880981,
+        #         "price": "22530.80",
+        #         "quantity": "0.04",
+        #         "side": "buy"
         #     }
         #
         trade = self.parse_ws_trade(message)
@@ -130,37 +130,37 @@ class gemini(ccxt.async_support.gemini):
     def handle_trades(self, client: Client, message):
         #
         #     {
-        #         type: 'l2_updates',
-        #         symbol: 'BTCUSD',
-        #         changes: [
-        #             ['buy', '22252.37', '0.02'],
-        #             ['buy', '22251.61', '0.04'],
-        #             ['buy', '22251.60', '0.04'],
+        #         "type": "l2_updates",
+        #         "symbol": "BTCUSD",
+        #         "changes": [
+        #             ["buy", '22252.37', "0.02"],
+        #             ["buy", '22251.61', "0.04"],
+        #             ["buy", '22251.60', "0.04"],
         #             # some asks
         #         ],
-        #         trades: [
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: '0.00004473', side: 'buy'},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: '0.00704098', side: 'buy'},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: '0.03', side: 'buy'},
+        #         "trades": [
+        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},
+        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy"},
+        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy"},
         #         ],
-        #         auction_events: [
+        #         "auction_events": [
         #             {
-        #                 type: 'auction_result',
-        #                 symbol: 'BTCUSD',
-        #                 time_ms: 1655323200000,
-        #                 result: 'failure',
-        #                 highest_bid_price: '21590.88',
-        #                 lowest_ask_price: '21602.30',
-        #                 collar_price: '21634.73'
+        #                 "type": "auction_result",
+        #                 "symbol": "BTCUSD",
+        #                 "time_ms": 1655323200000,
+        #                 "result": "failure",
+        #                 "highest_bid_price": "21590.88",
+        #                 "lowest_ask_price": "21602.30",
+        #                 "collar_price": "21634.73"
         #             },
         #             {
-        #                 type: 'auction_indicative',
-        #                 symbol: 'BTCUSD',
-        #                 time_ms: 1655323185000,
-        #                 result: 'failure',
-        #                 highest_bid_price: '21661.90',
-        #                 lowest_ask_price: '21663.79',
-        #                 collar_price: '21662.845'
+        #                 "type": "auction_indicative",
+        #                 "symbol": "BTCUSD",
+        #                 "time_ms": 1655323185000,
+        #                 "result": "failure",
+        #                 "highest_bid_price": "21661.90",
+        #                 "lowest_ask_price": "21663.79",
+        #                 "collar_price": "21662.845"
         #             },
         #         ]
         #     }
@@ -319,37 +319,37 @@ class gemini(ccxt.async_support.gemini):
     def handle_l2_updates(self, client: Client, message):
         #
         #     {
-        #         type: 'l2_updates',
-        #         symbol: 'BTCUSD',
-        #         changes: [
-        #             ['buy', '22252.37', '0.02'],
-        #             ['buy', '22251.61', '0.04'],
-        #             ['buy', '22251.60', '0.04'],
+        #         "type": "l2_updates",
+        #         "symbol": "BTCUSD",
+        #         "changes": [
+        #             ["buy", '22252.37', "0.02"],
+        #             ["buy", '22251.61', "0.04"],
+        #             ["buy", '22251.60', "0.04"],
         #             # some asks
         #         ],
-        #         trades: [
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: '0.00004473', side: 'buy'},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: '0.00704098', side: 'buy'},
-        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: '0.03', side: 'buy'},
+        #         "trades": [
+        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},
+        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258141090, timestamp: 1655330213216, price: '22250.00', quantity: "0.00704098", side: "buy"},
+        #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258118291, timestamp: 1655330206753, price: '22250.00', quantity: "0.03", side: "buy"},
         #         ],
-        #         auction_events: [
+        #         "auction_events": [
         #             {
-        #                 type: 'auction_result',
-        #                 symbol: 'BTCUSD',
-        #                 time_ms: 1655323200000,
-        #                 result: 'failure',
-        #                 highest_bid_price: '21590.88',
-        #                 lowest_ask_price: '21602.30',
-        #                 collar_price: '21634.73'
+        #                 "type": "auction_result",
+        #                 "symbol": "BTCUSD",
+        #                 "time_ms": 1655323200000,
+        #                 "result": "failure",
+        #                 "highest_bid_price": "21590.88",
+        #                 "lowest_ask_price": "21602.30",
+        #                 "collar_price": "21634.73"
         #             },
         #             {
-        #                 type: 'auction_indicative',
-        #                 symbol: 'BTCUSD',
-        #                 time_ms: 1655323185000,
-        #                 result: 'failure',
-        #                 highest_bid_price: '21661.90',
-        #                 lowest_ask_price: '21663.79',
-        #                 collar_price: '21662.845'
+        #                 "type": "auction_indicative",
+        #                 "symbol": "BTCUSD",
+        #                 "time_ms": 1655323185000,
+        #                 "result": "failure",
+        #                 "highest_bid_price": "21661.90",
+        #                 "lowest_ask_price": "21663.79",
+        #                 "collar_price": "21662.845"
         #             },
         #         ]
         #     }
@@ -385,11 +385,11 @@ class gemini(ccxt.async_support.gemini):
     def handle_heartbeat(self, client: Client, message):
         #
         #     {
-        #         type: 'heartbeat',
-        #         timestampms: 1659740268958,
-        #         sequence: 7,
-        #         trace_id: '25b3d92476dd3a9a5c03c9bd9e0a0dba',
-        #         socket_sequence: 7
+        #         "type": "heartbeat",
+        #         "timestampms": 1659740268958,
+        #         "sequence": 7,
+        #         "trace_id": "25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        #         "socket_sequence": 7
         #     }
         #
         return message
@@ -397,12 +397,12 @@ class gemini(ccxt.async_support.gemini):
     def handle_subscription(self, client: Client, message):
         #
         #     {
-        #         type: 'subscription_ack',
-        #         accountId: 19433282,
-        #         subscriptionId: 'orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba',
-        #         symbolFilter: [],
-        #         apiSessionFilter: [],
-        #         eventTypeFilter: []
+        #         "type": "subscription_ack",
+        #         "accountId": 19433282,
+        #         "subscriptionId": "orderevents-websocket-25b3d92476dd3a9a5c03c9bd9e0a0dba",
+        #         "symbolFilter": [],
+        #         "apiSessionFilter": [],
+        #         "eventTypeFilter": []
         #     }
         #
         return message
@@ -411,23 +411,23 @@ class gemini(ccxt.async_support.gemini):
         #
         #     [
         #         {
-        #             type: 'accepted',
-        #             order_id: '134150423884',
-        #             event_id: '134150423886',
-        #             account_name: 'primary',
-        #             client_order_id: '1659739406916',
-        #             api_session: 'account-pnBFSS0XKGvDamX4uEIt',
-        #             symbol: 'batbtc',
-        #             side: 'sell',
-        #             order_type: 'exchange limit',
-        #             timestamp: '1659739407',
-        #             timestampms: 1659739407576,
-        #             is_live: True,
-        #             is_cancelled: False,
-        #             is_hidden: False,
-        #             original_amount: '1',
-        #             price: '1',
-        #             socket_sequence: 139
+        #             "type": "accepted",
+        #             "order_id": "134150423884",
+        #             "event_id": "134150423886",
+        #             "account_name": "primary",
+        #             "client_order_id": "1659739406916",
+        #             "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        #             "symbol": "batbtc",
+        #             "side": "sell",
+        #             "order_type": "exchange limit",
+        #             "timestamp": "1659739407",
+        #             "timestampms": 1659739407576,
+        #             "is_live": True,
+        #             "is_cancelled": False,
+        #             "is_hidden": False,
+        #             "original_amount": "1",
+        #             "price": "1",
+        #             "socket_sequence": 139
         #         }
         #     ]
         #
@@ -444,23 +444,23 @@ class gemini(ccxt.async_support.gemini):
     def parse_ws_order(self, order, market=None):
         #
         #     {
-        #         type: 'accepted',
-        #         order_id: '134150423884',
-        #         event_id: '134150423886',
-        #         account_name: 'primary',
-        #         client_order_id: '1659739406916',
-        #         api_session: 'account-pnBFSS0XKGvDamX4uEIt',
-        #         symbol: 'batbtc',
-        #         side: 'sell',
-        #         order_type: 'exchange limit',
-        #         timestamp: '1659739407',
-        #         timestampms: 1659739407576,
-        #         is_live: True,
-        #         is_cancelled: False,
-        #         is_hidden: False,
-        #         original_amount: '1',
-        #         price: '1',
-        #         socket_sequence: 139
+        #         "type": "accepted",
+        #         "order_id": "134150423884",
+        #         "event_id": "134150423886",
+        #         "account_name": "primary",
+        #         "client_order_id": "1659739406916",
+        #         "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        #         "symbol": "batbtc",
+        #         "side": "sell",
+        #         "order_type": "exchange limit",
+        #         "timestamp": "1659739407",
+        #         "timestampms": 1659739407576,
+        #         "is_live": True,
+        #         "is_cancelled": False,
+        #         "is_hidden": False,
+        #         "original_amount": "1",
+        #         "price": "1",
+        #         "socket_sequence": 139
         #     }
         #
         timestamp = self.safe_number(order, 'timestampms')
@@ -523,8 +523,8 @@ class gemini(ccxt.async_support.gemini):
     def handle_error(self, client: Client, message):
         #
         #     {
-        #         reason: 'NoValidTradingPairs',
-        #         result: 'error'
+        #         "reason": "NoValidTradingPairs",
+        #         "result": "error"
         #     }
         #
         raise ExchangeError(self.json(message))
@@ -533,35 +533,35 @@ class gemini(ccxt.async_support.gemini):
         #
         #  public
         #     {
-        #         type: 'trade',
-        #         symbol: 'BTCUSD',
-        #         event_id: 122278173770,
-        #         timestamp: 1655335880981,
-        #         price: '22530.80',
-        #         quantity: '0.04',
-        #         side: 'buy'
+        #         "type": "trade",
+        #         "symbol": "BTCUSD",
+        #         "event_id": 122278173770,
+        #         "timestamp": 1655335880981,
+        #         "price": "22530.80",
+        #         "quantity": "0.04",
+        #         "side": "buy"
         #     }
         #
         #  private
         #     [
         #         {
-        #             type: 'accepted',
-        #             order_id: '134150423884',
-        #             event_id: '134150423886',
-        #             account_name: 'primary',
-        #             client_order_id: '1659739406916',
-        #             api_session: 'account-pnBFSS0XKGvDamX4uEIt',
-        #             symbol: 'batbtc',
-        #             side: 'sell',
-        #             order_type: 'exchange limit',
-        #             timestamp: '1659739407',
-        #             timestampms: 1659739407576,
-        #             is_live: True,
-        #             is_cancelled: False,
-        #             is_hidden: False,
-        #             original_amount: '1',
-        #             price: '1',
-        #             socket_sequence: 139
+        #             "type": "accepted",
+        #             "order_id": "134150423884",
+        #             "event_id": "134150423886",
+        #             "account_name": "primary",
+        #             "client_order_id": "1659739406916",
+        #             "api_session": "account-pnBFSS0XKGvDamX4uEIt",
+        #             "symbol": "batbtc",
+        #             "side": "sell",
+        #             "order_type": "exchange limit",
+        #             "timestamp": "1659739407",
+        #             "timestampms": 1659739407576,
+        #             "is_live": True,
+        #             "is_cancelled": False,
+        #             "is_hidden": False,
+        #             "original_amount": "1",
+        #             "price": "1",
+        #             "socket_sequence": 139
         #         }
         #     ]
         #

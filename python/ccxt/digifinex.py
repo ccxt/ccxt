@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -752,7 +752,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         # spot and margin
         #
@@ -1082,7 +1082,7 @@ class digifinex(Exchange, ImplicitAPI):
             result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1152,7 +1152,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # spot: fetchTrades
         #
@@ -2566,7 +2566,7 @@ class digifinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #

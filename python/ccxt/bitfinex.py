@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -424,8 +424,8 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.privatePostAccountFees(params)
         #
         # {
-        #     'withdraw': {
-        #         'BTC': '0.0004',
+        #     "withdraw": {
+        #         "BTC": "0.0004",
         #     }
         # }
         #
@@ -455,8 +455,8 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.privatePostAccountFees(params)
         #
         #    {
-        #        'withdraw': {
-        #            'BTC': '0.0004',
+        #        "withdraw": {
+        #            "BTC": "0.0004",
         #            ...
         #        }
         #    }
@@ -491,41 +491,41 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.privatePostSummary(params)
         #
         #     {
-        #          time: '2022-02-23T16:05:47.659000Z',
-        #          status: {resid_hint: null, login_last: '2022-02-23T16:05:48Z'},
-        #          is_locked: False,
-        #          leo_lev: '0',
-        #          leo_amount_avg: '0.0',
-        #          trade_vol_30d: [
+        #          "time": "2022-02-23T16:05:47.659000Z",
+        #          "status": {resid_hint: null, login_last: "2022-02-23T16:05:48Z"},
+        #          "is_locked": False,
+        #          "leo_lev": "0",
+        #          "leo_amount_avg": "0.0",
+        #          "trade_vol_30d": [
         #          {
-        #              curr: 'Total(USD)',
-        #              vol: '0.0',
-        #              vol_safe: '0.0',
-        #              vol_maker: '0.0',
-        #              vol_BFX: '0.0',
-        #              vol_BFX_safe: '0.0',
-        #              vol_BFX_maker: '0.0'
+        #              "curr": "Total(USD)",
+        #              "vol": "0.0",
+        #              "vol_safe": "0.0",
+        #              "vol_maker": "0.0",
+        #              "vol_BFX": "0.0",
+        #              "vol_BFX_safe": "0.0",
+        #              "vol_BFX_maker": "0.0"
         #          }
         #          ],
-        #          fees_funding_30d: {},
-        #          fees_funding_total_30d: '0',
-        #          fees_trading_30d: {},
-        #          fees_trading_total_30d: '0',
-        #          rebates_trading_30d: {},
-        #          rebates_trading_total_30d: '0',
-        #          maker_fee: '0.001',
-        #          taker_fee: '0.002',
-        #          maker_fee_2crypto: '0.001',
-        #          maker_fee_2stablecoin: '0.001',
-        #          maker_fee_2fiat: '0.001',
-        #          maker_fee_2deriv: '0.0002',
-        #          taker_fee_2crypto: '0.002',
-        #          taker_fee_2stablecoin: '0.002',
-        #          taker_fee_2fiat: '0.002',
-        #          taker_fee_2deriv: '0.00065',
-        #          deriv_maker_rebate: '0.0002',
-        #          deriv_taker_fee: '0.00065',
-        #          trade_last: null
+        #          "fees_funding_30d": {},
+        #          "fees_funding_total_30d": "0",
+        #          "fees_trading_30d": {},
+        #          "fees_trading_total_30d": "0",
+        #          "rebates_trading_30d": {},
+        #          "rebates_trading_total_30d": "0",
+        #          "maker_fee": "0.001",
+        #          "taker_fee": "0.002",
+        #          "maker_fee_2crypto": "0.001",
+        #          "maker_fee_2stablecoin": "0.001",
+        #          "maker_fee_2fiat": "0.001",
+        #          "maker_fee_2deriv": "0.0002",
+        #          "taker_fee_2crypto": "0.002",
+        #          "taker_fee_2stablecoin": "0.002",
+        #          "taker_fee_2fiat": "0.002",
+        #          "taker_fee_2deriv": "0.00065",
+        #          "deriv_maker_rebate": "0.0002",
+        #          "deriv_taker_fee": "0.00065",
+        #          "trade_last": null
         #     }
         #
         result = {}
@@ -689,18 +689,18 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         query = self.omit(params, 'type')
         response = self.privatePostBalances(query)
-        #    [{type: 'deposit',
-        #        currency: 'btc',
-        #        amount: '0.00116721',
-        #        available: '0.00116721'},
-        #      {type: 'exchange',
-        #        currency: 'ust',
-        #        amount: '0.0000002',
-        #        available: '0.0000002'},
-        #      {type: 'trading',
-        #        currency: 'btc',
-        #        amount: '0.0005',
-        #        available: '0.0005'}],
+        #    [{type: "deposit",
+        #        "currency": "btc",
+        #        "amount": "0.00116721",
+        #        "available": "0.00116721"},
+        #      {type: "exchange",
+        #        "currency": "ust",
+        #        "amount": "0.0000002",
+        #        "available": "0.0000002"},
+        #      {type: "trading",
+        #        "currency": "btc",
+        #        "amount": "0.0005",
+        #        "available": "0.0005"}],
         result = {'info': response}
         isDerivative = requestedType == 'derivatives'
         for i in range(0, len(response)):
@@ -756,8 +756,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             status: 'success',
-        #             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #             "status": "success",
+        #             "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         #         }
         #     ]
         #
@@ -774,8 +774,8 @@ class bitfinex(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer, currency=None):
         #
         #     {
-        #         status: 'success',
-        #         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #         "status": "success",
+        #         "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         #     }
         #
         timestamp = self.milliseconds()
@@ -857,7 +857,7 @@ class bitfinex(Exchange, ImplicitAPI):
         ticker = self.publicGetPubtickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market)
@@ -886,7 +886,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public) v1
         #
@@ -1092,26 +1092,26 @@ class bitfinex(Exchange, ImplicitAPI):
     def parse_order(self, order, market=None) -> Order:
         #
         #     {
-        #           id: 57334010955,
-        #           cid: 1611584840966,
-        #           cid_date: null,
-        #           gid: null,
-        #           symbol: 'ltcbtc',
-        #           exchange: null,
-        #           price: '0.0042125',
-        #           avg_execution_price: '0.0042097',
-        #           side: 'sell',
-        #           type: 'exchange market',
-        #           timestamp: '1611584841.0',
-        #           is_live: False,
-        #           is_cancelled: False,
-        #           is_hidden: 0,
-        #           oco_order: 0,
-        #           was_forced: False,
-        #           original_amount: '0.205176',
-        #           remaining_amount: '0.0',
-        #           executed_amount: '0.205176',
-        #           src: 'web'
+        #           "id": 57334010955,
+        #           "cid": 1611584840966,
+        #           "cid_date": null,
+        #           "gid": null,
+        #           "symbol": "ltcbtc",
+        #           "exchange": null,
+        #           "price": "0.0042125",
+        #           "avg_execution_price": "0.0042097",
+        #           "side": "sell",
+        #           "type": "exchange market",
+        #           "timestamp": "1611584841.0",
+        #           "is_live": False,
+        #           "is_cancelled": False,
+        #           "is_hidden": 0,
+        #           "oco_order": 0,
+        #           "was_forced": False,
+        #           "original_amount": "0.205176",
+        #           "remaining_amount": "0.0",
+        #           "executed_amount": "0.205176",
+        #           "src": "web"
         #     }
         #
         side = self.safe_string(order, 'side')
@@ -1357,7 +1357,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # crypto
         #

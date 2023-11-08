@@ -489,25 +489,25 @@ export default class mercado extends Exchange {
         const response = await this.privatePostCancelOrder(this.extend(request, params));
         //
         //     {
-        //         response_data: {
-        //             order: {
-        //                 order_id: 2176769,
-        //                 coin_pair: 'BRLBCH',
-        //                 order_type: 2,
-        //                 status: 3,
-        //                 has_fills: false,
-        //                 quantity: '0.10000000',
-        //                 limit_price: '1996.15999',
-        //                 executed_quantity: '0.00000000',
-        //                 executed_price_avg: '0.00000',
-        //                 fee: '0.00000000',
-        //                 created_timestamp: '1536956488',
-        //                 updated_timestamp: '1536956499',
-        //                 operations: []
+        //         "response_data": {
+        //             "order": {
+        //                 "order_id": 2176769,
+        //                 "coin_pair": "BRLBCH",
+        //                 "order_type": 2,
+        //                 "status": 3,
+        //                 "has_fills": false,
+        //                 "quantity": "0.10000000",
+        //                 "limit_price": "1996.15999",
+        //                 "executed_quantity": "0.00000000",
+        //                 "executed_price_avg": "0.00000",
+        //                 "fee": "0.00000000",
+        //                 "created_timestamp": "1536956488",
+        //                 "updated_timestamp": "1536956499",
+        //                 "operations": []
         //             }
         //         },
-        //         status_code: 100,
-        //         server_unix_timestamp: '1536956499'
+        //         "status_code": 100,
+        //         "server_unix_timestamp": "1536956499"
         //     }
         //
         const responseData = this.safeValue(response, 'response_data', {});

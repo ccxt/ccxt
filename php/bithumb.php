@@ -265,7 +265,7 @@ class bithumb extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
@@ -339,7 +339,7 @@ class bithumb extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -485,11 +485,11 @@ class bithumb extends Exchange {
         //
         //     array(
         //         1576823400000, // 기준 시간
-        //         '8284000', // 시가
-        //         '8286000', // 종가
-        //         '8289000', // 고가
-        //         '8276000', // 저가
-        //         '15.41503692' // 거래량
+        //         "8284000", // 시가
+        //         "8286000", // 종가
+        //         "8289000", // 고가
+        //         "8276000", // 저가
+        //         "15.41503692" // 거래량
         //     )
         //
         return array(
@@ -522,23 +522,23 @@ class bithumb extends Exchange {
         $response = $this->publicGetCandlestickBaseIdQuoteIdInterval (array_merge($request, $params));
         //
         //     {
-        //         'status' => '0000',
-        //         'data' => {
+        //         "status" => "0000",
+        //         "data" => {
         //             array(
         //                 1576823400000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8286000', // 종가
-        //                 '8289000', // 고가
-        //                 '8276000', // 저가
-        //                 '15.41503692' // 거래량
+        //                 "8284000", // 시가
+        //                 "8286000", // 종가
+        //                 "8289000", // 고가
+        //                 "8276000", // 저가
+        //                 "15.41503692" // 거래량
         //             ),
         //             array(
         //                 1576824000000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8281000', // 종가
-        //                 '8289000', // 고가
-        //                 '8275000', // 저가
-        //                 '6.19584467' // 거래량
+        //                 "8284000", // 시가
+        //                 "8281000", // 종가
+        //                 "8289000", // 고가
+        //                 "8275000", // 저가
+        //                 "6.19584467" // 거래량
         //             ),
         //         }
         //     }
@@ -547,7 +547,7 @@ class bithumb extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -724,24 +724,24 @@ class bithumb extends Exchange {
         //     {
         //         "status" => "0000",
         //         "data" => {
-        //             order_date => '1603161798539254',
-        //             type => 'ask',
-        //             order_status => 'Cancel',
-        //             order_currency => 'BTC',
-        //             payment_currency => 'KRW',
-        //             watch_price => '0',
-        //             order_price => '13344000',
-        //             order_qty => '0.0125',
-        //             cancel_date => '1603161803809993',
-        //             cancel_type => '사용자취소',
-        //             contract => array(
+        //             "order_date" => "1603161798539254",
+        //             "type" => "ask",
+        //             "order_status" => "Cancel",
+        //             "order_currency" => "BTC",
+        //             "payment_currency" => "KRW",
+        //             "watch_price" => "0",
+        //             "order_price" => "13344000",
+        //             "order_qty" => "0.0125",
+        //             "cancel_date" => "1603161803809993",
+        //             "cancel_type" => "사용자취소",
+        //             "contract" => array(
         //                 {
-        //                     transaction_date => '1603161799976383',
-        //                     price => '13344000',
-        //                     units => '0.0015',
-        //                     fee_currency => 'KRW',
-        //                     fee => '0',
-        //                     total => '20016'
+        //                     "transaction_date" => "1603161799976383",
+        //                     "price" => "13344000",
+        //                     "units" => "0.0015",
+        //                     "fee_currency" => "KRW",
+        //                     "fee" => "0",
+        //                     "total" => "20016"
         //                 }
         //             ),
         //         }
@@ -771,7 +771,7 @@ class bithumb extends Exchange {
         //         "order_status" => "Completed", // Completed, Cancel ...
         //         "order_currency" => "BTC",
         //         "payment_currency" => "KRW",
-        //         "watch_price" => '0', // present in Cancel $order
+        //         "watch_price" => "0", // present in Cancel $order
         //         "order_price" => "8601000",
         //         "order_qty" => "0.007",
         //         "cancel_date" => "", // filled in Cancel $order
@@ -975,7 +975,7 @@ class bithumb extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //

@@ -76,18 +76,18 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             response = await self.futuresPrivatePostBulletPrivate(params)
             #
             #     {
-            #         code: "200000",
-            #         data: {
-            #             instanceServers: [
+            #         "code": "200000",
+            #         "data": {
+            #             "instanceServers": [
             #                 {
-            #                     pingInterval:  50000,
-            #                     endpoint: "wss://push-private.kucoin.com/endpoint",
-            #                     protocol: "websocket",
-            #                     encrypt: True,
-            #                     pingTimeout: 10000
+            #                     "pingInterval":  50000,
+            #                     "endpoint": "wss://push-private.kucoin.com/endpoint",
+            #                     "protocol": "websocket",
+            #                     "encrypt": True,
+            #                     "pingTimeout": 10000
             #                 }
             #             ],
-            #             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            #             "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
             #         }
             #     }
             #
@@ -154,17 +154,17 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # market/tickerV2
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/tickerV2:ADAUSDTM',
-        #        subject: 'tickerV2',
-        #        data: {
-        #            symbol: 'ADAUSDTM',
-        #            sequence: 1668007800439,
-        #            bestBidSize: 178,
-        #            bestBidPrice: '0.35959',
-        #            bestAskPrice: '0.35981',
-        #            ts: '1668141430037124460',
-        #            bestAskSize: 134
+        #        "type": "message",
+        #        "topic": "/contractMarket/tickerV2:ADAUSDTM",
+        #        "subject": "tickerV2",
+        #        "data": {
+        #            "symbol": "ADAUSDTM",
+        #            "sequence": 1668007800439,
+        #            "bestBidSize": 178,
+        #            "bestBidPrice": "0.35959",
+        #            "bestAskPrice": "0.35981",
+        #            "ts": "1668141430037124460",
+        #            "bestAskSize": 134
         #        }
         #    }
         #
@@ -227,21 +227,21 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_trade(self, client: Client, message):
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/execution:ADAUSDTM',
-        #        subject: 'match',
-        #        data: {
-        #            makerUserId: '62286a4d720edf0001e81961',
-        #            symbol: 'ADAUSDTM',
-        #            sequence: 41320766,
-        #            side: 'sell',
-        #            size: 2,
-        #            price: 0.35904,
-        #            takerOrderId: '636dd9da9857ba00010cfa44',
-        #            makerOrderId: '636dd9c8df149d0001e62bc8',
-        #            takerUserId: '6180be22b6ab210001fa3371',
-        #            tradeId: '636dd9da0000d400d477eca7',
-        #            ts: 1668143578987357700
+        #        "type": "message",
+        #        "topic": "/contractMarket/execution:ADAUSDTM",
+        #        "subject": "match",
+        #        "data": {
+        #            "makerUserId": "62286a4d720edf0001e81961",
+        #            "symbol": "ADAUSDTM",
+        #            "sequence": 41320766,
+        #            "side": "sell",
+        #            "size": 2,
+        #            "price": 0.35904,
+        #            "takerOrderId": "636dd9da9857ba00010cfa44",
+        #            "makerOrderId": "636dd9c8df149d0001e62bc8",
+        #            "takerUserId": "6180be22b6ab210001fa3371",
+        #            "tradeId": "636dd9da0000d400d477eca7",
+        #            "ts": 1668143578987357700
         #        }
         #    }
         #
@@ -348,13 +348,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # the feed does not include a snapshot, just the deltas
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/level2:ADAUSDTM',
-        #        subject: 'level2',
-        #        data: {
-        #            sequence: 1668059586457,
-        #            change: '0.34172,sell,456',  # type, side, quantity
-        #            timestamp: 1668573023223
+        #        "type": "message",
+        #        "topic": "/contractMarket/level2:ADAUSDTM",
+        #        "subject": "level2",
+        #        "data": {
+        #            "sequence": 1668059586457,
+        #            "change": "0.34172,sell,456",  # type, side, quantity
+        #            "timestamp": 1668573023223
         #        }
         #    }
         #
@@ -422,8 +422,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         id: '1578090438322',
-        #         type: 'ack'
+        #         "id": "1578090438322",
+        #         "type": "ack"
         #     }
         #
         id = self.safe_string(message, 'id')
@@ -441,8 +441,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         # involves system status and maintenance updates
         #
         #     {
-        #         id: '1578090234088',  # connectId
-        #         type: 'welcome',
+        #         "id": "1578090234088",  # connectId
+        #         "type": "welcome",
         #     }
         #
         return message
@@ -485,20 +485,20 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
 
     def parse_ws_order(self, order, market=None):
         #
-        #         'symbol': 'XCAD-USDT',
+        #         "symbol": "XCAD-USDT",
         #     {
-        #         'orderType': 'limit',
-        #         'side': 'buy',
-        #         'orderId': '6249167327218b000135e749',
-        #         'type': 'canceled',
-        #         'orderTime': 1648957043065280224,
-        #         'size': '100.452',
-        #         'filledSize': '0',
-        #         'price': '2.9635',
-        #         'clientOid': 'buy-XCAD-USDT-1648957043010159',
-        #         'remainSize': '0',
-        #         'status': 'done',
-        #         'ts': 1648957054031001037
+        #         "orderType": "limit",
+        #         "side": "buy",
+        #         "orderId": "6249167327218b000135e749",
+        #         "type": "canceled",
+        #         "orderTime": 1648957043065280224,
+        #         "size": "100.452",
+        #         "filledSize": "0",
+        #         "price": "2.9635",
+        #         "clientOid": "buy-XCAD-USDT-1648957043010159",
+        #         "remainSize": "0",
+        #         "status": "done",
+        #         "ts": 1648957054031001037
         #     }
         #
         id = self.safe_string(order, 'orderId')
@@ -585,17 +585,17 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_balance(self, client: Client, message):
         #
         #    {
-        #        id: '6375553193027a0001f6566f',
-        #        type: 'message',
-        #        topic: '/contractAccount/wallet',
-        #        userId: '613a896885d8660006151f01',
-        #        channelType: 'private',
-        #        subject: 'availableBalance.change',
-        #        data: {
-        #            currency: 'USDT',
-        #            holdBalance: '0.0000000000',
-        #            availableBalance: '14.0350281903',
-        #            timestamp: '1668633905657'
+        #        "id": "6375553193027a0001f6566f",
+        #        "type": "message",
+        #        "topic": "/contractAccount/wallet",
+        #        "userId": "613a896885d8660006151f01",
+        #        "channelType": "private",
+        #        "subject": "availableBalance.change",
+        #        "data": {
+        #            "currency": "USDT",
+        #            "holdBalance": "0.0000000000",
+        #            "availableBalance": "14.0350281903",
+        #            "timestamp": "1668633905657"
         #        }
         #    }
         #
@@ -624,34 +624,34 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         snapshot = await self.fetch_balance(params)
         #
         #    {
-        #        info: {
-        #            code: '200000',
-        #            data: {
-        #                accountEquity: 0.0350281903,
-        #                unrealisedPNL: 0,
-        #                marginBalance: 0.0350281903,
-        #                positionMargin: 0,
-        #                orderMargin: 0,
-        #                frozenFunds: 0,
-        #                availableBalance: 0.0350281903,
-        #                currency: 'USDT'
+        #        "info": {
+        #            "code": "200000",
+        #            "data": {
+        #                "accountEquity": 0.0350281903,
+        #                "unrealisedPNL": 0,
+        #                "marginBalance": 0.0350281903,
+        #                "positionMargin": 0,
+        #                "orderMargin": 0,
+        #                "frozenFunds": 0,
+        #                "availableBalance": 0.0350281903,
+        #                "currency": "USDT"
         #            }
         #        },
-        #        timestamp: None,
-        #        datetime: None,
-        #        USDT: {
-        #            free: 0.0350281903,
-        #            used: 0,
-        #            total: 0.0350281903
+        #        "timestamp": None,
+        #        "datetime": None,
+        #        "USDT": {
+        #            "free": 0.0350281903,
+        #            "used": 0,
+        #            "total": 0.0350281903
         #        },
-        #        free: {
-        #            USDT: 0.0350281903
+        #        "free": {
+        #            "USDT": 0.0350281903
         #        },
-        #        used: {
-        #            USDT: 0
+        #        "used": {
+        #            "USDT": 0
         #        },
-        #        total: {
-        #            USDT: 0.0350281903
+        #        "total": {
+        #            "USDT": 0.0350281903
         #        }
         #    }
         #
@@ -666,13 +666,13 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     def handle_subject(self, client: Client, message):
         #
         #    {
-        #        type: 'message',
-        #        topic: '/contractMarket/level2:ADAUSDTM',
-        #        subject: 'level2',
-        #        data: {
-        #            sequence: 1668059586457,
-        #            change: '0.34172,sell,456',  # type, side, quantity
-        #            timestamp: 1668573023223
+        #        "type": "message",
+        #        "topic": "/contractMarket/level2:ADAUSDTM",
+        #        "subject": "level2",
+        #        "data": {
+        #            "sequence": 1668059586457,
+        #            "change": "0.34172,sell,456",  # type, side, quantity
+        #            "timestamp": 1668573023223
         #        }
         #    }
         #

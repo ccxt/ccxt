@@ -487,11 +487,11 @@ class coinbase(ccxt.async_support.coinbase):
     def handle_subscription_status(self, client, message):
         #
         #     {
-        #         type: 'subscriptions',
-        #         channels: [
+        #         "type": "subscriptions",
+        #         "channels": [
         #             {
-        #                 name: 'level2',
-        #                 product_ids: ['ETH-BTC']
+        #                 "name": "level2",
+        #                 "product_ids": ["ETH-BTC"]
         #             }
         #         ]
         #     }

@@ -444,9 +444,9 @@ class testMainClass extends baseMainTestClass {
                 }
             }
             // we don't throw exception for public-$tests, see comments under 'testSafe' method
-            $failedMsg = $errors ? implode(', ', $errors) : null;
             $errorsInMessage = '';
-            if ($errors !== null) {
+            if ($errors) {
+                $failedMsg = implode(', ', $errors);
                 $errorsInMessage = ' | Failed methods : ' . $failedMsg;
             }
             $messageContent = '[INFO:PUBLIC_TESTS_END] ' . $market['type'] . $errorsInMessage;
@@ -838,13 +838,13 @@ class testMainClass extends baseMainTestClass {
         // to make this test
         // and basically independent from the exchange
         // so we can run it offline
-        $filename = './ts/src/test/static/markets/' . $id . '.json';
+        $filename = rootDir . './ts/src/test/static/markets/' . $id . '.json';
         $content = io_file_read ($filename);
         return $content;
     }
 
     public function load_static_data(?string $targetExchange = null) {
-        $folder = './ts/src/test/static/data/';
+        $folder = rootDir . './ts/src/test/static/data/';
         $result = array();
         if ($targetExchange) {
             // read a single exchange
@@ -897,30 +897,39 @@ class testMainClass extends baseMainTestClass {
         return $result;
     }
 
-    public function assert_new_and_stored_output($exchange, array $skipKeys, array $newOutput, array $storedOutput) {
-        $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
-        $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
-        $storedLenght = count($storedOutputKeys);
-        $newLength = count($newOutputKeys);
-        $this->assert_static_error($storedLenght === $newLength, 'output length mismatch', $storedOutput, $newOutput);
-        for ($i = 0; $i < count($storedOutputKeys); $i++) {
-            $key = $storedOutputKeys[$i];
-            if ($exchange->in_array($key, $skipKeys)) {
-                continue;
-            }
-            if (!($exchange->in_array($key, $newOutputKeys))) {
-                $this->assert_static_error(false, 'output $key missing => ' . $key, $storedOutput, $newOutput);
-            }
-            $storedValue = $storedOutput[$key];
-            $newValue = $newOutput[$key];
-            if (gettype($storedValue) === 'array') {
-                if (gettype($newValue) === 'array') {
-                    // recursive objects
-                    return $this->assert_new_and_stored_output($exchange, $skipKeys, $newValue, $storedValue);
+    public function assert_new_and_stored_output($exchange, array $skipKeys, $newOutput, $storedOutput) {
+        if ((gettype($storedOutput) === 'array') && (gettype($newOutput) === 'array')) {
+            $storedOutputKeys = is_array($storedOutput) ? array_keys($storedOutput) : array();
+            $newOutputKeys = is_array($newOutput) ? array_keys($newOutput) : array();
+            $storedKeysLength = count($storedOutputKeys);
+            $newKeysLength = count($newOutputKeys);
+            $this->assert_static_error($storedKeysLength === $newKeysLength, 'output length mismatch', $storedOutput, $newOutput);
+            // iterate over the keys
+            for ($i = 0; $i < count($storedOutputKeys); $i++) {
+                $key = $storedOutputKeys[$i];
+                if ($exchange->in_array($key, $skipKeys)) {
+                    continue;
                 }
+                if (!($exchange->in_array($key, $newOutputKeys))) {
+                    $this->assert_static_error(false, 'output $key missing => ' . $key, $storedOutput, $newOutput);
+                }
+                $storedValue = $storedOutput[$key];
+                $newValue = $newOutput[$key];
+                $this->assert_new_and_stored_output($exchange, $skipKeys, $newValue, $storedValue);
             }
-            $messageError = 'output value mismatch for => ' . $key . ' : ' . (string) $storedValue . ' != ' . (string) $newValue;
-            $this->assert_static_error($storedValue === $newValue, $messageError, $storedOutput, $newOutput);
+        } elseif (gettype($storedOutput) === 'array' && array_keys($storedOutput) === array_keys(array_keys($storedOutput)) && (gettype($newOutput) === 'array' && array_keys($newOutput) === array_keys(array_keys($newOutput)))) {
+            $storedArrayLength = count($storedOutput);
+            $newArrayLength = count($newOutput);
+            $this->assert_static_error($storedArrayLength === $newArrayLength, 'output length mismatch', $storedOutput, $newOutput);
+            for ($i = 0; $i < count($storedOutput); $i++) {
+                $storedItem = $storedOutput[$i];
+                $newItem = $newOutput[$i];
+                $this->assert_new_and_stored_output($exchange, $skipKeys, $newItem, $storedItem);
+            }
+        } else {
+            // built-in types like strings, numbers, booleans
+            $messageError = 'output value mismatch:' . (string) $newOutput . ' != ' . (string) $storedOutput;
+            $this->assert_static_error($newOutput === $storedOutput, $messageError, $storedOutput, $newOutput);
         }
     }
 
@@ -937,8 +946,15 @@ class testMainClass extends baseMainTestClass {
             if (($storedUrl !== null) && ($requestUrl !== null)) {
                 $storedUrlParts = explode('?', $storedUrl);
                 $newUrlParts = explode('?', $requestUrl);
-                $storedUrlParams = $this->urlencoded_to_dict($storedUrlParts[1]);
-                $newUrlParams = $this->urlencoded_to_dict($newUrlParts[1]);
+                $storedUrlQuery = $exchange->safe_value($storedUrlParts, 1);
+                $newUrlQuery = $exchange->safe_value($newUrlParts, 1);
+                if (($storedUrlQuery === null) && ($newUrlQuery === null)) {
+                    // might be a get request without any query parameters
+                    // example => https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                $storedUrlParams = $this->urlencoded_to_dict($storedUrlQuery);
+                $newUrlParams = $this->urlencoded_to_dict($newUrlQuery);
                 $this->assert_new_and_stored_output($exchange, $skipKeys, $newUrlParams, $storedUrlParams);
                 return;
             }
@@ -955,18 +971,7 @@ class testMainClass extends baseMainTestClass {
             $storedOutput = $this->urlencoded_to_dict($storedOutput);
             $newOutput = $this->urlencoded_to_dict($newOutput);
         }
-        if (gettype($storedOutput) === 'array' && array_keys($storedOutput) === array_keys(array_keys($storedOutput))) {
-            if (gettype($newOutput) !== 'array' || array_keys($newOutput) !== array_keys(array_keys($newOutput))) {
-                $this->assert_static_error(false, 'output $type mismatch', $storedOutput, $newOutput);
-            }
-            for ($i = 0; $i < count($storedOutput); $i++) {
-                $storedItem = $storedOutput[$i];
-                $newItem = $newOutput[$i];
-                $this->assert_new_and_stored_output($exchange, $skipKeys, $newItem, $storedItem);
-            }
-        } else {
-            $this->assert_new_and_stored_output($exchange, $skipKeys, $newOutput, $storedOutput);
-        }
+        $this->assert_new_and_stored_output($exchange, $skipKeys, $newOutput, $storedOutput);
     }
 
     public function test_method_statically($exchange, string $method, array $data, string $type, array $skipKeys) {
@@ -995,7 +1000,7 @@ class testMainClass extends baseMainTestClass {
 
     public function init_offline_exchange(string $exchangeName) {
         $markets = $this->load_markets_from_file($exchangeName);
-        return init_exchange ($exchangeName, array( 'markets' => $markets, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false )));
+        return init_exchange ($exchangeName, array( 'markets' => $markets, 'rateLimit' => 1, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false, 'accessToken' => 'token', 'expires' => 999999999999999 )));
     }
 
     public function test_exchange_statically(string $exchangeName, array $exchangeData, ?string $testName = null) {

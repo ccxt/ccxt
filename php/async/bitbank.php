@@ -254,7 +254,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
@@ -324,7 +324,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -405,26 +405,26 @@ class bitbank extends Exchange {
             $response = Async\await($this->marketsGetSpotPairs ($params));
             //
             //     {
-            //         success => '1',
-            //         $data => {
-            //           $pairs => array(
+            //         "success" => "1",
+            //         "data" => {
+            //           "pairs" => array(
             //             array(
-            //               name => 'btc_jpy',
-            //               base_asset => 'btc',
-            //               quote_asset => 'jpy',
-            //               maker_fee_rate_base => '0',
-            //               taker_fee_rate_base => '0',
-            //               maker_fee_rate_quote => '-0.0002',
-            //               taker_fee_rate_quote => '0.0012',
-            //               unit_amount => '0.0001',
-            //               limit_max_amount => '1000',
-            //               market_max_amount => '10',
-            //               market_allowance_rate => '0.2',
-            //               price_digits => '0',
-            //               amount_digits => '4',
-            //               is_enabled => true,
-            //               stop_order => false,
-            //               stop_order_and_cancel => false
+            //               "name" => "btc_jpy",
+            //               "base_asset" => "btc",
+            //               "quote_asset" => "jpy",
+            //               "maker_fee_rate_base" => "0",
+            //               "taker_fee_rate_base" => "0",
+            //               "maker_fee_rate_quote" => "-0.0002",
+            //               "taker_fee_rate_quote" => "0.0012",
+            //               "unit_amount" => "0.0001",
+            //               "limit_max_amount" => "1000",
+            //               "market_max_amount" => "10",
+            //               "market_allowance_rate" => "0.2",
+            //               "price_digits" => "0",
+            //               "amount_digits" => "4",
+            //               "is_enabled" => true,
+            //               "stop_order" => false,
+            //               "stop_order_and_cancel" => false
             //             ),
             //             ...
             //           )
@@ -526,7 +526,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -852,7 +852,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //

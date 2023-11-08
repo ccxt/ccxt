@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.btcalpha import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -249,15 +249,15 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            timestamp: '1674658.445272',
-        #            pair: 'BTC_USDT',
-        #            last: '22476.85',
-        #            diff: '458.96',
-        #            vol: '6660.847784',
-        #            high: '23106.08',
-        #            low: '22348.29',
-        #            buy: '22508.46',
-        #            sell: '22521.11'
+        #            "timestamp": "1674658.445272",
+        #            "pair": "BTC_USDT",
+        #            "last": "22476.85",
+        #            "diff": "458.96",
+        #            "vol": "6660.847784",
+        #            "high": "23106.08",
+        #            "low": "22348.29",
+        #            "buy": "22508.46",
+        #            "sell": "22521.11"
         #        },
         #        ...
         #    ]
@@ -280,31 +280,31 @@ class btcalpha(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         #    {
-        #        timestamp: '1674658.445272',
-        #        pair: 'BTC_USDT',
-        #        last: '22476.85',
-        #        diff: '458.96',
-        #        vol: '6660.847784',
-        #        high: '23106.08',
-        #        low: '22348.29',
-        #        buy: '22508.46',
-        #        sell: '22521.11'
+        #        "timestamp": "1674658.445272",
+        #        "pair": "BTC_USDT",
+        #        "last": "22476.85",
+        #        "diff": "458.96",
+        #        "vol": "6660.847784",
+        #        "high": "23106.08",
+        #        "low": "22348.29",
+        #        "buy": "22508.46",
+        #        "sell": "22521.11"
         #    }
         #
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #    {
-        #        timestamp: '1674658.445272',
-        #        pair: 'BTC_USDT',
-        #        last: '22476.85',
-        #        diff: '458.96',
-        #        vol: '6660.847784',
-        #        high: '23106.08',
-        #        low: '22348.29',
-        #        buy: '22508.46',
-        #        sell: '22521.11'
+        #        "timestamp": "1674658.445272",
+        #        "pair": "BTC_USDT",
+        #        "last": "22476.85",
+        #        "diff": "458.96",
+        #        "vol": "6660.847784",
+        #        "high": "23106.08",
+        #        "low": "22348.29",
+        #        "buy": "22508.46",
+        #        "sell": "22521.11"
         #    }
         #
         timestampStr = self.safe_string(ticker, 'timestamp')
@@ -363,7 +363,7 @@ class btcalpha(Exchange, ImplicitAPI):
                 result.append(self.parse_bid_ask(bidask, priceKey, amountKey))
         return result
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -487,7 +487,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #  deposit
         #      {
@@ -591,7 +591,7 @@ class btcalpha(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]

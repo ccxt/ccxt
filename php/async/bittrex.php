@@ -383,7 +383,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $indexed = $this->index_by($response, 'currencySymbol');
         $currencyIds = is_array($indexed) ? array_keys($indexed) : array();
@@ -519,13 +519,14 @@ class bittrex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'networks' => array(),
                 );
             }
             return $result;
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // $ticker
         //
@@ -697,7 +698,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -1230,19 +1231,19 @@ class bittrex extends Exchange {
             // Spot
             //
             //     {
-            //         id => 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
-            //         marketSymbol => 'BTC-USDT',
-            //         direction => 'SELL',
-            //         $type => 'LIMIT',
-            //         quantity => '0.01',
-            //         $limit => '6000',
-            //         $timeInForce => 'GOOD_TIL_CANCELLED',
-            //         fillQuantity => '0.00000000',
-            //         commission => '0.00000000',
-            //         proceeds => '0.00000000',
-            //         status => 'OPEN',
-            //         createdAt => '2020-03-18T02:37:33.42Z',
-            //         updatedAt => '2020-03-18T02:37:33.42Z'
+            //         "id" => "f03d5e98-b5ac-48fb-8647-dd4db828a297",
+            //         "marketSymbol" => "BTC-USDT",
+            //         "direction" => "SELL",
+            //         "type" => "LIMIT",
+            //         "quantity" => "0.01",
+            //         "limit" => "6000",
+            //         "timeInForce" => "GOOD_TIL_CANCELLED",
+            //         "fillQuantity" => "0.00000000",
+            //         "commission" => "0.00000000",
+            //         "proceeds" => "0.00000000",
+            //         "status" => "OPEN",
+            //         "createdAt" => "2020-03-18T02:37:33.42Z",
+            //         "updatedAt" => "2020-03-18T02:37:33.42Z"
             //       }
             //
             // Stop
@@ -1571,7 +1572,7 @@ class bittrex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1707,21 +1708,21 @@ class bittrex extends Exchange {
         // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
-        //         id => '1be35109-b763-44ce-b6ea-05b6b0735c0c',
-        //         $marketSymbol => 'LTC-ETH',
-        //         $direction => 'BUY',
-        //         $type => 'LIMIT',
-        //         $quantity => '0.50000000',
-        //         $limit => '0.17846699',
-        //         $timeInForce => 'GOOD_TIL_CANCELLED',
-        //         $clientOrderId => 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
-        //         $fillQuantity => '0.50000000',
-        //         $commission => '0.00022286',
-        //         $proceeds => '0.08914915',
-        //         $status => 'CLOSED',
-        //         $createdAt => '2018-06-23T13:14:28.613Z',
-        //         $updatedAt => '2018-06-23T13:14:30.19Z',
-        //         $closedAt => '2018-06-23T13:14:30.19Z'
+        //         "id" => "1be35109-b763-44ce-b6ea-05b6b0735c0c",
+        //         "marketSymbol" => "LTC-ETH",
+        //         "direction" => "BUY",
+        //         "type" => "LIMIT",
+        //         "quantity" => "0.50000000",
+        //         "limit" => "0.17846699",
+        //         "timeInForce" => "GOOD_TIL_CANCELLED",
+        //         "clientOrderId" => "ff156d39-fe01-44ca-8f21-b0afa19ef228",
+        //         "fillQuantity" => "0.50000000",
+        //         "commission" => "0.00022286",
+        //         "proceeds" => "0.08914915",
+        //         "status" => "CLOSED",
+        //         "createdAt" => "2018-06-23T13:14:28.613Z",
+        //         "updatedAt" => "2018-06-23T13:14:30.19Z",
+        //         "closedAt" => "2018-06-23T13:14:30.19Z"
         //     }
         //
         // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder

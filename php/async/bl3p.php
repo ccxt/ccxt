@@ -113,7 +113,7 @@ class bl3p extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $wallets = $this->safe_value($data, 'wallets', array());
         $result = array( 'info' => $data );
@@ -174,7 +174,7 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "currency":"BTC",
@@ -250,7 +250,7 @@ class bl3p extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -327,29 +327,29 @@ class bl3p extends Exchange {
             $response = Async\await($this->privatePostGENMKTMoneyInfo ($params));
             //
             //     {
-            //         $result => 'success',
-            //         $data => {
-            //             user_id => '13396',
-            //             wallets => {
-            //                 BTC => array(
-            //                     balance => array(
-            //                         value_int => '0',
-            //                         display => '0.00000000 BTC',
-            //                         currency => 'BTC',
-            //                         value => '0.00000000',
-            //                         display_short => '0.00 BTC'
+            //         "result" => "success",
+            //         "data" => {
+            //             "user_id" => "13396",
+            //             "wallets" => {
+            //                 "BTC" => array(
+            //                     "balance" => array(
+            //                         "value_int" => "0",
+            //                         "display" => "0.00000000 BTC",
+            //                         "currency" => "BTC",
+            //                         "value" => "0.00000000",
+            //                         "display_short" => "0.00 BTC"
             //                     ),
-            //                     available => array(
-            //                         value_int => '0',
-            //                         display => '0.00000000 BTC',
-            //                         currency => 'BTC',
-            //                         value => '0.00000000',
-            //                         display_short => '0.00 BTC'
+            //                     "available" => array(
+            //                         "value_int" => "0",
+            //                         "display" => "0.00000000 BTC",
+            //                         "currency" => "BTC",
+            //                         "value" => "0.00000000",
+            //                         "display_short" => "0.00 BTC"
             //                     }
             //                 ),
             //                 ...
             //             ),
-            //             trade_fee => '0.25'
+            //             "trade_fee" => "0.25"
             //         }
             //     }
             //

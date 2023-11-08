@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -408,9 +408,9 @@ class upbit(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            market: "KRW-BTC",
-        #            korean_name: "비트코인",
-        #            english_name: "Bitcoin"
+        #            "market": "KRW-BTC",
+        #            "korean_name": "비트코인",
+        #            "english_name": "Bitcoin"
         #        },
         #        ...,
         #    ]
@@ -475,7 +475,7 @@ class upbit(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -502,15 +502,15 @@ class upbit(Exchange, ImplicitAPI):
         response = await self.privateGetAccounts(params)
         #
         #     [{         currency: "BTC",
-        #                   balance: "0.005",
-        #                    locked: "0.0",
-        #         avg_krw_buy_price: "7446000",
-        #                  modified:  False     },
+        #                   "balance": "0.005",
+        #                    "locked": "0.0",
+        #         "avg_krw_buy_price": "7446000",
+        #                  "modified":  False     },
         #       {         currency: "ETH",
-        #                   balance: "0.1",
-        #                    locked: "0.0",
-        #         avg_krw_buy_price: "250000",
-        #                  modified:  False    }   ]
+        #                   "balance": "0.1",
+        #                    "locked": "0.0",
+        #         "avg_krw_buy_price": "250000",
+        #                  "modified":  False    }   ]
         #
         return self.parse_balance(response)
 
@@ -540,31 +540,31 @@ class upbit(Exchange, ImplicitAPI):
         response = await self.publicGetOrderbook(self.extend(request, params))
         #
         #     [{         market:   "BTC-ETH",
-        #               timestamp:    1542899030043,
-        #          total_ask_size:    109.57065201,
-        #          total_bid_size:    125.74430631,
-        #         orderbook_units: [{ask_price: 0.02926679,
-        #                              bid_price: 0.02919904,
-        #                               ask_size: 4.20293961,
-        #                               bid_size: 11.65043576},
+        #               "timestamp":    1542899030043,
+        #          "total_ask_size":    109.57065201,
+        #          "total_bid_size":    125.74430631,
+        #         "orderbook_units": [{ask_price: 0.02926679,
+        #                              "bid_price": 0.02919904,
+        #                               "ask_size": 4.20293961,
+        #                               "bid_size": 11.65043576},
         #                            ...,
         #                            {ask_price: 0.02938209,
-        #                              bid_price: 0.0291231,
-        #                               ask_size: 0.05135782,
-        #                               bid_size: 13.5595     }   ]},
+        #                              "bid_price": 0.0291231,
+        #                               "ask_size": 0.05135782,
+        #                               "bid_size": 13.5595     }   ]},
         #       {         market:   "KRW-BTC",
-        #               timestamp:    1542899034662,
-        #          total_ask_size:    12.89790974,
-        #          total_bid_size:    4.88395783,
-        #         orderbook_units: [{ask_price: 5164000,
-        #                              bid_price: 5162000,
-        #                               ask_size: 2.57606495,
-        #                               bid_size: 0.214       },
+        #               "timestamp":    1542899034662,
+        #          "total_ask_size":    12.89790974,
+        #          "total_bid_size":    4.88395783,
+        #         "orderbook_units": [{ask_price: 5164000,
+        #                              "bid_price": 5162000,
+        #                               "ask_size": 2.57606495,
+        #                               "bid_size": 0.214       },
         #                            ...,
         #                            {ask_price: 5176000,
-        #                              bid_price: 5152000,
-        #                               ask_size: 2.752,
-        #                               bid_size: 0.4650305}    ]}   ]
+        #                              "bid_price": 5152000,
+        #                               "ask_size": 2.752,
+        #                               "bid_size": 0.4650305}    ]}   ]
         #
         result = {}
         for i in range(0, len(response)):
@@ -594,34 +594,34 @@ class upbit(Exchange, ImplicitAPI):
         orderbooks = await self.fetch_order_books([symbol], limit, params)
         return self.safe_value(orderbooks, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #       {               market: "BTC-ETH",
-        #                    trade_date: "20181122",
-        #                    trade_time: "104543",
-        #                trade_date_kst: "20181122",
-        #                trade_time_kst: "194543",
-        #               trade_timestamp:  1542883543097,
-        #                 opening_price:  0.02976455,
-        #                    high_price:  0.02992577,
-        #                     low_price:  0.02934283,
-        #                   trade_price:  0.02947773,
-        #            prev_closing_price:  0.02966,
-        #                        change: "FALL",
-        #                  change_price:  0.00018227,
-        #                   change_rate:  0.0061453136,
-        #           signed_change_price:  -0.00018227,
-        #            signed_change_rate:  -0.0061453136,
-        #                  trade_volume:  1.00000005,
-        #               acc_trade_price:  100.95825586,
-        #           acc_trade_price_24h:  289.58650166,
-        #              acc_trade_volume:  3409.85311036,
-        #          acc_trade_volume_24h:  9754.40510513,
-        #         highest_52_week_price:  0.12345678,
-        #          highest_52_week_date: "2018-02-01",
-        #          lowest_52_week_price:  0.023936,
-        #           lowest_52_week_date: "2017-12-08",
-        #                     timestamp:  1542883543813  }
+        #                    "trade_date": "20181122",
+        #                    "trade_time": "104543",
+        #                "trade_date_kst": "20181122",
+        #                "trade_time_kst": "194543",
+        #               "trade_timestamp":  1542883543097,
+        #                 "opening_price":  0.02976455,
+        #                    "high_price":  0.02992577,
+        #                     "low_price":  0.02934283,
+        #                   "trade_price":  0.02947773,
+        #            "prev_closing_price":  0.02966,
+        #                        "change": "FALL",
+        #                  "change_price":  0.00018227,
+        #                   "change_rate":  0.0061453136,
+        #           "signed_change_price":  -0.00018227,
+        #            "signed_change_rate":  -0.0061453136,
+        #                  "trade_volume":  1.00000005,
+        #               "acc_trade_price":  100.95825586,
+        #           "acc_trade_price_24h":  289.58650166,
+        #              "acc_trade_volume":  3409.85311036,
+        #          "acc_trade_volume_24h":  9754.40510513,
+        #         "highest_52_week_price":  0.12345678,
+        #          "highest_52_week_date": "2018-02-01",
+        #          "lowest_52_week_price":  0.023936,
+        #           "lowest_52_week_date": "2017-12-08",
+        #                     "timestamp":  1542883543813  }
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
         marketId = self.safe_string_2(ticker, 'market', 'code')
@@ -676,31 +676,31 @@ class upbit(Exchange, ImplicitAPI):
         response = await self.publicGetTicker(self.extend(request, params))
         #
         #     [{               market: "BTC-ETH",
-        #                    trade_date: "20181122",
-        #                    trade_time: "104543",
-        #                trade_date_kst: "20181122",
-        #                trade_time_kst: "194543",
-        #               trade_timestamp:  1542883543097,
-        #                 opening_price:  0.02976455,
-        #                    high_price:  0.02992577,
-        #                     low_price:  0.02934283,
-        #                   trade_price:  0.02947773,
-        #            prev_closing_price:  0.02966,
-        #                        change: "FALL",
-        #                  change_price:  0.00018227,
-        #                   change_rate:  0.0061453136,
-        #           signed_change_price:  -0.00018227,
-        #            signed_change_rate:  -0.0061453136,
-        #                  trade_volume:  1.00000005,
-        #               acc_trade_price:  100.95825586,
-        #           acc_trade_price_24h:  289.58650166,
-        #              acc_trade_volume:  3409.85311036,
-        #          acc_trade_volume_24h:  9754.40510513,
-        #         highest_52_week_price:  0.12345678,
-        #          highest_52_week_date: "2018-02-01",
-        #          lowest_52_week_price:  0.023936,
-        #           lowest_52_week_date: "2017-12-08",
-        #                     timestamp:  1542883543813  }]
+        #                    "trade_date": "20181122",
+        #                    "trade_time": "104543",
+        #                "trade_date_kst": "20181122",
+        #                "trade_time_kst": "194543",
+        #               "trade_timestamp":  1542883543097,
+        #                 "opening_price":  0.02976455,
+        #                    "high_price":  0.02992577,
+        #                     "low_price":  0.02934283,
+        #                   "trade_price":  0.02947773,
+        #            "prev_closing_price":  0.02966,
+        #                        "change": "FALL",
+        #                  "change_price":  0.00018227,
+        #                   "change_rate":  0.0061453136,
+        #           "signed_change_price":  -0.00018227,
+        #            "signed_change_rate":  -0.0061453136,
+        #                  "trade_volume":  1.00000005,
+        #               "acc_trade_price":  100.95825586,
+        #           "acc_trade_price_24h":  289.58650166,
+        #              "acc_trade_volume":  3409.85311036,
+        #          "acc_trade_volume_24h":  9754.40510513,
+        #         "highest_52_week_price":  0.12345678,
+        #          "highest_52_week_date": "2018-02-01",
+        #          "lowest_52_week_price":  0.023936,
+        #           "lowest_52_week_date": "2017-12-08",
+        #                     "timestamp":  1542883543813  }]
         #
         result = {}
         for t in range(0, len(response)):
@@ -720,20 +720,20 @@ class upbit(Exchange, ImplicitAPI):
         tickers = await self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #
         #       {            market: "BTC-ETH",
-        #             trade_date_utc: "2018-11-22",
-        #             trade_time_utc: "13:55:24",
-        #                  timestamp:  1542894924397,
-        #                trade_price:  0.02914289,
-        #               trade_volume:  0.20074397,
-        #         prev_closing_price:  0.02966,
-        #               change_price:  -0.00051711,
-        #                    ask_bid: "ASK",
-        #              sequential_id:  15428949259430000}
+        #             "trade_date_utc": "2018-11-22",
+        #             "trade_time_utc": "13:55:24",
+        #                  "timestamp":  1542894924397,
+        #                "trade_price":  0.02914289,
+        #               "trade_volume":  0.20074397,
+        #         "prev_closing_price":  0.02966,
+        #               "change_price":  -0.00051711,
+        #                    "ask_bid": "ASK",
+        #              "sequential_id":  15428949259430000}
         #
         # fetchOrder trades
         #
@@ -809,25 +809,25 @@ class upbit(Exchange, ImplicitAPI):
         response = await self.publicGetTradesTicks(self.extend(request, params))
         #
         #     [{            market: "BTC-ETH",
-        #             trade_date_utc: "2018-11-22",
-        #             trade_time_utc: "13:55:24",
-        #                  timestamp:  1542894924397,
-        #                trade_price:  0.02914289,
-        #               trade_volume:  0.20074397,
-        #         prev_closing_price:  0.02966,
-        #               change_price:  -0.00051711,
-        #                    ask_bid: "ASK",
-        #              sequential_id:  15428949259430000},
+        #             "trade_date_utc": "2018-11-22",
+        #             "trade_time_utc": "13:55:24",
+        #                  "timestamp":  1542894924397,
+        #                "trade_price":  0.02914289,
+        #               "trade_volume":  0.20074397,
+        #         "prev_closing_price":  0.02966,
+        #               "change_price":  -0.00051711,
+        #                    "ask_bid": "ASK",
+        #              "sequential_id":  15428949259430000},
         #       {            market: "BTC-ETH",
-        #             trade_date_utc: "2018-11-22",
-        #             trade_time_utc: "13:03:10",
-        #                  timestamp:  1542891790123,
-        #                trade_price:  0.02917,
-        #               trade_volume:  7.392,
-        #         prev_closing_price:  0.02966,
-        #               change_price:  -0.00049,
-        #                    ask_bid: "ASK",
-        #              sequential_id:  15428917910540000}  ]
+        #             "trade_date_utc": "2018-11-22",
+        #             "trade_time_utc": "13:03:10",
+        #                  "timestamp":  1542891790123,
+        #                "trade_price":  0.02917,
+        #               "trade_volume":  7.392,
+        #         "prev_closing_price":  0.02966,
+        #               "change_price":  -0.00049,
+        #                    "ask_bid": "ASK",
+        #              "sequential_id":  15428917910540000}  ]
         #
         return self.parse_trades(response, market, since, limit)
 
@@ -897,17 +897,17 @@ class upbit(Exchange, ImplicitAPI):
     def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
-        #         market: "BTC-ETH",
-        #         candle_date_time_utc: "2018-11-22T13:47:00",
-        #         candle_date_time_kst: "2018-11-22T22:47:00",
-        #         opening_price: 0.02915963,
-        #         high_price: 0.02915963,
-        #         low_price: 0.02915448,
-        #         trade_price: 0.02915448,
-        #         timestamp: 1542894473674,
-        #         candle_acc_trade_price: 0.0981629437535248,
-        #         candle_acc_trade_volume: 3.36693173,
-        #         unit: 1
+        #         "market": "BTC-ETH",
+        #         "candle_date_time_utc": "2018-11-22T13:47:00",
+        #         "candle_date_time_kst": "2018-11-22T22:47:00",
+        #         "opening_price": 0.02915963,
+        #         "high_price": 0.02915963,
+        #         "low_price": 0.02915448,
+        #         "trade_price": 0.02915448,
+        #         "timestamp": 1542894473674,
+        #         "candle_acc_trade_price": 0.0981629437535248,
+        #         "candle_acc_trade_volume": 3.36693173,
+        #         "unit": 1
         #     }
         #
         return [
@@ -954,30 +954,30 @@ class upbit(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             market: "BTC-ETH",
-        #             candle_date_time_utc: "2018-11-22T13:47:00",
-        #             candle_date_time_kst: "2018-11-22T22:47:00",
-        #             opening_price: 0.02915963,
-        #             high_price: 0.02915963,
-        #             low_price: 0.02915448,
-        #             trade_price: 0.02915448,
-        #             timestamp: 1542894473674,
-        #             candle_acc_trade_price: 0.0981629437535248,
-        #             candle_acc_trade_volume: 3.36693173,
-        #             unit: 1
+        #             "market": "BTC-ETH",
+        #             "candle_date_time_utc": "2018-11-22T13:47:00",
+        #             "candle_date_time_kst": "2018-11-22T22:47:00",
+        #             "opening_price": 0.02915963,
+        #             "high_price": 0.02915963,
+        #             "low_price": 0.02915448,
+        #             "trade_price": 0.02915448,
+        #             "timestamp": 1542894473674,
+        #             "candle_acc_trade_price": 0.0981629437535248,
+        #             "candle_acc_trade_volume": 3.36693173,
+        #             "unit": 1
         #         },
         #         {
-        #             market: "BTC-ETH",
-        #             candle_date_time_utc: "2018-11-22T10:06:00",
-        #             candle_date_time_kst: "2018-11-22T19:06:00",
-        #             opening_price: 0.0294,
-        #             high_price: 0.02940882,
-        #             low_price: 0.02934283,
-        #             trade_price: 0.02937354,
-        #             timestamp: 1542881219276,
-        #             candle_acc_trade_price: 0.0762597110943884,
-        #             candle_acc_trade_volume: 2.5949617,
-        #             unit: 1
+        #             "market": "BTC-ETH",
+        #             "candle_date_time_utc": "2018-11-22T10:06:00",
+        #             "candle_date_time_kst": "2018-11-22T19:06:00",
+        #             "opening_price": 0.0294,
+        #             "high_price": 0.02940882,
+        #             "low_price": 0.02934283,
+        #             "trade_price": 0.02937354,
+        #             "timestamp": 1542881219276,
+        #             "candle_acc_trade_price": 0.0762597110943884,
+        #             "candle_acc_trade_volume": 2.5949617,
+        #             "unit": 1
         #         }
         #     ]
         #
@@ -1034,22 +1034,22 @@ class upbit(Exchange, ImplicitAPI):
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
-        #         'uuid': 'cdd92199-2897-4e14-9448-f923320408ad',
-        #         'side': 'bid',
-        #         'ord_type': 'limit',
-        #         'price': '100.0',
-        #         'avg_price': '0.0',
-        #         'state': 'wait',
-        #         'market': 'KRW-BTC',
-        #         'created_at': '2018-04-10T15:42:23+09:00',
-        #         'volume': '0.01',
-        #         'remaining_volume': '0.01',
-        #         'reserved_fee': '0.0015',
-        #         'remaining_fee': '0.0015',
-        #         'paid_fee': '0.0',
-        #         'locked': '1.0015',
-        #         'executed_volume': '0.0',
-        #         'trades_count': 0
+        #         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
+        #         "side": "bid",
+        #         "ord_type": "limit",
+        #         "price": "100.0",
+        #         "avg_price": "0.0",
+        #         "state": "wait",
+        #         "market": "KRW-BTC",
+        #         "created_at": "2018-04-10T15:42:23+09:00",
+        #         "volume": "0.01",
+        #         "remaining_volume": "0.01",
+        #         "reserved_fee": "0.0015",
+        #         "remaining_fee": "0.0015",
+        #         "paid_fee": "0.0",
+        #         "locked": "1.0015",
+        #         "executed_volume": "0.0",
+        #         "trades_count": 0
         #     }
         #
         return self.parse_order(response)
@@ -1182,7 +1182,7 @@ class upbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

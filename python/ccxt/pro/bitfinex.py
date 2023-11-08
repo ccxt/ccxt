@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 from ccxt.base.errors import ExchangeError
@@ -99,12 +100,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         # when a trade does not have an id yet
         #
         #     # channel id, update type, seq, time, price, amount
-        #     [2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005],
+        #     [2, "te", "28462857-BTCUSD", 1580565041, 9374.9, 0.005],
         #
         # when a trade already has an id
         #
         #     # channel id, update type, seq, trade id, time, price, amount
-        #     [2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005]
+        #     [2, "tu", "28462857-BTCUSD", 413357662, 1580565041, 9374.9, 0.005]
         #
         channel = self.safe_value(subscription, 'channel')
         marketId = self.safe_string(subscription, 'pair')
@@ -130,7 +131,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         client.resolve(stored, messageHash)
         return message
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # snapshot trade
         #
@@ -140,12 +141,12 @@ class bitfinex(ccxt.async_support.bitfinex):
         # when a trade does not have an id yet
         #
         #     # channel id, update type, seq, time, price, amount
-        #     [2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005],
+        #     [2, "te", "28462857-BTCUSD", 1580565041, 9374.9, 0.005],
         #
         # when a trade already has an id
         #
         #     # channel id, update type, seq, trade id, time, price, amount
-        #     [2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005]
+        #     [2, "tu", "28462857-BTCUSD", 413357662, 1580565041, 9374.9, 0.005]
         #
         if not isinstance(trade, list):
             return super(bitfinex, self).parse_trade(trade, market)
@@ -251,9 +252,9 @@ class bitfinex(ccxt.async_support.bitfinex):
         prec = self.safe_string(options, 'prec', 'P0')
         freq = self.safe_string(options, 'freq', 'F0')
         request = {
-            # 'event': 'subscribe',  # added in subscribe()
-            # 'channel': channel,  # added in subscribe()
-            # 'symbol': marketId,  # added in subscribe()
+            # "event": "subscribe",  # added in subscribe()
+            # "channel": channel,  # added in subscribe()
+            # "symbol": marketId,  # added in subscribe()
             'prec': prec,  # string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq,  # string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
             'len': limit,  # string, number of price points, '25', '100', default = '25'
@@ -355,10 +356,10 @@ class bitfinex(ccxt.async_support.bitfinex):
         # involves system status and maintenance updates
         #
         #     {
-        #         event: 'info',
-        #         version: 2,
-        #         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        #         platform: {status: 1},  # 1 for operative, 0 for maintenance
+        #         "event": "info",
+        #         "version": 2,
+        #         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        #         "platform": {status: 1},  # 1 for operative, 0 for maintenance
         #     }
         #
         return message
@@ -366,14 +367,14 @@ class bitfinex(ccxt.async_support.bitfinex):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         event: 'subscribed',
-        #         channel: 'book',
-        #         chanId: 67473,
-        #         symbol: 'tBTCUSD',
-        #         prec: 'P0',
-        #         freq: 'F0',
-        #         len: '25',
-        #         pair: 'BTCUSD'
+        #         "event": "subscribed",
+        #         "channel": "book",
+        #         "chanId": 67473,
+        #         "symbol": "tBTCUSD",
+        #         "prec": "P0",
+        #         "freq": "F0",
+        #         "len": "25",
+        #         "pair": "BTCUSD"
         #     }
         #
         channelId = self.safe_string(message, 'chanId')
@@ -449,18 +450,18 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         #     [
         #         0,
-        #         'os',
+        #         "os",
         #         [
         #             [
         #                 45287766631,
-        #                 'ETHUST',
+        #                 "ETHUST",
         #                 -0.07,
         #                 -0.07,
-        #                 'EXCHANGE LIMIT',
-        #                 'ACTIVE',
+        #                 "EXCHANGE LIMIT",
+        #                 "ACTIVE",
         #                 210,
         #                 0,
-        #                 '2020-05-16T13:17:46Z',
+        #                 "2020-05-16T13:17:46Z",
         #                 0,
         #                 0,
         #                 0
@@ -472,17 +473,17 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         #     [
         #         0,
-        #         'oc',
+        #         "oc",
         #         [
         #             45287766631,
-        #             'ETHUST',
+        #             "ETHUST",
         #             -0.07,
         #             -0.07,
-        #             'EXCHANGE LIMIT',
-        #             'CANCELED',
+        #             "EXCHANGE LIMIT",
+        #             "CANCELED",
         #             210,
         #             0,
-        #             '2020-05-16T13:17:46Z',
+        #             "2020-05-16T13:17:46Z",
         #             0,
         #             0,
         #             0,
@@ -509,14 +510,14 @@ class bitfinex(ccxt.async_support.bitfinex):
 
     def handle_order(self, client: Client, order):
         # [45287766631,
-        #     'ETHUST',
+        #     "ETHUST",
         #     -0.07,
         #     -0.07,
-        #     'EXCHANGE LIMIT',
-        #     'CANCELED',
+        #     "EXCHANGE LIMIT",
+        #     "CANCELED",
         #     210,
         #     0,
-        #     '2020-05-16T13:17:46Z',
+        #     "2020-05-16T13:17:46Z",
         #     0,
         #     0,
         #     0]
@@ -575,7 +576,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             #
             #     [
             #         1231,
-            #         'hb',
+            #         "hb",
             #     ]
             #
             if message[1] == 'hb':
@@ -601,10 +602,10 @@ class bitfinex(ccxt.async_support.bitfinex):
             # todo add bitfinex handleErrorMessage
             #
             #     {
-            #         event: 'info',
-            #         version: 2,
-            #         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-            #         platform: {status: 1},  # 1 for operative, 0 for maintenance
+            #         "event": "info",
+            #         "version": 2,
+            #         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+            #         "platform": {status: 1},  # 1 for operative, 0 for maintenance
             #     }
             #
             event = self.safe_string(message, 'event')

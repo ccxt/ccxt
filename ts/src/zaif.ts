@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -247,7 +247,7 @@ export default class zaif extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result = {
@@ -308,7 +308,7 @@ export default class zaif extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "last": 9e-08,
@@ -380,7 +380,7 @@ export default class zaif extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -661,7 +661,7 @@ export default class zaif extends Exchange {
         return this.parseTransaction (returnData, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //     {
         //         "id": 23634,

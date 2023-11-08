@@ -58,6 +58,7 @@ var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
 var coinfalcon = require('./src/coinfalcon.js');
+var coinlist = require('./src/coinlist.js');
 var coinmate = require('./src/coinmate.js');
 var coinone = require('./src/coinone.js');
 var coinsph = require('./src/coinsph.js');
@@ -180,7 +181,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.40';
+const version = '4.1.44';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -229,6 +230,7 @@ const exchanges = {
     'coincheck': coincheck,
     'coinex': coinex,
     'coinfalcon': coinfalcon,
+    'coinlist': coinlist,
     'coinmate': coinmate,
     'coinone': coinone,
     'coinsph': coinsph,
@@ -438,6 +440,7 @@ exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
 exports.coinfalcon = coinfalcon;
+exports.coinlist = coinlist;
 exports.coinmate = coinmate;
 exports.coinone = coinone;
 exports.coinsph = coinsph;

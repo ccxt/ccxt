@@ -528,23 +528,23 @@ class whitebit extends Exchange {
         //                "flex" => null
         //            }
         //        ),
-        //        'WBT (ERC20)' => array(
-        //            is_depositable => true,
-        //            is_withdrawal => true,
-        //            ticker => 'WBT',
-        //            name => 'WhiteBIT Token',
-        //            providers => array(),
-        //            withdraw => array( max_amount => '0', min_amount => '0.7', fixed => '0.253', flex => null ),
-        //            deposit => array( max_amount => '0', min_amount => '0.35', fixed => null, flex => null )
+        //        "WBT (ERC20)" => array(
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "WBT",
+        //            "name" => "WhiteBIT Token",
+        //            "providers" => array(),
+        //            "withdraw" => array( max_amount => "0", min_amount => '0.7', fixed => "0.253", flex => null ),
+        //            "deposit" => array( max_amount => "0", min_amount => "0.35", fixed => null, flex => null )
         //        ),
-        //        'WBT (TRC20)' => array(
-        //            is_depositable => true,
-        //            is_withdrawal => true,
-        //            ticker => 'WBT',
-        //            name => 'WhiteBIT Token',
-        //            providers => array(),
-        //            withdraw => array( max_amount => '0', min_amount => '1.5', fixed => '0.075', flex => null ),
-        //            deposit => array( max_amount => '0', min_amount => '0.75', fixed => null, flex => null )
+        //        "WBT (TRC20)" => array(
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "WBT",
+        //            "name" => "WhiteBIT Token",
+        //            "providers" => array(),
+        //            "withdraw" => array( max_amount => "0", min_amount => "1.5", fixed => "0.075", flex => null ),
+        //            "deposit" => array( max_amount => "0", min_amount => "0.75", fixed => null, flex => null )
         //        ),
         //        ...
         //    }
@@ -574,23 +574,23 @@ class whitebit extends Exchange {
         //                "flex" => null
         //            }
         //        ),
-        //        'WBT (ERC20)' => array(
-        //            is_depositable => true,
-        //            is_withdrawal => true,
-        //            ticker => 'WBT',
-        //            name => 'WhiteBIT Token',
-        //            providers => array(),
-        //            $withdraw => array( max_amount => '0', min_amount => '0.7', fixed => '0.253', flex => null ),
-        //            $deposit => array( max_amount => '0', min_amount => '0.35', fixed => null, flex => null )
+        //        "WBT (ERC20)" => array(
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "WBT",
+        //            "name" => "WhiteBIT Token",
+        //            "providers" => array(),
+        //            "withdraw" => array( max_amount => "0", min_amount => "0.7", fixed => "0.253", flex => null ),
+        //            "deposit" => array( max_amount => "0", min_amount => "0.35", fixed => null, flex => null )
         //        ),
-        //        'WBT (TRC20)' => array(
-        //            is_depositable => true,
-        //            is_withdrawal => true,
-        //            ticker => 'WBT',
-        //            name => 'WhiteBIT Token',
-        //            providers => array(),
-        //            $withdraw => array( max_amount => '0', min_amount => '1.5', fixed => '0.075', flex => null ),
-        //            $deposit => array( max_amount => '0', min_amount => '0.75', fixed => null, flex => null )
+        //        "WBT (TRC20)" => array(
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "WBT",
+        //            "name" => "WhiteBIT Token",
+        //            "providers" => array(),
+        //            "withdraw" => array( max_amount => "0", min_amount => "1.5", fixed => "0.075", flex => null ),
+        //            "deposit" => array( max_amount => "0", min_amount => "0.75", fixed => null, flex => null )
         //        ),
         //        ...
         //    }
@@ -656,17 +656,17 @@ class whitebit extends Exchange {
         $response = $this->v4PublicGetAssets ($params);
         //
         //      {
-        //          '1INCH' => array(
-        //              name => '1inch',
-        //              unified_cryptoasset_id => '8104',
-        //              can_withdraw => true,
-        //              can_deposit => true,
-        //              min_withdraw => '33',
-        //              max_withdraw => '0',
-        //              maker_fee => '0.1',
-        //              taker_fee => '0.1',
-        //              min_deposit => '30',
-        //              max_deposit => '0'
+        //          "1INCH" => array(
+        //              "name" => "1inch",
+        //              "unified_cryptoasset_id" => "8104",
+        //              "can_withdraw" => true,
+        //              "can_deposit" => true,
+        //              "min_withdraw" => "33",
+        //              "max_withdraw" => "0",
+        //              "maker_fee" => "0.1",
+        //              "taker_fee" => "0.1",
+        //              "min_deposit" => "30",
+        //              "max_deposit" => "0"
         //            ),
         //            ...
         //      }
@@ -726,7 +726,7 @@ class whitebit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //  FetchTicker (v1)
         //
@@ -925,16 +925,16 @@ class whitebit extends Exchange {
         //
         //     array(
         //         array(
-        //             'id' => 1343815269,
-        //             'clientOrderId' => '',
-        //             'time' => 1641051917.532965,
-        //             'side' => 'sell',
-        //             'role' => 2,
-        //             'amount' => '9.986',
-        //             'price' => '0.9995',
-        //             'deal' => '9.981007',
-        //             'fee' => '0.009981007',
-        //             'orderId' => 58166729555,
+        //             "id" => 1343815269,
+        //             "clientOrderId" => '',
+        //             "time" => 1641051917.532965,
+        //             "side" => "sell",
+        //             "role" => 2,
+        //             "amount" => "9.986",
+        //             "price" => "0.9995",
+        //             "deal" => "9.981007",
+        //             "fee" => "0.009981007",
+        //             "orderId" => 58166729555,
         //         ),
         //     )
         //
@@ -955,7 +955,7 @@ class whitebit extends Exchange {
         }
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTradesV4
         //
@@ -985,16 +985,16 @@ class whitebit extends Exchange {
         // fetchMyTrades
         //
         //      {
-        //          'id' => 1343815269,
-        //          'clientOrderId' => '',
-        //          'time' => 1641051917.532965,
-        //          'side' => 'sell',
-        //          'role' => 2,
-        //          'amount' => '9.986',
-        //          'price' => '0.9995',
-        //          'deal' => '9.981007',
-        //          'fee' => '0.009981007',
-        //          'orderId' => 58166729555,
+        //          "id" => 1343815269,
+        //          "clientOrderId" => '',
+        //          "time" => 1641051917.532965,
+        //          "side" => "sell",
+        //          "role" => 2,
+        //          "amount" => "9.986",
+        //          "price" => "0.9995",
+        //          "deal" => "9.981007",
+        //          "fee" => "0.009981007",
+        //          "orderId" => 58166729555,
         //      }
         //
         $market = $this->safe_market(null, $market);
@@ -1236,7 +1236,7 @@ class whitebit extends Exchange {
         return $this->v4PrivatePostOrderCancel (array_merge($request, $params));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balanceKeys = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($balanceKeys); $i++) {
@@ -1741,7 +1741,7 @@ class whitebit extends Exchange {
         return array_merge(array( 'id' => $uniqueId ), $this->parse_transaction($response, $currency));
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address

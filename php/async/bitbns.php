@@ -326,7 +326,7 @@ class bitbns extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "symbol":"BTC/INR",
@@ -431,7 +431,7 @@ class bitbns extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $timestamp = null;
         $result = array(
             'info' => $response,
@@ -788,7 +788,7 @@ class bitbns extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchMyTrades
         //
@@ -1065,7 +1065,7 @@ class bitbns extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
