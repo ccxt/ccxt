@@ -418,13 +418,11 @@ class bitvavo extends bitvavo$1 {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol('watchOrders', symbol);
         await this.loadMarkets();
         await this.authenticate();
         const market = this.market(symbol);
@@ -459,9 +457,7 @@ class bitvavo extends bitvavo$1 {
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ortradeder-structure
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchMyTrades requires a symbol argument');
-        }
+        this.checkRequiredSymbol('watchMyTrades', symbol);
         await this.loadMarkets();
         await this.authenticate();
         const market = this.market(symbol);

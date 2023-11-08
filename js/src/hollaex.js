@@ -1226,9 +1226,7 @@ export default class hollaex extends Exchange {
          * @param {object} [params] extra parameters specific to the hollaex api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + " cancelAllOrders() requires a 'symbol' argument");
-        }
+        this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
         const request = {};
         let market = undefined;

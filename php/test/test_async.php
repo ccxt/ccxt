@@ -913,8 +913,16 @@ class testMainClass extends baseMainTestClass {
         for ($i = 0; $i < count($parts); $i++) {
             $part = $parts[$i];
             $keyValue = explode('=', $part);
+            $keysLength = count($keyValue);
+            if ($keysLength !== 2) {
+                continue;
+            }
             $key = $keyValue[0];
             $value = $keyValue[1];
+            if (($value !== null) && ((str_starts_with($value, '[')) || (str_starts_with($value, '{')))) {
+                // some exchanges might return something like this => timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                $value = json_parse ($value);
+            }
             $result[$key] = $value;
         }
         return $result;
@@ -997,12 +1005,29 @@ class testMainClass extends baseMainTestClass {
         $this->assert_new_and_stored_output($exchange, $skipKeys, $newOutput, $storedOutput);
     }
 
+    public function sanitize_data_input($input) {
+        // remove nulls and replace with unefined instead
+        if ($input === null) {
+            return null;
+        }
+        $newInput = array();
+        for ($i = 0; $i < count($input); $i++) {
+            $current = $input[$i];
+            if ($current === null) { // noqa => E711
+                $newInput[] = null;
+            } else {
+                $newInput[] = $current;
+            }
+        }
+        return $newInput;
+    }
+
     public function test_method_statically($exchange, string $method, array $data, string $type, array $skipKeys) {
         return Async\async(function () use ($exchange, $method, $data, $type, $skipKeys) {
             $output = null;
             $requestUrl = null;
             try {
-                Async\await(call_exchange_method_dynamically ($exchange, $method, $data['input']));
+                Async\await(call_exchange_method_dynamically ($exchange, $method, $this->sanitize_data_input($data['input'])));
             } catch (Exception $e) {
                 if (!($e instanceof NetworkError)) {
                     // if it's not a network error, it means our request was not created succesfully
@@ -1025,7 +1050,7 @@ class testMainClass extends baseMainTestClass {
 
     public function init_offline_exchange(string $exchangeName) {
         $markets = $this->load_markets_from_file($exchangeName);
-        return init_exchange ($exchangeName, array( 'markets' => $markets, 'rateLimit' => 1, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false, 'accessToken' => 'token', 'expires' => 999999999999999 )));
+        return init_exchange ($exchangeName, array( 'markets' => $markets, 'rateLimit' => 1, 'httpsProxy' => 'http://fake:8080', 'apiKey' => 'key', 'secret' => 'secretsecret', 'password' => 'password', 'uid' => 'uid', 'accounts' => array( array( 'id' => 'myAccount' ) ), 'options' => array( 'enableUnifiedAccount' => true, 'enableUnifiedMargin' => false, 'accessToken' => 'token', 'expires' => 999999999999999, 'leverageBrackets' => array())));
     }
 
     public function test_exchange_statically(string $exchangeName, array $exchangeData, ?string $testName = null) {

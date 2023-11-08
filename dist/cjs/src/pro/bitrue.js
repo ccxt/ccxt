@@ -2,7 +2,6 @@
 
 var bitrue$1 = require('../bitrue.js');
 var Cache = require('../base/ws/Cache.js');
-var errors = require('../base/errors.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -290,9 +289,6 @@ class bitrue extends bitrue$1 {
         }, market);
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];

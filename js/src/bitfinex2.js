@@ -1901,9 +1901,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrderTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const orderId = parseInt(id);

@@ -2227,8 +2227,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3462,8 +3461,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
@@ -3821,8 +3819,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the mexc api endpoint
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -4725,9 +4722,8 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
+        self.check_required_symbol('borrowMargin', symbol)
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
         market = self.market(symbol)
         currency = self.currency(code)
         request = {
@@ -4758,9 +4754,8 @@ class mexc(Exchange, ImplicitAPI):
         :param str [params.borrowId]: transaction id '762407666453712896'
         :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
+        self.check_required_symbol('repayMargin', symbol)
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
         id = self.safe_string_2(params, 'id', 'borrowId')
         if id is None:
             raise ArgumentsRequired(self.id + ' repayMargin() requires a borrowId argument in the params')

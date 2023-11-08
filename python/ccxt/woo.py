@@ -10,7 +10,6 @@ from ccxt.base.types import Balances, Order, OrderSide, OrderType, Trade, Transa
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
@@ -423,8 +422,6 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the woo api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

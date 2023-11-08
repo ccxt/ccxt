@@ -1098,9 +1098,7 @@ class poloniexfutures extends Exchange {
          * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure funding history structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchFundingHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1674,9 +1672,7 @@ class poloniexfutures extends Exchange {
          * @param {array} [$params] extra parameters specific to the poloniexfutures api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setMarginMode', $symbol);
         if (($marginMode !== 0) && ($marginMode !== 1)) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be 0 (isolated) or 1 (cross)');
         }

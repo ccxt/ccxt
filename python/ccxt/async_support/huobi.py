@@ -7487,16 +7487,10 @@ class huobi(Exchange, ImplicitAPI):
         :param int [params.code]: unified currency code, can be used when symbol is None
         :returns dict[]: a list of `settlement history objects <https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure>`
         """
-        code = self.safe_string(params, 'code')
+        self.check_required_symbol('fetchSettlementHistory', symbol)
         until = self.safe_integer_2(params, 'until', 'till')
         params = self.omit(params, ['until', 'till'])
-        market = None if (symbol is None) else self.market(symbol)
-        type, query = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
-        if type == 'future':
-            if symbol is None and code is None:
-                raise ArgumentsRequired(self.id + ' requires a symbol argument or params["code"] for fetchSettlementHistory future')
-        elif symbol is None:
-            raise ArgumentsRequired(self.id + ' requires a symbol argument for fetchSettlementHistory swap')
+        market = self.market(symbol)
         request = {}
         if market['future']:
             request['symbol'] = market['baseId']
@@ -7514,7 +7508,7 @@ class huobi(Exchange, ImplicitAPI):
                 method = 'contractPublicGetLinearSwapApiV1SwapSettlementRecords'
             else:
                 method = 'contractPublicGetSwapApiV1SwapSettlementRecords'
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # linear swap, coin-m swap
         #

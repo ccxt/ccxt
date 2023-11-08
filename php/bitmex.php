@@ -2420,9 +2420,7 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitmex api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setLeverage', $symbol);
         if (($leverage < 0.01) || ($leverage > 100)) {
             throw new BadRequest($this->id . ' $leverage should be between 0.01 and 100');
         }
@@ -2446,9 +2444,7 @@ class bitmex extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitmex api endpoint
          * @return {array} response from the exchange
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-        }
+        $this->check_required_symbol('setMarginMode', $symbol);
         $marginMode = strtolower($marginMode);
         if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
             throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
