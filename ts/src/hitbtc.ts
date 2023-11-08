@@ -1521,6 +1521,7 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOrderBooks
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @see https://api.hitbtc.com/#order-books
          * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
          * @param {int} [limit] max number of entries per orderbook to return, default is undefined
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
@@ -1553,13 +1554,23 @@ export default class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api.hitbtc.com/#order-books
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
-        const result = await this.fetchOrderBooks ([ symbol ], limit, params);
-        return result[symbol] as OrderBook;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        const response = await this.publicGetPublicOrderbookSymbol (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask') as OrderBook;
     }
 
     parseTradingFee (fee, market = undefined) {
