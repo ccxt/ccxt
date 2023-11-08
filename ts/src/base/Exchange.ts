@@ -1506,7 +1506,7 @@ export default class Exchange {
     }
 
     checkProxyUrlSettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
-        let usedProxies = [];
+        const usedProxies = [];
         let proxyUrl = undefined;
         if (this.proxyUrl !== undefined) {
             usedProxies.push ('proxyUrl');
@@ -1542,7 +1542,7 @@ export default class Exchange {
     }
 
     checkProxySettings (url = undefined, method = undefined, headers = undefined, body = undefined) {
-        let usedProxies = [];
+        const usedProxies = [];
         let httpProxy = undefined;
         let httpsProxy = undefined;
         let socksProxy = undefined;
