@@ -54,6 +54,16 @@
                     }
                 ]
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.zondacrypto.exchange/rest/balances/BITBAY/history?query=%7B%22balanceCurrencies%22%3A%5B%22USDT%22%5D%7D",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

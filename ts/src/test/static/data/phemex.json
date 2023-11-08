@@ -128,6 +128,45 @@
                 "url": "https://api.phemex.com/exchange/wallets/depositList",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.phemex.com/exchange/wallets/withdrawList",
+                "input": []
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set linear position mode to dual side",
+                "method": "setPositionMode",
+                "url": "https://api.phemex.com/g-positions/switch-pos-mode-sync?symbol=LTCUSDT&targetPosMode=Hedged",
+                "input": [
+                    true,
+                    "LTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch USDT transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.phemex.com/assets/transfer?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.phemex.com/phemex-user/wallets/v2/depositAddress?currency=USDT&chainName=ETH",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

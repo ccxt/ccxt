@@ -1,6 +1,8 @@
 {
     "exchange": "exmo",
-    "skipKeys": ["nonce"],
+    "skipKeys": [
+        "nonce"
+    ],
     "outputType": "urlencoded",
     "methods": {
         "fetchDeposits": [
@@ -10,6 +12,15 @@
                 "url": "https://api.exmo.com/v1.1/wallet_operations",
                 "input": [],
                 "output": "nonce=1699458294472&type=deposit"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.exmo.com/v1.1/wallet_operations",
+                "input": [],
+                "output": "nonce=1699460471005&type=withdraw"
             }
         ]
     }

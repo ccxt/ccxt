@@ -1,6 +1,10 @@
 {
     "exchange": "coinex",
-    "skipKeys": ["access_id", "timestamp", "tonce"],
+    "skipKeys": [
+        "access_id",
+        "timestamp",
+        "tonce"
+    ],
     "outputType": "urlencoded",
     "methods": {
         "fetchMyTrades": [
@@ -122,6 +126,43 @@
                 "method": "fetchDeposits",
                 "url": "https://api.coinex.com/v1/balance/coin/deposit?access_id=53DD577FFFD741D4B53A5424ECD33196&tonce=1699458298044",
                 "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.coinex.com/v1/balance/coin/withdraw?access_id=53DD577FFFD741D4B53A5424ECD33196&tonce=1699460471647",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.coinex.com/v1/contract/balance/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"access_id\":\"53DD577FFFD741D4B53A5424ECD33196\",\"amount\":\"1\",\"coin_type\":\"USDT\",\"tonce\":\"1699460471970\",\"transfer_side\":\"in\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.coinex.com/v1/order/limit",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"access_id\":\"53DD577FFFD741D4B53A5424ECD33196\",\"amount\":\"0.1\",\"market\":\"LTCUSDT\",\"price\":\"50\",\"tonce\":\"1699460637215\",\"type\":\"buy\"}"
             }
         ]
     }

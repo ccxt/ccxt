@@ -52,6 +52,14 @@
                 "url": "https://api.bittrex.com/v3/deposits/closed",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bittrex.com/v3/withdrawals/closed",
+                "input": []
+            }
         ]
     }
 }

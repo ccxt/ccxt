@@ -1,6 +1,9 @@
 {
     "exchange": "bitrue",
-    "skipKeys": ["timestamp", "signature"],
+    "skipKeys": [
+        "timestamp",
+        "signature"
+    ],
     "outputType": "json",
     "methods": {
         "fetchMyTrades": [

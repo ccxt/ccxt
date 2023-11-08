@@ -1,7 +1,8 @@
 {
     "exchange": "bitfinex",
     "skipKeys": [
-        "nonce", "timestamp"
+        "nonce",
+        "timestamp"
     ],
     "methods": {
         "fetchMyTrades": [
@@ -154,6 +155,46 @@
                     ]
                 ],
                 "output": "{\"nonce\":\"1699458294258\",\"request\":\"/v1/positions\"}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.bitfinex.com/v1/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"nonce\":\"1699460470239\",\"request\":\"/v1/transfer\",\"amount\":\"1\",\"currency\":\"UST\",\"currency_to\":\"UST\",\"walletfrom\":\"exchange\",\"walletto\":\"trading\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitfinex.com/v1/deposit/new",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{\"nonce\":\"1699460470538\",\"request\":\"/v1/deposit/new\",\"method\":\"tetheruso\",\"wallet_name\":\"exchange\",\"renew\":0}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v1/order/new",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"nonce\":\"1699460636239\",\"request\":\"/v1/order/new\",\"symbol\":\"LTCUST\",\"side\":\"buy\",\"amount\":\"0.1\",\"type\":\"exchange limit\",\"ocoorder\":false,\"buy_price_oco\":0,\"sell_price_oco\":0,\"price\":\"50\"}"
             }
         ]
     },

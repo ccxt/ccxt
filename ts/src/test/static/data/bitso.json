@@ -32,6 +32,16 @@
                 "url": "https://api.bitso.com/v3/fundings",
                 "input": []
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.bitso.com/v3/ledger",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

@@ -1,6 +1,8 @@
 {
     "exchange": "bitfinex2",
-    "skipKeys": ["end"],
+    "skipKeys": [
+        "end"
+    ],
     "outputType": "json",
     "methods": {
         "fetchMyTrades": [
@@ -109,6 +111,21 @@
                     }
                 ],
                 "output": "{}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.bitfinex.com/v2/auth/w/order/submit",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"type\":\"LIMIT\",\"symbol\":\"tLTCF0:USTF0\",\"amount\":\"0.1\",\"price\":\"50\"}"
             }
         ]
     }

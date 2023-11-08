@@ -1,6 +1,6 @@
 {
     "exchange": "blockchaincom",
-    "skipKeys": [],
+    "skipKeys": ["clOrdId"],
     "outputType": "json",
     "methods": {
         "fetchMyTrades": [
@@ -74,6 +74,40 @@
                 "method": "fetchDeposits",
                 "url": "https://api.blockchain.com/v3/exchange/deposits",
                 "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.blockchain.com/v3/exchange/withdrawals",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.blockchain.com/v3/exchange/deposits/USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.blockchain.com/v3/exchange/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"ordType\":\"LIMIT\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderQty\":\"0.1\",\"clOrdId\":\"4314cf84b4d38e68\",\"price\":\"50\"}"
             }
         ]
     }

@@ -205,6 +205,38 @@
                 "url": "https://api.huobi.pro/v1/query/deposit-withdraw?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T15%3A44%3A59&direct=next&from=0&size=100&type=deposit&Signature=eyNzpZXB9Niz0n0clcsrBhfcaOdXcZVWK2zlT%2B6bc9c%3D",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.huobi.pro/v1/query/deposit-withdraw?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A23%3A59&direct=next&from=0&size=100&type=withdraw&Signature=ZtaRMrAi%2B7SnKH8zEK9p3bQJMBPjtk7zk78wUMqjL8s%3D",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.huobi.pro/v2/account/transfer?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A23%3A59&Signature=rynghR1lgclTs2pbaip8Ysa8C3qkoRa1kkEAy8C3SSU%3D",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"currency\":\"usdt\",\"amount\":1,\"margin-account\":\"USDT\",\"from\":\"spot\",\"to\":\"linear-swap\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.huobi.pro/v2/account/deposit/address?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-08T16%3A24%3A00&currency=usdt&Signature=w6fjNiCw6TdIk9k%2FRuPlD202BAD2LfWWNFjvxJQshOM%3D",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

@@ -1,6 +1,9 @@
 {
     "exchange": "wazirx",
-    "skipKeys": ["timestamp", "signature"],
+    "skipKeys": [
+        "timestamp",
+        "signature"
+    ],
     "outputType": "urlencoded",
     "methods": {
         "fetchOrders": [
@@ -42,6 +45,20 @@
                     {
                         "type": "spot"
                     }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.wazirx.com/sapi/v1/order?price=50&quantity=0.1&recvWindow=10000&side=buy&symbol=ltcusdt&timestamp=1699460638254&type=limit&signature=8d1c5cdd2b50085e421cc4cc3037781e60db34e4e18a8c2a1b69a499a3d31058",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
                 ]
             }
         ]

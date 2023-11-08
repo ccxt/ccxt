@@ -80,6 +80,38 @@
                 "url": "https://api.kucoin.com/api/v1/deposits",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.kucoin.com/api/v1/withdrawals",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v2/accounts/inner-transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"from\":\"trade\",\"to\":\"contract\",\"clientOid\":\"eac5ee3a-c116-4109-9a47-29c4b1aa6567\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

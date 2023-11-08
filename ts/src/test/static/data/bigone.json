@@ -1,6 +1,6 @@
 {
     "exchange": "bigone",
-    "skipKeys": [],
+    "skipKeys": ["guid"],
     "outputType": "json",
     "methods": {
         "fetchOrders": [
@@ -84,6 +84,38 @@
                 "method": "fetchDeposits",
                 "url": "https://big.one/api/v3/viewer/deposits",
                 "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://big.one/api/v3/viewer/withdrawals",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://big.one/api/v3/viewer/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"symbol\":\"USDT\",\"amount\":\"1\",\"from\":\"SPOT\",\"to\":\"CONTRACT\",\"guid\":\"e4514628-c33b-4a91-bac7-75ace392c469\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://big.one/api/v3/viewer/assets/USDT/address",
+                "input": [
+                    "USDT"
+                ]
             }
         ]
     }

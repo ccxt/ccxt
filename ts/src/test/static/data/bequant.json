@@ -65,6 +65,29 @@
                 "url": "https://api.bequant.io/api/3/wallet/transactions?types=DEPOSIT",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.bequant.io/api/3/wallet/transactions?types=WITHDRAW",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.bequant.io/api/3/spot/order",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"0.1\",\"symbol\":\"LTCUSDT\",\"price\":\"50\"}"
+            }
         ]
     }
 }

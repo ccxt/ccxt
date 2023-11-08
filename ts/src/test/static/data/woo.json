@@ -143,6 +143,34 @@
                 "url": "https://api.woo.org/v1/asset/history?token_side=DEPOSIT&type=BALANCE",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.woo.org/v1/asset/history?token_side=WITHDRAW&type=BALANCE",
+                "input": []
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch USDT transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.woo.org/v1/asset/history?balance_token=USDT&type=COLLATERAL",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.woo.org/v1/asset/history?balance_token=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

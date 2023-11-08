@@ -142,6 +142,46 @@
                 "url": "https://openapi.digifinex.com/v3/deposit/history",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://openapi.digifinex.com/v3/withdraw/history",
+                "input": []
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set margin mode to isolated",
+                "method": "setMarginMode",
+                "url": "https://openapi.digifinex.com/swap/v2/account/position_mode",
+                "input": [
+                    "isolated",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"instrument_id\":\"LTCUSDTPERP\",\"margin_mode\":\"isolated\"}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://openapi.digifinex.com/v3/spot/financelog?currency_mark=USDT&market=spot",
+                "input": [
+                    "USDT"
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://openapi.digifinex.com/v3/deposit/address?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

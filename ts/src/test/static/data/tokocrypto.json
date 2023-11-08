@@ -1,6 +1,9 @@
 {
     "exchange": "tokocrypto",
-    "skipKeys": ["timestamp", "signature"],
+    "skipKeys": [
+        "timestamp",
+        "signature"
+    ],
     "outputType": "urlencoded",
     "methods": {
         "fetchOrders": [
@@ -73,6 +76,29 @@
                 "method": "fetchDeposits",
                 "url": "https://www.tokocrypto.com/open/v1/deposits?timestamp=1699458296950&recvWindow=5000&signature=7bccd2b5821a893c12de13e62c7303ae9b1dc3ffbe0edff5068ddececaf15c78",
                 "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://www.tokocrypto.com/open/v1/withdraws?timestamp=1699460471740&recvWindow=5000&signature=dc94e5e98d90a0ddc9d502d74a900397554fe1b3e745b674ba5c38685216d0af",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://www.tokocrypto.com/open/v1/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "timestamp=1699460638178&symbol=LTC_USDT&type=1&side=0&quantity=0.1&price=50&recvWindow=5000&signature=b76f6c95fd5741bd01ec7f9f40098e613af736014b4ebc79f6be3519993312ee"
             }
         ]
     }

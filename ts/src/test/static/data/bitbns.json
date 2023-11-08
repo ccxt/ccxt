@@ -50,6 +50,17 @@
                 ],
                 "output": "{\"type\":\"swap\"}"
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bitbns.com/api/trade/v1/getCoinAddress/USDT",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{}"
+            }
         ]
     }
 }

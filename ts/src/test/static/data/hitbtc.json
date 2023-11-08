@@ -186,6 +186,24 @@
                 "url": "https://api.hitbtc.com/api/3/wallet/transactions?types=DEPOSIT",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.hitbtc.com/api/3/wallet/transactions?types=WITHDRAW",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.hitbtc.com/api/3/wallet/crypto/address?currency=USDT",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

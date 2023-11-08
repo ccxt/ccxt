@@ -64,6 +64,21 @@
                 "url": "https://api.kuna.io/v4/deposit/private/history",
                 "input": []
             }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://api.kuna.io/v4/order/private/create",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"pair\":\"LTC_USDT\",\"orderSide\":\"Bid\",\"quantity\":\"0.1\",\"type\":\"Limit\",\"price\":\"50\"}"
+            }
         ]
     }
 }

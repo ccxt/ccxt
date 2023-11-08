@@ -1,6 +1,9 @@
 {
     "exchange": "coinsph",
-    "skipKeys": ["timestamp", "signature"],
+    "skipKeys": [
+        "timestamp",
+        "signature"
+    ],
     "outputType": "json",
     "methods": {
         "fetchBalance": [
@@ -30,6 +33,14 @@
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
                 "url": "https://api.pro.coins.ph/openapi/wallet/v1/deposit/history?timestamp=1699458294580&&signature=5aa81438c1e8ac9dd35fc121e6973898ad047781330eb27524c24838cb5b6730",
+                "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.pro.coins.ph/openapi/wallet/v1/withdraw/history?timestamp=1699460471679&&signature=992cefbe195e98dc0a0d18777d4cc764375f8e21800cfc2ab6ce9a1f3ad6218b",
                 "input": []
             }
         ]

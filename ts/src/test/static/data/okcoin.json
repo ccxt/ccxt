@@ -32,6 +32,14 @@
                 "url": "https://www.okcoin.com/api/v5/asset/deposit-history",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://www.okcoin.com/api/v5/asset/withdrawal-history",
+                "input": []
+            }
         ]
     }
 }

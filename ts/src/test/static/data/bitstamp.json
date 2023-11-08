@@ -26,6 +26,28 @@
                 ],
                 "output": "type=swap"
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://www.bitstamp.net/api/v2/user_transactions/",
+                "input": [
+                    "USDT"
+                ],
+                "output": "foo=bar"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://www.bitstamp.net/api/v2/usdt_address/",
+                "input": [
+                    "USDT"
+                ],
+                "output": "foo=bar"
+            }
         ]
     }
 }

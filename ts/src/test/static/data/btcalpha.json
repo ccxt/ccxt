@@ -1,7 +1,7 @@
 {
     "exchange": "btcalpha",
     "skipKeys": [],
-    "outputType": "json",
+    "outputType": "urlencoded",
     "methods": {
         "fetchOrders": [
             {
@@ -73,6 +73,29 @@
                 "method": "fetchDeposits",
                 "url": "https://btc-alpha.com/api/v1/deposits/",
                 "input": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://btc-alpha.com/api/v1/withdraws/",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy",
+                "method": "createOrder",
+                "url": "https://btc-alpha.com/api/v1/order/",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "amount=0.1&pair=LTC_USDT&price=50&type=buy"
             }
         ]
     }

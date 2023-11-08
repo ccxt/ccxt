@@ -132,6 +132,49 @@
                 "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&offset=1&N=50",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api-cloud.bitmart.com/account/v1/transfer-contract",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": "{\"amount\":\"1\",\"currency\":\"USDT\",\"type\":\"spot_to_contract\"}"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch USDT transfers",
+                "method": "fetchTransfers",
+                "url": "https://api-cloud.bitmart.com/account/v1/transfer-contract-list",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{\"page\":1,\"limit\":10,\"currency\":\"USDT\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

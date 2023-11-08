@@ -1,6 +1,9 @@
 {
     "exchange": "lbank2",
-    "skipKeys": ["api_key", "sign"],
+    "skipKeys": [
+        "api_key",
+        "sign"
+    ],
     "outputType": "urlencoded",
     "methods": {
         "fetchBalance": [

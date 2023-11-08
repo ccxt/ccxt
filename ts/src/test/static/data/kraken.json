@@ -122,6 +122,17 @@
                 ],
                 "output": "nonce=1699458296389"
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch USDT ledger",
+                "method": "fetchLedger",
+                "url": "https://api.kraken.com/0/private/Ledgers",
+                "input": [
+                    "USDT"
+                ],
+                "output": "nonce=1699460637341&asset=USDT"
+            }
         ]
     }
 }

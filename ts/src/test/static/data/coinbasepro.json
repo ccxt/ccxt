@@ -32,6 +32,14 @@
                 "url": "https://api.pro.coinbase.com/transfers?type=deposit",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.pro.coinbase.com/transfers?type=withdraw",
+                "input": []
+            }
         ]
     }
 }

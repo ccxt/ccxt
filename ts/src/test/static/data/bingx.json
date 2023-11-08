@@ -353,6 +353,37 @@
                 "url": "https://open-api.bingx.com/openApi/api/v3/capital/deposit/hisrec?timestamp=1699458296035&signature=10ada6f50500dd8090dfb7ecb8c03d093a7278b66be5568f03ad7e0dc4c3b371",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://open-api.bingx.com/openApi/api/v3/capital/withdraw/history?timestamp=1699460637810&signature=b11060a953c0a537fba24da3346f55d0a05196748704bc34f40fcfbf0b0a4ea6",
+                "input": []
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://open-api.bingx.com/openApi/api/v3/get/asset/transfer?amount=1&asset=USDT&timestamp=1699460638047&type=FUND_PFUTURES&signature=602ba000bf84c64cb933a3d94ed44c0f9260416994d2b2fcf8ab3cf993800c2b",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://open-api.bingx.com/openApi/wallets/v1/capital/deposit/address?coin=USDT&limit=1000&offset=0&recvWindow=5000&timestamp=1699460638640&signature=e5942598ddd9d11cceec8f7e2acb3269c8c2dfe237642314eca3b5d8a5c308e0",
+                "input": [
+                    "USDT"
+                ]
+            }
         ]
     }
 }

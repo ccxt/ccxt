@@ -177,6 +177,14 @@
                 "url": "https://api.gateio.ws/api/v4/wallet/deposits",
                 "input": []
             }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.gateio.ws/api/v4/wallet/withdrawals",
+                "input": []
+            }
         ]
     }
 }

@@ -1,6 +1,8 @@
 {
     "exchange": "bitget",
-    "skipKeys": ["endTime"],
+    "skipKeys": [
+        "endTime"
+    ],
     "outputType": "json",
     "methods": {
         "createOrder": [
@@ -226,6 +228,30 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"leverage\":5}"
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set linear position mode to dual side",
+                "method": "setPositionMode",
+                "url": "https://api.bitget.com/api/mix/v1/account/setPositionMode",
+                "input": [
+                    true,
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"holdMode\":\"double_hold\",\"productType\":\"UMCBL\"}"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "set margin mode to isolated",
+                "method": "setMarginMode",
+                "url": "https://api.bitget.com/api/mix/v1/account/setMarginMode",
+                "input": [
+                    "isolated",
+                    "LTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"marginMode\":\"fixed\"}"
             }
         ]
     }

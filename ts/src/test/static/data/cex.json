@@ -1,6 +1,10 @@
 {
     "exchange": "cex",
-    "skipKeys": ["key", "signature", "nonce"],
+    "skipKeys": [
+        "key",
+        "signature",
+        "nonce"
+    ],
     "outputType": "json",
     "methods": {
         "fetchOpenOrders": [
@@ -47,6 +51,17 @@
                     }
                 ],
                 "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"19775C5FEDAB570ADD79632BE15C65E23FB8F62F18E8ED623021946A06670170\",\"nonce\":\"1699458296307\",\"type\":\"swap\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch USDT deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://cex.io/api/get_crypto_address",
+                "input": [
+                    "USDT"
+                ],
+                "output": "{\"key\":\"X6IegCdOnRhIT8yETezmQ9Y6mc\",\"signature\":\"1581C89B280FE7A241BAE70877E3308072EB547B68B5FDF438955F41FE2B30C2\",\"nonce\":\"1699460470472\",\"currency\":\"USDT\"}"
             }
         ]
     }
