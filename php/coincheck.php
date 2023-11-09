@@ -162,7 +162,7 @@ class coincheck extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -216,18 +216,18 @@ class coincheck extends Exchange {
         return $result;
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOpenOrders
         //
         //     {                        $id =>  202835,
-        //                      order_type => "buy",
-        //                            rate =>  26890,
-        //                            pair => "btc_jpy",
-        //                  pending_amount => "0.5527",
-        //       pending_market_buy_amount =>  null,
-        //                  stop_loss_rate =>  null,
-        //                      created_at => "2015-01-10T05:55:38.000Z" }
+        //                      "order_type" => "buy",
+        //                            "rate" =>  26890,
+        //                            "pair" => "btc_jpy",
+        //                  "pending_amount" => "0.5527",
+        //       "pending_market_buy_amount" =>  null,
+        //                  "stop_loss_rate" =>  null,
+        //                      "created_at" => "2015-01-10T05:55:38.000Z" }
         //
         // todo => add formats for fetchOrder, fetchClosedOrders here
         //
@@ -283,7 +283,7 @@ class coincheck extends Exchange {
         return $this->parse_order_book($response, $market['symbol']);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "last":4192632.0,
@@ -352,7 +352,7 @@ class coincheck extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -517,20 +517,20 @@ class coincheck extends Exchange {
         $response = $this->privateGetAccounts ($params);
         //
         //     {
-        //         success => true,
-        //         id => '7487995',
-        //         email => 'some@email.com',
-        //         identity_status => 'identity_pending',
-        //         bitcoin_address => null,
-        //         lending_leverage => '4',
-        //         taker_fee => '0.0',
-        //         maker_fee => '0.0',
-        //         exchange_fees => {
-        //           btc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-        //           etc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-        //           fct_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-        //           mona_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-        //           plt_jpy => array( taker_fee => '0.0', maker_fee => '0.0' )
+        //         "success" => true,
+        //         "id" => "7487995",
+        //         "email" => "some@email.com",
+        //         "identity_status" => "identity_pending",
+        //         "bitcoin_address" => null,
+        //         "lending_leverage" => "4",
+        //         "taker_fee" => "0.0",
+        //         "maker_fee" => "0.0",
+        //         "exchange_fees" => {
+        //           "btc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+        //           "etc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+        //           "fct_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+        //           "mona_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+        //           "plt_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" )
         //         }
         //     }
         //
@@ -705,7 +705,7 @@ class coincheck extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

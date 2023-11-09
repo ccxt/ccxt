@@ -159,15 +159,15 @@ class oceanex extends Exchange {
             $response = Async\await($this->publicGetMarkets (array_merge($request, $params)));
             //
             //    array(
-            //        $id => 'xtzusdt',
-            //        $name => 'XTZ/USDT',
-            //        ask_precision => '8',
-            //        bid_precision => '8',
-            //        enabled => true,
-            //        price_precision => '4',
-            //        amount_precision => '3',
-            //        usd_precision => '4',
-            //        minimum_trading_amount => '1.0'
+            //        "id" => "xtzusdt",
+            //        "name" => "XTZ/USDT",
+            //        "ask_precision" => "8",
+            //        "bid_precision" => "8",
+            //        "enabled" => true,
+            //        "price_precision" => "4",
+            //        "amount_precision" => "3",
+            //        "usd_precision" => "4",
+            //        "minimum_trading_amount" => "1.0"
             //    ),
             //
             $result = array();
@@ -506,7 +506,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -604,7 +604,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data');
         $balances = $this->safe_value($data, 'accounts', array());
         $result = array( 'info' => $response );
@@ -772,7 +772,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // array(
         //    1559232000,
         //    8889.22,
@@ -821,7 +821,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "created_at" => "2019-01-18T00:38:18Z",

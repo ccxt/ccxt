@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -846,7 +845,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'lastUpdateId')
         return orderbook
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1062,51 +1061,51 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
-        #         symbol: 'ETHBTC',
-        #         priceChange: '0.00068700',
-        #         priceChangePercent: '2.075',
-        #         weightedAvgPrice: '0.03342681',
-        #         prevClosePrice: '0.03310300',
-        #         lastPrice: '0.03378900',
-        #         lastQty: '0.07700000',
-        #         bidPrice: '0.03378900',
-        #         bidQty: '7.16800000',
-        #         askPrice: '0.03379000',
-        #         askQty: '24.00000000',
-        #         openPrice: '0.03310200',
-        #         highPrice: '0.03388900',
-        #         lowPrice: '0.03306900',
-        #         volume: '205478.41000000',
-        #         quoteVolume: '6868.48826294',
-        #         openTime: 1601469986932,
-        #         closeTime: 1601556386932,
-        #         firstId: 196098772,
-        #         lastId: 196186315,
-        #         count: 87544
+        #         "symbol": "ETHBTC",
+        #         "priceChange": "0.00068700",
+        #         "priceChangePercent": "2.075",
+        #         "weightedAvgPrice": "0.03342681",
+        #         "prevClosePrice": "0.03310300",
+        #         "lastPrice": "0.03378900",
+        #         "lastQty": "0.07700000",
+        #         "bidPrice": "0.03378900",
+        #         "bidQty": "7.16800000",
+        #         "askPrice": "0.03379000",
+        #         "askQty": "24.00000000",
+        #         "openPrice": "0.03310200",
+        #         "highPrice": "0.03388900",
+        #         "lowPrice": "0.03306900",
+        #         "volume": "205478.41000000",
+        #         "quoteVolume": "6868.48826294",
+        #         "openTime": 1601469986932,
+        #         "closeTime": 1601556386932,
+        #         "firstId": 196098772,
+        #         "lastId": 196186315,
+        #         "count": 87544
         #     }
         #
         # coinm
         #     {
-        #         baseVolume: '214549.95171161',
-        #         closeTime: '1621965286847',
-        #         count: '1283779',
-        #         firstId: '152560106',
-        #         highPrice: '39938.3',
-        #         lastId: '153843955',
-        #         lastPrice: '37993.4',
-        #         lastQty: '1',
-        #         lowPrice: '36457.2',
-        #         openPrice: '37783.4',
-        #         openTime: '1621878840000',
-        #         pair: 'BTCUSD',
-        #         priceChange: '210.0',
-        #         priceChangePercent: '0.556',
-        #         symbol: 'BTCUSD_PERP',
-        #         volume: '81990451',
-        #         weightedAvgPrice: '38215.08713747'
+        #         "baseVolume": "214549.95171161",
+        #         "closeTime": "1621965286847",
+        #         "count": "1283779",
+        #         "firstId": "152560106",
+        #         "highPrice": "39938.3",
+        #         "lastId": "153843955",
+        #         "lastPrice": "37993.4",
+        #         "lastQty": "1",
+        #         "lowPrice": "36457.2",
+        #         "openPrice": "37783.4",
+        #         "openTime": "1621878840000",
+        #         "pair": "BTCUSD",
+        #         "priceChange": "210.0",
+        #         "priceChangePercent": "0.556",
+        #         "symbol": "BTCUSD_PERP",
+        #         "volume": "81990451",
+        #         "weightedAvgPrice": "38215.08713747"
         #     }
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
@@ -1195,7 +1194,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = self.binanceGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -1372,7 +1371,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #
@@ -1396,25 +1395,25 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         # createOrder
         #     {
-        #         orderId: '145265071',
-        #         bOrderListId: '0',
-        #         clientId: '49c09c3c2cd54419a59c05441f517b3c',
-        #         bOrderId: '35247529',
-        #         symbol: 'USDT_BIDR',
-        #         symbolType: '1',
-        #         side: '0',
-        #         type: '1',
-        #         price: '11915',
-        #         origQty: '2',
-        #         origQuoteQty: '23830.00',
-        #         executedQty: '0.00000000',
-        #         executedPrice: '0',
-        #         executedQuoteQty: '0.00',
-        #         timeInForce: '1',
-        #         stopPrice: '0',
-        #         icebergQty: '0',
-        #         status: '0',
-        #         createTime: '1662711074372'
+        #         "orderId": "145265071",
+        #         "bOrderListId": "0",
+        #         "clientId": "49c09c3c2cd54419a59c05441f517b3c",
+        #         "bOrderId": "35247529",
+        #         "symbol": "USDT_BIDR",
+        #         "symbolType": "1",
+        #         "side": "0",
+        #         "type": "1",
+        #         "price": "11915",
+        #         "origQty": "2",
+        #         "origQuoteQty": "23830.00",
+        #         "executedQty": "0.00000000",
+        #         "executedPrice": "0",
+        #         "executedQuoteQty": "0.00",
+        #         "timeInForce": "1",
+        #         "stopPrice": "0",
+        #         "icebergQty": "0",
+        #         "status": "0",
+        #         "createTime": "1662711074372"
         #     }
         #
         # createOrder with {"newOrderRespType": "FULL"}
@@ -2098,7 +2097,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

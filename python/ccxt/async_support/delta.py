@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -807,7 +806,7 @@ class delta(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -1279,7 +1278,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order_book(result, market['symbol'], None, 'buy', 'sell', 'price', 'size')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1408,7 +1407,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_trades(result, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "time":1605393120,
@@ -1476,7 +1475,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'result', [])
         result = {'info': response}
         currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
@@ -1660,7 +1659,7 @@ class delta(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         #
@@ -1839,8 +1838,8 @@ class delta(Exchange, ImplicitAPI):
         request = {
             'id': int(id),
             'product_id': market['numericId'],
-            # 'limit_price': self.price_to_precision(symbol, price),
-            # 'size': self.amount_to_precision(symbol, amount),
+            # "limit_price": self.price_to_precision(symbol, price),
+            # "size": self.amount_to_precision(symbol, amount),
         }
         if amount is not None:
             request['size'] = int(self.amount_to_precision(symbol, amount))
@@ -2574,7 +2573,7 @@ class delta(Exchange, ImplicitAPI):
         :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
         :param str symbol: unified market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         await self.load_markets()
         market = self.market(symbol)

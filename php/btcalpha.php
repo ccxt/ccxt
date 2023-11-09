@@ -242,15 +242,15 @@ class btcalpha extends Exchange {
         //
         //    array(
         //        array(
-        //            timestamp => '1674658.445272',
-        //            pair => 'BTC_USDT',
-        //            last => '22476.85',
-        //            diff => '458.96',
-        //            vol => '6660.847784',
-        //            high => '23106.08',
-        //            low => '22348.29',
-        //            buy => '22508.46',
-        //            sell => '22521.11'
+        //            "timestamp" => "1674658.445272",
+        //            "pair" => "BTC_USDT",
+        //            "last" => "22476.85",
+        //            "diff" => "458.96",
+        //            "vol" => "6660.847784",
+        //            "high" => "23106.08",
+        //            "low" => "22348.29",
+        //            "buy" => "22508.46",
+        //            "sell" => "22521.11"
         //        ),
         //        ...
         //    )
@@ -274,32 +274,32 @@ class btcalpha extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         //
         //    {
-        //        timestamp => '1674658.445272',
-        //        pair => 'BTC_USDT',
-        //        last => '22476.85',
-        //        diff => '458.96',
-        //        vol => '6660.847784',
-        //        high => '23106.08',
-        //        low => '22348.29',
-        //        buy => '22508.46',
-        //        sell => '22521.11'
+        //        "timestamp" => "1674658.445272",
+        //        "pair" => "BTC_USDT",
+        //        "last" => "22476.85",
+        //        "diff" => "458.96",
+        //        "vol" => "6660.847784",
+        //        "high" => "23106.08",
+        //        "low" => "22348.29",
+        //        "buy" => "22508.46",
+        //        "sell" => "22521.11"
         //    }
         //
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //    {
-        //        $timestamp => '1674658.445272',
-        //        pair => 'BTC_USDT',
-        //        $last => '22476.85',
-        //        diff => '458.96',
-        //        vol => '6660.847784',
-        //        high => '23106.08',
-        //        low => '22348.29',
-        //        buy => '22508.46',
-        //        sell => '22521.11'
+        //        "timestamp" => "1674658.445272",
+        //        "pair" => "BTC_USDT",
+        //        "last" => "22476.85",
+        //        "diff" => "458.96",
+        //        "vol" => "6660.847784",
+        //        "high" => "23106.08",
+        //        "low" => "22348.29",
+        //        "buy" => "22508.46",
+        //        "sell" => "22521.11"
         //    }
         //
         $timestampStr = $this->safe_string($ticker, 'timestamp');
@@ -364,7 +364,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -496,7 +496,7 @@ class btcalpha extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //  deposit
         //      {
@@ -552,7 +552,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "time":1591296000,
@@ -606,7 +606,7 @@ class btcalpha extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -640,7 +640,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {

@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -165,15 +164,15 @@ class oceanex(Exchange, ImplicitAPI):
         response = self.publicGetMarkets(self.extend(request, params))
         #
         #    {
-        #        id: 'xtzusdt',
-        #        name: 'XTZ/USDT',
-        #        ask_precision: '8',
-        #        bid_precision: '8',
-        #        enabled: True,
-        #        price_precision: '4',
-        #        amount_precision: '3',
-        #        usd_precision: '4',
-        #        minimum_trading_amount: '1.0'
+        #        "id": "xtzusdt",
+        #        "name": "XTZ/USDT",
+        #        "ask_precision": "8",
+        #        "bid_precision": "8",
+        #        "enabled": True,
+        #        "price_precision": "4",
+        #        "amount_precision": "3",
+        #        "usd_precision": "4",
+        #        "minimum_trading_amount": "1.0"
         #    },
         #
         result = []
@@ -486,7 +485,7 @@ class oceanex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -571,7 +570,7 @@ class oceanex(Exchange, ImplicitAPI):
         response = self.privateGetKey(params)
         return self.safe_value(response, 'data')
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data')
         balances = self.safe_value(data, 'accounts', [])
         result = {'info': response}
@@ -711,7 +710,7 @@ class oceanex(Exchange, ImplicitAPI):
             result = self.array_concat(result, parsedOrders)
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # [
         #    1559232000,
         #    8889.22,
@@ -754,7 +753,7 @@ class oceanex(Exchange, ImplicitAPI):
         ohlcvs = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "created_at": "2019-01-18T00:38:18Z",

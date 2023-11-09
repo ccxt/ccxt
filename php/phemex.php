@@ -275,6 +275,7 @@ class phemex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // not documented
+                    '401' => '\\ccxt\\AuthenticationError', // array("code":"401","msg":"401 Failed to load API KEY.")
                     '412' => '\\ccxt\\BadRequest', // array("code":412,"msg":"Missing parameter - resolution","data":null)
                     '6001' => '\\ccxt\\BadRequest', // array("error":array("code":6001,"message":"invalid argument"),"id":null,"result":null)
                     // documented
@@ -1072,7 +1073,7 @@ class phemex extends Exchange {
         return $this->from_en($er, $this->safe_integer($market, 'ratioScale'));
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1592467200, // timestamp
@@ -1188,7 +1189,7 @@ class phemex extends Exchange {
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $userLimit);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot
         //
@@ -1425,7 +1426,7 @@ class phemex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public) spot & contract
         //
@@ -1477,9 +1478,9 @@ class phemex extends Exchange {
         //         "leavesQuoteQtyEv" => 0,
         //         "execFeeEv" => 0,
         //         "feeRateEr" => 0
-        //         "baseCurrency" => 'BTC',
-        //         "quoteCurrency" => 'USDT',
-        //         "feeCurrency" => 'BTC'
+        //         "baseCurrency" => "BTC",
+        //         "quoteCurrency" => "USDT",
+        //         "feeCurrency" => "BTC"
         //     }
         //
         // swap
@@ -1747,17 +1748,17 @@ class phemex extends Exchange {
     public function parse_swap_balance($response) {
         // usdt
         //   {
-        //       info => {
-        //         $code => '0',
-        //         msg => '',
-        //         $data => {
-        //           $account => array(
-        //             userID => '940666',
-        //             accountId => '9406660003',
-        //             $currency => 'USDT',
-        //             accountBalanceRv => '99.93143972',
-        //             totalUsedBalanceRv => '0.40456',
-        //             bonusBalanceRv => '0'
+        //       "info" => {
+        //         "code" => "0",
+        //         "msg" => '',
+        //         "data" => {
+        //           "account" => array(
+        //             "userID" => "940666",
+        //             "accountId" => "9406660003",
+        //             "currency" => "USDT",
+        //             "accountBalanceRv" => "99.93143972",
+        //             "totalUsedBalanceRv" => "0.40456",
+        //             "bonusBalanceRv" => "0"
         //           ),
         //   }
         //
@@ -1837,17 +1838,17 @@ class phemex extends Exchange {
         //
         // usdt
         //   {
-        //       info => {
-        //         $code => '0',
-        //         msg => '',
-        //         data => {
-        //           account => array(
-        //             userID => '940666',
-        //             accountId => '9406660003',
-        //             $currency => 'USDT',
-        //             accountBalanceRv => '99.93143972',
-        //             totalUsedBalanceRv => '0.40456',
-        //             bonusBalanceRv => '0'
+        //       "info" => {
+        //         "code" => "0",
+        //         "msg" => '',
+        //         "data" => {
+        //           "account" => array(
+        //             "userID" => "940666",
+        //             "accountId" => "9406660003",
+        //             "currency" => "USDT",
+        //             "accountBalanceRv" => "99.93143972",
+        //             "totalUsedBalanceRv" => "0.40456",
+        //             "bonusBalanceRv" => "0"
         //           ),
         //   }
         //
@@ -1967,6 +1968,9 @@ class phemex extends Exchange {
             'Filled' => 'closed',
             'Canceled' => 'canceled',
             '1' => 'open',
+            '2' => 'canceled',
+            '3' => 'closed',
+            '4' => 'canceled',
             '5' => 'open',
             '6' => 'open',
             '7' => 'closed',
@@ -2290,7 +2294,7 @@ class phemex extends Exchange {
         ));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $isSwap = $this->safe_value($market, 'swap', false);
         $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order));
         if ($isSwap || $hasPnl) {
@@ -3212,7 +3216,7 @@ class phemex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
@@ -3417,73 +3421,73 @@ class phemex extends Exchange {
     public function parse_position($position, $market = null) {
         //
         //    {
-        //        userID => '811370',
-        //        accountID => '8113700002',
-        //        $symbol => 'ETHUSD',
-        //        $currency => 'USD',
-        //        $side => 'Buy',
-        //        positionStatus => 'Normal',
-        //        crossMargin => false,
-        //        leverageEr => '200000000',
-        //        $leverage => '2.00000000',
-        //        initMarginReqEr => '50000000',
-        //        initMarginReq => '0.50000000',
-        //        maintMarginReqEr => '1000000',
-        //        maintMarginReq => '0.01000000',
-        //        riskLimitEv => '5000000000',
-        //        riskLimit => '500000.00000000',
-        //        size => '1',
-        //        value => '22.22370000',
-        //        valueEv => '222237',
-        //        avgEntryPriceEp => '44447400',
-        //        avgEntryPrice => '4444.74000000',
-        //        posCostEv => '111202',
-        //        posCost => '11.12020000',
-        //        assignedPosBalanceEv => '111202',
-        //        assignedPosBalance => '11.12020000',
-        //        bankruptCommEv => '84',
-        //        bankruptComm => '0.00840000',
-        //        bankruptPriceEp => '22224000',
-        //        bankruptPrice => '2222.40000000',
-        //        positionMarginEv => '111118',
-        //        positionMargin => '11.11180000',
-        //        liquidationPriceEp => '22669000',
-        //        $liquidationPrice => '2266.90000000',
-        //        deleveragePercentileEr => '0',
-        //        deleveragePercentile => '0E-8',
-        //        buyValueToCostEr => '50112500',
-        //        buyValueToCost => '0.50112500',
-        //        sellValueToCostEr => '50187500',
-        //        sellValueToCost => '0.50187500',
-        //        markPriceEp => '31332499',
-        //        markPrice => '3133.24990000',
-        //        markValueEv => '0',
-        //        markValue => null,
-        //        unRealisedPosLossEv => '0',
-        //        unRealisedPosLoss => null,
-        //        estimatedOrdLossEv => '0',
-        //        estimatedOrdLoss => '0E-8',
-        //        usedBalanceEv => '111202',
-        //        usedBalance => '11.12020000',
-        //        takeProfitEp => '0',
-        //        takeProfit => null,
-        //        stopLossEp => '0',
-        //        stopLoss => null,
-        //        cumClosedPnlEv => '-1546',
-        //        cumFundingFeeEv => '1605',
-        //        cumTransactFeeEv => '8438',
-        //        realisedPnlEv => '0',
-        //        realisedPnl => null,
-        //        cumRealisedPnlEv => '0',
-        //        cumRealisedPnl => null,
-        //        transactTimeNs => '1641571200001885324',
-        //        takerFeeRateEr => '0',
-        //        makerFeeRateEr => '0',
-        //        term => '6',
-        //        lastTermEndTimeNs => '1607711882505745356',
-        //        lastFundingTimeNs => '1641571200000000000',
-        //        curTermRealisedPnlEv => '-1567',
-        //        execSeq => '12112761561'
+        //        "userID" => "811370",
+        //        "accountID" => "8113700002",
+        //        "symbol" => "ETHUSD",
+        //        "currency" => "USD",
+        //        "side" => "Buy",
+        //        "positionStatus" => "Normal",
+        //        "crossMargin" => false,
+        //        "leverageEr" => "200000000",
+        //        "leverage" => "2.00000000",
+        //        "initMarginReqEr" => "50000000",
+        //        "initMarginReq" => "0.50000000",
+        //        "maintMarginReqEr" => "1000000",
+        //        "maintMarginReq" => "0.01000000",
+        //        "riskLimitEv" => "5000000000",
+        //        "riskLimit" => "500000.00000000",
+        //        "size" => "1",
+        //        "value" => "22.22370000",
+        //        "valueEv" => "222237",
+        //        "avgEntryPriceEp" => "44447400",
+        //        "avgEntryPrice" => "4444.74000000",
+        //        "posCostEv" => "111202",
+        //        "posCost" => "11.12020000",
+        //        "assignedPosBalanceEv" => "111202",
+        //        "assignedPosBalance" => "11.12020000",
+        //        "bankruptCommEv" => "84",
+        //        "bankruptComm" => "0.00840000",
+        //        "bankruptPriceEp" => "22224000",
+        //        "bankruptPrice" => "2222.40000000",
+        //        "positionMarginEv" => "111118",
+        //        "positionMargin" => "11.11180000",
+        //        "liquidationPriceEp" => "22669000",
+        //        "liquidationPrice" => "2266.90000000",
+        //        "deleveragePercentileEr" => "0",
+        //        "deleveragePercentile" => "0E-8",
+        //        "buyValueToCostEr" => "50112500",
+        //        "buyValueToCost" => "0.50112500",
+        //        "sellValueToCostEr" => "50187500",
+        //        "sellValueToCost" => "0.50187500",
+        //        "markPriceEp" => "31332499",
+        //        "markPrice" => "3133.24990000",
+        //        "markValueEv" => "0",
+        //        "markValue" => null,
+        //        "unRealisedPosLossEv" => "0",
+        //        "unRealisedPosLoss" => null,
+        //        "estimatedOrdLossEv" => "0",
+        //        "estimatedOrdLoss" => "0E-8",
+        //        "usedBalanceEv" => "111202",
+        //        "usedBalance" => "11.12020000",
+        //        "takeProfitEp" => "0",
+        //        "takeProfit" => null,
+        //        "stopLossEp" => "0",
+        //        "stopLoss" => null,
+        //        "cumClosedPnlEv" => "-1546",
+        //        "cumFundingFeeEv" => "1605",
+        //        "cumTransactFeeEv" => "8438",
+        //        "realisedPnlEv" => "0",
+        //        "realisedPnl" => null,
+        //        "cumRealisedPnlEv" => "0",
+        //        "cumRealisedPnl" => null,
+        //        "transactTimeNs" => "1641571200001885324",
+        //        "takerFeeRateEr" => "0",
+        //        "makerFeeRateEr" => "0",
+        //        "term" => "6",
+        //        "lastTermEndTimeNs" => "1607711882505745356",
+        //        "lastFundingTimeNs" => "1641571200000000000",
+        //        "curTermRealisedPnlEv" => "-1567",
+        //        "execSeq" => "12112761561"
         //    }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -4104,15 +4108,15 @@ class phemex extends Exchange {
             $response = $this->privatePostAssetsTransfer (array_merge($request, $params));
             //
             //     {
-            //         $code => '0',
-            //         msg => 'OK',
-            //         $data => {
-            //             linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-            //             userId => '4018340',
-            //             $currency => 'USD',
-            //             amountEv => '10',
-            //             side => '2',
-            //             status => '10'
+            //         "code" => "0",
+            //         "msg" => "OK",
+            //         "data" => {
+            //             "linkKey" => "8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9",
+            //             "userId" => "4018340",
+            //             "currency" => "USD",
+            //             "amountEv" => "10",
+            //             "side" => "2",
+            //             "status" => "10"
             //         }
             //     }
             //
@@ -4129,9 +4133,9 @@ class phemex extends Exchange {
             $response = $this->privatePostAssetsUniversalTransfer (array_merge($request, $params));
             //
             //     {
-            //         $code => '0',
-            //         msg => 'OK',
-            //         $data => 'API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd'
+            //         "code" => "0",
+            //         "msg" => "OK",
+            //         "data" => "API-923db826-aaaa-aaaa-aaaa-4d98c3a7c9fd"
             //     }
             //
             $transfer = $this->parse_transfer($response);
@@ -4209,12 +4213,12 @@ class phemex extends Exchange {
         // $transfer
         //
         //     {
-        //         linkKey => '8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9',
-        //         userId => '4018340',
-        //         $currency => 'USD',
-        //         $amountEv => '10',
-        //         $side => '2',
-        //         $status => '10'
+        //         "linkKey" => "8564eba4-c9ec-49d6-9b8c-2ec5001a0fb9",
+        //         "userId" => "4018340",
+        //         "currency" => "USD",
+        //         "amountEv" => "10",
+        //         "side" => "2",
+        //         "status" => "10"
         //     }
         //
         // fetchTransfers

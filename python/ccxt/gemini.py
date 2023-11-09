@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -327,7 +326,7 @@ class gemini(Exchange, ImplicitAPI):
         #            ["ORCA", "Orca", 204, 6, 0, 6, 8, False, null, "solana"],  #, precisions seem to be the 5th index
         #            ["ATOM", "Cosmos", 44, 6, 0, 6, 8, False, null, "cosmos"],
         #            ["ETH", "Ether", 2, 6, 0, 18, 8, False, null, "ethereum"],
-        #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, '£', null],
+        #            ["GBP", "Pound Sterling", 22, 2, 2, 2, 2, True, "£", null],
         #            ...
         #        ],
         #        "networks": [
@@ -731,7 +730,7 @@ class gemini(Exchange, ImplicitAPI):
             return self.fetch_ticker_v2(symbol, params)
         return self.fetch_ticker_v1_and_v2(symbol, params)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTickers
         #
@@ -846,7 +845,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -944,7 +943,7 @@ class gemini(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -1021,7 +1020,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Balances(params)
         return self.parse_balance(response)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder(private)
         #
@@ -1478,7 +1477,7 @@ class gemini(Exchange, ImplicitAPI):
         response = self.privatePostV1Transfers(self.extend(request, params))
         return self.parse_transactions(response)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -1542,9 +1541,9 @@ class gemini(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #      {
-        #          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        #          timestamp: "1636813923098",
-        #          addressVersion: "eV1"                                         }
+        #          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        #          "timestamp": "1636813923098",
+        #          "addressVersion": "eV1"                                         }
         #      }
         #
         address = self.safe_string(depositAddress, 'address')

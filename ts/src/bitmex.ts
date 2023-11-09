@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Transaction, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -673,7 +673,7 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         //     [
         //         {
@@ -945,7 +945,7 @@ export default class bitmex extends Exchange {
          */
         // Bitmex barfs if you set 'open': false in the filter...
         const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed') as Order[];
+        return this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false) as Order[];
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1064,20 +1064,20 @@ export default class bitmex extends Exchange {
     parseLedgerEntry (item, currency = undefined) {
         //
         //     {
-        //         transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        //         account:  24321,
-        //         currency: "XBt",
-        //         transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        //         amount:  -1000000,
-        //         fee:  300000,
-        //         transactStatus: "Completed", // "Canceled", ...
-        //         address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        //         tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        //         text: "",
-        //         transactTime: "2017-03-21T20:05:14.388Z",
-        //         walletBalance:  0, // balance after
-        //         marginBalance:  null,
-        //         timestamp: "2017-03-22T13:09:23.514Z"
+        //         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        //         "account":  24321,
+        //         "currency": "XBt",
+        //         "transactType": "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //         "amount":  -1000000,
+        //         "fee":  300000,
+        //         "transactStatus": "Completed", // "Canceled", ...
+        //         "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //         "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //         "text": "",
+        //         "transactTime": "2017-03-21T20:05:14.388Z",
+        //         "walletBalance":  0, // balance after
+        //         "marginBalance":  null,
+        //         "timestamp": "2017-03-22T13:09:23.514Z"
         //     }
         //
         // ButMEX returns the unrealized pnl from the wallet history endpoint.
@@ -1191,20 +1191,20 @@ export default class bitmex extends Exchange {
         //
         //     [
         //         {
-        //             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        //             account:  24321,
-        //             currency: "XBt",
-        //             transactType: "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        //             amount:  -1000000,
-        //             fee:  300000,
-        //             transactStatus: "Completed", // "Canceled", ...
-        //             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        //             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        //             text: "",
-        //             transactTime: "2017-03-21T20:05:14.388Z",
-        //             walletBalance:  0, // balance after
-        //             marginBalance:  null,
-        //             timestamp: "2017-03-22T13:09:23.514Z"
+        //             "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        //             "account":  24321,
+        //             "currency": "XBt",
+        //             "transactType": "Withdrawal", // "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        //             "amount":  -1000000,
+        //             "fee":  300000,
+        //             "transactStatus": "Completed", // "Canceled", ...
+        //             "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        //             "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        //             "text": "",
+        //             "transactTime": "2017-03-21T20:05:14.388Z",
+        //             "walletBalance":  0, // balance after
+        //             "marginBalance":  null,
+        //             "timestamp": "2017-03-22T13:09:23.514Z"
         //         }
         //     ]
         //
@@ -1255,24 +1255,24 @@ export default class bitmex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //    {
-        //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //        'account': 123456,
-        //        'currency': 'XBt',
-        //        'network':'', // "tron" for USDt, etc...
-        //        'transactType': 'Withdrawal',
-        //        'amount': -100100000,
-        //        'fee': 100000,
-        //        'transactStatus': 'Completed',
-        //        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //        'text': '',
-        //        'transactTime': '2019-01-02T01:00:00.000Z',
-        //        'walletBalance': 99900000, // this field might be inexistent
-        //        'marginBalance': None, // this field might be inexistent
-        //        'timestamp': '2019-01-02T13:00:00.000Z'
+        //        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
+        //        "account": 123456,
+        //        "currency": "XBt",
+        //        "network":'', // "tron" for USDt, etc...
+        //        "transactType": "Withdrawal",
+        //        "amount": -100100000,
+        //        "fee": 100000,
+        //        "transactStatus": "Completed",
+        //        "address": "385cR5DM96n1HvBDMzLHPYcw89fZAXULJP",
+        //        "tx": "3BMEXabcdefghijklmnopqrstuvwxyz123",
+        //        "text": '',
+        //        "transactTime": "2019-01-02T01:00:00.000Z",
+        //        "walletBalance": 99900000, // this field might be inexistent
+        //        "marginBalance": None, // this field might be inexistent
+        //        "timestamp": "2019-01-02T13:00:00.000Z"
         //    }
         //
         const currencyId = this.safeString (transaction, 'currency');
@@ -1376,7 +1376,7 @@ export default class bitmex extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1407,7 +1407,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1516,21 +1516,21 @@ export default class bitmex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
         //     {
-        //         timestamp: '2018-08-28T00:00:02.735Z',
-        //         symbol: 'XBTUSD',
-        //         side: 'Buy',
-        //         size: 2000,
-        //         price: 6906.5,
-        //         tickDirection: 'PlusTick',
-        //         trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
-        //         grossValue: 28958000,
-        //         homeNotional: 0.28958,
-        //         foreignNotional: 2000
+        //         "timestamp": "2018-08-28T00:00:02.735Z",
+        //         "symbol": "XBTUSD",
+        //         "side": "Buy",
+        //         "size": 2000,
+        //         "price": 6906.5,
+        //         "tickDirection": "PlusTick",
+        //         "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        //         "grossValue": 28958000,
+        //         "homeNotional": 0.28958,
+        //         "foreignNotional": 2000
         //     }
         //
         // fetchMyTrades (private)
@@ -1659,7 +1659,7 @@ export default class bitmex extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1697,18 +1697,15 @@ export default class bitmex extends Exchange {
         //         "timestamp":"2021-01-02T21:38:49.246Z"
         //     }
         //
-        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
-        const price = this.safeString (order, 'price');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const qty = this.safeString (order, 'orderQty');
         let cost = undefined;
         let amount = undefined;
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
         let isInverse = false;
-        if (market === undefined) {
+        if (marketId === undefined) {
+            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
             isInverse = (defaultSubType === 'inverse');
         } else {
             isInverse = this.safeValue (market, 'inverse', false);
@@ -1726,38 +1723,35 @@ export default class bitmex extends Exchange {
         } else {
             filled = cumQty;
         }
-        const id = this.safeString (order, 'orderID');
-        const type = this.safeStringLower (order, 'ordType');
-        const side = this.safeStringLower (order, 'side');
-        const clientOrderId = this.safeString (order, 'clOrdID');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
-        const stopPrice = this.safeNumber (order, 'stopPx');
         const execInst = this.safeString (order, 'execInst');
         let postOnly = undefined;
         if (execInst !== undefined) {
             postOnly = (execInst === 'ParticipateDoNotInitiate');
         }
+        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
+        const stopPrice = this.safeNumber (order, 'stopPx');
+        const remaining = this.safeString (order, 'leavesQty');
         return this.safeOrder ({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString (order, 'orderID'),
+            'clientOrderId': this.safeString (order, 'clOrdID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': this.parse8601 (this.safeString (order, 'transactTime')),
             'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
+            'type': this.safeStringLower (order, 'ordType'),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'timeInForce')),
             'postOnly': postOnly,
-            'side': side,
-            'price': price,
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeString (order, 'price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': undefined,
-            'status': status,
+            'remaining': this.convertFromRawQuantity (symbol, remaining),
+            'status': this.parseOrderStatus (this.safeString (order, 'ordStatus')),
             'fee': undefined,
             'trades': undefined,
         }, market);
@@ -1804,28 +1798,28 @@ export default class bitmex extends Exchange {
         //
         //     [
         //         {
-        //             timestamp: '2018-08-28T00:00:02.735Z',
-        //             symbol: 'XBTUSD',
-        //             side: 'Buy',
-        //             size: 2000,
-        //             price: 6906.5,
-        //             tickDirection: 'PlusTick',
-        //             trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
-        //             grossValue: 28958000,
-        //             homeNotional: 0.28958,
-        //             foreignNotional: 2000
+        //             "timestamp": "2018-08-28T00:00:02.735Z",
+        //             "symbol": "XBTUSD",
+        //             "side": "Buy",
+        //             "size": 2000,
+        //             "price": 6906.5,
+        //             "tickDirection": "PlusTick",
+        //             "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        //             "grossValue": 28958000,
+        //             "homeNotional": 0.28958,
+        //             "foreignNotional": 2000
         //         },
         //         {
-        //             timestamp: '2018-08-28T00:00:03.778Z',
-        //             symbol: 'XBTUSD',
-        //             side: 'Sell',
-        //             size: 1000,
-        //             price: 6906,
-        //             tickDirection: 'MinusTick',
-        //             trdMatchID: '0d4f1682-5270-a800-569b-4a0eb92db97c',
-        //             grossValue: 14480000,
-        //             homeNotional: 0.1448,
-        //             foreignNotional: 1000
+        //             "timestamp": "2018-08-28T00:00:03.778Z",
+        //             "symbol": "XBTUSD",
+        //             "side": "Sell",
+        //             "size": 1000,
+        //             "price": 6906,
+        //             "tickDirection": "MinusTick",
+        //             "trdMatchID": "0d4f1682-5270-a800-569b-4a0eb92db97c",
+        //             "grossValue": 14480000,
+        //             "homeNotional": 0.1448,
+        //             "foreignNotional": 1000
         //         },
         //     ]
         //
@@ -2569,26 +2563,26 @@ export default class bitmex extends Exchange {
     parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
-        //        asset: 'XBT',
-        //        currency: 'XBt',
-        //        majorCurrency: 'XBT',
-        //        name: 'Bitcoin',
-        //        currencyType: 'Crypto',
-        //        scale: '8',
-        //        enabled: true,
-        //        isMarginCurrency: true,
-        //        minDepositAmount: '10000',
-        //        minWithdrawalAmount: '1000',
-        //        maxWithdrawalAmount: '100000000000000',
-        //        networks: [
+        //        "asset": "XBT",
+        //        "currency": "XBt",
+        //        "majorCurrency": "XBT",
+        //        "name": "Bitcoin",
+        //        "currencyType": "Crypto",
+        //        "scale": "8",
+        //        "enabled": true,
+        //        "isMarginCurrency": true,
+        //        "minDepositAmount": "10000",
+        //        "minWithdrawalAmount": "1000",
+        //        "maxWithdrawalAmount": "100000000000000",
+        //        "networks": [
         //            {
-        //                asset: 'btc',
-        //                tokenAddress: '',
-        //                depositEnabled: true,
-        //                withdrawalEnabled: true,
-        //                withdrawalFee: '20000',
-        //                minFee: '20000',
-        //                maxFee: '10000000'
+        //                "asset": "btc",
+        //                "tokenAddress": '',
+        //                "depositEnabled": true,
+        //                "withdrawalEnabled": true,
+        //                "withdrawalFee": "20000",
+        //                "minFee": "20000",
+        //                "maxFee": "10000000"
         //            }
         //        ]
         //    }
@@ -2645,26 +2639,26 @@ export default class bitmex extends Exchange {
         //
         //    [
         //        {
-        //            asset: 'XBT',
-        //            currency: 'XBt',
-        //            majorCurrency: 'XBT',
-        //            name: 'Bitcoin',
-        //            currencyType: 'Crypto',
-        //            scale: '8',
-        //            enabled: true,
-        //            isMarginCurrency: true,
-        //            minDepositAmount: '10000',
-        //            minWithdrawalAmount: '1000',
-        //            maxWithdrawalAmount: '100000000000000',
-        //            networks: [
+        //            "asset": "XBT",
+        //            "currency": "XBt",
+        //            "majorCurrency": "XBT",
+        //            "name": "Bitcoin",
+        //            "currencyType": "Crypto",
+        //            "scale": "8",
+        //            "enabled": true,
+        //            "isMarginCurrency": true,
+        //            "minDepositAmount": "10000",
+        //            "minWithdrawalAmount": "1000",
+        //            "maxWithdrawalAmount": "100000000000000",
+        //            "networks": [
         //                {
-        //                    asset: 'btc',
-        //                    tokenAddress: '',
-        //                    depositEnabled: true,
-        //                    withdrawalEnabled: true,
-        //                    withdrawalFee: '20000',
-        //                    minFee: '20000',
-        //                    maxFee: '10000000'
+        //                    "asset": "btc",
+        //                    "tokenAddress": '',
+        //                    "depositEnabled": true,
+        //                    "withdrawalEnabled": true,
+        //                    "withdrawalFee": "20000",
+        //                    "minFee": "20000",
+        //                    "maxFee": "10000000"
         //                }
         //            ]
         //        },
@@ -2744,7 +2738,7 @@ export default class bitmex extends Exchange {
         //     }
         //
         const marketId = this.safeString (liquidation, 'symbol');
-        return {
+        return this.safeLiquidation ({
             'info': liquidation,
             'symbol': this.safeSymbol (marketId, market),
             'contracts': undefined,
@@ -2754,7 +2748,7 @@ export default class bitmex extends Exchange {
             'quoteValue': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-        };
+        });
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

@@ -138,7 +138,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'accounts', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -199,7 +199,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // [
         //     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
@@ -370,7 +370,7 @@ class btctradeua extends Exchange {
         return $timestamp - 10800000;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -498,7 +498,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $side = $this->safe_string($order, 'type');

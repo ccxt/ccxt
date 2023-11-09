@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -313,91 +312,91 @@ class bigone(Exchange, ImplicitAPI):
             return None
         #
         # {
-        #     code: "0",
-        #     message: "",
-        #     data: [
+        #     "code": "0",
+        #     "message": "",
+        #     "data": [
         #       {
-        #         name: "TetherUS",
-        #         symbol: "USDT",
-        #         contract_address: "31",
-        #         is_deposit_enabled: True,
-        #         is_withdrawal_enabled: True,
-        #         is_stub: False,
-        #         withdrawal_fee: "5.0",
-        #         is_fiat: False,
-        #         is_memo_required: False,
-        #         logo: {
-        #           default: "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        #           white: "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        #         "name": "TetherUS",
+        #         "symbol": "USDT",
+        #         "contract_address": "31",
+        #         "is_deposit_enabled": True,
+        #         "is_withdrawal_enabled": True,
+        #         "is_stub": False,
+        #         "withdrawal_fee": "5.0",
+        #         "is_fiat": False,
+        #         "is_memo_required": False,
+        #         "logo": {
+        #           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
+        #           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
         #         },
-        #         info_link: null,
-        #         scale: "12",
-        #         default_gateway: ...,  # one object from "gateways"
-        #         gateways: [
+        #         "info_link": null,
+        #         "scale": "12",
+        #         "default_gateway": ...,  # one object from "gateways"
+        #         "gateways": [
         #           {
-        #             uuid: "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        #             name: "Mixin",
-        #             kind: "CHAIN",
-        #             required_confirmations: "0",
+        #             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+        #             "name": "Mixin",
+        #             "kind": "CHAIN",
+        #             "required_confirmations": "0",
         #           },
         #           {
-        #             uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        #             name: "Ethereum",
-        #             kind: "CHAIN",
-        #             required_confirmations: "18",
+        #             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        #             "name": "Ethereum",
+        #             "kind": "CHAIN",
+        #             "required_confirmations": "18",
         #           },
         #           {
-        #             uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        #             name: "Tron",
-        #             kind: "CHAIN",
-        #             required_confirmations: "1",
+        #             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        #             "name": "Tron",
+        #             "kind": "CHAIN",
+        #             "required_confirmations": "1",
         #           },
         #          ...
         #         ],
-        #         payments: [],
-        #         uuid: "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        #         binding_gateways: [
+        #         "payments": [],
+        #         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        #         "binding_gateways": [
         #           {
-        #             guid: "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        #             contract_address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        #             is_deposit_enabled: True,
-        #             display_name: "Ethereum(ERC20)",
-        #             gateway_name: "Ethereum",
-        #             min_withdrawal_amount: "0.000001",
-        #             min_internal_withdrawal_amount: "0.00000001",
-        #             withdrawal_fee: "14",
-        #             is_withdrawal_enabled: True,
-        #             min_deposit_amount: "0.000001",
-        #             is_memo_required: False,
-        #             withdrawal_scale: "2",
-        #             gateway: {
-        #               uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        #               name: "Ethereum",
-        #               kind: "CHAIN",
-        #               required_confirmations: "18",
+        #             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        #             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        #             "is_deposit_enabled": True,
+        #             "display_name": "Ethereum(ERC20)",
+        #             "gateway_name": "Ethereum",
+        #             "min_withdrawal_amount": "0.000001",
+        #             "min_internal_withdrawal_amount": "0.00000001",
+        #             "withdrawal_fee": "14",
+        #             "is_withdrawal_enabled": True,
+        #             "min_deposit_amount": "0.000001",
+        #             "is_memo_required": False,
+        #             "withdrawal_scale": "2",
+        #             "gateway": {
+        #               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        #               "name": "Ethereum",
+        #               "kind": "CHAIN",
+        #               "required_confirmations": "18",
         #             },
-        #             scale: "12",
+        #             "scale": "12",
         #          },
         #          {
-        #             guid: "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        #             contract_address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        #             is_deposit_enabled: True,
-        #             display_name: "Tron(TRC20)",
-        #             gateway_name: "Tron",
-        #             min_withdrawal_amount: "0.000001",
-        #             min_internal_withdrawal_amount: "0.00000001",
-        #             withdrawal_fee: "1",
-        #             is_withdrawal_enabled: True,
-        #             min_deposit_amount: "0.000001",
-        #             is_memo_required: False,
-        #             withdrawal_scale: "6",
-        #             gateway: {
-        #               uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        #               name: "Tron",
-        #               kind: "CHAIN",
-        #               required_confirmations: "1",
+        #             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+        #             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        #             "is_deposit_enabled": True,
+        #             "display_name": "Tron(TRC20)",
+        #             "gateway_name": "Tron",
+        #             "min_withdrawal_amount": "0.000001",
+        #             "min_internal_withdrawal_amount": "0.00000001",
+        #             "withdrawal_fee": "1",
+        #             "is_withdrawal_enabled": True,
+        #             "min_deposit_amount": "0.000001",
+        #             "is_memo_required": False,
+        #             "withdrawal_scale": "6",
+        #             "gateway": {
+        #               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        #               "name": "Tron",
+        #               "kind": "CHAIN",
+        #               "required_confirmations": "1",
         #             },
-        #             scale: "12",
+        #             "scale": "12",
         #           },
         #           ...
         #         ],
@@ -590,7 +589,7 @@ class bigone(Exchange, ImplicitAPI):
             self.options['marketsByUuid'] = marketsByUuid
         return markets
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "asset_pair_name":"ETH-BTC",
@@ -767,7 +766,7 @@ class bigone(Exchange, ImplicitAPI):
         orderbook = self.safe_value(response, 'data', {})
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -932,15 +931,15 @@ class bigone(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
-        #         close: '0.021562',
-        #         high: '0.021563',
-        #         low: '0.02156',
-        #         open: '0.021563',
-        #         time: '2019-11-21T07:54:00Z',
-        #         volume: '59.84376'
+        #         "close": "0.021562",
+        #         "high": "0.021563",
+        #         "low": "0.02156",
+        #         "open": "0.021563",
+        #         "time": "2019-11-21T07:54:00Z",
+        #         "volume": "59.84376"
         #     }
         #
         return [
@@ -979,23 +978,23 @@ class bigone(Exchange, ImplicitAPI):
         response = await self.publicGetAssetPairsAssetPairNameCandles(self.extend(request, params))
         #
         #     {
-        #         code: 0,
-        #         data: [
+        #         "code": 0,
+        #         "data": [
         #             {
-        #                 close: '0.021656',
-        #                 high: '0.021658',
-        #                 low: '0.021652',
-        #                 open: '0.021652',
-        #                 time: '2019-11-21T09:30:00Z',
-        #                 volume: '53.08664'
+        #                 "close": "0.021656",
+        #                 "high": "0.021658",
+        #                 "low": "0.021652",
+        #                 "open": "0.021652",
+        #                 "time": "2019-11-21T09:30:00Z",
+        #                 "volume": "53.08664"
         #             },
         #             {
-        #                 close: '0.021652',
-        #                 high: '0.021656',
-        #                 low: '0.021652',
-        #                 open: '0.021656',
-        #                 time: '2019-11-21T09:29:00Z',
-        #                 volume: '88.39861'
+        #                 "close": "0.021652",
+        #                 "high": "0.021656",
+        #                 "low": "0.021652",
+        #                 "open": "0.021656",
+        #                 "time": "2019-11-21T09:29:00Z",
+        #                 "volume": "88.39861"
         #             },
         #         ]
         #     }
@@ -1003,7 +1002,7 @@ class bigone(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1055,21 +1054,21 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #    {
-        #        "id": '42154072251',
-        #        "asset_pair_name": 'SOL-USDT',
-        #        "price": '20',
-        #        "amount": '0.5',
-        #        "filled_amount": '0',
-        #        "avg_deal_price": '0',
-        #        "side": 'ASK',
-        #        "state": 'PENDING',
-        #        "created_at": '2023-09-13T03:42:00Z',
-        #        "updated_at": '2023-09-13T03:42:00Z',
-        #        "type": 'LIMIT',
-        #        "stop_price": '0',
+        #        "id": "42154072251",
+        #        "asset_pair_name": "SOL-USDT",
+        #        "price": "20",
+        #        "amount": "0.5",
+        #        "filled_amount": "0",
+        #        "avg_deal_price": "0",
+        #        "side": "ASK",
+        #        "state": "PENDING",
+        #        "created_at": "2023-09-13T03:42:00Z",
+        #        "updated_at": "2023-09-13T03:42:00Z",
+        #        "type": "LIMIT",
+        #        "stop_price": "0",
         #        "immediate_or_cancel": False,
         #        "post_only": False,
         #        "client_order_id": ''
@@ -1159,10 +1158,10 @@ class bigone(Exchange, ImplicitAPI):
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
-            # 'price': self.price_to_precision(symbol, price),  # order price, string, required
-            # 'operator': 'GTE',  # stop orders only, GTE greater than and equal, LTE less than and equal
-            # 'immediate_or_cancel': False,  # limit orders only, must be False when post_only is True
-            # 'post_only': False,  # limit orders only, must be False when immediate_or_cancel is True
+            # "price": self.price_to_precision(symbol, price),  # order price, string, required
+            # "operator": "GTE",  # stop orders only, GTE greater than and equal, LTE less than and equal
+            # "immediate_or_cancel": False,  # limit orders only, must be False when post_only is True
+            # "post_only": False,  # limit orders only, must be False when immediate_or_cancel is True
         }
         if isLimit or (uppercaseType == 'STOP_LIMIT'):
             request['price'] = self.price_to_precision(symbol, price)
@@ -1506,7 +1505,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1560,7 +1559,7 @@ class bigone(Exchange, ImplicitAPI):
         #
         currencyId = self.safe_string(transaction, 'asset_symbol')
         code = self.safe_currency_code(currencyId)
-        id = self.safe_integer(transaction, 'id')
+        id = self.safe_string(transaction, 'id')
         amount = self.safe_number(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         timestamp = self.parse8601(self.safe_string(transaction, 'inserted_at'))

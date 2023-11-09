@@ -829,15 +829,15 @@ class coinone extends coinone$1 {
         const response = await this.privatePostAccountDepositAddress(params);
         //
         //     {
-        //         result: 'success',
-        //         errorCode: '0',
-        //         walletAddress: {
-        //             matic: null,
-        //             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             xrp: null,
-        //             xrp_tag: '-1',
-        //             kava: null,
-        //             kava_memo: null,
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "walletAddress": {
+        //             "matic": null,
+        //             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             "xrp": null,
+        //             "xrp_tag": "-1",
+        //             "kava": null,
+        //             "kava_memo": null,
         //         }
         //     }
         //

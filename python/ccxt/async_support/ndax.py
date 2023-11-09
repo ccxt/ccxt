@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -586,7 +585,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -699,7 +698,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1501603632000,  # 0 DateTime
@@ -762,7 +761,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -985,7 +984,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1179,7 +1178,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -2077,7 +2076,7 @@ class ndax(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2167,6 +2166,7 @@ class ndax(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status_by_type(transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'network': None,
         }
 
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
@@ -2202,10 +2202,10 @@ class ndax(Exchange, ImplicitAPI):
         withdrawTemplateTypesResponse = await self.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)
         #
         #     {
-        #         result: True,
-        #         errormsg: null,
-        #         statuscode: "0",
-        #         TemplateTypes: [
+        #         "result": True,
+        #         "errormsg": null,
+        #         "statuscode": "0",
+        #         "TemplateTypes": [
         #             {AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC"},
         #             {AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC"},
         #             {AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1"}
@@ -2227,10 +2227,10 @@ class ndax(Exchange, ImplicitAPI):
         withdrawTemplateResponse = await self.privateGetGetWithdrawTemplate(withdrawTemplateRequest)
         #
         #     {
-        #         result: True,
-        #         errormsg: null,
-        #         statuscode: "0",
-        #         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        #         "result": True,
+        #         "errormsg": null,
+        #         "statuscode": "0",
+        #         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         #     }
         #
         template = self.safe_string(withdrawTemplateResponse, 'Template')

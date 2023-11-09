@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -321,8 +320,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         response = self.publicGetCommonAssetConfig(params)
         #     {
-        #         code: 0,
-        #         data: {
+        #         "code": 0,
+        #         "data": {
         #             "USDT-ERC20": {
         #                  "asset": "USDT",
         #                  "chain": "ERC20",
@@ -336,7 +335,7 @@ class coinex(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         },
-        #         message: 'Success',
+        #         "message": "Success",
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -639,7 +638,7 @@ class coinex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # Spot fetchTicker, fetchTickers
         #
@@ -879,9 +878,9 @@ class coinex(Exchange, ImplicitAPI):
         response = self.perpetualPublicGetTime(params)
         #
         #     {
-        #         code: '0',
-        #         data: '1653261274414',
-        #         message: 'OK'
+        #         "code": "0",
+        #         "data": "1653261274414",
+        #         "message": "OK"
         #     }
         #
         return self.safe_integer(response, 'data')
@@ -956,7 +955,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'time')
         return self.parse_order_book(result, symbol, timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # Spot and Swap fetchTrades(public)
         #
@@ -1190,7 +1189,7 @@ class coinex(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591484400,
@@ -1479,7 +1478,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrder
         #
@@ -2597,12 +2596,12 @@ class coinex(Exchange, ImplicitAPI):
         response = self.privatePutBalanceDepositAddressCoinType(self.extend(request, params))
         #
         #     {
-        #         code: 0,
-        #         data: {
-        #             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        #             is_bitcoin_cash: False
+        #         "code": 0,
+        #         "data": {
+        #             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        #             "is_bitcoin_cash": False
         #         },
-        #         message: 'Success'
+        #         "message": "Success"
         #     }
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
@@ -2634,13 +2633,13 @@ class coinex(Exchange, ImplicitAPI):
         response = self.privateGetBalanceDepositAddressCoinType(self.extend(request, params))
         #
         #      {
-        #          code: 0,
-        #          data: {
-        #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        #            # coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy',  # with embedded tag/memo
-        #            is_bitcoin_cash: False
+        #          "code": 0,
+        #          "data": {
+        #            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #            # coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy",  # with embedded tag/memo
+        #            "is_bitcoin_cash": False
         #          },
-        #          message: 'Success'
+        #          "message": "Success"
         #      }
         #
         data = self.safe_value(response, 'data', {})
@@ -2669,8 +2668,8 @@ class coinex(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        #         is_bitcoin_cash: False
+        #         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #         "is_bitcoin_cash": False
         #     }
         #
         coinAddress = self.safe_string(depositAddress, 'coin_address')
@@ -3703,7 +3702,7 @@ class coinex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

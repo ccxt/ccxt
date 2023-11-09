@@ -321,7 +321,7 @@ class gemini extends Exchange {
             //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), //, precisions seem to be the 5th index
             //            array( "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ),
             //            array( "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ),
-            //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ),
+            //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ),
             //            ...
             //        ),
             //        "networks" => array(
@@ -772,7 +772,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTickers
         //
@@ -894,7 +894,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -998,7 +998,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -1084,7 +1084,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder (private)
         //
@@ -1585,7 +1585,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
@@ -1652,9 +1652,9 @@ class gemini extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //      {
-        //          $address => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        //          timestamp => "1636813923098",
-        //          addressVersion => "eV1"                                         }
+        //          "address" => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          "timestamp" => "1636813923098",
+        //          "addressVersion" => "eV1"                                         }
         //      }
         //
         $address = $this->safe_string($depositAddress, 'address');

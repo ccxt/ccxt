@@ -818,7 +818,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -1296,7 +1296,7 @@ class delta extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -1431,7 +1431,7 @@ class delta extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1503,7 +1503,7 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
@@ -1696,7 +1696,7 @@ class delta extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1882,8 +1882,8 @@ class delta extends Exchange {
         $request = array(
             'id' => intval($id),
             'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($symbol, $price),
-            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // "limit_price" => $this->price_to_precision($symbol, $price),
+            // "size" => $this->amount_to_precision($symbol, $amount),
         );
         if ($amount !== null) {
             $request['size'] = intval($this->amount_to_precision($symbol, $amount));
@@ -2650,7 +2650,7 @@ class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);

@@ -89,6 +89,7 @@ class krakenfutures extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
+                        'feeschedules',
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -98,6 +99,7 @@ class krakenfutures extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'feeschedules/volumes',
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -136,11 +138,6 @@ class krakenfutures extends Exchange {
                         'accountlogcsv',
                         'market/{symbol}/orders',
                         'market/{symbol}/executions',
-                    ),
-                ),
-                'feeschedules' => array(
-                    'get' => array(
-                        'volumes',
                     ),
                 ),
             ),
@@ -459,65 +456,65 @@ class krakenfutures extends Exchange {
         $response = $this->publicGetTickers ($params);
         //
         //    {
-        //        result => 'success',
-        //        $tickers => array(
+        //        "result" => "success",
+        //        "tickers" => array(
         //            array(
-        //                tag => 'semiannual',  // 'month', 'quarter', 'perpetual', 'semiannual',
-        //                pair => 'ETH:USD',
-        //                symbol => 'fi_ethusd_220624',
-        //                markPrice => '2925.72',
-        //                bid => '2923.8',
-        //                bidSize => '16804',
-        //                ask => '2928.65',
-        //                askSize => '1339',
-        //                vol24h => '860493',
-        //                openInterest => '3023363.00000000',
-        //                open24h => '3021.25',
-        //                indexPrice => '2893.71',
-        //                last => '2942.25',
-        //                lastTime => '2022-02-18T14:08:15.578Z',
-        //                lastSize => '151',
-        //                suspended => false
+        //                "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
+        //                "pair" => "ETH:USD",
+        //                "symbol" => "fi_ethusd_220624",
+        //                "markPrice" => "2925.72",
+        //                "bid" => "2923.8",
+        //                "bidSize" => "16804",
+        //                "ask" => "2928.65",
+        //                "askSize" => "1339",
+        //                "vol24h" => "860493",
+        //                "openInterest" => "3023363.00000000",
+        //                "open24h" => "3021.25",
+        //                "indexPrice" => "2893.71",
+        //                "last" => "2942.25",
+        //                "lastTime" => "2022-02-18T14:08:15.578Z",
+        //                "lastSize" => "151",
+        //                "suspended" => false
         //            ),
         //            array(
-        //                symbol => 'in_xbtusd', // 'rr_xbtusd',
-        //                last => '40411',
-        //                lastTime => '2022-02-18T14:16:28.000Z'
+        //                "symbol" => "in_xbtusd", // "rr_xbtusd",
+        //                "last" => "40411",
+        //                "lastTime" => "2022-02-18T14:16:28.000Z"
         //            ),
         //            ...
         //        ),
-        //        serverTime => '2022-02-18T14:16:29.440Z'
+        //        "serverTime" => "2022-02-18T14:16:29.440Z"
         //    }
         //
         $tickers = $this->safe_value($response, 'tickers');
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //    {
-        //        tag => 'semiannual',  // 'month', 'quarter', 'perpetual', 'semiannual',
-        //        pair => 'ETH:USD',
-        //        $symbol => 'fi_ethusd_220624',
-        //        markPrice => '2925.72',
-        //        bid => '2923.8',
-        //        bidSize => '16804',
-        //        ask => '2928.65',
-        //        askSize => '1339',
-        //        vol24h => '860493',
-        //        openInterest => '3023363.00000000',
-        //        open24h => '3021.25',
-        //        indexPrice => '2893.71',
-        //        $last => '2942.25',
-        //        lastTime => '2022-02-18T14:08:15.578Z',
-        //        lastSize => '151',
-        //        suspended => false
+        //        "tag" => 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
+        //        "pair" => "ETH:USD",
+        //        "symbol" => "fi_ethusd_220624",
+        //        "markPrice" => "2925.72",
+        //        "bid" => "2923.8",
+        //        "bidSize" => "16804",
+        //        "ask" => "2928.65",
+        //        "askSize" => "1339",
+        //        "vol24h" => "860493",
+        //        "openInterest" => "3023363.00000000",
+        //        "open24h" => "3021.25",
+        //        "indexPrice" => "2893.71",
+        //        "last" => "2942.25",
+        //        "lastTime" => "2022-02-18T14:08:15.578Z",
+        //        "lastSize" => "151",
+        //        "suspended" => false
         //    }
         //
         //    {
-        //        $symbol => 'in_xbtusd', // 'rr_xbtusd',
-        //        $last => '40411',
-        //        lastTime => '2022-02-18T14:16:28.000Z'
+        //        "symbol" => "in_xbtusd", // "rr_xbtusd",
+        //        "last" => "40411",
+        //        "lastTime" => "2022-02-18T14:16:28.000Z"
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -628,7 +625,7 @@ class krakenfutures extends Exchange {
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "time" => 1645198500000,
@@ -698,7 +695,7 @@ class krakenfutures extends Exchange {
         return $this->parse_trades($history, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1018,12 +1015,12 @@ class krakenfutures extends Exchange {
         /**
          * cancel multiple $orders
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
-         * @param {[string]} $ids order $ids
+         * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {[string]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
+         * @param {string[]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
@@ -1044,29 +1041,29 @@ class krakenfutures extends Exchange {
         );
         $response = $this->privatePostBatchorder (array_merge($request, $params));
         // {
-        //     result => 'success',
-        //     serverTime => '2023-10-23T16:36:51.327Z',
-        //     $batchStatus => array(
+        //     "result" => "success",
+        //     "serverTime" => "2023-10-23T16:36:51.327Z",
+        //     "batchStatus" => array(
         //       {
-        //         status => 'cancelled',
-        //         order_id => '101c2327-f12e-45f2-8445-7502b87afc0b',
-        //         orderEvents => array(
+        //         "status" => "cancelled",
+        //         "order_id" => "101c2327-f12e-45f2-8445-7502b87afc0b",
+        //         "orderEvents" => array(
         //           {
-        //             uid => '101c2327-f12e-45f2-8445-7502b87afc0b',
-        //             order => array(
-        //               orderId => '101c2327-f12e-45f2-8445-7502b87afc0b',
-        //               cliOrdId => null,
-        //               type => 'lmt',
-        //               $symbol => 'PF_LTCUSD',
-        //               side => 'buy',
-        //               quantity => '0.10000000000',
-        //               filled => '0E-11',
-        //               limitPrice => '50.00000000000',
-        //               reduceOnly => false,
-        //               timestamp => '2023-10-20T10:29:13.005Z',
-        //               lastUpdateTimestamp => '2023-10-20T10:29:13.005Z'
+        //             "uid" => "101c2327-f12e-45f2-8445-7502b87afc0b",
+        //             "order" => array(
+        //               "orderId" => "101c2327-f12e-45f2-8445-7502b87afc0b",
+        //               "cliOrdId" => null,
+        //               "type" => "lmt",
+        //               "symbol" => "PF_LTCUSD",
+        //               "side" => "buy",
+        //               "quantity" => "0.10000000000",
+        //               "filled" => "0E-11",
+        //               "limitPrice" => "50.00000000000",
+        //               "reduceOnly" => false,
+        //               "timestamp" => "2023-10-20T10:29:13.005Z",
+        //               "lastUpdateTimestamp" => "2023-10-20T10:29:13.005Z"
         //             ),
-        //             type => 'CANCEL'
+        //             "type" => "CANCEL"
         //           }
         //         )
         //       }
@@ -1182,7 +1179,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // LIMIT
         //
@@ -1558,89 +1555,89 @@ class krakenfutures extends Exchange {
         $response = $this->privateGetAccounts ($params);
         //
         //    {
-        //        result => 'success',
-        //        $accounts => {
-        //            fi_xbtusd => array(
-        //                auxiliary => array( usd => '0', pv => '0.0', pnl => '0.0', af => '0.0', funding => '0.0' ),
-        //                marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //                triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //                balances => array( xbt => '0.0' ),
-        //                currency => 'xbt',
-        //                $type => 'marginAccount'
+        //        "result" => "success",
+        //        "accounts" => {
+        //            "fi_xbtusd" => array(
+        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
+        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //                "balances" => array( xbt => "0.0" ),
+        //                "currency" => "xbt",
+        //                "type" => "marginAccount"
         //            ),
-        //            cash => array(
-        //                balances => array(
-        //                    eur => '0.0',
-        //                    gbp => '0.0',
-        //                    bch => '0.0',
-        //                    xrp => '2.20188538338',
-        //                    usd => '0.0',
-        //                    eth => '0.0',
-        //                    usdt => '0.0',
-        //                    ltc => '0.0',
-        //                    usdc => '0.0',
-        //                    xbt => '0.0'
+        //            "cash" => array(
+        //                "balances" => array(
+        //                    "eur" => "0.0",
+        //                    "gbp" => "0.0",
+        //                    "bch" => "0.0",
+        //                    "xrp" => "2.20188538338",
+        //                    "usd" => "0.0",
+        //                    "eth" => "0.0",
+        //                    "usdt" => "0.0",
+        //                    "ltc" => "0.0",
+        //                    "usdc" => "0.0",
+        //                    "xbt" => "0.0"
         //                ),
-        //                $type => 'cashAccount'
+        //                "type" => "cashAccount"
         //            ),
-        //            fv_xrpxbt => array(
-        //                auxiliary => array( usd => '0', pv => '0.0', pnl => '0.0', af => '0.0', funding => '0.0' ),
-        //                marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //                triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //                balances => array( xbt => '0.0' ),
-        //                currency => 'xbt',
-        //                $type => 'marginAccount'
+        //            "fv_xrpxbt" => array(
+        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
+        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //                "balances" => array( xbt => "0.0" ),
+        //                "currency" => "xbt",
+        //                "type" => "marginAccount"
         //            ),
-        //            fi_xrpusd => array(
-        //                auxiliary => array( usd => '0', pv => '11.0', pnl => '0.0', af => '11.0', funding => '0.0' ),
-        //                marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //                triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //                balances => array( xrp => '11.0' ),
-        //                currency => 'xrp',
-        //                $type => 'marginAccount'
+        //            "fi_xrpusd" => array(
+        //                "auxiliary" => array( usd => "0", pv => '11.0', pnl => '0.0', af => '11.0', funding => "0.0" ),
+        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //                "balances" => array( xrp => "11.0" ),
+        //                "currency" => "xrp",
+        //                "type" => "marginAccount"
         //            ),
-        //            fi_ethusd => array(
-        //                auxiliary => array( usd => '0', pv => '0.0', pnl => '0.0', af => '0.0', funding => '0.0' ),
-        //                marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //                triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //                balances => array( eth => '0.0' ),
-        //                currency => 'eth',
-        //                $type => 'marginAccount'
+        //            "fi_ethusd" => array(
+        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
+        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //                "balances" => array( eth => "0.0" ),
+        //                "currency" => "eth",
+        //                "type" => "marginAccount"
         //            ),
-        //            fi_ltcusd => array(
-        //                auxiliary => array( usd => '0', pv => '0.0', pnl => '0.0', af => '0.0', funding => '0.0' ),
-        //                marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //                triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //                balances => array( ltc => '0.0' ),
-        //                currency => 'ltc',
-        //                $type => 'marginAccount'
+        //            "fi_ltcusd" => array(
+        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
+        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //                "balances" => array( ltc => "0.0" ),
+        //                "currency" => "ltc",
+        //                "type" => "marginAccount"
         //            ),
-        //            fi_bchusd => array(
-        //                auxiliary => array( usd => '0', pv => '0.0', pnl => '0.0', af => '0.0', funding => '0.0' ),
-        //                marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //                triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //                balances => array( bch => '0.0' ),
-        //                currency => 'bch',
-        //                $type => 'marginAccount'
+        //            "fi_bchusd" => array(
+        //                "auxiliary" => array( usd => "0", pv => '0.0', pnl => '0.0', af => '0.0', funding => "0.0" ),
+        //                "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //                "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //                "balances" => array( bch => "0.0" ),
+        //                "currency" => "bch",
+        //                "type" => "marginAccount"
         //            ),
-        //            flex => array(
-        //                currencies => array(),
-        //                initialMargin => '0.0',
-        //                initialMarginWithOrders => '0.0',
-        //                maintenanceMargin => '0.0',
-        //                balanceValue => '0.0',
-        //                portfolioValue => '0.0',
-        //                collateralValue => '0.0',
-        //                pnl => '0.0',
-        //                unrealizedFunding => '0.0',
-        //                totalUnrealized => '0.0',
-        //                totalUnrealizedAsMargin => '0.0',
-        //                availableMargin => '0.0',
-        //                marginEquity => '0.0',
-        //                $type => 'multiCollateralMarginAccount'
+        //            "flex" => array(
+        //                "currencies" => array(),
+        //                "initialMargin" => "0.0",
+        //                "initialMarginWithOrders" => "0.0",
+        //                "maintenanceMargin" => "0.0",
+        //                "balanceValue" => "0.0",
+        //                "portfolioValue" => "0.0",
+        //                "collateralValue" => "0.0",
+        //                "pnl" => "0.0",
+        //                "unrealizedFunding" => "0.0",
+        //                "totalUnrealized" => "0.0",
+        //                "totalUnrealizedAsMargin" => "0.0",
+        //                "availableMargin" => "0.0",
+        //                "marginEquity" => "0.0",
+        //                "type" => "multiCollateralMarginAccount"
         //            }
         //        ),
-        //        serverTime => '2022-04-12T07:48:07.475Z'
+        //        "serverTime" => "2022-04-12T07:48:07.475Z"
         //    }
         //
         $datetime = $this->safe_string($response, 'serverTime');
@@ -1668,67 +1665,67 @@ class krakenfutures extends Exchange {
         return $balance;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         // cashAccount
         //
         //    {
-        //        $balances => array(
-        //            eur => '0.0',
-        //            gbp => '0.0',
-        //            bch => '0.0',
-        //            xrp => '2.20188538338',
-        //            usd => '0.0',
-        //            eth => '0.0',
-        //            usdt => '0.0',
-        //            ltc => '0.0',
-        //            usdc => '0.0',
-        //            xbt => '0.0'
+        //        "balances" => array(
+        //            "eur" => "0.0",
+        //            "gbp" => "0.0",
+        //            "bch" => "0.0",
+        //            "xrp" => "2.20188538338",
+        //            "usd" => "0.0",
+        //            "eth" => "0.0",
+        //            "usdt" => "0.0",
+        //            "ltc" => "0.0",
+        //            "usdc" => "0.0",
+        //            "xbt" => "0.0"
         //        ),
-        //        type => 'cashAccount'
+        //        "type" => "cashAccount"
         //    }
         //
         // marginAccount e,g, fi_xrpusd
         //
         //    {
-        //        $auxiliary => array(
-        //            usd => '0',
-        //            pv => '11.0',
-        //            pnl => '0.0',
-        //            af => '11.0',
-        //            funding => '0.0'
+        //        "auxiliary" => array(
+        //            "usd" => "0",
+        //            "pv" => "11.0",
+        //            "pnl" => "0.0",
+        //            "af" => "11.0",
+        //            "funding" => "0.0"
         //        ),
-        //        marginRequirements => array( im => '0.0', mm => '0.0', lt => '0.0', tt => '0.0' ),
-        //        triggerEstimates => array( im => '0', mm => '0', lt => '0', tt => '0' ),
-        //        $balances => array( xrp => '11.0' ),
-        //        currency => 'xrp',
-        //        type => 'marginAccount'
+        //        "marginRequirements" => array( im => '0.0', mm => '0.0', lt => '0.0', tt => "0.0" ),
+        //        "triggerEstimates" => array( im => '0', mm => '0', lt => "0", tt => "0" ),
+        //        "balances" => array( xrp => "11.0" ),
+        //        "currency" => "xrp",
+        //        "type" => "marginAccount"
         //    }
         //
         // flex/multiCollateralMarginAccount
         //
         //    {
-        //       currencies => {
-        //            USDT => array(
-        //                quantity => '1',
-        //                value => '1.0001',
-        //                collateral => '0.9477197625',
-        //                available => '1.0'
+        //       "currencies" => {
+        //            "USDT" => array(
+        //                "quantity" => "1",
+        //                "value" => "1.0001",
+        //                "collateral" => "0.9477197625",
+        //                "available" => "1.0"
         //             }
         //       ),
-        //       initialMargin => '0.0',
-        //       initialMarginWithOrders => '0.0',
-        //       maintenanceMargin => '0.0',
-        //       balanceValue => '1.0',
-        //       portfolioValue => '1.0',
-        //       collateralValue => '0.95',
-        //       pnl => '0.0',
-        //       unrealizedFunding => '0.0',
-        //       totalUnrealized => '0.0',
-        //       totalUnrealizedAsMargin => '0.0',
-        //       availableMargin => '0.95',
-        //       marginEquity => '0.95',
-        //       type => 'multiCollateralMarginAccount'
+        //       "initialMargin" => "0.0",
+        //       "initialMarginWithOrders" => "0.0",
+        //       "maintenanceMargin" => "0.0",
+        //       "balanceValue" => "1.0",
+        //       "portfolioValue" => "1.0",
+        //       "collateralValue" => "0.95",
+        //       "pnl" => "0.0",
+        //       "unrealizedFunding" => "0.0",
+        //       "totalUnrealized" => "0.0",
+        //       "totalUnrealizedAsMargin" => "0.0",
+        //       "availableMargin" => "0.95",
+        //       "marginEquity" => "0.95",
+        //       "type" => "multiCollateralMarginAccount"
         //    }
         //
         $accountType = $this->safe_string_2($response, 'accountType', 'type');
@@ -1793,26 +1790,26 @@ class krakenfutures extends Exchange {
 
     public function parse_funding_rate($ticker, $market = null) {
         //
-        // {'ask' => 26.283,
-        //  'askSize' => 4.6,
-        //  'bid' => 26.201,
-        //  'bidSize' => 190,
-        //  'fundingRate' => -0.000944642727438883,
-        //  'fundingRatePrediction' => -0.000872671532340275,
-        //  'indexPrice' => 26.253,
-        //  'last' => 26.3,
-        //  'lastSize' => 0.1,
-        //  'lastTime' => '2023-06-11T18:55:28.958Z',
-        //  'markPrice' => 26.239,
-        //  'open24h' => 26.3,
-        //  'openInterest' => 641.1,
-        //  'pair' => 'COMP:USD',
-        //  'postOnly' => False,
-        //  'suspended' => False,
-        //  'symbol' => 'pf_compusd',
-        //  'tag' => 'perpetual',
-        //  'vol24h' => 0.1,
-        //  'volumeQuote' => 2.63}
+        // {"ask" => 26.283,
+        //  "askSize" => 4.6,
+        //  "bid" => 26.201,
+        //  "bidSize" => 190,
+        //  "fundingRate" => -0.000944642727438883,
+        //  "fundingRatePrediction" => -0.000872671532340275,
+        //  "indexPrice" => 26.253,
+        //  "last" => 26.3,
+        //  "lastSize" => 0.1,
+        //  "lastTime" => "2023-06-11T18:55:28.958Z",
+        //  "markPrice" => 26.239,
+        //  "open24h" => 26.3,
+        //  "openInterest" => 641.1,
+        //  "pair" => "COMP:USD",
+        //  "postOnly" => False,
+        //  "suspended" => False,
+        //  "symbol" => "pf_compusd",
+        //  "tag" => "perpetual",
+        //  "vol24h" => 0.1,
+        //  "volumeQuote" => 2.63}
         //
         $fundingRateMultiplier = '8';  // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -1870,11 +1867,11 @@ class krakenfutures extends Exchange {
         $response = $this->publicGetHistoricalfundingrates (array_merge($request, $params));
         //
         //    {
-        //        $rates => array(
+        //        "rates" => array(
         //          array(
-        //            timestamp => '2018-08-31T16:00:00.000Z',
-        //            fundingRate => '2.18900669884E-7',
-        //            relativeFundingRate => '0.000060779960000000'
+        //            "timestamp" => '2018-08-31T16:00:00.000Z',
+        //            "fundingRate" => '2.18900669884E-7',
+        //            "relativeFundingRate" => '0.000060779960000000'
         //          ),
         //          ...
         //        )
@@ -1910,18 +1907,18 @@ class krakenfutures extends Exchange {
         $response = $this->privateGetOpenpositions ($request);
         //
         //    {
-        //        $result => 'success',
-        //        openPositions => array(
+        //        "result" => "success",
+        //        "openPositions" => array(
         //            {
-        //                side => 'long',
-        //                symbol => 'pi_xrpusd',
-        //                price => '0.7533',
-        //                fillTime => '2022-03-03T22:51:16.566Z',
-        //                size => '230',
-        //                unrealizedFunding => '-0.001878596918214635'
+        //                "side" => "long",
+        //                "symbol" => "pi_xrpusd",
+        //                "price" => "0.7533",
+        //                "fillTime" => "2022-03-03T22:51:16.566Z",
+        //                "size" => "230",
+        //                "unrealizedFunding" => "-0.001878596918214635"
         //            }
         //        ),
-        //        serverTime => '2022-03-03T22:51:16.566Z'
+        //        "serverTime" => "2022-03-03T22:51:16.566Z"
         //    }
         //
         $result = $this->parse_positions($response);
@@ -1941,12 +1938,12 @@ class krakenfutures extends Exchange {
     public function parse_position($position, $market = null) {
         // cross
         //    {
-        //        side => 'long',
-        //        symbol => 'pi_xrpusd',
-        //        price => '0.7533',
-        //        fillTime => '2022-03-03T22:51:16.566Z',
-        //        size => '230',
-        //        unrealizedFunding => '-0.001878596918214635'
+        //        "side" => "long",
+        //        "symbol" => "pi_xrpusd",
+        //        "price" => "0.7533",
+        //        "fillTime" => "2022-03-03T22:51:16.566Z",
+        //        "size" => "230",
+        //        "unrealizedFunding" => "-0.001878596918214635"
         //    }
         //
         // isolated
@@ -2122,8 +2119,8 @@ class krakenfutures extends Exchange {
         // $transfer
         //
         //    {
-        //        result => 'success',
-        //        serverTime => '2022-04-12T01:22:53.420Z'
+        //        "result" => "success",
+        //        "serverTime" => "2022-04-12T01:22:53.420Z"
         //    }
         //
         $datetime = $this->safe_string($transfer, 'serverTime');
@@ -2213,8 +2210,8 @@ class krakenfutures extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         //    {
-        //        result => 'success',
-        //        serverTime => '2022-04-12T01:22:53.420Z'
+        //        "result" => "success",
+        //        "serverTime" => "2022-04-12T01:22:53.420Z"
         //    }
         //
         $transfer = $this->parse_transfer($response, $currency);
@@ -2241,7 +2238,7 @@ class krakenfutures extends Exchange {
             'symbol' => strtoupper($this->market_id($symbol)),
         );
         //
-        // array( result => 'success', serverTime => '2023-08-01T09:40:32.345Z' )
+        // array( result => "success", serverTime => "2023-08-01T09:40:32.345Z" )
         //
         return $this->privatePutLeveragepreferences (array_merge($request, $params));
     }
@@ -2261,9 +2258,9 @@ class krakenfutures extends Exchange {
         );
         //
         //   {
-        //       result => 'success',
-        //       serverTime => '2023-08-01T09:54:08.900Z',
-        //       leveragePreferences => array( array( $symbol => 'PF_LTCUSD', maxLeverage => '5.00' ) )
+        //       "result" => "success",
+        //       "serverTime" => "2023-08-01T09:54:08.900Z",
+        //       "leveragePreferences" => array( array( $symbol => "PF_LTCUSD", maxLeverage => "5.00" ) )
         //   }
         //
         return $this->privateGetLeveragepreferences (array_merge($request, $params));

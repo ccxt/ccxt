@@ -238,7 +238,7 @@ class coinone extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->omit($response, array(
             'errorCode',
@@ -341,7 +341,7 @@ class coinone extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "currency":"xec",
@@ -386,7 +386,7 @@ class coinone extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -588,7 +588,7 @@ class coinone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -842,15 +842,15 @@ class coinone extends Exchange {
             $response = Async\await($this->privatePostAccountDepositAddress ($params));
             //
             //     {
-            //         $result => 'success',
-            //         errorCode => '0',
-            //         $walletAddress => {
-            //             matic => null,
-            //             btc => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-            //             xrp => null,
-            //             xrp_tag => '-1',
-            //             kava => null,
-            //             kava_memo => null,
+            //         "result" => "success",
+            //         "errorCode" => "0",
+            //         "walletAddress" => {
+            //             "matic" => null,
+            //             "btc" => "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+            //             "xrp" => null,
+            //             "xrp_tag" => "-1",
+            //             "kava" => null,
+            //             "kava_memo" => null,
             //         }
             //     }
             //

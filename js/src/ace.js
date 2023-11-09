@@ -995,9 +995,9 @@ export default class ace extends Exchange {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance(balances);

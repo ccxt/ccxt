@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -117,7 +116,7 @@ class zonda(Exchange, ImplicitAPI):
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zonda.exchange',
+            'hostname': 'zondacrypto.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -190,6 +189,8 @@ class zonda(Exchange, ImplicitAPI):
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ],
                     'delete': [
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -298,6 +299,10 @@ class zonda(Exchange, ImplicitAPI):
                 'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
                 'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
                 'INVALID_STOP_RATE': InvalidOrder,
+                'TIMEOUT': ExchangeError,
+                'RESPONSE_TIMEOUT': ExchangeError,
+                'ACTION_BLOCKED': PermissionDenied,
+                'INVALID_HASH_SIGNATURE': AuthenticationError,
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -315,19 +320,19 @@ class zonda(Exchange, ImplicitAPI):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
         #     {
-        #         status: 'Ok',
-        #         items: {
-        #             'BSV-USD': {
-        #                 market: {
-        #                     code: 'BSV-USD',
-        #                     first: {currency: 'BSV', minOffer: '0.00035', scale: 8},
-        #                     second: {currency: 'USD', minOffer: '5', scale: 2}
+        #         "status": "Ok",
+        #         "items": {
+        #             "BSV-USD": {
+        #                 "market": {
+        #                     "code": "BSV-USD",
+        #                     "first": {currency: "BSV", minOffer: "0.00035", scale: 8},
+        #                     "second": {currency: "USD", minOffer: "5", scale: 2}
         #                 },
-        #                 time: '1557569762154',
-        #                 highestBid: '52.31',
-        #                 lowestAsk: '62.99',
-        #                 rate: '63',
-        #                 previousRate: '51.21',
+        #                 "time": "1557569762154",
+        #                 "highestBid": "52.31",
+        #                 "lowestAsk": "62.99",
+        #                 "rate": "63",
+        #                 "previousRate": "51.21",
         #             },
         #         },
         #     }
@@ -419,23 +424,23 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_orders(items, None, since, limit, {'status': 'open'})
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
-        #         market: 'ETH-EUR',
-        #         offerType: 'Sell',
-        #         id: '93d3657b-d616-11e9-9248-0242ac110005',
-        #         currentAmount: '0.04',
-        #         lockedAmount: '0.04',
-        #         rate: '280',
-        #         startAmount: '0.04',
-        #         time: '1568372806924',
-        #         postOnly: False,
-        #         hidden: False,
-        #         mode: 'limit',
-        #         receivedAmount: '0.0',
-        #         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        #         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        #         "market": "ETH-EUR",
+        #         "offerType": "Sell",
+        #         "id": "93d3657b-d616-11e9-9248-0242ac110005",
+        #         "currentAmount": "0.04",
+        #         "lockedAmount": "0.04",
+        #         "rate": "280",
+        #         "startAmount": "0.04",
+        #         "time": "1568372806924",
+        #         "postOnly": False,
+        #         "hidden": False,
+        #         "mode": "limit",
+        #         "receivedAmount": "0.0",
+        #         "firstBalanceId": "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
+        #         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         #     }
         #
         marketId = self.safe_string(order, 'market')
@@ -489,20 +494,20 @@ class zonda(Exchange, ImplicitAPI):
         response = self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
-        #         status: 'Ok',
-        #         totalRows: '67',
-        #         items: [
+        #         "status": "Ok",
+        #         "totalRows": "67",
+        #         "items": [
         #             {
-        #                 id: 'b54659a0-51b5-42a0-80eb-2ac5357ccee2',
-        #                 market: 'BTC-EUR',
-        #                 time: '1541697096247',
-        #                 amount: '0.00003',
-        #                 rate: '4341.44',
-        #                 initializedBy: 'Sell',
-        #                 wasTaker: False,
-        #                 userAction: 'Buy',
-        #                 offerId: 'bd19804a-6f89-4a69-adb8-eb078900d006',
-        #                 commissionValue: null
+        #                 "id": "b54659a0-51b5-42a0-80eb-2ac5357ccee2",
+        #                 "market": "BTC-EUR",
+        #                 "time": "1541697096247",
+        #                 "amount": "0.00003",
+        #                 "rate": "4341.44",
+        #                 "initializedBy": "Sell",
+        #                 "wasTaker": False,
+        #                 "userAction": "Buy",
+        #                 "offerId": "bd19804a-6f89-4a69-adb8-eb078900d006",
+        #                 "commissionValue": null
         #             },
         #         ]
         #     }
@@ -513,7 +518,7 @@ class zonda(Exchange, ImplicitAPI):
             return result
         return self.filter_by_symbol(result, symbol)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
@@ -583,42 +588,42 @@ class zonda(Exchange, ImplicitAPI):
             'nonce': self.safe_integer(response, 'seqNo'),
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # version 1
         #
         #    {
-        #        m: 'ETH-PLN',
-        #        h: '13485.13',
-        #        l: '13100.01',
-        #        v: '126.10710939',
-        #        r24h: '13332.72'
+        #        "m": "ETH-PLN",
+        #        "h": "13485.13",
+        #        "l": "13100.01",
+        #        "v": "126.10710939",
+        #        "r24h": "13332.72"
         #    }
         #
         # version 2
         #
         #    {
-        #        market: {
-        #            code: 'ADA-USDT',
-        #            first: {
-        #                currency: 'ADA',
-        #                minOffer: '0.2',
-        #                scale: '6'
+        #        "market": {
+        #            "code": "ADA-USDT",
+        #            "first": {
+        #                "currency": "ADA",
+        #                "minOffer": "0.2",
+        #                "scale": "6"
         #            },
-        #            second: {
-        #                currency: 'USDT',
-        #                minOffer: '0.099',
-        #                scale: '6'
+        #            "second": {
+        #                "currency": "USDT",
+        #                "minOffer": "0.099",
+        #                "scale": "6"
         #            },
-        #            amountPrecision: '6',
-        #            pricePrecision: '6',
-        #            ratePrecision: '6'
+        #            "amountPrecision": "6",
+        #            "pricePrecision": "6",
+        #            "ratePrecision": "6"
         #        },
-        #        time: '1655812661202',
-        #        highestBid: '0.492',
-        #        lowestAsk: '0.499389',
-        #        rate: '0.50588',
-        #        previousRate: '0.504981'
+        #        "time": "1655812661202",
+        #        "highestBid": "0.492",
+        #        "lowestAsk": "0.499389",
+        #        "rate": "0.50588",
+        #        "previousRate": "0.504981"
         #    }
         #
         tickerMarket = self.safe_value(ticker, 'market')
@@ -768,14 +773,14 @@ class zonda(Exchange, ImplicitAPI):
             response = self.v1_01PublicGetTradingStats(params)
             #
             #     {
-            #         status: 'Ok',
-            #         items: {
-            #             'DAI-PLN': {
-            #                 m: 'DAI-PLN',
-            #                 h: '4.41',
-            #                 l: '4.37',
-            #                 v: '8.71068087',
-            #                 r24h: '4.36'
+            #         "status": "Ok",
+            #         "items": {
+            #             "DAI-PLN": {
+            #                 "m": "DAI-PLN",
+            #                 "h": "4.41",
+            #                 "l": "4.37",
+            #                 "v": "8.71068087",
+            #                 "r24h": "4.36"
             #             },
             #             ...
             #         }
@@ -1130,17 +1135,17 @@ class zonda(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
-        #         '1582399800000',
+        #         "1582399800000",
         #         {
-        #             o: '0.0001428',
-        #             c: '0.0001428',
-        #             h: '0.0001428',
-        #             l: '0.0001428',
-        #             v: '4',
-        #             co: '1'
+        #             "o": "0.0001428",
+        #             "c": "0.0001428",
+        #             "h": "0.0001428",
+        #             "l": "0.0001428",
+        #             "v": "4",
+        #             "co": "1"
         #         }
         #     ]
         #
@@ -1198,7 +1203,7 @@ class zonda(Exchange, ImplicitAPI):
         items = self.safe_value(response, 'items', [])
         return self.parse_ohlcvs(items, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # createOrder trades
         #
@@ -1210,26 +1215,26 @@ class zonda(Exchange, ImplicitAPI):
         # fetchMyTrades(private)
         #
         #     {
-        #         amount: "0.29285199",
-        #         commissionValue: "0.00125927",
-        #         id: "11c8203a-a267-11e9-b698-0242ac110007",
-        #         initializedBy: "Buy",
-        #         market: "ETH-EUR",
-        #         offerId: "11c82038-a267-11e9-b698-0242ac110007",
-        #         rate: "277",
-        #         time: "1562689917517",
-        #         userAction: "Buy",
-        #         wasTaker: True,
+        #         "amount": "0.29285199",
+        #         "commissionValue": "0.00125927",
+        #         "id": "11c8203a-a267-11e9-b698-0242ac110007",
+        #         "initializedBy": "Buy",
+        #         "market": "ETH-EUR",
+        #         "offerId": "11c82038-a267-11e9-b698-0242ac110007",
+        #         "rate": "277",
+        #         "time": "1562689917517",
+        #         "userAction": "Buy",
+        #         "wasTaker": True,
         #     }
         #
         # fetchTrades(public)
         #
         #     {
-        #          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        #          t: '1570108958831',
-        #          a: '0.04776653',
-        #          r: '0.02145854',
-        #          ty: 'Sell'
+        #          "id": "df00b0da-e5e0-11e9-8c19-0242ac11000a",
+        #          "t": "1570108958831",
+        #          "a": "0.04776653",
+        #          "r": "0.02145854",
+        #          "ty": "Sell"
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'time', 't')
@@ -1343,10 +1348,10 @@ class zonda(Exchange, ImplicitAPI):
         # unfilled(open order)
         #
         #     {
-        #         status: 'Ok',
-        #         completed: False,  # can deduce status from here
-        #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        #         transactions: [],  # can deduce order info from here
+        #         "status": "Ok",
+        #         "completed": False,  # can deduce status from here
+        #         "offerId": "ce9cc72e-d61c-11e9-9248-0242ac110005",
+        #         "transactions": [],  # can deduce order info from here
         #     }
         #
         # filled(closed order)
@@ -1442,8 +1447,8 @@ class zonda(Exchange, ImplicitAPI):
             'side': side,
             'price': price,
         }
-        # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
-        # {status: 'Ok', errors: []}
+        # {status: "Fail", errors: ["NOT_RECOGNIZED_OFFER_TYPE"]}  -- if required params are missing
+        # {status: "Ok", errors: []}
         return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
@@ -1660,18 +1665,17 @@ class zonda(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
-            'quantity': amount,
+            'amount': amount,
+            'address': address,
+            # request['balanceId'] = params['balanceId']  # Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
         }
         if self.is_fiat(code):
-            # request['account'] = params['account']  # they demand an account number
-            # request['express'] = params['express']  # whatever it means, they don't explain
-            # request['bic'] = ''
-            response = self.privatePostWithdraw(self.extend(request, params))
+            # request['swift'] = params['swift']  # Bank identifier, if required.
+            response = self.v1_01PrivatePostApiPaymentsWithdrawalsFiat(self.extend(request, params))
         else:
             if tag is not None:
-                address += '?dt=' + str(tag)
-            request['address'] = address
-            response = self.privatePostTransfer(self.extend(request, params))
+                request['tag'] = tag
+            response = self.v1_01PrivatePostApiPaymentsWithdrawalsCrypto(self.extend(request, params))
         #
         #     {
         #         "status": "Ok",
@@ -1683,7 +1687,7 @@ class zonda(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
@@ -1764,12 +1768,12 @@ class zonda(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         if 'code' in response:
             #
-            # bitbay returns the integer 'success': 1 key from their private API
-            # or an integer 'code' value from 0 to 510 and an error message
+            # bitbay returns the integer "success": 1 key from their private API
+            # or an integer "code" value from 0 to 510 and an error message
             #
-            #      {'success': 1, ...}
-            #      {'code': 502, 'message': 'Invalid sign'}
-            #      {'code': 0, 'message': 'offer funds not exceeding minimums'}
+            #      {"success": 1, ...}
+            #      {'code': 502, "message": "Invalid sign"}
+            #      {'code': 0, "message": "offer funds not exceeding minimums"}
             #
             #      400 At least one parameter wasn't set
             #      401 Invalid order type

@@ -146,40 +146,7 @@ class bybit extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        // inverse swap
-                        'v2/public/orderBook/L2' => 1,
-                        'v2/public/kline/list' => 3,
-                        'v2/public/tickers' => 1,
-                        'v2/public/trading-records' => 1,
-                        'v2/public/symbols' => 1,
-                        'v2/public/mark-price-kline' => 3,
-                        'v2/public/index-price-kline' => 3,
-                        'v2/public/premium-index-kline' => 2,
-                        'v2/public/open-interest' => 1,
-                        'v2/public/big-deal' => 1,
-                        'v2/public/account-ratio' => 1,
-                        'v2/public/funding-rate' => 1,
-                        'v2/public/elite-ratio' => 1,
-                        'v2/public/funding/prev-funding-rate' => 1,
-                        'v2/public/risk-limit/list' => 1,
-                        // linear swap USDT
-                        'public/linear/kline' => 3,
-                        'public/linear/recent-trading-records' => 1,
-                        'public/linear/risk-limit' => 1,
-                        'public/linear/funding/prev-funding-rate' => 1,
-                        'public/linear/mark-price-kline' => 1,
-                        'public/linear/index-price-kline' => 1,
-                        'public/linear/premium-index-kline' => 1,
                         // spot
-                        'spot/v1/time' => 1,
-                        'spot/v1/symbols' => 1,
-                        'spot/quote/v1/depth' => 1,
-                        'spot/quote/v1/depth/merged' => 1,
-                        'spot/quote/v1/trades' => 1,
-                        'spot/quote/v1/kline' => 1,
-                        'spot/quote/v1/ticker/24hr' => 1,
-                        'spot/quote/v1/ticker/price' => 1,
-                        'spot/quote/v1/ticker/book_ticker' => 1,
                         'spot/v3/public/symbols' => 1,
                         'spot/v3/public/quote/depth' => 1,
                         'spot/v3/public/quote/depth/merged' => 1,
@@ -193,33 +160,7 @@ class bybit extends Exchange {
                         'spot/v3/public/margin-product-infos' => 1,
                         'spot/v3/public/margin-ensure-tokens' => 1,
                         // data
-                        'v2/public/time' => 1,
                         'v3/public/time' => 1,
-                        'v2/public/announcement' => 1,
-                        // USDC endpoints
-                        // option USDC
-                        'option/usdc/openapi/public/v1/order-book' => 1,
-                        'option/usdc/openapi/public/v1/symbols' => 1,
-                        'option/usdc/openapi/public/v1/tick' => 1,
-                        'option/usdc/openapi/public/v1/delivery-price' => 1,
-                        'option/usdc/openapi/public/v1/query-trade-latest' => 1,
-                        'option/usdc/openapi/public/v1/query-historical-volatility' => 1,
-                        'option/usdc/openapi/public/v1/all-tickers' => 1,
-                        // perpetual swap USDC
-                        'perpetual/usdc/openapi/public/v1/order-book' => 1,
-                        'perpetual/usdc/openapi/public/v1/symbols' => 1,
-                        'perpetual/usdc/openapi/public/v1/tick' => 1,
-                        'perpetual/usdc/openapi/public/v1/kline/list' => 1,
-                        'perpetual/usdc/openapi/public/v1/mark-price-kline' => 1,
-                        'perpetual/usdc/openapi/public/v1/index-price-kline' => 1,
-                        'perpetual/usdc/openapi/public/v1/premium-index-kline' => 1,
-                        'perpetual/usdc/openapi/public/v1/open-interest' => 1,
-                        'perpetual/usdc/openapi/public/v1/big-deal' => 1,
-                        'perpetual/usdc/openapi/public/v1/account-ratio' => 1,
-                        'perpetual/usdc/openapi/public/v1/prev-funding-rate' => 1,
-                        'perpetual/usdc/openapi/public/v1/risk-limit/list' => 1,
-                        // account
-                        'asset/v1/public/deposit/allowed-deposit-list' => 1,
                         'contract/v3/public/copytrading/symbol/list' => 1,
                         // derivative
                         'derivatives/v3/public/order-book/L2' => 1,
@@ -235,87 +176,42 @@ class bybit extends Exchange {
                         'derivatives/v3/public/open-interest' => 1,
                         'derivatives/v3/public/insurance' => 1,
                         // v5
-                        'v5/announcements/index' => 2.5,
+                        'v5/announcements/index' => 5, // 10/s = 1000 / (20 * 5)
                         // market
-                        'v5/market/time' => 2.5,
-                        'v5/market/kline' => 2.5,
-                        'v5/market/mark-price-kline' => 2.5,
-                        'v5/market/index-price-kline' => 2.5,
-                        'v5/market/premium-index-price-kline' => 2.5,
-                        'v5/market/instruments-info' => 2.5,
-                        'v5/market/orderbook' => 2.5,
-                        'v5/market/tickers' => 2.5,
-                        'v5/market/funding/history' => 2.5,
-                        'v5/market/recent-trade' => 2.5,
-                        'v5/market/open-interest' => 2.5,
-                        'v5/market/historical-volatility' => 2.5,
-                        'v5/market/insurance' => 2.5,
-                        'v5/market/risk-limit' => 2.5,
-                        'v5/market/delivery-price' => 2.5,
-                        'v5/market/account-ratio' => 2.5,
+                        'v5/market/time' => 5,
+                        'v5/market/kline' => 5,
+                        'v5/market/mark-price-kline' => 5,
+                        'v5/market/index-price-kline' => 5,
+                        'v5/market/premium-index-price-kline' => 5,
+                        'v5/market/instruments-info' => 5,
+                        'v5/market/orderbook' => 5,
+                        'v5/market/tickers' => 5,
+                        'v5/market/funding/history' => 5,
+                        'v5/market/recent-trade' => 5,
+                        'v5/market/open-interest' => 5,
+                        'v5/market/historical-volatility' => 5,
+                        'v5/market/insurance' => 5,
+                        'v5/market/risk-limit' => 5,
+                        'v5/market/delivery-price' => 5,
+                        'v5/market/account-ratio' => 5,
                         // spot leverage token
-                        'v5/spot-lever-token/info' => 2.5,
-                        'v5/spot-lever-token/reference' => 2.5,
+                        'v5/spot-lever-token/info' => 5,
+                        'v5/spot-lever-token/reference' => 5,
                         // spot margin trade
-                        'v5/spot-margin-trade/data' => 2.5,
-                        'v5/spot-cross-margin-trade/data' => 2.5,
-                        'v5/spot-cross-margin-trade/pledge-token' => 2.5,
-                        'v5/spot-cross-margin-trade/borrow-token' => 2.5,
+                        'v5/spot-margin-trade/data' => 5,
+                        'v5/spot-cross-margin-trade/data' => 5,
+                        'v5/spot-cross-margin-trade/pledge-token' => 5,
+                        'v5/spot-cross-margin-trade/borrow-token' => 5,
                         // institutional lending
-                        'v5/ins-loan/product-infos' => 2.5,
-                        'v5/ins-loan/ensure-tokens-convert' => 2.5,
+                        'v5/ins-loan/product-infos' => 5,
+                        'v5/ins-loan/ensure-tokens-convert' => 5,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        // inverse swap
-                        'v2/private/order/list' => 5,
-                        'v2/private/order' => 5,
-                        'v2/private/stop-order/list' => 5,
-                        'v2/private/stop-order' => 1,
-                        'v2/private/position/list' => 25,
-                        'v2/private/position/fee-rate' => 40,
-                        'v2/private/execution/list' => 25,
-                        'v2/private/trade/closed-pnl/list' => 1,
-                        'v2/public/risk-limit/list' => 1, // TODO check
-                        'v2/public/funding/prev-funding-rate' => 25, // TODO check
-                        'v2/private/funding/prev-funding' => 25,
-                        'v2/private/funding/predicted-funding' => 25,
-                        'v2/private/account/api-key' => 5,
-                        'v2/private/account/lcp' => 1,
-                        'v2/private/wallet/balance' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
-                        'v2/private/wallet/fund/records' => 25,
-                        'v2/private/wallet/withdraw/list' => 25,
-                        'v2/private/exchange-order/list' => 1,
-                        // linear swap USDT
-                        'private/linear/order/list' => 5, // 600 per minute = 10 per second => cost = 50 / 10 =  5
-                        'private/linear/order/search' => 5,
-                        'private/linear/stop-order/list' => 5,
-                        'private/linear/stop-order/search' => 5,
-                        'private/linear/position/list' => 25,
-                        'private/linear/trade/execution/list' => 25,
-                        'private/linear/trade/closed-pnl/list' => 25,
-                        'public/linear/risk-limit' => 1,
-                        'private/linear/funding/predicted-funding' => 25,
-                        'private/linear/funding/prev-funding' => 25,
-                        // inverse futures
-                        'futures/private/order/list' => 5,
-                        'futures/private/order' => 5,
-                        'futures/private/stop-order/list' => 5,
-                        'futures/private/stop-order' => 5,
-                        'futures/private/position/list' => 25,
-                        'futures/private/execution/list' => 25,
-                        'futures/private/trade/closed-pnl/list' => 1,
+                        // Legacy inverse swap
+                        'v2/private/wallet/fund/records' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
-                        'spot/v1/account' => 2.5,
-                        'spot/v1/order' => 2.5,
-                        'spot/v1/open-orders' => 2.5,
-                        'spot/v1/history-orders' => 2.5,
-                        'spot/v1/myTrades' => 2.5,
-                        'spot/v1/cross-margin/order' => 10,
-                        'spot/v1/cross-margin/accounts/balance' => 10,
-                        'spot/v1/cross-margin/loan-info' => 10,
-                        'spot/v1/cross-margin/repay/history' => 10,
                         'spot/v3/private/order' => 2.5,
                         'spot/v3/private/open-orders' => 2.5,
                         'spot/v3/private/history-orders' => 2.5,
@@ -331,24 +227,15 @@ class bybit extends Exchange {
                         'spot/v3/private/margin-repaid-infos' => 10,
                         'spot/v3/private/margin-ltv' => 10,
                         // account
-                        'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
-                        'asset/v3/private/transfer/inter-transfer/list/query' => 0.84, // 60/s
-                        'asset/v1/private/sub-member/transfer/list' => 50,
-                        'asset/v3/private/transfer/sub-member/list/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/sub-member-transfer/list/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/universal-transfer/list/query' => 0.84, // 60/s
-                        'asset/v1/private/sub-member/member-ids' => 50,
-                        'asset/v1/private/deposit/record/query' => 50,
-                        'asset/v1/private/withdraw/record/query' => 25,
-                        'asset/v1/private/coin-info/query' => 25,
+                        'asset/v3/private/transfer/inter-transfer/list/query' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v3/private/transfer/sub-member/list/query' => 50,
+                        'asset/v3/private/transfer/sub-member-transfer/list/query' => 50,
+                        'asset/v3/private/transfer/universal-transfer/list/query' => 25,
                         'asset/v3/private/coin-info/query' => 25, // 2/s
-                        'asset/v1/private/asset-info/query' => 50,
-                        'asset/v1/private/deposit/address' => 100,
-                        'asset/v3/private/deposit/address/query' => 0.17, // 300/s
-                        'asset/v1/private/universal/transfer/list' => 50,
-                        'contract/v3/private/copytrading/order/list' => 1,
-                        'contract/v3/private/copytrading/position/list' => 1,
-                        'contract/v3/private/copytrading/wallet/balance' => 1,
+                        'asset/v3/private/deposit/address/query' => 10,
+                        'contract/v3/private/copytrading/order/list' => 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/position/list' => 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/wallet/balance' => 25, // 120 req/min = 1000 / (20 * 25) = 2/s
                         'contract/v3/private/position/limit-info' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         'contract/v3/private/order/unfilled-orders' => 1,
                         'contract/v3/private/order/list' => 1,
@@ -367,7 +254,6 @@ class bybit extends Exchange {
                         'unified/v3/private/settlement-record' => 1,
                         'unified/v3/private/account/wallet/balance' => 1,
                         'unified/v3/private/account/transaction-log' => 1,
-                        'asset/v2/private/exchange/exchange-order-all' => 1,
                         'unified/v3/private/account/borrow-history' => 1,
                         'unified/v3/private/account/borrow-rate' => 1,
                         'unified/v3/private/account/info' => 1,
@@ -375,43 +261,43 @@ class bybit extends Exchange {
                         'user/v3/private/query-sub-members' => 5, // 10/s
                         'user/v3/private/query-api' => 5, // 10/s
                         'user/v3/private/get-member-type' => 1,
-                        'asset/v3/private/transfer/transfer-coin/list/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/account-coin/balance/query' => 0.84, // 60/s
-                        'asset/v3/private/transfer/account-coins/balance/query' => 50,
-                        'asset/v3/private/transfer/asset-info/query' => 0.84, // 60/s
+                        'asset/v3/private/transfer/transfer-coin/list/query' => 50,
+                        'asset/v3/private/transfer/account-coin/balance/query' => 50,
+                        'asset/v3/private/transfer/account-coins/balance/query' => 25,
+                        'asset/v3/private/transfer/asset-info/query' => 50,
                         'asset/v3/public/deposit/allowed-deposit-list/query' => 0.17, // 300/s
-                        'asset/v3/private/deposit/record/query' => 0.17, // 300/s
-                        'asset/v3/private/withdraw/record/query' => 0.17, // 300/s
+                        'asset/v3/private/deposit/record/query' => 10,
+                        'asset/v3/private/withdraw/record/query' => 10,
                         // v5
                         // trade
                         'v5/order/realtime' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/history' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/spot-borrow-check' => 2.5,
+                        'v5/order/spot-borrow-check' => 1, // 50/s = 1000 / (20 * 1)
                         // position
                         'v5/position/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/execution/list' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/closed-pnl' => 5, // 10/s => cost = 50 / 10 = 5
                         // pre-upgrade
-                        'v5/pre-upgrade/order/history' => 2.5,
-                        'v5/pre-upgrade/execution/list' => 2.5,
-                        'v5/pre-upgrade/position/closed-pnl' => 2.5,
-                        'v5/pre-upgrade/account/transaction-log' => 2.5,
-                        'v5/pre-upgrade/asset/delivery-record' => 2.5,
-                        'v5/pre-upgrade/asset/settlement-record' => 2.5,
+                        'v5/pre-upgrade/order/history' => 5,
+                        'v5/pre-upgrade/execution/list' => 5,
+                        'v5/pre-upgrade/position/closed-pnl' => 5,
+                        'v5/pre-upgrade/account/transaction-log' => 5,
+                        'v5/pre-upgrade/asset/delivery-record' => 5,
+                        'v5/pre-upgrade/asset/settlement-record' => 5,
                         // account
-                        'v5/account/wallet-balance' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/account/borrow-history' => 2.5,
-                        'v5/account/set-collateral-switch' => 2.5,
-                        'v5/account/collateral-info' => 2.5,
-                        'v5/asset/coin-greeks' => 2.5,
-                        'v5/account/fee-rate' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/account/info' => 2.5,
-                        'v5/account/transaction-log' => 2.5,
-                        'v5/account/mmp-state' => 2.5,
+                        'v5/account/wallet-balance' => 1,
+                        'v5/account/borrow-history' => 1,
+                        'v5/account/set-collateral-switch' => 5,
+                        'v5/account/collateral-info' => 1,
+                        'v5/asset/coin-greeks' => 1,
+                        'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
+                        'v5/account/info' => 5,
+                        'v5/account/transaction-log' => 1,
+                        'v5/account/mmp-state' => 5,
                         // asset
                         'v5/asset/exchange/order-record' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/asset/delivery-record' => 2.5,
-                        'v5/asset/settlement-record' => 2.5,
+                        'v5/asset/delivery-record' => 5,
+                        'v5/asset/settlement-record' => 5,
                         'v5/asset/transfer/query-asset-info' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-account-coins-balance' => 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/transfer/query-account-coin-balance' => 50, // 1/s => cost = 50 / 1 = 50
@@ -419,93 +305,57 @@ class bybit extends Exchange {
                         'v5/asset/transfer/query-inter-transfer-list' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-sub-member-list' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/transfer/query-universal-transfer-list' => 25, // 2/s => cost = 50 / 2 = 25
-                        'v5/asset/deposit/query-allowed-list' => 2.5,
+                        'v5/asset/deposit/query-allowed-list' => 5,
                         'v5/asset/deposit/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-record' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-internal-record' => 2.5,
+                        'v5/asset/deposit/query-internal-record' => 5,
                         'v5/asset/deposit/query-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info' => 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/withdraw/withdrawable-amount' => 2.5,
+                        'v5/asset/withdraw/withdrawable-amount' => 5,
                         // user
                         'v5/user/query-sub-members' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/user/get-member-type' => 2.5,
-                        'v5/user/aff-customer-info' => 2.5,
+                        'v5/user/get-member-type' => 5,
+                        'v5/user/aff-customer-info' => 5,
+                        'v5/user/del-submember' => 5,
                         // spot leverage token
                         'v5/spot-lever-token/order-record' => 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
-                        'v5/spot-margin-trade/state' => 2.5,
+                        'v5/spot-margin-trade/state' => 5,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history' => 1, // 50/s => cost = 50 / 50 = 1
                         // institutional lending
-                        'v5/ins-loan/loan-order' => 2.5,
-                        'v5/ins-loan/repaid-history' => 2.5,
-                        'v5/ins-loan/ltv-convert' => 2.5,
+                        'v5/ins-loan/loan-order' => 5,
+                        'v5/ins-loan/repaid-history' => 5,
+                        'v5/ins-loan/ltv-convert' => 5,
                         // c2c lending
-                        'v5/lending/info' => 2.5,
-                        'v5/lending/history-order' => 2.5,
-                        'v5/lending/account' => 2.5,
+                        'v5/lending/info' => 5,
+                        'v5/lending/history-order' => 5,
+                        'v5/lending/account' => 5,
                         // broker
-                        'v5/broker/earning-record' => 2.5,
+                        'v5/broker/earning-record' => 5,
                     ),
                     'post' => array(
-                        // inverse swap
-                        'v2/private/order/create' => 30,
-                        'v2/private/order/cancel' => 30,
-                        'v2/private/order/cancelAll' => 300, // 100 per minute . 'consumes 10 requests'
-                        'v2/private/order/replace' => 30,
-                        'v2/private/stop-order/create' => 30,
-                        'v2/private/stop-order/cancel' => 30,
-                        'v2/private/stop-order/cancelAll' => 300,
-                        'v2/private/stop-order/replace' => 30,
-                        'v2/private/position/change-position-margin' => 40,
-                        'v2/private/position/trading-stop' => 40,
-                        'v2/private/position/leverage/save' => 40,
-                        'v2/private/tpsl/switch-mode' => 40,
-                        'v2/private/position/switch-isolated' => 2.5,
-                        'v2/private/position/risk-limit' => 2.5,
-                        'v2/private/position/switch-mode' => 2.5,
-                        // linear swap USDT
-                        'private/linear/order/create' => 30, // 100 per minute = 1.666 per second => cost = 50 / 1.6666 = 30
-                        'private/linear/order/cancel' => 30,
-                        'private/linear/order/cancel-all' => 300, // 100 per minute . 'consumes 10 requests'
-                        'private/linear/order/replace' => 30,
-                        'private/linear/stop-order/create' => 30,
-                        'private/linear/stop-order/cancel' => 30,
-                        'private/linear/stop-order/cancel-all' => 300,
-                        'private/linear/stop-order/replace' => 30,
-                        'private/linear/position/set-auto-add-margin' => 40,
-                        'private/linear/position/switch-isolated' => 40,
-                        'private/linear/position/switch-mode' => 40,
-                        'private/linear/tpsl/switch-mode' => 2.5,
-                        'private/linear/position/add-margin' => 40,
-                        'private/linear/position/set-leverage' => 40, // 75 per minute = 1.25 per second => cost = 50 / 1.25 = 40
-                        'private/linear/position/trading-stop' => 40,
-                        'private/linear/position/set-risk' => 2.5,
-                        // inverse futures
-                        'futures/private/order/create' => 30,
-                        'futures/private/order/cancel' => 30,
-                        'futures/private/order/cancelAll' => 30,
-                        'futures/private/order/replace' => 30,
-                        'futures/private/stop-order/create' => 30,
-                        'futures/private/stop-order/cancel' => 30,
-                        'futures/private/stop-order/cancelAll' => 30,
-                        'futures/private/stop-order/replace' => 30,
-                        'futures/private/position/change-position-margin' => 40,
-                        'futures/private/position/trading-stop' => 40,
-                        'futures/private/position/leverage/save' => 40,
-                        'futures/private/position/switch-mode' => 40,
-                        'futures/private/tpsl/switch-mode' => 40,
-                        'futures/private/position/switch-isolated' => 40,
-                        'futures/private/position/risk-limit' => 2.5,
+                        // Legacy option USDC
+                        'option/usdc/openapi/private/v1/place-order' => 2.5,
+                        'option/usdc/openapi/private/v1/replace-order' => 2.5,
+                        'option/usdc/openapi/private/v1/cancel-order' => 2.5,
+                        'option/usdc/openapi/private/v1/cancel-all' => 2.5,
+                        'option/usdc/openapi/private/v1/query-active-orders' => 2.5,
+                        'option/usdc/openapi/private/v1/query-order-history' => 2.5,
+                        'option/usdc/openapi/private/v1/execution-list' => 2.5,
+                        'option/usdc/openapi/private/v1/query-position' => 2.5,
+                        // Legacy perpetual swap USDC
+                        'perpetual/usdc/openapi/private/v1/place-order' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/replace-order' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/cancel-order' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/cancel-all' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/position/leverage/save' => 2.5,
                         // spot
-                        'spot/v1/order' => 2.5,
-                        'spot/v1/cross-margin/loan' => 10,
-                        'spot/v1/cross-margin/repay' => 10,
                         'spot/v3/private/order' => 2.5,
                         'spot/v3/private/cancel-order' => 2.5,
                         'spot/v3/private/cancel-orders' => 2.5,
@@ -515,62 +365,25 @@ class bybit extends Exchange {
                         'spot/v3/private/cross-margin-loan' => 10,
                         'spot/v3/private/cross-margin-repay' => 10,
                         // account
-                        'asset/v1/private/transfer' => 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
-                        'asset/v3/private/transfer/inter-transfer' => 2.5, // 20/s
-                        'asset/v1/private/sub-member/transfer' => 150,
-                        'asset/v1/private/withdraw' => 50,
-                        'asset/v3/private/withdraw/create' => 1, // 10/s
-                        'asset/v1/private/withdraw/cancel' => 50,
-                        'asset/v3/private/withdraw/cancel' => 0.84, // 60/s
-                        'asset/v1/private/transferable-subs/save' => 3000,
-                        'asset/v1/private/universal/transfer' => 1500,
-                        'asset/v3/private/transfer/sub-member-transfer' => 2.5, // 20/s
-                        'asset/v3/private/transfer/transfer-sub-member-save' => 2.5, // 20/s
-                        'asset/v3/private/transfer/universal-transfer' => 2.5, // 20/s
+                        'asset/v3/private/transfer/inter-transfer' => 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v3/private/withdraw/create' => 300,
+                        'asset/v3/private/withdraw/cancel' => 50,
+                        'asset/v3/private/transfer/sub-member-transfer' => 150,
+                        'asset/v3/private/transfer/transfer-sub-member-save' => 150,
+                        'asset/v3/private/transfer/universal-transfer' => 10, // 5/s
                         'user/v3/private/create-sub-member' => 10, // 5/s
                         'user/v3/private/create-sub-api' => 10, // 5/s
                         'user/v3/private/update-api' => 10, // 5/s
                         'user/v3/private/delete-api' => 10, // 5/s
                         'user/v3/private/update-sub-api' => 10, // 5/s
                         'user/v3/private/delete-sub-api' => 10, // 5/s
-                        // USDC endpoints
-                        // option USDC
-                        'option/usdc/openapi/private/v1/place-order' => 2.5,
-                        'option/usdc/openapi/private/v1/batch-place-order' => 2.5,
-                        'option/usdc/openapi/private/v1/replace-order' => 2.5,
-                        'option/usdc/openapi/private/v1/batch-replace-orders' => 2.5,
-                        'option/usdc/openapi/private/v1/cancel-order' => 2.5,
-                        'option/usdc/openapi/private/v1/batch-cancel-orders' => 2.5,
-                        'option/usdc/openapi/private/v1/cancel-all' => 2.5,
-                        'option/usdc/openapi/private/v1/query-active-orders' => 2.5,
-                        'option/usdc/openapi/private/v1/query-order-history' => 2.5,
-                        'option/usdc/openapi/private/v1/execution-list' => 2.5,
-                        'option/usdc/openapi/private/v1/query-transaction-log' => 2.5,
-                        'option/usdc/openapi/private/v1/query-wallet-balance' => 2.5,
-                        'option/usdc/openapi/private/v1/query-asset-info' => 2.5,
-                        'option/usdc/openapi/private/v1/query-margin-info' => 2.5,
-                        'option/usdc/openapi/private/v1/query-position' => 2.5,
-                        'option/usdc/openapi/private/v1/query-delivery-list' => 2.5,
-                        'option/usdc/openapi/private/v1/query-position-exp-date' => 2.5,
-                        'option/usdc/openapi/private/v1/mmp-modify' => 2.5,
-                        'option/usdc/openapi/private/v1/mmp-reset' => 2.5,
-                        // perpetual swap USDC
-                        'perpetual/usdc/openapi/private/v1/place-order' => 2.5,
-                        'perpetual/usdc/openapi/private/v1/replace-order' => 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-order' => 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-all' => 2.5,
-                        'perpetual/usdc/openapi/private/v1/position/leverage/save' => 2.5,
-                        'option/usdc/openapi/private/v1/session-settlement' => 2.5,
-                        'option/usdc/private/asset/account/setMarginMode' => 2.5,
-                        'perpetual/usdc/openapi/public/v1/risk-limit/list' => 2.5,
-                        'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 2.5,
-                        'perpetual/usdc/openapi/private/v1/predicted-funding' => 2.5,
-                        'contract/v3/private/copytrading/order/create' => 2.5,
-                        'contract/v3/private/copytrading/order/cancel' => 2.5,
-                        'contract/v3/private/copytrading/order/close' => 2.5,
-                        'contract/v3/private/copytrading/position/close' => 2.5,
-                        'contract/v3/private/copytrading/position/set-leverage' => 2.5,
-                        'contract/v3/private/copytrading/wallet/transfer' => 2.5,
+                        // contract
+                        'contract/v3/private/copytrading/order/create' => 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/order/cancel' => 30,
+                        'contract/v3/private/copytrading/order/close' => 30,
+                        'contract/v3/private/copytrading/position/close' => 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/position/set-leverage' => 40,
+                        'contract/v3/private/copytrading/wallet/transfer' => 25, // 120 req/min = 1000 / (20 * 25) = 2/s
                         'contract/v3/private/copytrading/order/trading-stop' => 2.5,
                         'contract/v3/private/order/create' => 1,
                         'contract/v3/private/order/cancel' => 1,
@@ -585,13 +398,13 @@ class bybit extends Exchange {
                         'contract/v3/private/position/set-risk-limit' => 1,
                         'contract/v3/private/account/setMarginMode' => 1,
                         // derivative
-                        'unified/v3/private/order/create' => 2.5,
-                        'unified/v3/private/order/replace' => 2.5,
-                        'unified/v3/private/order/cancel' => 2.5,
-                        'unified/v3/private/order/create-batch' => 2.5,
-                        'unified/v3/private/order/replace-batch' => 2.5,
-                        'unified/v3/private/order/cancel-batch' => 2.5,
-                        'unified/v3/private/order/cancel-all' => 2.5,
+                        'unified/v3/private/order/create' => 30, // 100 req/min (shared) = 1000 / (20 * 30) = 1.66666666667/s
+                        'unified/v3/private/order/replace' => 30,
+                        'unified/v3/private/order/cancel' => 30,
+                        'unified/v3/private/order/create-batch' => 30,
+                        'unified/v3/private/order/replace-batch' => 30,
+                        'unified/v3/private/order/cancel-batch' => 30,
+                        'unified/v3/private/order/cancel-all' => 30,
                         'unified/v3/private/position/set-leverage' => 2.5,
                         'unified/v3/private/position/tpsl/switch-mode' => 2.5,
                         'unified/v3/private/position/set-risk-limit' => 2.5,
@@ -605,34 +418,34 @@ class bybit extends Exchange {
                         'fht/compliance/tax/v3/private/url' => 50,
                         // v5
                         // trade
-                        'v5/order/create' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/create' => 2.5, // 20/s = 1000 / (20 * 2.5)
                         'v5/order/amend' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel-all' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel' => 2.5,
+                        'v5/order/cancel-all' => 50, // 1/s = 1000 / (20 * 50)
                         'v5/order/create-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/amend-batch' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel-batch' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/order/disconnected-cancel-all' => 2.5,
+                        'v5/order/disconnected-cancel-all' => 5,
                         // position
                         'v5/position/set-leverage' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated' => 2.5,
+                        'v5/position/switch-isolated' => 5,
                         'v5/position/set-tpsl-mode' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-mode' => 2.5,
+                        'v5/position/switch-mode' => 5,
                         'v5/position/set-risk-limit' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/trading-stop' => 5, // 10/s => cost = 50 / 10 = 5
-                        'v5/position/set-auto-add-margin' => 2.5,
-                        'v5/position/add-margin' => 2.5,
-                        'v5/position/confirm-pending-mmr' => 2.5,
+                        'v5/position/set-auto-add-margin' => 5,
+                        'v5/position/add-margin' => 5,
+                        'v5/position/confirm-pending-mmr' => 5,
                         // account
-                        'v5/account/upgrade-to-uta' => 2.5,
-                        'v5/account/set-margin-mode' => 2.5,
-                        'v5/account/mmp-modify' => 2.5,
-                        'v5/account/mmp-reset' => 2.5,
+                        'v5/account/upgrade-to-uta' => 5,
+                        'v5/account/set-margin-mode' => 5,
+                        'v5/account/mmp-modify' => 5,
+                        'v5/account/mmp-reset' => 5,
                         // asset
                         'v5/asset/transfer/inter-transfer' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/deposit-to-account' => 2.5,
+                        'v5/asset/deposit/deposit-to-account' => 5,
                         'v5/asset/withdraw/create' => 300, // 1/6/s => cost = 50 / 1/6 = 300
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
                         // user
@@ -647,23 +460,15 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/purchase' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-lever-token/redeem' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // spot margin trade
-                        'v5/spot-margin-trade/switch-mode' => 2.5,
-                        'v5/spot-margin-trade/set-leverage' => 2.5,
+                        'v5/spot-margin-trade/switch-mode' => 5,
+                        'v5/spot-margin-trade/set-leverage' => 5,
                         'v5/spot-cross-margin-trade/loan' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch' => 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // c2c lending
-                        'v5/lending/purchase' => 2.5,
-                        'v5/lending/redeem' => 2.5,
-                        'v5/lending/redeem-cancel' => 2.5,
-                    ),
-                    'delete' => array(
-                        // spot
-                        'spot/v1/order' => 2.5,
-                        'spot/v1/order/fast' => 2.5,
-                        'spot/order/batch-cancel' => 2.5,
-                        'spot/order/batch-fast-cancel' => 2.5,
-                        'spot/order/batch-cancel-by-ids' => 2.5,
+                        'v5/lending/purchase' => 5,
+                        'v5/lending/redeem' => 5,
+                        'v5/lending/redeem-cancel' => 5,
                     ),
                 ),
             ),
@@ -2082,7 +1887,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot
         //
@@ -2368,7 +2173,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "1621162800",
@@ -2726,7 +2531,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $isSpotTrade = (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) || (is_array($trade) && array_key_exists('feeTokenId', $trade));
         if ($isSpotTrade) {
             return $this->parse_spot_trade($trade, $market);
@@ -3094,7 +2899,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         // cross
         //     {
@@ -3441,7 +3246,7 @@ class bybit extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // v1 for usdc normal account
         //     {
@@ -3526,13 +3331,13 @@ class bybit extends Exchange {
         //     }
         // createOrders failed $order
         //    {
-        //        $category => 'linear',
-        //        $symbol => 'LTCUSDT',
-        //        orderId => '',
-        //        orderLinkId => '',
-        //        createAt => '',
-        //        $code => '10001',
-        //        msg => 'The number of contracts exceeds maximum limit allowed => too large'
+        //        "category" => "linear",
+        //        "symbol" => "LTCUSDT",
+        //        "orderId" => '',
+        //        "orderLinkId" => '',
+        //        "createAt" => '',
+        //        "code" => "10001",
+        //        "msg" => "The number of contracts exceeds maximum limit allowed => too large"
         //    }
         //
         $code = $this->safe_string($order, 'code');
@@ -4184,7 +3989,9 @@ class bybit extends Exchange {
                 // Valid for option only.
                 // 'orderIv' => '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
             );
-            if ($market['linear']) {
+            if ($market['spot']) {
+                $request['category'] = 'spot';
+            } elseif ($market['linear']) {
                 $request['category'] = 'linear';
             } elseif ($market['inverse']) {
                 $request['category'] = 'inverse';
@@ -5081,10 +4888,10 @@ class bybit extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         chainType => 'ERC20',
-        //         addressDeposit => '0xf56297c6717c1d1c42c30324468ed50a9b7402ee',
-        //         tagDeposit => '',
-        //         $chain => 'ETH'
+        //         "chainType" => "ERC20",
+        //         "addressDeposit" => "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        //         "tagDeposit" => '',
+        //         "chain" => "ETH"
         //     }
         //
         $address = $this->safe_string($depositAddress, 'addressDeposit');
@@ -5351,11 +5158,6 @@ class bybit extends Exchange {
 
     public function parse_transaction_status($status) {
         $statuses = array(
-            // v1/v2
-            'ToBeConfirmed' => 'pending',
-            'UnderReview' => 'pending',
-            'Success' => 'ok',
-            'Expire' => 'expired',
             // v3 deposit $status
             '0' => 'unknown',
             '1' => 'pending',
@@ -5374,7 +5176,7 @@ class bybit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchWithdrawals
         //
@@ -6492,7 +6294,7 @@ class bybit extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @param {string} [$params->interval] 5m, 15m, 30m, 1h, 4h, 1d
              * @param {string} [$params->category] "linear" or "inverse"
-             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -6757,7 +6559,7 @@ class bybit extends Exchange {
             //     "retCode" => 0,
             //     "retMsg" => "success",
             //     "result" => array(
-            //         "transferId" => "4244af44-f3b0-4cf6-a743-b56560e987bc" // transfer_id in v1
+            //         "transferId" => "4244af44-f3b0-4cf6-a743-b56560e987bc"
             //     ),
             //     "retExtInfo" => array(),
             //     "time" => 1666875857205
@@ -6785,7 +6587,7 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
+             * @param {int} [$limit] the maximum number of transfer structures to retrieve
              * @param {array} [$params] extra parameters specific to the bybit api endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -6961,31 +6763,31 @@ class bybit extends Exchange {
         // $transfer
         //
         //     {
-        //         "transferId" => "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2" // transfer_id in v1
+        //         "transferId" => "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
         //     }
         //
         // fetchTransfers
         //
         //     {
-        //         "transferId" => "e9c421c4-b010-4b16-abd6-106179f27702", // transfer_id in v1
+        //         "transferId" => "e9c421c4-b010-4b16-abd6-106179f27702",
         //         "coin" => "USDT",
         //         "amount" => "8",
-        //         "fromAccountType" => "FUND", // from_account_type in v1
-        //         "toAccountType" => "SPOT", // to_account_type in v1
+        //         "fromAccountType" => "FUND",
+        //         "toAccountType" => "SPOT",
         //         "timestamp" => "1666879426000",
         //         "status" => "SUCCESS"
         //      }
         //
         $currencyId = $this->safe_string($transfer, 'coin');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
-        $fromAccountId = $this->safe_string_2($transfer, 'fromAccountType', 'from_account_type');
-        $toAccountId = $this->safe_string_2($transfer, 'toAccountType', 'to_account_type');
+        $fromAccountId = $this->safe_string($transfer, 'fromAccountType');
+        $toAccountId = $this->safe_string($transfer, 'toAccountType');
         $accountIds = $this->safe_value($this->options, 'accountsById', array());
         $fromAccount = $this->safe_string($accountIds, $fromAccountId, $fromAccountId);
         $toAccount = $this->safe_string($accountIds, $toAccountId, $toAccountId);
         return array(
             'info' => $transfer,
-            'id' => $this->safe_string_2($transfer, 'transferId', 'transfer_id'),
+            'id' => $this->safe_string($transfer, 'transferId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'currency' => $this->safe_currency_code($currencyId, $currency),
@@ -7650,14 +7452,14 @@ class bybit extends Exchange {
         }
         //
         //     {
-        //         ret_code => 10001,
-        //         ret_msg => 'ReadMapCB => expect { or n, but found \u0000, error ' +
-        //         'found in #0 byte of ...||..., bigger context ' +
-        //         '...||...',
-        //         ext_code => '',
-        //         ext_info => '',
-        //         result => null,
-        //         time_now => '1583934106.590436'
+        //         "ret_code" => 10001,
+        //         "ret_msg" => "ReadMapCB => expect { or n, but found \u0000, error " +
+        //         "found in #0 byte of ...||..., bigger context " +
+        //         "...||...",
+        //         "ext_code" => '',
+        //         "ext_info" => '',
+        //         "result" => null,
+        //         "time_now" => "1583934106.590436"
         //     }
         //
         //     {

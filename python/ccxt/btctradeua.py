@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.btctradeua import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -136,7 +135,7 @@ class btctradeua(Exchange, ImplicitAPI):
         """
         return self.privatePostAuth(params)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.safe_value(response, 'accounts', [])
         for i in range(0, len(balances)):
@@ -185,7 +184,7 @@ class btctradeua(Exchange, ImplicitAPI):
                 orderbook['asks'] = asks['list']
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'currency_trade')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # [
         #     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
@@ -336,7 +335,7 @@ class btctradeua(Exchange, ImplicitAPI):
         # subtract 3 hours during summer
         return timestamp - 10800000
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #
@@ -451,7 +450,7 @@ class btctradeua(Exchange, ImplicitAPI):
         }
         return self.privatePostRemoveOrderId(self.extend(request, params))
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         side = self.safe_string(order, 'type')

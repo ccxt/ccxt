@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -530,7 +530,7 @@ export default class lbank2 extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -803,7 +803,7 @@ export default class lbank2 extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], timestamp);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (old) spotPublicGetTrades
         //
@@ -959,7 +959,7 @@ export default class lbank2 extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //   [
         //     1482311500, // timestamp
@@ -1035,7 +1035,7 @@ export default class lbank2 extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         //
         // spotPrivatePostUserInfo
         //
@@ -1376,7 +1376,7 @@ export default class lbank2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrderSupplement (private)
         //
@@ -2048,7 +2048,7 @@ export default class lbank2 extends Exchange {
         return this.safeString (this.safeValue (statuses, type, {}), status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits (private)
         //
@@ -2348,23 +2348,23 @@ export default class lbank2 extends Exchange {
         const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
-        //        result: 'true',
-        //        data: [
+        //        "result": "true",
+        //        "data": [
         //          {
-        //            amountScale: '4',
-        //            chain: 'heco',
-        //            assetCode: 'lbk',
-        //            min: '200',
-        //            transferAmtScale: '4',
-        //            canWithDraw: true,
-        //            fee: '100',
-        //            minTransfer: '0.0001',
-        //            type: '1'
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
         //          },
         //          ...
         //        ],
-        //        error_code: '0',
-        //        ts: '1663364435973'
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
         const result = this.safeValue (response, 'data', []);
@@ -2468,23 +2468,23 @@ export default class lbank2 extends Exchange {
         const response = await this.spotPublicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
-        //        result: 'true',
-        //        data: [
+        //        "result": "true",
+        //        "data": [
         //            {
-        //                amountScale: '4',
-        //                chain: 'heco',
-        //                assetCode: 'lbk',
-        //                min: '200',
-        //                transferAmtScale: '4',
-        //                canWithDraw: true,
-        //                fee: '100',
-        //                minTransfer: '0.0001',
-        //                type: '1'
+        //                "amountScale": "4",
+        //                "chain": "heco",
+        //                "assetCode": "lbk",
+        //                "min": "200",
+        //                "transferAmtScale": "4",
+        //                "canWithDraw": true,
+        //                "fee": "100",
+        //                "minTransfer": "0.0001",
+        //                "type": "1"
         //            },
         //            ...
         //        ],
-        //        error_code: '0',
-        //        ts: '1663364435973'
+        //        "error_code": "0",
+        //        "ts": "1663364435973"
         //    }
         //
         const data = this.safeValue (response, 'data', []);
@@ -2495,15 +2495,15 @@ export default class lbank2 extends Exchange {
         //
         //    [
         //        {
-        //            amountScale: '4',
-        //            chain: 'heco',
-        //            assetCode: 'lbk',
-        //            min: '200',
-        //            transferAmtScale: '4',
-        //            canWithDraw: true,
-        //            fee: '100',
-        //            minTransfer: '0.0001',
-        //            type: '1'
+        //            "amountScale": "4",
+        //            "chain": "heco",
+        //            "assetCode": "lbk",
+        //            "min": "200",
+        //            "transferAmtScale": "4",
+        //            "canWithDraw": true,
+        //            "fee": "100",
+        //            "minTransfer": "0.0001",
+        //            "type": "1"
         //        },
         //        ...
         //    ]

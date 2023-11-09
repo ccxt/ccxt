@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -270,7 +269,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
         result = {
             'info': response,
@@ -306,11 +305,11 @@ class luno(Exchange, ImplicitAPI):
         response = self.privateGetBalance(params)
         #
         #     {
-        #         'balance': [
-        #             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        #             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        #             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00','unconfirmed': '0.00'},
-        #             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00','unconfirmed': '0.00'}]}
+        #         "balance": [
+        #             {'account_id': '119...1336','asset': 'XBT','balance': '0.00','reserved': '0.00',"unconfirmed": "0.00"},
+        #             {'account_id': '66...289','asset': 'XBT','balance': '0.00','reserved': '0.00',"unconfirmed": "0.00"},
+        #             {'account_id': '718...5300','asset': 'ETH','balance': '0.00','reserved': '0.00',"unconfirmed": "0.00"},
+        #             {'account_id': '818...7072','asset': 'ZAR','balance': '0.001417','reserved': '0.00',"unconfirmed": "0.00"}]}
         #         ]
         #     }
         #
@@ -344,7 +343,7 @@ class luno(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "base": "string",
@@ -476,7 +475,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         # {
         #     "pair":"XBTAUD",
         #     "timestamp":1642201439301,
@@ -558,7 +557,7 @@ class luno(Exchange, ImplicitAPI):
         # }
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #

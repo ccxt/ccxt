@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -168,7 +167,7 @@ class coincheck(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -215,18 +214,18 @@ class coincheck(Exchange, ImplicitAPI):
             result.append(self.extend(parsedOrders[i], {'status': 'open'}))
         return result
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOpenOrders
         #
         #     {                       id:  202835,
-        #                      order_type: "buy",
-        #                            rate:  26890,
-        #                            pair: "btc_jpy",
-        #                  pending_amount: "0.5527",
-        #       pending_market_buy_amount:  null,
-        #                  stop_loss_rate:  null,
-        #                      created_at: "2015-01-10T05:55:38.000Z"}
+        #                      "order_type": "buy",
+        #                            "rate":  26890,
+        #                            "pair": "btc_jpy",
+        #                  "pending_amount": "0.5527",
+        #       "pending_market_buy_amount":  null,
+        #                  "stop_loss_rate":  null,
+        #                      "created_at": "2015-01-10T05:55:38.000Z"}
         #
         # todo: add formats for fetchOrder, fetchClosedOrders here
         #
@@ -280,7 +279,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # {
         #     "last":4192632.0,
@@ -346,7 +345,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -504,20 +503,20 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateGetAccounts(params)
         #
         #     {
-        #         success: True,
-        #         id: '7487995',
-        #         email: 'some@email.com',
-        #         identity_status: 'identity_pending',
-        #         bitcoin_address: null,
-        #         lending_leverage: '4',
-        #         taker_fee: '0.0',
-        #         maker_fee: '0.0',
-        #         exchange_fees: {
-        #           btc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           etc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           fct_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           mona_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           plt_jpy: {taker_fee: '0.0', maker_fee: '0.0'}
+        #         "success": True,
+        #         "id": "7487995",
+        #         "email": "some@email.com",
+        #         "identity_status": "identity_pending",
+        #         "bitcoin_address": null,
+        #         "lending_leverage": "4",
+        #         "taker_fee": "0.0",
+        #         "maker_fee": "0.0",
+        #         "exchange_fees": {
+        #           "btc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "etc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "fct_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "mona_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "plt_jpy": {taker_fee: '0.0', maker_fee: "0.0"}
         #         }
         #     }
         #
@@ -680,7 +679,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -538,23 +537,23 @@ class whitebit(Exchange, ImplicitAPI):
         #                "flex": null
         #            }
         #        },
-        #        'WBT(ERC20)': {
-        #            is_depositable: True,
-        #            is_withdrawal: True,
-        #            ticker: 'WBT',
-        #            name: 'WhiteBIT Token',
-        #            providers: [],
-        #            withdraw: {max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null},
-        #            deposit: {max_amount: '0', min_amount: '0.35', fixed: null, flex: null}
+        #        "WBT(ERC20)": {
+        #            "is_depositable": True,
+        #            "is_withdrawal": True,
+        #            "ticker": "WBT",
+        #            "name": "WhiteBIT Token",
+        #            "providers": [],
+        #            "withdraw": {max_amount: "0", min_amount: '0.7', fixed: "0.253", flex: null},
+        #            "deposit": {max_amount: "0", min_amount: "0.35", fixed: null, flex: null}
         #        },
-        #        'WBT(TRC20)': {
-        #            is_depositable: True,
-        #            is_withdrawal: True,
-        #            ticker: 'WBT',
-        #            name: 'WhiteBIT Token',
-        #            providers: [],
-        #            withdraw: {max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null},
-        #            deposit: {max_amount: '0', min_amount: '0.75', fixed: null, flex: null}
+        #        "WBT(TRC20)": {
+        #            "is_depositable": True,
+        #            "is_withdrawal": True,
+        #            "ticker": "WBT",
+        #            "name": "WhiteBIT Token",
+        #            "providers": [],
+        #            "withdraw": {max_amount: "0", min_amount: "1.5", fixed: "0.075", flex: null},
+        #            "deposit": {max_amount: "0", min_amount: "0.75", fixed: null, flex: null}
         #        },
         #        ...
         #    }
@@ -583,23 +582,23 @@ class whitebit(Exchange, ImplicitAPI):
         #                "flex": null
         #            }
         #        },
-        #        'WBT(ERC20)': {
-        #            is_depositable: True,
-        #            is_withdrawal: True,
-        #            ticker: 'WBT',
-        #            name: 'WhiteBIT Token',
-        #            providers: [],
-        #            withdraw: {max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null},
-        #            deposit: {max_amount: '0', min_amount: '0.35', fixed: null, flex: null}
+        #        "WBT(ERC20)": {
+        #            "is_depositable": True,
+        #            "is_withdrawal": True,
+        #            "ticker": "WBT",
+        #            "name": "WhiteBIT Token",
+        #            "providers": [],
+        #            "withdraw": {max_amount: "0", min_amount: "0.7", fixed: "0.253", flex: null},
+        #            "deposit": {max_amount: "0", min_amount: "0.35", fixed: null, flex: null}
         #        },
-        #        'WBT(TRC20)': {
-        #            is_depositable: True,
-        #            is_withdrawal: True,
-        #            ticker: 'WBT',
-        #            name: 'WhiteBIT Token',
-        #            providers: [],
-        #            withdraw: {max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null},
-        #            deposit: {max_amount: '0', min_amount: '0.75', fixed: null, flex: null}
+        #        "WBT(TRC20)": {
+        #            "is_depositable": True,
+        #            "is_withdrawal": True,
+        #            "ticker": "WBT",
+        #            "name": "WhiteBIT Token",
+        #            "providers": [],
+        #            "withdraw": {max_amount: "0", min_amount: "1.5", fixed: "0.075", flex: null},
+        #            "deposit": {max_amount: "0", min_amount: "0.75", fixed: null, flex: null}
         #        },
         #        ...
         #    }
@@ -659,17 +658,17 @@ class whitebit(Exchange, ImplicitAPI):
         response = await self.v4PublicGetAssets(params)
         #
         #      {
-        #          '1INCH': {
-        #              name: '1inch',
-        #              unified_cryptoasset_id: '8104',
-        #              can_withdraw: True,
-        #              can_deposit: True,
-        #              min_withdraw: '33',
-        #              max_withdraw: '0',
-        #              maker_fee: '0.1',
-        #              taker_fee: '0.1',
-        #              min_deposit: '30',
-        #              max_deposit: '0'
+        #          "1INCH": {
+        #              "name": "1inch",
+        #              "unified_cryptoasset_id": "8104",
+        #              "can_withdraw": True,
+        #              "can_deposit": True,
+        #              "min_withdraw": "33",
+        #              "max_withdraw": "0",
+        #              "maker_fee": "0.1",
+        #              "taker_fee": "0.1",
+        #              "min_deposit": "30",
+        #              "max_deposit": "0"
         #            },
         #            ...
         #      }
@@ -726,7 +725,7 @@ class whitebit(Exchange, ImplicitAPI):
         ticker = self.safe_value(response, 'result', {})
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #  FetchTicker(v1)
         #
@@ -918,16 +917,16 @@ class whitebit(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             'id': 1343815269,
-        #             'clientOrderId': '',
-        #             'time': 1641051917.532965,
-        #             'side': 'sell',
-        #             'role': 2,
-        #             'amount': '9.986',
-        #             'price': '0.9995',
-        #             'deal': '9.981007',
-        #             'fee': '0.009981007',
-        #             'orderId': 58166729555,
+        #             "id": 1343815269,
+        #             "clientOrderId": '',
+        #             "time": 1641051917.532965,
+        #             "side": "sell",
+        #             "role": 2,
+        #             "amount": "9.986",
+        #             "price": "0.9995",
+        #             "deal": "9.981007",
+        #             "fee": "0.009981007",
+        #             "orderId": 58166729555,
         #         },
         #     ]
         #
@@ -945,7 +944,7 @@ class whitebit(Exchange, ImplicitAPI):
             results = self.sort_by_2(results, 'timestamp', 'id')
             return self.filter_by_since_limit(results, since, limit, 'timestamp')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTradesV4
         #
@@ -975,16 +974,16 @@ class whitebit(Exchange, ImplicitAPI):
         # fetchMyTrades
         #
         #      {
-        #          'id': 1343815269,
-        #          'clientOrderId': '',
-        #          'time': 1641051917.532965,
-        #          'side': 'sell',
-        #          'role': 2,
-        #          'amount': '9.986',
-        #          'price': '0.9995',
-        #          'deal': '9.981007',
-        #          'fee': '0.009981007',
-        #          'orderId': 58166729555,
+        #          "id": 1343815269,
+        #          "clientOrderId": '',
+        #          "time": 1641051917.532965,
+        #          "side": "sell",
+        #          "role": 2,
+        #          "amount": "9.986",
+        #          "price": "0.9995",
+        #          "deal": "9.981007",
+        #          "fee": "0.009981007",
+        #          "orderId": 58166729555,
         #      }
         #
         market = self.safe_market(None, market)
@@ -1063,7 +1062,7 @@ class whitebit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591488000,
@@ -1203,7 +1202,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return await self.v4PrivatePostOrderCancel(self.extend(request, params))
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balanceKeys = list(response.keys())
         result = {}
         for i in range(0, len(balanceKeys)):
@@ -1369,7 +1368,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder, fetchOpenOrders
         #
@@ -1671,7 +1670,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         return self.extend({'id': uniqueId}, self.parse_transaction(response, currency))
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #     {
         #         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              # deposit address

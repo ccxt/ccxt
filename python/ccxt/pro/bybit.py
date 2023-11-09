@@ -455,7 +455,7 @@ class bybit(ccxt.async_support.bybit):
         client.resolve(stored, messageHash)
         self.resolve_multiple_ohlcv(client, 'multipleOHLCV::', symbol, timeframe, stored)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "start": 1670363160000,
@@ -1045,32 +1045,32 @@ class bybit(ccxt.async_support.bybit):
     def parse_ws_spot_order(self, order, market=None):
         #
         #    {
-        #        e: 'executionReport',
-        #        E: '1653297251061',  # timestamp
-        #        s: 'LTCUSDT',  # symbol
-        #        c: '1653297250740',  # user id
-        #        S: 'SELL',  # side
-        #        o: 'MARKET_OF_BASE',  # order type
-        #        f: 'GTC',  # time in force
-        #        q: '0.16233',  # quantity
-        #        p: '0',  # price
-        #        X: 'NEW',  # status
-        #        i: '1162336018974750208',  # order id
-        #        M: '0',
-        #        l: '0',  # last filled
-        #        z: '0',  # total filled
-        #        L: '0',  # last traded price
-        #        n: '0',  # trading fee
-        #        N: '',  # fee asset
-        #        u: True,
-        #        w: True,
-        #        m: False,  # is limit_maker
-        #        O: '1653297251042',  # order creation
-        #        Z: '0',  # total filled
-        #        A: '0',  # account id
-        #        C: False,  # is close
-        #        v: '0',  # leverage
-        #        d: 'NO_LIQ'
+        #        "e": "executionReport",
+        #        "E": "1653297251061",  # timestamp
+        #        "s": "LTCUSDT",  # symbol
+        #        "c": "1653297250740",  # user id
+        #        "S": "SELL",  # side
+        #        "o": "MARKET_OF_BASE",  # order type
+        #        "f": "GTC",  # time in force
+        #        "q": "0.16233",  # quantity
+        #        "p": "0",  # price
+        #        "X": "NEW",  # status
+        #        "i": "1162336018974750208",  # order id
+        #        "M": "0",
+        #        "l": "0",  # last filled
+        #        "z": "0",  # total filled
+        #        "L": "0",  # last traded price
+        #        "n": "0",  # trading fee
+        #        "N": '',  # fee asset
+        #        "u": True,
+        #        "w": True,
+        #        "m": False,  # is limit_maker
+        #        "O": "1653297251042",  # order creation
+        #        "Z": "0",  # total filled
+        #        "A": "0",  # account id
+        #        "C": False,  # is close
+        #        "v": "0",  # leverage
+        #        "d": "NO_LIQ"
         #    }
         # v5
         #    {
@@ -1478,28 +1478,28 @@ class bybit(ccxt.async_support.bybit):
     def handle_error_message(self, client: Client, message):
         #
         #   {
-        #       success: False,
-        #       ret_msg: 'error:invalid op',
-        #       conn_id: '5e079fdd-9c7f-404d-9dbf-969d650838b5',
-        #       request: {op: '', args: null}
+        #       "success": False,
+        #       "ret_msg": "error:invalid op",
+        #       "conn_id": "5e079fdd-9c7f-404d-9dbf-969d650838b5",
+        #       "request": {op: '', args: null}
         #   }
         #
         # auth error
         #
         #   {
-        #       success: False,
-        #       ret_msg: 'error:USVC1111',
-        #       conn_id: 'e73770fb-a0dc-45bd-8028-140e20958090',
-        #       request: {
-        #         op: 'auth',
-        #         args: [
-        #           '9rFT6uR4uz9Imkw4Wx',
-        #           '1653405853543',
-        #           '542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889'
+        #       "success": False,
+        #       "ret_msg": "error:USVC1111",
+        #       "conn_id": "e73770fb-a0dc-45bd-8028-140e20958090",
+        #       "request": {
+        #         "op": "auth",
+        #         "args": [
+        #           "9rFT6uR4uz9Imkw4Wx",
+        #           "1653405853543",
+        #           "542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889"
         #         ]
         #   }
         #
-        #   {code: '-10009', desc: 'Invalid period!'}
+        #   {code: '-10009', desc: "Invalid period!"}
         #
         code = self.safe_string_2(message, 'code', 'ret_code')
         try:
@@ -1589,10 +1589,10 @@ class bybit(ccxt.async_support.bybit):
     def handle_pong(self, client: Client, message):
         #
         #   {
-        #       success: True,
-        #       ret_msg: 'pong',
-        #       conn_id: 'db3158a0-8960-44b9-a9de-ac350ee13158',
-        #       request: {op: 'ping', args: null}
+        #       "success": True,
+        #       "ret_msg": "pong",
+        #       "conn_id": "db3158a0-8960-44b9-a9de-ac350ee13158",
+        #       "request": {op: "ping", args: null}
         #   }
         #
         #   {pong: 1653296711335}
@@ -1603,10 +1603,10 @@ class bybit(ccxt.async_support.bybit):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        success: True,
-        #        ret_msg: '',
-        #        op: 'auth',
-        #        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        #        "success": True,
+        #        "ret_msg": '',
+        #        "op": "auth",
+        #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
         success = self.safe_value(message, 'success')
@@ -1624,16 +1624,16 @@ class bybit(ccxt.async_support.bybit):
     def handle_subscription_status(self, client: Client, message):
         #
         #    {
-        #        topic: 'kline',
-        #        event: 'sub',
-        #        params: {
-        #          symbol: 'LTCUSDT',
-        #          binary: 'false',
-        #          klineType: '1m',
-        #          symbolName: 'LTCUSDT'
+        #        "topic": "kline",
+        #        "event": "sub",
+        #        "params": {
+        #          "symbol": "LTCUSDT",
+        #          "binary": "false",
+        #          "klineType": "1m",
+        #          "symbolName": "LTCUSDT"
         #        },
-        #        code: '0',
-        #        msg: 'Success'
+        #        "code": "0",
+        #        "msg": "Success"
         #    }
         #
         return message

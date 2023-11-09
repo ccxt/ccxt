@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -320,28 +319,28 @@ class exmo(Exchange, ImplicitAPI):
         response = await self.privatePostMarginPairList(params)
         #
         #     {
-        #         pairs: [{
-        #             name: 'EXM_USD',
-        #             buy_price: '0.02728391',
-        #             sell_price: '0.0276',
-        #             last_trade_price: '0.0276',
-        #             ticker_updated: '1646956050056696046',
-        #             is_fair_price: True,
-        #             max_price_precision: '8',
-        #             min_order_quantity: '1',
-        #             max_order_quantity: '50000',
-        #             min_order_price: '0.00000001',
-        #             max_order_price: '1000',
-        #             max_position_quantity: '50000',
-        #             trade_taker_fee: '0.05',
-        #             trade_maker_fee: '0',
-        #             liquidation_fee: '0.5',
-        #             max_leverage: '3',
-        #             default_leverage: '3',
-        #             liquidation_level: '5',
-        #             margin_call_level: '7.5',
-        #             position: '1',
-        #             updated: '1638976144797807397'
+        #         "pairs": [{
+        #             "name": "EXM_USD",
+        #             "buy_price": "0.02728391",
+        #             "sell_price": "0.0276",
+        #             "last_trade_price": "0.0276",
+        #             "ticker_updated": "1646956050056696046",
+        #             "is_fair_price": True,
+        #             "max_price_precision": "8",
+        #             "min_order_quantity": "1",
+        #             "max_order_quantity": "50000",
+        #             "min_order_price": "0.00000001",
+        #             "max_order_price": "1000",
+        #             "max_position_quantity": "50000",
+        #             "trade_taker_fee": "0.05",
+        #             "trade_maker_fee": "0",
+        #             "liquidation_fee": "0.5",
+        #             "max_leverage": "3",
+        #             "default_leverage": "3",
+        #             "liquidation_level": "5",
+        #             "margin_call_level": "7.5",
+        #             "position": "1",
+        #             "updated": "1638976144797807397"
         #         }
         #         ...
         #         ]
@@ -372,16 +371,16 @@ class exmo(Exchange, ImplicitAPI):
         response = await self.publicGetPairSettings(params)
         #
         #     {
-        #         BTC_USD: {
-        #             min_quantity: '0.00002',
-        #             max_quantity: '1000',
-        #             min_price: '1',
-        #             max_price: '150000',
-        #             max_amount: '500000',
-        #             min_amount: '1',
-        #             price_precision: '2',
-        #             commission_taker_percent: '0.3',
-        #             commission_maker_percent: '0.3'
+        #         "BTC_USD": {
+        #             "min_quantity": "0.00002",
+        #             "max_quantity": "1000",
+        #             "min_price": "1",
+        #             "max_price": "150000",
+        #             "max_amount": "500000",
+        #             "min_amount": "1",
+        #             "price_precision": "2",
+        #             "commission_taker_percent": "0.3",
+        #             "commission_maker_percent": "0.3"
         #         },
         #     }
         #
@@ -850,7 +849,7 @@ class exmo(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "t":1584057600000,
@@ -870,7 +869,7 @@ class exmo(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         wallets = self.safe_value(response, 'wallets')
         if wallets is not None:
@@ -993,7 +992,7 @@ class exmo(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "buy_price":"0.00002996",
@@ -1080,7 +1079,7 @@ class exmo(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1429,8 +1428,8 @@ class exmo(Exchange, ImplicitAPI):
                 response = await self.privatePostOrderCancel(self.extend(request, params))
                 #
                 #    {
-                #        'error': '',
-                #        'result': True
+                #        "error": '',
+                #        "result": True
                 #    }
                 #
         return self.parse_order(response)
@@ -1660,7 +1659,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(side, orderType, orderType)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
@@ -2001,7 +2000,7 @@ class exmo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDepositsWithdrawals
         #
@@ -2054,9 +2053,9 @@ class exmo(Exchange, ImplicitAPI):
         #    }
         #
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
-        amount = self.safe_string(transaction, 'amount')
-        if amount is not None:
-            amount = Precise.string_abs(amount)
+        amountString = self.safe_string(transaction, 'amount')
+        if amountString is not None:
+            amountString = Precise.string_abs(amountString)
         txid = self.safe_string(transaction, 'txid')
         if txid is None:
             extra = self.safe_value(transaction, 'extra', {})
@@ -2099,7 +2098,7 @@ class exmo(Exchange, ImplicitAPI):
             if feeCost is not None:
                 # withdrawal amount includes the fee
                 if type == 'withdrawal':
-                    amount = Precise.string_sub(amount, feeCost)
+                    amountString = Precise.string_sub(amountString, feeCost)
                 fee['cost'] = self.parse_number(feeCost)
                 fee['currency'] = code
         return {
@@ -2109,7 +2108,7 @@ class exmo(Exchange, ImplicitAPI):
             'type': type,
             'currency': code,
             'network': self.safe_string(transaction, 'provider'),
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             'status': self.parse_transaction_status(self.safe_string_lower(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2394,8 +2393,8 @@ class exmo(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         if ('error' in response) and not ('result' in response):
             # error: {
-            #     code: '140434',
-            #     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
+            #     "code": "140434",
+            #     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
             # }
             #
             errorCode = self.safe_value(response, 'error', {})

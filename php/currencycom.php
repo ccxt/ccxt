@@ -336,13 +336,13 @@ class currencycom extends Exchange {
         //             "minDeposit" => "90.0",
         //         ),
         //         array(
-        //             name => "Bitcoin",
-        //             displaySymbol => "BTC",
-        //             precision => "8",
-        //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
-        //             minWithdrawal => "0.00020",
-        //             commissionFixed => "0.00010",
-        //             minDeposit => "0.00010",
+        //             "name" => "Bitcoin",
+        //             "displaySymbol" => "BTC",
+        //             "precision" => "8",
+        //             "type" => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+        //             "minWithdrawal" => "0.00020",
+        //             "commissionFixed" => "0.00010",
+        //             "minDeposit" => "0.00010",
         //         ),
         //     )
         //
@@ -391,49 +391,49 @@ class currencycom extends Exchange {
         $response = $this->publicGetV2ExchangeInfo ($params);
         //
         //     {
-        //         timezone => "UTC",
-        //         serverTime => "1645186287261",
-        //         rateLimits => array(
+        //         "timezone" => "UTC",
+        //         "serverTime" => "1645186287261",
+        //         "rateLimits" => array(
         //             array( rateLimitType => "REQUEST_WEIGHT", interval => "MINUTE", intervalNum => "1", limit => "1200" ),
         //             array( rateLimitType => "ORDERS", interval => "SECOND", intervalNum => "1", limit => "10" ),
         //             array( rateLimitType => "ORDERS", interval => "DAY", intervalNum => "1", limit => "864000" ),
         //         ),
-        //         exchangeFilters => array(),
-        //         symbols => array(
+        //         "exchangeFilters" => array(),
+        //         "symbols" => array(
         //             array(
-        //                 $symbol => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
-        //                 name => "Bitcoin / Tether",
-        //                 status => "TRADING", // TRADING, BREAK, HALT
-        //                 baseAsset => "BTC",
-        //                 baseAssetPrecision => "4",
-        //                 quoteAsset => "USDT",
-        //                 quoteAssetId => "USDT", // USDT, USDT_LEVERAGE
-        //                 quotePrecision => "4",
-        //                 orderTypes => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
-        //                 $filters => array(
+        //                 "symbol" => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+        //                 "name" => "Bitcoin / Tether",
+        //                 "status" => "TRADING", // TRADING, BREAK, HALT
+        //                 "baseAsset" => "BTC",
+        //                 "baseAssetPrecision" => "4",
+        //                 "quoteAsset" => "USDT",
+        //                 "quoteAssetId" => "USDT", // USDT, USDT_LEVERAGE
+        //                 "quotePrecision" => "4",
+        //                 "orderTypes" => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
+        //                 "filters" => array(
         //                     array( filterType => "LOT_SIZE", minQty => "0.0001", maxQty => "100", stepSize => "0.0001", ),
         //                     array( filterType => "MIN_NOTIONAL", minNotional => "5", ),
         //                 ),
-        //                 marketModes => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
-        //                 marketType => "SPOT", // SPOT, LEVERAGE
-        //                 longRate => -0.0684932, // LEVERAGE only
-        //                 shortRate => -0.0684932, // LEVERAGE only
-        //                 swapChargeInterval => 1440, // LEVERAGE only
-        //                 country => "",
-        //                 sector => "",
-        //                 industry => "",
-        //                 tradingHours => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-        //                 tickSize => "0.01",
-        //                 tickValue => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-        //                 $exchangeFee => "0.2", // SPOT only
-        //                 tradingFee => 0.075, // LEVERAGE only
-        //                 $makerFee => -0.025, // LEVERAGE only
-        //                 $takerFee => 0.06, // LEVERAGE only
-        //                 maxSLGap => 50, // LEVERAGE only
-        //                 minSLGap => 1, // LEVERAGE only
-        //                 maxTPGap => 50, // LEVERAGE only
-        //                 minTPGap => 0.5, // LEVERAGE only
-        //                 assetType => "CRYPTOCURRENCY",
+        //                 "marketModes" => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
+        //                 "marketType" => "SPOT", // SPOT, LEVERAGE
+        //                 "longRate" => -0.0684932, // LEVERAGE only
+        //                 "shortRate" => -0.0684932, // LEVERAGE only
+        //                 "swapChargeInterval" => 1440, // LEVERAGE only
+        //                 "country" => "",
+        //                 "sector" => "",
+        //                 "industry" => "",
+        //                 "tradingHours" => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //                 "tickSize" => "0.01",
+        //                 "tickValue" => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        //                 "exchangeFee" => "0.2", // SPOT only
+        //                 "tradingFee" => 0.075, // LEVERAGE only
+        //                 "makerFee" => -0.025, // LEVERAGE only
+        //                 "takerFee" => 0.06, // LEVERAGE only
+        //                 "maxSLGap" => 50, // LEVERAGE only
+        //                 "minSLGap" => 1, // LEVERAGE only
+        //                 "maxTPGap" => 50, // LEVERAGE only
+        //                 "minTPGap" => 0.5, // LEVERAGE only
+        //                 "assetType" => "CRYPTOCURRENCY",
         //             ),
         //         )
         //     }
@@ -634,16 +634,16 @@ class currencycom extends Exchange {
         $response = $this->privateGetV2Account ($params);
         //
         //    {
-        //        makerCommission => '0.20',
-        //        takerCommission => '0.20',
-        //        buyerCommission => '0.20',
-        //        sellerCommission => '0.20',
-        //        canTrade => true,
-        //        canWithdraw => true,
-        //        canDeposit => true,
-        //        updateTime => '1645738976',
-        //        userId => '-1924114235',
-        //        balances => array()
+        //        "makerCommission" => "0.20",
+        //        "takerCommission" => "0.20",
+        //        "buyerCommission" => "0.20",
+        //        "sellerCommission" => "0.20",
+        //        "canTrade" => true,
+        //        "canWithdraw" => true,
+        //        "canDeposit" => true,
+        //        "updateTime" => "1645738976",
+        //        "userId" => "-1924114235",
+        //        "balances" => array()
         //    }
         //
         $makerFee = $this->safe_number($response, 'makerCommission');
@@ -779,7 +779,7 @@ class currencycom extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -924,7 +924,7 @@ class currencycom extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1590971040000,
@@ -978,7 +978,7 @@ class currencycom extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1092,7 +1092,7 @@ class currencycom extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -1574,7 +1574,7 @@ class currencycom extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //    {
         //        "id" => "616769213",

@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, InsufficientFund
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import kucoin from './abstract/kucoinfutures.js';
-import { Dictionary, Int, OrderSide, Ticker, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, FundingRateHistory, FundingHistory, Balances, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -528,8 +528,8 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPublicGetTimestamp (params);
         //
         //    {
-        //        code: "200000",
-        //        data: 1637385119302,
+        //        "code": "200000",
+        //        "data": 1637385119302,
         //    }
         //
         return this.safeInteger (response, 'data');
@@ -593,7 +593,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    [
         //        "1545904980000",          // Start time of the candle cycle
@@ -749,11 +749,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseTicker (response['data'], market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Dictionary<Ticker>> {
-        throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
-    }
-
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "code": "200000",
@@ -1204,9 +1200,9 @@ export default class kucoinfutures extends kucoin {
         }
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            orderId: "619717484f1d010001510cde",
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
         //        },
         //    }
         //
@@ -1254,9 +1250,9 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPrivateDeleteOrdersOrderId (this.extend (request, params));
         //
         //   {
-        //       code: "200000",
-        //       data: {
-        //           cancelledOrderIds: [
+        //       "code": "200000",
+        //       "data": {
+        //           "cancelledOrderIds": [
         //                "619714b8b6353000014c505a",
         //           ],
         //       },
@@ -1285,9 +1281,9 @@ export default class kucoinfutures extends kucoin {
         const response = await this[method] (this.extend (request, params));
         //
         //   {
-        //       code: "200000",
-        //       data: {
-        //           cancelledOrderIds: [
+        //       "code": "200000",
+        //       "data": {
+        //           "cancelledOrderIds": [
         //                "619714b8b6353000014c505a",
         //           ],
         //       },
@@ -1317,44 +1313,44 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
         //
         //    {
-        //        code: '200000',
-        //        data: {
-        //            id: '62311d26064e8f00013f2c6d',
-        //            symbol: 'XRPUSDTM',
-        //            autoDeposit: false,
-        //            maintMarginReq: 0.01,
-        //            riskLimit: 200000,
-        //            realLeverage: 0.88,
-        //            crossMode: false,
-        //            delevPercentage: 0.4,
-        //            openingTimestamp: 1647385894798,
-        //            currentTimestamp: 1647414510672,
-        //            currentQty: -1,
-        //            currentCost: -7.658,
-        //            currentComm: 0.0053561,
-        //            unrealisedCost: -7.658,
-        //            realisedGrossCost: 0,
-        //            realisedCost: 0.0053561,
-        //            isOpen: true,
-        //            markPrice: 0.7635,
-        //            markValue: -7.635,
-        //            posCost: -7.658,
-        //            posCross: 1.00016084,
-        //            posInit: 7.658,
-        //            posComm: 0.00979006,
-        //            posLoss: 0,
-        //            posMargin: 8.6679509,
-        //            posMaint: 0.08637006,
-        //            maintMargin: 8.6909509,
-        //            realisedGrossPnl: 0,
-        //            realisedPnl: -0.0038335,
-        //            unrealisedPnl: 0.023,
-        //            unrealisedPnlPcnt: 0.003,
-        //            unrealisedRoePcnt: 0.003,
-        //            avgEntryPrice: 0.7658,
-        //            liquidationPrice: 1.6239,
-        //            bankruptPrice: 1.6317,
-        //            settleCurrency: 'USDT'
+        //        "code": "200000",
+        //        "data": {
+        //            "id": "62311d26064e8f00013f2c6d",
+        //            "symbol": "XRPUSDTM",
+        //            "autoDeposit": false,
+        //            "maintMarginReq": 0.01,
+        //            "riskLimit": 200000,
+        //            "realLeverage": 0.88,
+        //            "crossMode": false,
+        //            "delevPercentage": 0.4,
+        //            "openingTimestamp": 1647385894798,
+        //            "currentTimestamp": 1647414510672,
+        //            "currentQty": -1,
+        //            "currentCost": -7.658,
+        //            "currentComm": 0.0053561,
+        //            "unrealisedCost": -7.658,
+        //            "realisedGrossCost": 0,
+        //            "realisedCost": 0.0053561,
+        //            "isOpen": true,
+        //            "markPrice": 0.7635,
+        //            "markValue": -7.635,
+        //            "posCost": -7.658,
+        //            "posCross": 1.00016084,
+        //            "posInit": 7.658,
+        //            "posComm": 0.00979006,
+        //            "posLoss": 0,
+        //            "posMargin": 8.6679509,
+        //            "posMaint": 0.08637006,
+        //            "maintMargin": 8.6909509,
+        //            "realisedGrossPnl": 0,
+        //            "realisedPnl": -0.0038335,
+        //            "unrealisedPnl": 0.023,
+        //            "unrealisedPnlPcnt": 0.003,
+        //            "unrealisedRoePcnt": 0.003,
+        //            "avgEntryPrice": 0.7658,
+        //            "liquidationPrice": 1.6239,
+        //            "bankruptPrice": 1.6317,
+        //            "settleCurrency": "USDT"
         //        }
         //    }
         //
@@ -1374,42 +1370,42 @@ export default class kucoinfutures extends kucoin {
     parseMarginModification (info, market = undefined) {
         //
         //    {
-        //        id: '62311d26064e8f00013f2c6d',
-        //        symbol: 'XRPUSDTM',
-        //        autoDeposit: false,
-        //        maintMarginReq: 0.01,
-        //        riskLimit: 200000,
-        //        realLeverage: 0.88,
-        //        crossMode: false,
-        //        delevPercentage: 0.4,
-        //        openingTimestamp: 1647385894798,
-        //        currentTimestamp: 1647414510672,
-        //        currentQty: -1,
-        //        currentCost: -7.658,
-        //        currentComm: 0.0053561,
-        //        unrealisedCost: -7.658,
-        //        realisedGrossCost: 0,
-        //        realisedCost: 0.0053561,
-        //        isOpen: true,
-        //        markPrice: 0.7635,
-        //        markValue: -7.635,
-        //        posCost: -7.658,
-        //        posCross: 1.00016084,
-        //        posInit: 7.658,
-        //        posComm: 0.00979006,
-        //        posLoss: 0,
-        //        posMargin: 8.6679509,
-        //        posMaint: 0.08637006,
-        //        maintMargin: 8.6909509,
-        //        realisedGrossPnl: 0,
-        //        realisedPnl: -0.0038335,
-        //        unrealisedPnl: 0.023,
-        //        unrealisedPnlPcnt: 0.003,
-        //        unrealisedRoePcnt: 0.003,
-        //        avgEntryPrice: 0.7658,
-        //        liquidationPrice: 1.6239,
-        //        bankruptPrice: 1.6317,
-        //        settleCurrency: 'USDT'
+        //        "id": "62311d26064e8f00013f2c6d",
+        //        "symbol": "XRPUSDTM",
+        //        "autoDeposit": false,
+        //        "maintMarginReq": 0.01,
+        //        "riskLimit": 200000,
+        //        "realLeverage": 0.88,
+        //        "crossMode": false,
+        //        "delevPercentage": 0.4,
+        //        "openingTimestamp": 1647385894798,
+        //        "currentTimestamp": 1647414510672,
+        //        "currentQty": -1,
+        //        "currentCost": -7.658,
+        //        "currentComm": 0.0053561,
+        //        "unrealisedCost": -7.658,
+        //        "realisedGrossCost": 0,
+        //        "realisedCost": 0.0053561,
+        //        "isOpen": true,
+        //        "markPrice": 0.7635,
+        //        "markValue": -7.635,
+        //        "posCost": -7.658,
+        //        "posCross": 1.00016084,
+        //        "posInit": 7.658,
+        //        "posComm": 0.00979006,
+        //        "posLoss": 0,
+        //        "posMargin": 8.6679509,
+        //        "posMaint": 0.08637006,
+        //        "maintMargin": 8.6909509,
+        //        "realisedGrossPnl": 0,
+        //        "realisedPnl": -0.0038335,
+        //        "unrealisedPnl": 0.023,
+        //        "unrealisedPnlPcnt": 0.003,
+        //        "unrealisedRoePcnt": 0.003,
+        //        "avgEntryPrice": 0.7658,
+        //        "liquidationPrice": 1.6239,
+        //        "bankruptPrice": 1.6317,
+        //        "settleCurrency": "USDT"
         //    }
         //
         //    {
@@ -1640,7 +1636,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseOrder (responseData, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrder, fetchOrdersByStatus
         //
@@ -1769,13 +1765,13 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            symbol: ".ETHUSDTMFPI8H",
-        //            granularity: 28800000,
-        //            timePoint: 1637380800000,
-        //            value: 0.0001,
-        //            predictedValue: 0.0001,
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": ".ETHUSDTMFPI8H",
+        //            "granularity": 28800000,
+        //            "timePoint": 1637380800000,
+        //            "value": 0.0001,
+        //            "predictedValue": 0.0001,
         //        },
         //    }
         //
@@ -1803,7 +1799,7 @@ export default class kucoinfutures extends kucoin {
         };
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1840,16 +1836,16 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
-        //             accountEquity: 0.00005,
-        //             unrealisedPNL: 0,
-        //             marginBalance: 0.00005,
-        //             positionMargin: 0,
-        //             orderMargin: 0,
-        //             frozenFunds: 0,
-        //             availableBalance: 0.00005,
-        //             currency: 'XBT'
+        //         "code": "200000",
+        //         "data": {
+        //             "accountEquity": 0.00005,
+        //             "unrealisedPNL": 0,
+        //             "marginBalance": 0.00005,
+        //             "positionMargin": 0,
+        //             "orderMargin": 0,
+        //             "frozenFunds": 0,
+        //             "availableBalance": 0.00005,
+        //             "currency": "XBT"
         //         }
         //     }
         //
@@ -2039,7 +2035,7 @@ export default class kucoinfutures extends kucoin {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -2102,17 +2098,17 @@ export default class kucoinfutures extends kucoin {
         // watchTrades
         //
         //    {
-        //        makerUserId: '62286a4d720edf0001e81961',
-        //        symbol: 'ADAUSDTM',
-        //        sequence: 41320766,
-        //        side: 'sell',
-        //        size: 2,
-        //        price: 0.35904,
-        //        takerOrderId: '636dd9da9857ba00010cfa44',
-        //        makerOrderId: '636dd9c8df149d0001e62bc8',
-        //        takerUserId: '6180be22b6ab210001fa3371',
-        //        tradeId: '636dd9da0000d400d477eca7',
-        //        ts: 1668143578987357700
+        //        "makerUserId": "62286a4d720edf0001e81961",
+        //        "symbol": "ADAUSDTM",
+        //        "sequence": 41320766,
+        //        "side": "sell",
+        //        "size": 2,
+        //        "price": 0.35904,
+        //        "takerOrderId": "636dd9da9857ba00010cfa44",
+        //        "makerOrderId": "636dd9c8df149d0001e62bc8",
+        //        "takerUserId": "6180be22b6ab210001fa3371",
+        //        "tradeId": "636dd9da0000d400d477eca7",
+        //        "ts": 1668143578987357700
         //    }
         //
         const marketId = this.safeString (trade, 'symbol');
@@ -2201,8 +2197,8 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPrivateGetDepositList (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 5,
         //             "totalNum": 2,
@@ -2257,8 +2253,8 @@ export default class kucoinfutures extends kucoin {
         const response = await this.futuresPrivateGetWithdrawalList (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 5,
         //             "totalNum": 2,
@@ -2390,21 +2386,21 @@ export default class kucoinfutures extends kucoin {
         const response = await this.webExchangeGetContractSymbolFundingRates (this.extend (request, params));
         //
         //    {
-        //        success: true,
-        //        code: '200',
-        //        msg: 'success',
-        //        retry: false,
-        //        data: {
-        //            dataList: [
+        //        "success": true,
+        //        "code": "200",
+        //        "msg": "success",
+        //        "retry": false,
+        //        "data": {
+        //            "dataList": [
         //                {
-        //                    symbol: 'XBTUSDTM',
-        //                    granularity: 28800000,
-        //                    timePoint: 1675108800000,
-        //                    value: 0.0001
+        //                    "symbol": "XBTUSDTM",
+        //                    "granularity": 28800000,
+        //                    "timePoint": 1675108800000,
+        //                    "value": 0.0001
         //                },
         //                ...
         //            ],
-        //            hasMore: true
+        //            "hasMore": true
         //        }
         //    }
         //

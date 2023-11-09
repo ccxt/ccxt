@@ -296,6 +296,7 @@ class Transpiler {
             [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
             [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
             [ /\.handleUntilOption\s/g, '.handle_until_option'],
+            [ /\.parseToNumeric\s/g, '.parse_to_numeric'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -912,17 +913,25 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        if (bodyAsString.match (/: OrderSide/)) {
-            libraries.push ('from ccxt.base.types import OrderSide')
+        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
+        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Trade', 'Transaction' ]
+        const matches = []
+        let match
+        const listRegex = /: List\[(\w+)\]/g
+        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
+        while (match = listRegex.exec (bodyAsString)) {
+            if (!pythonBuiltIns.includes (match[1])) {
+                matches.push (match[1])
+            }
         }
-        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
-            libraries.push ('from ccxt.base.types import OrderRequest')
+        for (let i = 0; i < matchAgainst.length; i++) {
+            const regex = matchAgainst[i]
+            if (bodyAsString.match (regex)) {
+                matches.push (objects[i])
+            }
         }
-        if (bodyAsString.match (/: OrderType/)) {
-            libraries.push ('from ccxt.base.types import OrderType')
-        }
-        if (bodyAsString.match (/: IndexType/)) {
-            libraries.push ('from ccxt.base.types import IndexType')
+        if (matches.length) {
+            libraries.push ('from ccxt.base.types import ' + matches.join (', '))
         }
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
@@ -932,6 +941,10 @@ class Transpiler {
         }
         if (bodyAsString.match (/[\s\[(]List\[/)) {
             libraries.push ('from typing import List')
+        }
+
+        if (bodyAsString.match (/-> Any/)) {
+            libraries.push ('from typing import Any')
         }
 
         const errorImports = []
@@ -1499,7 +1512,9 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            if (className === 'Exchange') {
+                signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
+            }
 
             let methodSignatureRegex = /(async |)(\S+)\s\(([^)]*)\)\s*(?::\s+(\S+))?\s*{/ // signature line
             let matches = methodSignatureRegex.exec (signature)
@@ -1538,14 +1553,12 @@ class Transpiler {
                 'number': 'float',
                 'boolean': 'bool',
                 'Promise<any>': 'mixed',
-                'Balance': 'array',
                 'IndexType': 'int|string',
                 'Int': 'int',
-                'object': 'array',
-                'object[]': 'mixed',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
+            const phpArrayRegex = /(?:object|OHLCV|Order|Ticker|Trade|Transaction|Balances?)|(?:\w+\[\])/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1564,14 +1577,21 @@ class Transpiler {
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
-                    const resolveType = phpType.slice (-2) === '[]' ? 'array' : phpType
+                    const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
                     return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
                 .replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? (phpArgs) : ''
-            const phpReturnType = returnType ? ': ' + (phpTypes[returnType] ?? returnType) : ''
+            let phpReturnType = ''
+            if (returnType) {
+                if (returnType.match (phpArrayRegex)) {
+                    phpReturnType = ': array'
+                } else {
+                    phpReturnType = ': ' + (phpTypes[returnType] ?? returnType)
+                }
+            }
             const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
@@ -1582,6 +1602,8 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'int',
                 'string[]': 'List[str]',
+                'OHLCV': 'list',
+                'FundingHistory[]': 'List[FundingHistory]',
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -2160,6 +2182,9 @@ class Transpiler {
 
 
         // ########### PHP ###########
+        php = php.replace('use Exception; // a common import', '')
+        phpAsync = phpAsync.replace('use Exception; // a common import', '')
+
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines of test_async.php
         phpAsync = phpAsync.replace ('(this,','($this,');
@@ -2445,6 +2470,13 @@ class Transpiler {
                 "",
                 "",
             ],
+            pyPro: [
+                "import asyncio",
+                "import ccxt.pro as ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+            ],
             phpAsync: [
                 "",
                 "error_reporting(E_ALL | E_STRICT);",
@@ -2469,6 +2501,7 @@ class Transpiler {
             const tsFile = examplesFolders.ts + filenameWithExtenstion
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
@@ -2483,30 +2516,37 @@ class Transpiler {
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
                 let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
-                const fixPython = (body, isAsync)=> {
+                const fixPython = (body)=> {
                     return this.regexAll (body, [
                         [ /console\.log/g, 'print' ],
+                        // in python import ccxt.pro as ccxt
+                        [ /ccxt.pro/g, 'ccxt' ],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
                         [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        // cases like: exchange = new ccxt.pro['name' or name] ()
+                        [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                     ]);
                 };
-                const fixPhp = (body, isAsync)=> {
-                    let asyncSub = isAsync ? 'async\\' : '';
+                const fixPhp = (body)=> {
                     const regexes = [
                         [ /\$console\->log/g, 'var_dump' ],
+                        // cases like: exchange = new ccxt.pro.huobi ()
+                        [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
                         // cases like: exchange = new ccxt.huobi ()
-                        [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
+                        [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new (\'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        // cases like: exchange = new ccxt.pro['huobi' or varname] ()
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
 
                 const finalBodies = {};
-                finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
-                finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
+                finalBodies.pyAsync = fixPython (pythonAsyncBody);
+                finalBodies.phpAsync = fixPhp (phpAsyncBody);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
                 for (const funcName of allDetectedFunctionNames) {
@@ -2534,7 +2574,7 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
@@ -2584,7 +2624,7 @@ class Transpiler {
         let jsFiles = [];
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
-        jsFiles.filter(f => !f.includes(".d.ts")).map (jsFilePath => {
+        jsFiles.filter(f => !f.includes(".d.ts") && !f.includes(".tsbuildinfo")).map (jsFilePath => {
             const content = fs.readFileSync (jsFilePath, 'utf8');
             if (content.indexOf (this.getJsPreamble()) === -1) {
                 let contents = [

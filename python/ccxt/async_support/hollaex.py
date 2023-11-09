@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -222,46 +221,46 @@ class hollaex(Exchange, ImplicitAPI):
         response = await self.publicGetConstants(params)
         #
         #     {
-        #         coins: {
-        #             xmr: {
-        #                 id: 7,
-        #                 fullname: "Monero",
-        #                 symbol: "xmr",
-        #                 active: True,
-        #                 allow_deposit: True,
-        #                 allow_withdrawal: True,
-        #                 withdrawal_fee: 0.02,
-        #                 min: 0.001,
-        #                 max: 100000,
-        #                 increment_unit: 0.001,
-        #                 deposit_limits: {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0},
-        #                 withdrawal_limits: {'1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, '9': 500, '10': -1},
-        #                 created_at: "2019-12-09T07:14:02.720Z",
-        #                 updated_at: "2020-01-16T12:12:53.162Z"
+        #         "coins": {
+        #             "xmr": {
+        #                 "id": 7,
+        #                 "fullname": "Monero",
+        #                 "symbol": "xmr",
+        #                 "active": True,
+        #                 "allow_deposit": True,
+        #                 "allow_withdrawal": True,
+        #                 "withdrawal_fee": 0.02,
+        #                 "min": 0.001,
+        #                 "max": 100000,
+        #                 "increment_unit": 0.001,
+        #                 "deposit_limits": {'1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0},
+        #                 "withdrawal_limits": {'1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1},
+        #                 "created_at": "2019-12-09T07:14:02.720Z",
+        #                 "updated_at": "2020-01-16T12:12:53.162Z"
         #             },
         #             # ...
         #         },
-        #         pairs: {
-        #             'btc-usdt': {
-        #                 id: 2,
-        #                 name: "btc-usdt",
-        #                 pair_base: "btc",
-        #                 pair_2: "usdt",
-        #                 taker_fees: {'1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, '9': 0.04, '10': 0},
-        #                 maker_fees: {'1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0},
-        #                 min_size: 0.0001,
-        #                 max_size: 1000,
-        #                 min_price: 100,
-        #                 max_price: 100000,
-        #                 increment_size: 0.0001,
-        #                 increment_price: 0.05,
-        #                 active: True,
-        #                 created_at: "2019-12-09T07:15:54.537Z",
-        #                 updated_at: "2019-12-09T07:15:54.537Z"
+        #         "pairs": {
+        #             "btc-usdt": {
+        #                 "id": 2,
+        #                 "name": "btc-usdt",
+        #                 "pair_base": "btc",
+        #                 "pair_2": "usdt",
+        #                 "taker_fees": {'1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0},
+        #                 "maker_fees": {'1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0},
+        #                 "min_size": 0.0001,
+        #                 "max_size": 1000,
+        #                 "min_price": 100,
+        #                 "max_price": 100000,
+        #                 "increment_size": 0.0001,
+        #                 "increment_price": 0.05,
+        #                 "active": True,
+        #                 "created_at": "2019-12-09T07:15:54.537Z",
+        #                 "updated_at": "2019-12-09T07:15:54.537Z"
         #             },
         #         },
-        #         config: {tiers: 10},
-        #         status: True
+        #         "config": {tiers: 10},
+        #         "status": True
         #     }
         #
         pairs = self.safe_value(response, 'pairs', {})
@@ -481,13 +480,13 @@ class hollaex(Exchange, ImplicitAPI):
         response = await self.publicGetTicker(self.extend(request, params))
         #
         #     {
-        #         open: 8615.55,
-        #         close: 8841.05,
-        #         high: 8921.1,
-        #         low: 8607,
-        #         last: 8841.05,
-        #         volume: 20.2802,
-        #         timestamp: '2020-03-03T03:11:18.964Z'
+        #         "open": 8615.55,
+        #         "close": 8841.05,
+        #         "high": 8921.1,
+        #         "low": 8607,
+        #         "last": 8841.05,
+        #         "volume": 20.2802,
+        #         "timestamp": "2020-03-03T03:11:18.964Z"
         #     }
         #
         return self.parse_ticker(response, market)
@@ -531,18 +530,18 @@ class hollaex(Exchange, ImplicitAPI):
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
         #     {
-        #         open: 8615.55,
-        #         close: 8841.05,
-        #         high: 8921.1,
-        #         low: 8607,
-        #         last: 8841.05,
-        #         volume: 20.2802,
-        #         timestamp: '2020-03-03T03:11:18.964Z',
+        #         "open": 8615.55,
+        #         "close": 8841.05,
+        #         "high": 8921.1,
+        #         "low": 8607,
+        #         "last": 8841.05,
+        #         "volume": 20.2802,
+        #         "timestamp": "2020-03-03T03:11:18.964Z",
         #     }
         #
         # fetchTickers
@@ -617,7 +616,7 @@ class hollaex(Exchange, ImplicitAPI):
         trades = self.safe_value(response, market['id'], [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -681,28 +680,28 @@ class hollaex(Exchange, ImplicitAPI):
         response = await self.publicGetTiers(params)
         #
         #     {
-        #         '1': {
-        #             id: '1',
-        #             name: 'Silver',
-        #             icon: '',
-        #             description: 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
-        #             deposit_limit: '0',
-        #             withdrawal_limit: '1000',
-        #             fees: {
-        #                 maker: {
-        #                     'eth-btc': '0.1',
-        #                     'ada-usdt': '0.1',
+        #         "1": {
+        #             "id": "1",
+        #             "name": "Silver",
+        #             "icon": '',
+        #             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+        #             "deposit_limit": "0",
+        #             "withdrawal_limit": "1000",
+        #             "fees": {
+        #                 "maker": {
+        #                     'eth-btc': "0.1",
+        #                     'ada-usdt': "0.1",
         #                     ...
         #                 },
-        #                 taker: {
-        #                     'eth-btc': '0.1',
-        #                     'ada-usdt': '0.1',
+        #                 "taker": {
+        #                     'eth-btc': "0.1",
+        #                     'ada-usdt': "0.1",
         #                     ...
         #                 }
         #             },
-        #             note: '<ul>\n<li>Login and verify email</li>\n</ul>\n',
-        #             created_at: '2021-03-22T03:51:39.129Z',
-        #             updated_at: '2021-11-01T02:51:56.214Z'
+        #             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+        #             "created_at": "2021-03-22T03:51:39.129Z",
+        #             "updated_at": "2021-11-01T02:51:56.214Z"
         #         },
         #         ...
         #     }
@@ -775,7 +774,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, response, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "time":"2020-03-02T20:00:00.000Z",
@@ -788,15 +787,15 @@ class hollaex(Exchange, ImplicitAPI):
         #     }
         #
         return [
-            self.parse8601(self.safe_string(response, 'time')),
-            self.safe_number(response, 'open'),
-            self.safe_number(response, 'high'),
-            self.safe_number(response, 'low'),
-            self.safe_number(response, 'close'),
-            self.safe_number(response, 'volume'),
+            self.parse8601(self.safe_string(ohlcv, 'time')),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
         result = {
             'info': response,
@@ -1013,7 +1012,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder, fetchOpenOrder, fetchOpenOrders
         #
@@ -1490,7 +1489,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals, fetchDeposits
         #
@@ -1514,12 +1513,12 @@ class hollaex(Exchange, ImplicitAPI):
         # withdraw
         #
         #     {
-        #         message: 'Withdrawal request is in the queue and will be processed.',
-        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        #         amount: 1,
-        #         currency: 'xht',
-        #         fee: 0,
-        #         fee_coin: 'xht'
+        #         "message": "Withdrawal request is in the queue and will be processed.",
+        #         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        #         "amount": 1,
+        #         "currency": "xht",
+        #         "fee": 0,
+        #         "fee_coin": "xht"
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -1612,12 +1611,12 @@ class hollaex(Exchange, ImplicitAPI):
         response = await self.privatePostUserWithdrawal(self.extend(request, params))
         #
         #     {
-        #         message: 'Withdrawal request is in the queue and will be processed.',
-        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        #         amount: 1,
-        #         currency: 'xht',
-        #         fee: 0,
-        #         fee_coin: 'xht'
+        #         "message": "Withdrawal request is in the queue and will be processed.",
+        #         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        #         "amount": 1,
+        #         "currency": "xht",
+        #         "fee": 0,
+        #         "fee_coin": "xht"
         #     }
         #
         return self.parse_transaction(response, currency)

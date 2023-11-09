@@ -314,8 +314,8 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             $response = Async\await($this->publicGetCommonAssetConfig ($params));
             //     {
-            //         $code => 0,
-            //         $data => array(
+            //         "code" => 0,
+            //         "data" => array(
             //             "USDT-ERC20" => array(
             //                  "asset" => "USDT",
             //                  "chain" => "ERC20",
@@ -329,7 +329,7 @@ class coinex extends Exchange {
             //             ),
             //             ...
             //         ),
-            //         message => 'Success',
+            //         "message" => "Success",
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -652,7 +652,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // Spot fetchTicker, fetchTickers
         //
@@ -902,9 +902,9 @@ class coinex extends Exchange {
             $response = Async\await($this->perpetualPublicGetTime ($params));
             //
             //     {
-            //         code => '0',
-            //         data => '1653261274414',
-            //         message => 'OK'
+            //         "code" => "0",
+            //         "data" => "1653261274414",
+            //         "message" => "OK"
             //     }
             //
             return $this->safe_integer($response, 'data');
@@ -986,7 +986,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // Spot and Swap fetchTrades (public)
         //
@@ -1239,7 +1239,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1591484400,
@@ -1554,7 +1554,7 @@ class coinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrder
         //
@@ -2752,12 +2752,12 @@ class coinex extends Exchange {
             $response = Async\await($this->privatePutBalanceDepositAddressCoinType (array_merge($request, $params)));
             //
             //     {
-            //         $code => 0,
-            //         $data => array(
-            //             coin_address => 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-            //             is_bitcoin_cash => false
+            //         "code" => 0,
+            //         "data" => array(
+            //             "coin_address" => "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+            //             "is_bitcoin_cash" => false
             //         ),
-            //         message => 'Success'
+            //         "message" => "Success"
             //     }
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
@@ -2796,13 +2796,13 @@ class coinex extends Exchange {
             $response = Async\await($this->privateGetBalanceDepositAddressCoinType (array_merge($request, $params)));
             //
             //      {
-            //          $code => 0,
-            //          $data => array(
-            //            coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-            //            // coin_address => 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
-            //            is_bitcoin_cash => false
+            //          "code" => 0,
+            //          "data" => array(
+            //            "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+            //            // coin_address => "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
+            //            "is_bitcoin_cash" => false
             //          ),
-            //          message => 'Success'
+            //          "message" => "Success"
             //      }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -2837,8 +2837,8 @@ class coinex extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //         is_bitcoin_cash => false
+        //         "coin_address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "is_bitcoin_cash" => false
         //     }
         //
         $coinAddress = $this->safe_string($depositAddress, 'coin_address');
@@ -3962,7 +3962,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

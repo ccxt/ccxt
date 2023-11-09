@@ -257,6 +257,9 @@ export default class Exchange {
     last_json_response    = undefined
     last_response_headers = undefined
     last_request_headers  = undefined
+    last_request_body     = undefined
+    last_request_url      = undefined
+    last_request_path     = undefined
 
     id: string = undefined
 
@@ -706,6 +709,9 @@ export default class Exchange {
         this.last_json_response    = undefined
         this.last_response_headers = undefined
         this.last_request_headers  = undefined
+        this.last_request_body     = undefined
+        this.last_request_url      = undefined
+        this.last_request_path     = undefined
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -877,7 +883,6 @@ export default class Exchange {
     }
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-
 
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
@@ -1238,7 +1243,7 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { 
+                            }).catch ((e) => {
                                 delete client.subscriptions[subscribeHash];
                                 future.reject (e);
                             });
@@ -1723,7 +1728,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -1753,6 +1758,18 @@ export default class Exchange {
         const stringifiedNumber = number.toString ();
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
+    }
+
+    parseToNumeric (number) {
+        const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf ('.') > 0) {
+            return parseFloat (stringVersion);
+        }
+        return parseInt (stringVersion);
     }
 
     afterConstruct () {
@@ -2401,6 +2418,26 @@ export default class Exchange {
         };
     }
 
+    safeLiquidation (liquidation: object, market: object = undefined): Liquidation {
+        const contracts = this.safeString (liquidation, 'contracts');
+        const contractSize = this.safeString (market, 'contractSize');
+        const price = this.safeString (liquidation, 'price');
+        let baseValue = this.safeString (liquidation, 'baseValue');
+        let quoteValue = this.safeString (liquidation, 'quoteValue');
+        if ((baseValue === undefined) && (contracts !== undefined) && (contractSize !== undefined) && (price !== undefined)) {
+            baseValue = Precise.stringMul (contracts, contractSize);
+        }
+        if ((quoteValue === undefined) && (baseValue !== undefined) && (price !== undefined)) {
+            quoteValue = Precise.stringMul (baseValue, price);
+        }
+        liquidation['contracts'] = this.parseNumber (contracts);
+        liquidation['contractSize'] = this.parseNumber (contractSize);
+        liquidation['price'] = this.parseNumber (price);
+        liquidation['baseValue'] = this.parseNumber (baseValue);
+        liquidation['quoteValue'] = this.parseNumber (quoteValue);
+        return liquidation as Liquidation;
+    }
+
     safeTrade (trade: object, market: object = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
@@ -2813,7 +2850,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -3167,6 +3204,8 @@ export default class Exchange {
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
         this.last_request_headers = request['headers'];
+        this.last_request_body = request['body'];
+        this.last_request_url = request['url'];
         return await this.fetch (request['url'], request['method'], request['headers'], request['body']);
     }
 
@@ -4103,6 +4142,11 @@ export default class Exchange {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
+    filterBySymbolsSinceLimit (array, symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+        const result = this.filterByArray (array, 'symbol', symbols, false);
+        return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
+    }
+
     parseLastPrices (pricesData, symbols: string[] = undefined, params = {}) {
         //
         // the value of tickers is either a dict or a list
@@ -4853,7 +4897,12 @@ export default class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method] (params);
+                } else {
+                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {

@@ -245,7 +245,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'return', array());
         $deposit = $this->safe_value($balances, 'deposit');
         $result = array(
@@ -306,7 +306,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -378,7 +378,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -505,7 +505,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
@@ -659,7 +659,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id" => 23634,

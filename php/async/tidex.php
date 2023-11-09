@@ -346,7 +346,7 @@ class tidex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'return');
         $timestamp = $this->safe_timestamp($balances, 'server_time');
         $result = array(
@@ -474,18 +474,18 @@ class tidex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
-        //         high => 0.03497582,
-        //         low => 0.03248474,
-        //         avg => 0.03373028,
-        //         vol => 120.11485715062999,
-        //         vol_cur => 3572.24914074,
-        //         $last => 0.0337611,
-        //         buy => 0.0337442,
-        //         sell => 0.03377798,
-        //         updated => 1537522009
+        //         "high" => 0.03497582,
+        //         "low" => 0.03248474,
+        //         "avg" => 0.03373028,
+        //         "vol" => 120.11485715062999,
+        //         "vol_cur" => 3572.24914074,
+        //         "last" => 0.0337611,
+        //         "buy" => 0.0337442,
+        //         "sell" => 0.03377798,
+        //         "updated" => 1537522009
         //     }
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
@@ -567,7 +567,7 @@ class tidex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
@@ -744,7 +744,7 @@ class tidex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'timestamp_created');
@@ -944,7 +944,7 @@ class tidex extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id":1111,

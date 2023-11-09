@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -130,6 +129,7 @@ class bitopro(Exchange, ImplicitAPI):
                         'provisioning/trading-pairs': 1,
                         'provisioning/limitations-and-fees': 1,
                         'trading-history/{pair}': 1,
+                        'price/otc/{currency}': 1,
                     },
                 },
                 'private': {
@@ -371,7 +371,7 @@ class bitopro(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "pair":"btc_twd",
@@ -506,7 +506,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #         {
@@ -703,7 +703,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -798,7 +798,7 @@ class bitopro(Exchange, ImplicitAPI):
             copyFrom = result[resultLength - 1]
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #     [{
         #         "currency":"twd",
@@ -861,16 +861,16 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #         {
-        #             orderId: '2220595581',
-        #             timestamp: '1644896744886',
-        #             action: 'SELL',
-        #             amount: '0.01',
-        #             price: '15000',
-        #             timeInForce: 'GTC'
+        #             "orderId": "2220595581",
+        #             "timestamp": "1644896744886",
+        #             "action": "SELL",
+        #             "amount": "0.01",
+        #             "price": "15000",
+        #             "timeInForce": "GTC"
         #         }
         #
         # fetchOrder
@@ -991,12 +991,12 @@ class bitopro(Exchange, ImplicitAPI):
         response = await self.privatePostOrdersPair(self.extend(request, params))
         #
         #     {
-        #         orderId: '2220595581',
-        #         timestamp: '1644896744886',
-        #         action: 'SELL',
-        #         amount: '0.01',
-        #         price: '15000',
-        #         timeInForce: 'GTC'
+        #         "orderId": "2220595581",
+        #         "timestamp": "1644896744886",
+        #         "action": "SELL",
+        #         "amount": "0.01",
+        #         "price": "15000",
+        #         "timeInForce": "GTC"
         #     }
         #
         return self.parse_order(response, market)
@@ -1265,7 +1265,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

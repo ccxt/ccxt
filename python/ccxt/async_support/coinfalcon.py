@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinfalcon import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -223,7 +222,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "name":"ETH-BTC",
@@ -332,7 +331,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -475,10 +474,10 @@ class coinfalcon(Exchange, ImplicitAPI):
         response = await self.privateGetUserFees(params)
         #
         #    {
-        #        data: {
-        #            maker_fee: '0.0',
-        #            taker_fee: '0.2',
-        #            btc_volume_30d: '0.0'
+        #        "data": {
+        #            "maker_fee": "0.0",
+        #            "taker_fee": "0.2",
+        #            "btc_volume_30d": "0.0"
         #        }
         #    }
         #
@@ -500,7 +499,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -557,9 +556,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         response = await self.privateGetAccountDepositAddress(self.extend(request, params))
         #
         #     {
-        #         data: {
-        #             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-        #             tag:null
+        #         "data": {
+        #             "address": "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+        #             "tag":null
         #         }
         #     }
         #
@@ -576,7 +575,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -739,16 +738,16 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['since_time'] = self.iso8601(since)
         response = await self.privateGetAccountDeposits(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        #             amount: '0.1',
-        #             status: 'completed',
-        #             currency_code: 'eth',
-        #             txid: '0xxxx',
-        #             address: '0xxxx',
-        #             tag: null,
-        #             type: 'deposit'
+        #             "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        #             "amount": "0.1",
+        #             "status": "completed",
+        #             "currency_code": "eth",
+        #             "txid": "0xxxx",
+        #             "address": "0xxxx",
+        #             "tag": null,
+        #             "type": "deposit"
         #         },
         #     ]
         #
@@ -781,17 +780,17 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['since_time'] = self.iso8601(since)
         response = await self.privateGetAccountWithdrawals(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '25f6f144-3666-xxx-xxx-xxx',
-        #             amount: '0.01',
-        #             status: 'completed',
-        #             fee: '0.0005',
-        #             currency_code: 'btc',
-        #             txid: '4xxx',
-        #             address: 'bc1xxx',
-        #             tag: null,
-        #             type: 'withdraw'
+        #             "id": "25f6f144-3666-xxx-xxx-xxx",
+        #             "amount": "0.01",
+        #             "status": "completed",
+        #             "fee": "0.0005",
+        #             "currency_code": "btc",
+        #             "txid": "4xxx",
+        #             "address": "bc1xxx",
+        #             "tag": null,
+        #             "type": "withdraw"
         #         },
         #     ]
         #
@@ -823,17 +822,17 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['tag'] = tag
         response = await self.privatePostAccountWithdraw(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '25f6f144-3666-xxx-xxx-xxx',
-        #             amount: '0.01',
-        #             status: 'approval_pending',
-        #             fee: '0.0005',
-        #             currency_code: 'btc',
-        #             txid: null,
-        #             address: 'bc1xxx',
-        #             tag: null,
-        #             type: 'withdraw'
+        #             "id": "25f6f144-3666-xxx-xxx-xxx",
+        #             "amount": "0.01",
+        #             "status": "approval_pending",
+        #             "fee": "0.0005",
+        #             "currency_code": "btc",
+        #             "txid": null,
+        #             "address": "bc1xxx",
+        #             "tag": null,
+        #             "type": "withdraw"
         #         },
         #     ]
         #
@@ -848,33 +847,33 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals, withdraw
         #
         #     {
-        #         id: '25f6f144-3666-xxx-xxx-xxx',
-        #         amount: '0.01',
-        #         status: 'completed',
-        #         fee: '0.0005',
-        #         currency_code: 'btc',
-        #         txid: '4xxx',
-        #         address: 'bc1xxx',
-        #         tag: null,
-        #         type: 'withdraw'
+        #         "id": "25f6f144-3666-xxx-xxx-xxx",
+        #         "amount": "0.01",
+        #         "status": "completed",
+        #         "fee": "0.0005",
+        #         "currency_code": "btc",
+        #         "txid": "4xxx",
+        #         "address": "bc1xxx",
+        #         "tag": null,
+        #         "type": "withdraw"
         #     },
         #
         # fetchDeposits
         #
         #     {
-        #         id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        #         amount: '0.1',
-        #         status: 'completed',
-        #         currency_code: 'eth',
-        #         txid: '0xxxx',
-        #         address: '0xxxx',
-        #         tag: null,
-        #         type: 'deposit'
+        #         "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        #         "amount": "0.1",
+        #         "status": "completed",
+        #         "currency_code": "eth",
+        #         "txid": "0xxxx",
+        #         "address": "0xxxx",
+        #         "tag": null,
+        #         "type": "deposit"
         #     },
         #
         id = self.safe_string(transaction, 'id')

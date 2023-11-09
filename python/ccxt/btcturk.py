@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -271,7 +270,7 @@ class btcturk(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', [])
         result = {
             'info': response,
@@ -344,7 +343,7 @@ class btcturk(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #   {
         #     "pair": "BTCTRY",
@@ -416,7 +415,7 @@ class btcturk(Exchange, ImplicitAPI):
         tickers = self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -515,15 +514,15 @@ class btcturk(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
-        #        'timestamp': 1661990400,
-        #        'high': 368388.0,
-        #        'open': 368388.0,
-        #        'low': 368388.0,
-        #        'close': 368388.0,
-        #        'volume': 0.00035208,
+        #        "timestamp": 1661990400,
+        #        "high": 368388.0,
+        #        "open": 368388.0,
+        #        "low": 368388.0,
+        #        "close": 368388.0,
+        #        "volume": 0.00035208,
         #    }
         #
         return [
@@ -743,7 +742,7 @@ class btcturk(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrders / fetchOpenOrders
         #     {

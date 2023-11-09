@@ -234,7 +234,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "symbol":"btc_usdt",
@@ -359,7 +359,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $market = $this->safe_market(null, $market);
         $timestamp = $this->safe_integer($trade, 'date_ms');
         $priceString = $this->safe_string($trade, 'price');
@@ -417,7 +417,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1590969600,
@@ -476,7 +476,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -545,7 +545,7 @@ class lbank extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "symbol"："eth_btc",
@@ -756,23 +756,23 @@ class lbank extends Exchange {
             $response = $this->privatePostWithdraw (array_merge($request, $params));
             //
             //     {
-            //         'result' => 'true',
-            //         'withdrawId' => 90082,
-            //         'fee':0.001
+            //         "result" => "true",
+            //         "withdrawId" => 90082,
+            //         "fee":0.001
             //     }
             //
             return $this->parse_transaction($response, $currency);
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
         //     {
-        //         'result' => 'true',
-        //         'withdrawId' => 90082,
-        //         'fee':0.001
+        //         "result" => "true",
+        //         "withdrawId" => 90082,
+        //         "fee":0.001
         //     }
         //
         $currency = $this->safe_currency(null, $currency);

@@ -70,13 +70,13 @@ export default class alpaca extends alpacaRest {
     handleTicker(client, message) {
         //
         //    {
-        //         T: 'q',
-        //         S: 'BTC/USDT',
-        //         bp: 17394.44,
-        //         bs: 0.021981,
-        //         ap: 17397.99,
-        //         as: 0.02,
-        //         t: '2022-12-16T06:07:56.611063286Z'
+        //         "T": "q",
+        //         "S": "BTC/USDT",
+        //         "bp": 17394.44,
+        //         "bs": 0.021981,
+        //         "ap": 17397.99,
+        //         "as": 0.02,
+        //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
         const ticker = this.parseTicker(message);
@@ -88,13 +88,13 @@ export default class alpaca extends alpacaRest {
     parseTicker(ticker, market = undefined) {
         //
         //    {
-        //         T: 'q',
-        //         S: 'BTC/USDT',
-        //         bp: 17394.44,
-        //         bs: 0.021981,
-        //         ap: 17397.99,
-        //         as: 0.02,
-        //         t: '2022-12-16T06:07:56.611063286Z'
+        //         "T": "q",
+        //         "S": "BTC/USDT",
+        //         "bp": 17394.44,
+        //         "bs": 0.021981,
+        //         "ap": 17397.99,
+        //         "as": 0.02,
+        //         "t": "2022-12-16T06:07:56.611063286Z"
         //    }
         //
         const marketId = this.safeString(ticker, 'S');
@@ -153,16 +153,16 @@ export default class alpaca extends alpacaRest {
     handleOHLCV(client, message) {
         //
         //    {
-        //        T: 'b',
-        //        S: 'BTC/USDT',
-        //        o: 17416.39,
-        //        h: 17424.82,
-        //        l: 17416.39,
-        //        c: 17424.82,
-        //        v: 1.341054,
-        //        t: '2022-12-16T06:53:00Z',
-        //        n: 21,
-        //        vw: 17421.9529234915
+        //        "T": "b",
+        //        "S": "BTC/USDT",
+        //        "o": 17416.39,
+        //        "h": 17424.82,
+        //        "l": 17416.39,
+        //        "c": 17424.82,
+        //        "v": 1.341054,
+        //        "t": "2022-12-16T06:53:00Z",
+        //        "n": 21,
+        //        "vw": 17421.9529234915
         //    }
         //
         const marketId = this.safeString(message, 'S');
@@ -205,22 +205,22 @@ export default class alpaca extends alpacaRest {
         //
         // snapshot
         //    {
-        //        T: "o",
-        //        S: "BTC/USDT",
-        //        t: "2022-12-16T06:35:31.585113205Z",
-        //        b: [{
-        //                p: 17394.37,
-        //                s: 0.015499,
+        //        "T": "o",
+        //        "S": "BTC/USDT",
+        //        "t": "2022-12-16T06:35:31.585113205Z",
+        //        "b": [{
+        //                "p": 17394.37,
+        //                "s": 0.015499,
         //            },
         //            ...
         //        ],
-        //        a: [{
-        //                p: 17398.8,
-        //                s: 0.042919,
+        //        "a": [{
+        //                "p": 17398.8,
+        //                "s": 0.042919,
         //            },
         //            ...
         //        ],
-        //        r: true,
+        //        "r": true,
         //    }
         //
         const marketId = this.safeString(message, 'S');
@@ -287,13 +287,13 @@ export default class alpaca extends alpacaRest {
     handleTrades(client, message) {
         //
         //     {
-        //         T: 't',
-        //         S: 'BTC/USDT',
-        //         p: 17408.8,
-        //         s: 0.042919,
-        //         t: '2022-12-16T06:43:18.327Z',
-        //         i: 16585162,
-        //         tks: 'B'
+        //         "T": "t",
+        //         "S": "BTC/USDT",
+        //         "p": 17408.8,
+        //         "s": 0.042919,
+        //         "t": "2022-12-16T06:43:18.327Z",
+        //         "i": 16585162,
+        //         "tks": "B"
         //     ]
         //
         const marketId = this.safeString(message, 'S');
@@ -380,46 +380,46 @@ export default class alpaca extends alpacaRest {
     handleOrder(client, message) {
         //
         //    {
-        //        stream: 'trade_updates',
-        //        data: {
-        //          event: 'new',
-        //          timestamp: '2022-12-16T07:28:51.67621869Z',
-        //          order: {
-        //            id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        //            client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        //            created_at: '2022-12-16T02:28:51.673531798-05:00',
-        //            updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        //            submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        //            filled_at: null,
-        //            expired_at: null,
-        //            cancel_requested_at: null,
-        //            canceled_at: null,
-        //            failed_at: null,
-        //            replaced_at: null,
-        //            replaced_by: null,
-        //            replaces: null,
-        //            asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        //            symbol: 'BTC/USD',
-        //            asset_class: 'crypto',
-        //            notional: null,
-        //            qty: '0.01',
-        //            filled_qty: '0',
-        //            filled_avg_price: null,
-        //            order_class: '',
-        //            order_type: 'market',
-        //            type: 'market',
-        //            side: 'buy',
-        //            time_in_force: 'gtc',
-        //            limit_price: null,
-        //            stop_price: null,
-        //            status: 'new',
-        //            extended_hours: false,
-        //            legs: null,
-        //            trail_percent: null,
-        //            trail_price: null,
-        //            hwm: null
+        //        "stream": "trade_updates",
+        //        "data": {
+        //          "event": "new",
+        //          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        //          "order": {
+        //            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //            "filled_at": null,
+        //            "expired_at": null,
+        //            "cancel_requested_at": null,
+        //            "canceled_at": null,
+        //            "failed_at": null,
+        //            "replaced_at": null,
+        //            "replaced_by": null,
+        //            "replaces": null,
+        //            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //            "symbol": "BTC/USD",
+        //            "asset_class": "crypto",
+        //            "notional": null,
+        //            "qty": "0.01",
+        //            "filled_qty": "0",
+        //            "filled_avg_price": null,
+        //            "order_class": '',
+        //            "order_type": "market",
+        //            "type": "market",
+        //            "side": "buy",
+        //            "time_in_force": "gtc",
+        //            "limit_price": null,
+        //            "stop_price": null,
+        //            "status": "new",
+        //            "extended_hours": false,
+        //            "legs": null,
+        //            "trail_percent": null,
+        //            "trail_price": null,
+        //            "hwm": null
         //          },
-        //          execution_id: '5f781a30-b9a3-4c86-b466-2175850cf340'
+        //          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         //        }
         //      }
         //
@@ -440,46 +440,46 @@ export default class alpaca extends alpacaRest {
     handleMyTrade(client, message) {
         //
         //    {
-        //        stream: 'trade_updates',
-        //        data: {
-        //          event: 'new',
-        //          timestamp: '2022-12-16T07:28:51.67621869Z',
-        //          order: {
-        //            id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        //            client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        //            created_at: '2022-12-16T02:28:51.673531798-05:00',
-        //            updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        //            submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        //            filled_at: null,
-        //            expired_at: null,
-        //            cancel_requested_at: null,
-        //            canceled_at: null,
-        //            failed_at: null,
-        //            replaced_at: null,
-        //            replaced_by: null,
-        //            replaces: null,
-        //            asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        //            symbol: 'BTC/USD',
-        //            asset_class: 'crypto',
-        //            notional: null,
-        //            qty: '0.01',
-        //            filled_qty: '0',
-        //            filled_avg_price: null,
-        //            order_class: '',
-        //            order_type: 'market',
-        //            type: 'market',
-        //            side: 'buy',
-        //            time_in_force: 'gtc',
-        //            limit_price: null,
-        //            stop_price: null,
-        //            status: 'new',
-        //            extended_hours: false,
-        //            legs: null,
-        //            trail_percent: null,
-        //            trail_price: null,
-        //            hwm: null
+        //        "stream": "trade_updates",
+        //        "data": {
+        //          "event": "new",
+        //          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        //          "order": {
+        //            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //            "filled_at": null,
+        //            "expired_at": null,
+        //            "cancel_requested_at": null,
+        //            "canceled_at": null,
+        //            "failed_at": null,
+        //            "replaced_at": null,
+        //            "replaced_by": null,
+        //            "replaces": null,
+        //            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //            "symbol": "BTC/USD",
+        //            "asset_class": "crypto",
+        //            "notional": null,
+        //            "qty": "0.01",
+        //            "filled_qty": "0",
+        //            "filled_avg_price": null,
+        //            "order_class": '',
+        //            "order_type": "market",
+        //            "type": "market",
+        //            "side": "buy",
+        //            "time_in_force": "gtc",
+        //            "limit_price": null,
+        //            "stop_price": null,
+        //            "status": "new",
+        //            "extended_hours": false,
+        //            "legs": null,
+        //            "trail_percent": null,
+        //            "trail_price": null,
+        //            "hwm": null
         //          },
-        //          execution_id: '5f781a30-b9a3-4c86-b466-2175850cf340'
+        //          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         //        }
         //      }
         //
@@ -504,39 +504,39 @@ export default class alpaca extends alpacaRest {
     parseMyTrade(trade, market = undefined) {
         //
         //    {
-        //        id: 'c2470331-8993-4051-bf5d-428d5bdc9a48',
-        //        client_order_id: '0f1f3764-107a-4d09-8b9a-d75a11738f5c',
-        //        created_at: '2022-12-16T02:28:51.673531798-05:00',
-        //        updated_at: '2022-12-16T02:28:51.678736847-05:00',
-        //        submitted_at: '2022-12-16T02:28:51.673015558-05:00',
-        //        filled_at: null,
-        //        expired_at: null,
-        //        cancel_requested_at: null,
-        //        canceled_at: null,
-        //        failed_at: null,
-        //        replaced_at: null,
-        //        replaced_by: null,
-        //        replaces: null,
-        //        asset_id: '276e2673-764b-4ab6-a611-caf665ca6340',
-        //        symbol: 'BTC/USD',
-        //        asset_class: 'crypto',
-        //        notional: null,
-        //        qty: '0.01',
-        //        filled_qty: '0',
-        //        filled_avg_price: null,
-        //        order_class: '',
-        //        order_type: 'market',
-        //        type: 'market',
-        //        side: 'buy',
-        //        time_in_force: 'gtc',
-        //        limit_price: null,
-        //        stop_price: null,
-        //        status: 'new',
-        //        extended_hours: false,
-        //        legs: null,
-        //        trail_percent: null,
-        //        trail_price: null,
-        //        hwm: null
+        //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //        "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //        "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //        "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //        "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //        "filled_at": null,
+        //        "expired_at": null,
+        //        "cancel_requested_at": null,
+        //        "canceled_at": null,
+        //        "failed_at": null,
+        //        "replaced_at": null,
+        //        "replaced_by": null,
+        //        "replaces": null,
+        //        "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //        "symbol": "BTC/USD",
+        //        "asset_class": "crypto",
+        //        "notional": null,
+        //        "qty": "0.01",
+        //        "filled_qty": "0",
+        //        "filled_avg_price": null,
+        //        "order_class": '',
+        //        "order_type": "market",
+        //        "type": "market",
+        //        "side": "buy",
+        //        "time_in_force": "gtc",
+        //        "limit_price": null,
+        //        "stop_price": null,
+        //        "status": "new",
+        //        "extended_hours": false,
+        //        "legs": null,
+        //        "trail_percent": null,
+        //        "trail_price": null,
+        //        "hwm": null
         //    }
         //
         const marketId = this.safeString(trade, 'symbol');
@@ -591,9 +591,9 @@ export default class alpaca extends alpacaRest {
     handleErrorMessage(client, message) {
         //
         //    {
-        //        T: 'error',
-        //        code: 400,
-        //        msg: 'invalid syntax'
+        //        "T": "error",
+        //        "code": 400,
+        //        "msg": "invalid syntax"
         //    }
         //
         const code = this.safeString(message, 'code');
@@ -603,8 +603,8 @@ export default class alpaca extends alpacaRest {
     handleConnected(client, message) {
         //
         //    {
-        //        T: 'success',
-        //        msg: 'connected'
+        //        "T": "success",
+        //        "msg": "connected"
         //    }
         //
         return message;
@@ -658,8 +658,8 @@ export default class alpaca extends alpacaRest {
         //
         // crypto
         //    {
-        //        T: 'success',
-        //        msg: 'connected'
+        //        "T": "success",
+        //        "msg": "connected"
         //    ]
         //
         // trading
@@ -672,11 +672,11 @@ export default class alpaca extends alpacaRest {
         //    }
         // error
         //    {
-        //        stream: 'authorization',
-        //        data: {
-        //            action: 'authenticate',
-        //            message: 'access key verification failed',
-        //            status: 'unauthorized'
+        //        "stream": "authorization",
+        //        "data": {
+        //            "action": "authenticate",
+        //            "message": "access key verification failed",
+        //            "status": "unauthorized"
         //        }
         //    }
         //
@@ -694,19 +694,19 @@ export default class alpaca extends alpacaRest {
         //
         // crypto
         //    {
-        //          T: 'subscription',
-        //          trades: [],
-        //          quotes: [ 'BTC/USDT' ],
-        //          orderbooks: [],
-        //          bars: [],
-        //          updatedBars: [],
-        //          dailyBars: []
+        //          "T": "subscription",
+        //          "trades": [],
+        //          "quotes": [ "BTC/USDT" ],
+        //          "orderbooks": [],
+        //          "bars": [],
+        //          "updatedBars": [],
+        //          "dailyBars": []
         //    }
         // trading
         //    {
-        //        stream: 'listening',
-        //        data: {
-        //            streams: ['trade_updates']
+        //        "stream": "listening",
+        //        "data": {
+        //            "streams": ["trade_updates"]
         //        }
         //    }
         //

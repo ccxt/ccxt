@@ -182,7 +182,7 @@ class bit2c extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -277,7 +277,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
         $averagePrice = $this->safe_string($ticker, 'av');
@@ -518,7 +518,7 @@ class bit2c extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //      createOrder
         //      {
@@ -710,7 +710,7 @@ class bit2c extends Exchange {
         return $newString;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -833,8 +833,8 @@ class bit2c extends Exchange {
             $response = Async\await($this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params)));
             //
             //     {
-            //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-            //         'hasTx' => False
+            //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+            //         "hasTx" => False
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
@@ -844,8 +844,8 @@ class bit2c extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx' => False
+        //         "address" => "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        //         "hasTx" => False
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');

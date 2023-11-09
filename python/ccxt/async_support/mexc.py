@@ -6,10 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
-from ccxt.base.types import IndexType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, IndexType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -904,38 +901,38 @@ class mexc(Exchange, ImplicitAPI):
         response = await self.spotPrivateGetCapitalConfigGetall(params)
         #
         # {
-        #     coin: 'QANX',
-        #     name: 'QANplatform',
-        #     networkList: [
+        #     "coin": "QANX",
+        #     "name": "QANplatform",
+        #     "networkList": [
         #       {
-        #         coin: 'QANX',
-        #         depositDesc: null,
-        #         depositEnable: True,
-        #         minConfirm: '0',
-        #         name: 'QANplatform',
-        #         network: 'BEP20(BSC)',
-        #         withdrawEnable: False,
-        #         withdrawFee: '42.000000000000000000',
-        #         withdrawIntegerMultiple: null,
-        #         withdrawMax: '24000000.000000000000000000',
-        #         withdrawMin: '20.000000000000000000',
-        #         sameAddress: False,
-        #         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        #         "coin": "QANX",
+        #         "depositDesc": null,
+        #         "depositEnable": True,
+        #         "minConfirm": "0",
+        #         "name": "QANplatform",
+        #         "network": "BEP20(BSC)",
+        #         "withdrawEnable": False,
+        #         "withdrawFee": "42.000000000000000000",
+        #         "withdrawIntegerMultiple": null,
+        #         "withdrawMax": "24000000.000000000000000000",
+        #         "withdrawMin": "20.000000000000000000",
+        #         "sameAddress": False,
+        #         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         #       },
         #       {
-        #         coin: 'QANX',
-        #         depositDesc: null,
-        #         depositEnable: True,
-        #         minConfirm: '0',
-        #         name: 'QANplatform',
-        #         network: 'ERC20',
-        #         withdrawEnable: True,
-        #         withdrawFee: '2732.000000000000000000',
-        #         withdrawIntegerMultiple: null,
-        #         withdrawMax: '24000000.000000000000000000',
-        #         withdrawMin: '240.000000000000000000',
-        #         sameAddress: False,
-        #         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        #         "coin": "QANX",
+        #         "depositDesc": null,
+        #         "depositEnable": True,
+        #         "minConfirm": "0",
+        #         "name": "QANplatform",
+        #         "network": "ERC20",
+        #         "withdrawEnable": True,
+        #         "withdrawFee": "2732.000000000000000000",
+        #         "withdrawIntegerMultiple": null,
+        #         "withdrawMax": "24000000.000000000000000000",
+        #         "withdrawMin": "240.000000000000000000",
+        #         "sameAddress": False,
+        #         "contract": "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         #       }
         #     ]
         #   }
@@ -1426,7 +1423,7 @@ class mexc(Exchange, ImplicitAPI):
             trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         id = None
         timestamp = None
         orderId = None
@@ -1675,7 +1672,7 @@ class mexc(Exchange, ImplicitAPI):
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -1835,7 +1832,7 @@ class mexc(Exchange, ImplicitAPI):
         # when it's single symbol request, the returned structure is different(singular object) for both spot & swap, thus we need to wrap inside array
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = None
@@ -2559,14 +2556,14 @@ class mexc(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {}
         market = None
+        marketType = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-        marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
+            request['symbol'] = market['id']
             method = 'spotPrivateGetOpenOrders'
             marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
             if marginMode is not None:
@@ -2655,7 +2652,6 @@ class mexc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
         marketType = self.handle_market_type_and_params('fetchOrdersByState', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
@@ -2868,7 +2864,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data', [])
             return self.parse_orders(data, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot: createOrder
         #
@@ -3220,7 +3216,7 @@ class mexc(Exchange, ImplicitAPI):
             }
         return result
 
-    def custom_parse_balance(self, response, marketType):
+    def custom_parse_balance(self, response, marketType) -> Balances:
         #
         # spot
         #
@@ -4121,16 +4117,16 @@ class mexc(Exchange, ImplicitAPI):
         #
         # [
         #     {
-        #         amount: '10',
-        #         coin: 'USDC-TRX',
-        #         network: 'TRX',
-        #         status: '5',
-        #         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        #         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        #         insertTime: '1664805021000',
-        #         unlockConfirm: '200',
-        #         confirmTimes: '203',
-        #         memo: 'xxyy1122'
+        #         "amount": "10",
+        #         "coin": "USDC-TRX",
+        #         "network": "TRX",
+        #         "status": "5",
+        #         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        #         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        #         "insertTime": "1664805021000",
+        #         "unlockConfirm": "200",
+        #         "confirmTimes": "203",
+        #         "memo": "xxyy1122"
         #     }
         # ]
         #
@@ -4168,57 +4164,57 @@ class mexc(Exchange, ImplicitAPI):
         #
         # [
         #     {
-        #       id: 'adcd1c8322154de691b815eedcd10c42',
-        #       txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        #       coin: 'USDC-MATIC',
-        #       network: 'MATIC',
-        #       address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        #       amount: '2',
-        #       transferType: '0',
-        #       status: '7',
-        #       transactionFee: '1',
-        #       confirmNo: null,
-        #       applyTime: '1664882739000',
-        #       remark: '',
-        #       memo: null
+        #       "id": "adcd1c8322154de691b815eedcd10c42",
+        #       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #       "coin": "USDC-MATIC",
+        #       "network": "MATIC",
+        #       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        #       "amount": "2",
+        #       "transferType": "0",
+        #       "status": "7",
+        #       "transactionFee": "1",
+        #       "confirmNo": null,
+        #       "applyTime": "1664882739000",
+        #       "remark": '',
+        #       "memo": null
         #     }
         # ]
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
         # {
-        #     amount: '10',
-        #     coin: 'USDC-TRX',
-        #     network: 'TRX',
-        #     status: '5',
-        #     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        #     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        #     insertTime: '1664805021000',
-        #     unlockConfirm: '200',
-        #     confirmTimes: '203',
-        #     memo: 'xxyy1122'
+        #     "amount": "10",
+        #     "coin": "USDC-TRX",
+        #     "network": "TRX",
+        #     "status": "5",
+        #     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        #     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        #     "insertTime": "1664805021000",
+        #     "unlockConfirm": "200",
+        #     "confirmTimes": "203",
+        #     "memo": "xxyy1122"
         # }
         #
         # fetchWithdrawals
         #
         # {
-        #     id: 'adcd1c8322154de691b815eedcd10c42',
-        #     txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        #     coin: 'USDC-MATIC',
-        #     network: 'MATIC',
-        #     address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        #     amount: '2',
-        #     transferType: '0',
-        #     status: '7',
-        #     transactionFee: '1',
-        #     confirmNo: null,
-        #     applyTime: '1664882739000',
-        #     remark: '',
-        #     memo: null
+        #     "id": "adcd1c8322154de691b815eedcd10c42",
+        #     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        #     "coin": "USDC-MATIC",
+        #     "network": "MATIC",
+        #     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        #     "amount": "2",
+        #     "transferType": "0",
+        #     "status": "7",
+        #     "transactionFee": "1",
+        #     "confirmNo": null,
+        #     "applyTime": "1664882739000",
+        #     "remark": '',
+        #     "memo": null
         #   }
         #
         # withdraw
@@ -4435,14 +4431,14 @@ class mexc(Exchange, ImplicitAPI):
             response = await self.spot2PrivateGetAssetInternalTransferInfo(self.extend(request, query))
             #
             #     {
-            #         code: '200',
-            #         data: {
-            #             currency: 'USDT',
-            #             amount: '1',
-            #             transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
-            #             from: 'MAIN',
-            #             to: 'CONTRACT',
-            #             transact_state: 'SUCCESS'
+            #         "code": "200",
+            #         "data": {
+            #             "currency": "USDT",
+            #             "amount": "1",
+            #             "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
+            #             "from": "MAIN",
+            #             "to": "CONTRACT",
+            #             "transact_state": "SUCCESS"
             #         }
             #     }
             #
@@ -4479,17 +4475,17 @@ class mexc(Exchange, ImplicitAPI):
             response = await self.spot2PrivateGetAssetInternalTransferRecord(self.extend(request, query))
             #
             #     {
-            #         code: '200',
-            #         data: {
-            #             total_page: '1',
-            #             total_size: '5',
-            #             result_list: [{
-            #                     currency: 'USDT',
-            #                     amount: '1',
-            #                     transact_id: '954877a2ef54499db9b28a7cf9ebcf41',
-            #                     from: 'MAIN',
-            #                     to: 'CONTRACT',
-            #                     transact_state: 'SUCCESS'
+            #         "code": "200",
+            #         "data": {
+            #             "total_page": "1",
+            #             "total_size": "5",
+            #             "result_list": [{
+            #                     "currency": "USDT",
+            #                     "amount": "1",
+            #                     "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
+            #                     "from": "MAIN",
+            #                     "to": "CONTRACT",
+            #                     "transact_state": "SUCCESS"
             #                 },
             #                 ...
             #             ]
@@ -4588,12 +4584,12 @@ class mexc(Exchange, ImplicitAPI):
         # spot: fetchTransfer
         #
         #     {
-        #         currency: 'USDT',
-        #         amount: '1',
-        #         transact_id: 'b60c1df8e7b24b268858003f374ecb75',
-        #         from: 'MAIN',
-        #         to: 'CONTRACT',
-        #         transact_state: 'WAIT'
+        #         "currency": "USDT",
+        #         "amount": "1",
+        #         "transact_id": "b60c1df8e7b24b268858003f374ecb75",
+        #         "from": "MAIN",
+        #         "to": "CONTRACT",
+        #         "transact_state": "WAIT"
         #     }
         #
         # swap: fetchTransfer
@@ -4801,25 +4797,25 @@ class mexc(Exchange, ImplicitAPI):
         #
         #    [
         #       {
-        #           coin: 'AGLD',
-        #           name: 'Adventure Gold',
-        #           networkList: [
+        #           "coin": "AGLD",
+        #           "name": "Adventure Gold",
+        #           "networkList": [
         #               {
-        #                   coin: 'AGLD',
-        #                   depositDesc: null,
-        #                   depositEnable: True,
-        #                   minConfirm: '0',
-        #                   name: 'Adventure Gold',
-        #                   network: 'ERC20',
-        #                   withdrawEnable: True,
-        #                   withdrawFee: '10.000000000000000000',
-        #                   withdrawIntegerMultiple: null,
-        #                   withdrawMax: '1200000.000000000000000000',
-        #                   withdrawMin: '20.000000000000000000',
-        #                   sameAddress: False,
-        #                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        #                   withdrawTips: null,
-        #                   depositTips: null
+        #                   "coin": "AGLD",
+        #                   "depositDesc": null,
+        #                   "depositEnable": True,
+        #                   "minConfirm": "0",
+        #                   "name": "Adventure Gold",
+        #                   "network": "ERC20",
+        #                   "withdrawEnable": True,
+        #                   "withdrawFee": "10.000000000000000000",
+        #                   "withdrawIntegerMultiple": null,
+        #                   "withdrawMax": "1200000.000000000000000000",
+        #                   "withdrawMin": "20.000000000000000000",
+        #                   "sameAddress": False,
+        #                   "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        #                   "withdrawTips": null,
+        #                   "depositTips": null
         #               }
         #               ...
         #           ]
@@ -4847,25 +4843,25 @@ class mexc(Exchange, ImplicitAPI):
     def parse_transaction_fee(self, transaction, currency=None):
         #
         #    {
-        #        coin: 'AGLD',
-        #        name: 'Adventure Gold',
-        #        networkList: [
+        #        "coin": "AGLD",
+        #        "name": "Adventure Gold",
+        #        "networkList": [
         #            {
-        #                coin: 'AGLD',
-        #                depositDesc: null,
-        #                depositEnable: True,
-        #                minConfirm: '0',
-        #                name: 'Adventure Gold',
-        #                network: 'ERC20',
-        #                withdrawEnable: True,
-        #                withdrawFee: '10.000000000000000000',
-        #                withdrawIntegerMultiple: null,
-        #                withdrawMax: '1200000.000000000000000000',
-        #                withdrawMin: '20.000000000000000000',
-        #                sameAddress: False,
-        #                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        #                withdrawTips: null,
-        #                depositTips: null
+        #                "coin": "AGLD",
+        #                "depositDesc": null,
+        #                "depositEnable": True,
+        #                "minConfirm": "0",
+        #                "name": "Adventure Gold",
+        #                "network": "ERC20",
+        #                "withdrawEnable": True,
+        #                "withdrawFee": "10.000000000000000000",
+        #                "withdrawIntegerMultiple": null,
+        #                "withdrawMax": "1200000.000000000000000000",
+        #                "withdrawMin": "20.000000000000000000",
+        #                "sameAddress": False,
+        #                "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        #                "withdrawTips": null,
+        #                "depositTips": null
         #            }
         #            ...
         #        ]
@@ -4894,25 +4890,25 @@ class mexc(Exchange, ImplicitAPI):
         #
         #    [
         #       {
-        #           coin: 'AGLD',
-        #           name: 'Adventure Gold',
-        #           networkList: [
+        #           "coin": "AGLD",
+        #           "name": "Adventure Gold",
+        #           "networkList": [
         #               {
-        #                   coin: 'AGLD',
-        #                   depositDesc: null,
-        #                   depositEnable: True,
-        #                   minConfirm: '0',
-        #                   name: 'Adventure Gold',
-        #                   network: 'ERC20',
-        #                   withdrawEnable: True,
-        #                   withdrawFee: '10.000000000000000000',
-        #                   withdrawIntegerMultiple: null,
-        #                   withdrawMax: '1200000.000000000000000000',
-        #                   withdrawMin: '20.000000000000000000',
-        #                   sameAddress: False,
-        #                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        #                   withdrawTips: null,
-        #                   depositTips: null
+        #                   "coin": "AGLD",
+        #                   "depositDesc": null,
+        #                   "depositEnable": True,
+        #                   "minConfirm": "0",
+        #                   "name": "Adventure Gold",
+        #                   "network": "ERC20",
+        #                   "withdrawEnable": True,
+        #                   "withdrawFee": "10.000000000000000000",
+        #                   "withdrawIntegerMultiple": null,
+        #                   "withdrawMax": "1200000.000000000000000000",
+        #                   "withdrawMin": "20.000000000000000000",
+        #                   "sameAddress": False,
+        #                   "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        #                   "withdrawTips": null,
+        #                   "depositTips": null
         #               }
         #               ...
         #           ]
@@ -4925,25 +4921,25 @@ class mexc(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         #    {
-        #        coin: 'AGLD',
-        #        name: 'Adventure Gold',
-        #        networkList: [
+        #        "coin": "AGLD",
+        #        "name": "Adventure Gold",
+        #        "networkList": [
         #            {
-        #                coin: 'AGLD',
-        #                depositDesc: null,
-        #                depositEnable: True,
-        #                minConfirm: '0',
-        #                name: 'Adventure Gold',
-        #                network: 'ERC20',
-        #                withdrawEnable: True,
-        #                withdrawFee: '10.000000000000000000',
-        #                withdrawIntegerMultiple: null,
-        #                withdrawMax: '1200000.000000000000000000',
-        #                withdrawMin: '20.000000000000000000',
-        #                sameAddress: False,
-        #                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        #                withdrawTips: null,
-        #                depositTips: null
+        #                "coin": "AGLD",
+        #                "depositDesc": null,
+        #                "depositEnable": True,
+        #                "minConfirm": "0",
+        #                "name": "Adventure Gold",
+        #                "network": "ERC20",
+        #                "withdrawEnable": True,
+        #                "withdrawFee": "10.000000000000000000",
+        #                "withdrawIntegerMultiple": null,
+        #                "withdrawMax": "1200000.000000000000000000",
+        #                "withdrawMin": "20.000000000000000000",
+        #                "sameAddress": False,
+        #                "contract": "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        #                "withdrawTips": null,
+        #                "depositTips": null
         #            }
         #            ...
         #        ]

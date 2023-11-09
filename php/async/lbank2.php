@@ -532,7 +532,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -805,7 +805,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (old) spotPublicGetTrades
         //
@@ -961,7 +961,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //     1482311500, // timestamp
@@ -1037,7 +1037,7 @@ class lbank2 extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         // spotPrivatePostUserInfo
         //
@@ -1378,7 +1378,7 @@ class lbank2 extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrderSupplement (private)
         //
@@ -2058,7 +2058,7 @@ class lbank2 extends Exchange {
         return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits (private)
         //
@@ -2361,23 +2361,23 @@ class lbank2 extends Exchange {
             $response = Async\await($this->spotPublicGetWithdrawConfigs (array_merge($request, $params)));
             //
             //    {
-            //        $result => 'true',
-            //        data => array(
+            //        "result" => "true",
+            //        "data" => array(
             //          array(
-            //            amountScale => '4',
-            //            $chain => 'heco',
-            //            assetCode => 'lbk',
-            //            min => '200',
-            //            transferAmtScale => '4',
-            //            canWithDraw => true,
-            //            $fee => '100',
-            //            minTransfer => '0.0001',
-            //            type => '1'
+            //            "amountScale" => "4",
+            //            "chain" => "heco",
+            //            "assetCode" => "lbk",
+            //            "min" => "200",
+            //            "transferAmtScale" => "4",
+            //            "canWithDraw" => true,
+            //            "fee" => "100",
+            //            "minTransfer" => "0.0001",
+            //            "type" => "1"
             //          ),
             //          ...
             //        ),
-            //        error_code => '0',
-            //        ts => '1663364435973'
+            //        "error_code" => "0",
+            //        "ts" => "1663364435973"
             //    }
             //
             $result = $this->safe_value($response, 'data', array());
@@ -2485,23 +2485,23 @@ class lbank2 extends Exchange {
             $response = Async\await($this->spotPublicGetWithdrawConfigs (array_merge($request, $params)));
             //
             //    {
-            //        result => 'true',
-            //        $data => array(
+            //        "result" => "true",
+            //        "data" => array(
             //            array(
-            //                amountScale => '4',
-            //                chain => 'heco',
-            //                assetCode => 'lbk',
-            //                min => '200',
-            //                transferAmtScale => '4',
-            //                canWithDraw => true,
-            //                fee => '100',
-            //                minTransfer => '0.0001',
-            //                type => '1'
+            //                "amountScale" => "4",
+            //                "chain" => "heco",
+            //                "assetCode" => "lbk",
+            //                "min" => "200",
+            //                "transferAmtScale" => "4",
+            //                "canWithDraw" => true,
+            //                "fee" => "100",
+            //                "minTransfer" => "0.0001",
+            //                "type" => "1"
             //            ),
             //            ...
             //        ),
-            //        error_code => '0',
-            //        ts => '1663364435973'
+            //        "error_code" => "0",
+            //        "ts" => "1663364435973"
             //    }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -2513,15 +2513,15 @@ class lbank2 extends Exchange {
         //
         //    array(
         //        array(
-        //            amountScale => '4',
-        //            $chain => 'heco',
-        //            assetCode => 'lbk',
-        //            min => '200',
-        //            transferAmtScale => '4',
-        //            canWithDraw => true,
-        //            $fee => '100',
-        //            minTransfer => '0.0001',
-        //            type => '1'
+        //            "amountScale" => "4",
+        //            "chain" => "heco",
+        //            "assetCode" => "lbk",
+        //            "min" => "200",
+        //            "transferAmtScale" => "4",
+        //            "canWithDraw" => true,
+        //            "fee" => "100",
+        //            "minTransfer" => "0.0001",
+        //            "type" => "1"
         //        ),
         //        ...
         //    )

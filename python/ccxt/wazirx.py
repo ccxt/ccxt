@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -35,18 +34,27 @@ class wazirx(Exchange, ImplicitAPI):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': False,
@@ -58,7 +66,11 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': False,
@@ -68,7 +80,10 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchOrder': False,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
                 'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -81,6 +96,12 @@ class wazirx(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': False,
+                'reduceMargin': False,
+                'repayMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
             },
@@ -310,7 +331,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    [1669014300,1402001,1402001,1402001,1402001,0],
         #
@@ -453,7 +474,7 @@ class wazirx(Exchange, ImplicitAPI):
         # ]
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         #     {
         #         "id":322307791,
@@ -527,7 +548,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #        "symbol":"btcinr",
@@ -577,7 +598,7 @@ class wazirx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -793,7 +814,7 @@ class wazirx(Exchange, ImplicitAPI):
         # }
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         # {
         #     "id":1949417813,
         #     "symbol":"ltcusdt",

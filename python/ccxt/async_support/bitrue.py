@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -504,17 +503,17 @@ class bitrue(Exchange, ImplicitAPI):
         #         ],
         #         "coins":[
         #           {
-        #               coin: "near",
-        #               coinFulName: "NEAR Protocol",
-        #               chains: ["BEP20",],
-        #               chainDetail: [
+        #               "coin": "near",
+        #               "coinFulName": "NEAR Protocol",
+        #               "chains": ["BEP20",],
+        #               "chainDetail": [
         #                 {
-        #                     chain: "BEP20",
-        #                     enableWithdraw: True,
-        #                     enableDeposit: True,
-        #                     withdrawFee: "0.2000",
-        #                     minWithdraw: "5.0000",
-        #                     maxWithdraw: "1000000000000000.0000",
+        #                     "chain": "BEP20",
+        #                     "enableWithdraw": True,
+        #                     "enableDeposit": True,
+        #                     "withdrawFee": "0.2000",
+        #                     "minWithdraw": "5.0000",
+        #                     "maxWithdraw": "1000000000000000.0000",
         #                 },
         #               ],
         #           },
@@ -713,7 +712,7 @@ class bitrue(Exchange, ImplicitAPI):
             result.append(entry)
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
         }
@@ -793,7 +792,7 @@ class bitrue(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'lastUpdateId')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchBidsAsks
         #
@@ -927,7 +926,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #      {
         #         "i":"1660825020",
@@ -1019,7 +1018,7 @@ class bitrue(Exchange, ImplicitAPI):
             tickers[marketId] = data[marketIds[i]]
         return self.parse_tickers(tickers, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # aggregate trades
         #  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
@@ -1176,7 +1175,7 @@ class bitrue(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1453,9 +1452,9 @@ class bitrue(Exchange, ImplicitAPI):
         origClientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         request = {
             'symbol': market['id'],
-            # 'orderId': id,
-            # 'origClientOrderId': id,
-            # 'newClientOrderId': id,
+            # "orderId": id,
+            # "origClientOrderId": id,
+            # "newClientOrderId": id,
         }
         if origClientOrderId is None:
             request['orderId'] = id
@@ -1647,7 +1646,7 @@ class bitrue(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1824,10 +1823,10 @@ class bitrue(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         #   {
-        #       coin: 'adx',
-        #       coinFulName: 'Ambire AdEx',
-        #       chains: ['BSC'],
-        #       chainDetail: [[Object]]
+        #       "coin": "adx",
+        #       "coinFulName": "Ambire AdEx",
+        #       "chains": ["BSC"],
+        #       "chainDetail": [[Object]]
         #   }
         #
         chainDetails = self.safe_value(fee, 'chainDetail', [])

@@ -240,7 +240,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $type, $type);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //    {
         //         "id" => "6500230339",
@@ -450,7 +450,7 @@ class btcmarkets extends Exchange {
         return $this->parse8601($this->safe_string($response, 'timestamp'));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -475,7 +475,7 @@ class btcmarkets extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "2020-09-12T18:30:00.000000Z",
@@ -570,7 +570,7 @@ class btcmarkets extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -662,7 +662,7 @@ class btcmarkets extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -919,7 +919,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //

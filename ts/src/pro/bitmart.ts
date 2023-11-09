@@ -149,22 +149,22 @@ export default class bitmart extends bitmartRest {
         // {
         //     "data":[
         //         {
-        //             symbol: 'LTC_USDT',
-        //             notional: '',
-        //             side: 'buy',
-        //             last_fill_time: '0',
-        //             ms_t: '1646216634000',
-        //             type: 'limit',
-        //             filled_notional: '0.000000000000000000000000000000',
-        //             last_fill_price: '0',
-        //             size: '0.500000000000000000000000000000',
-        //             price: '50.000000000000000000000000000000',
-        //             last_fill_count: '0',
-        //             filled_size: '0.000000000000000000000000000000',
-        //             margin_trading: '0',
-        //             state: '8',
-        //             order_id: '24807076628',
-        //             order_type: '0'
+        //             "symbol": "LTC_USDT",
+        //             "notional": '',
+        //             "side": "buy",
+        //             "last_fill_time": "0",
+        //             "ms_t": "1646216634000",
+        //             "type": "limit",
+        //             "filled_notional": "0.000000000000000000000000000000",
+        //             "last_fill_price": "0",
+        //             "size": "0.500000000000000000000000000000",
+        //             "price": "50.000000000000000000000000000000",
+        //             "last_fill_count": "0",
+        //             "filled_size": "0.000000000000000000000000000000",
+        //             "margin_trading": "0",
+        //             "state": "8",
+        //             "order_id": "24807076628",
+        //             "order_type": "0"
         //           }
         //     ],
         //     "table":"spot/user/order"
@@ -197,22 +197,22 @@ export default class bitmart extends bitmartRest {
     parseWsOrder (order, market = undefined) {
         //
         // {
-        //     symbol: 'LTC_USDT',
-        //     notional: '',
-        //     side: 'buy',
-        //     last_fill_time: '0',
-        //     ms_t: '1646216634000',
-        //     type: 'limit',
-        //     filled_notional: '0.000000000000000000000000000000',
-        //     last_fill_price: '0',
-        //     size: '0.500000000000000000000000000000',
-        //     price: '50.000000000000000000000000000000',
-        //     last_fill_count: '0',
-        //     filled_size: '0.000000000000000000000000000000',
-        //     margin_trading: '0',
-        //     state: '8',
-        //     order_id: '24807076628',
-        //     order_type: '0'
+        //     "symbol": "LTC_USDT",
+        //     "notional": '',
+        //     "side": "buy",
+        //     "last_fill_time": "0",
+        //     "ms_t": "1646216634000",
+        //     "type": "limit",
+        //     "filled_notional": "0.000000000000000000000000000000",
+        //     "last_fill_price": "0",
+        //     "size": "0.500000000000000000000000000000",
+        //     "price": "50.000000000000000000000000000000",
+        //     "last_fill_count": "0",
+        //     "filled_size": "0.000000000000000000000000000000",
+        //     "margin_trading": "0",
+        //     "state": "8",
+        //     "order_id": "24807076628",
+        //     "order_type": "0"
         //   }
         //
         const marketId = this.safeString (order, 'symbol');
@@ -257,14 +257,14 @@ export default class bitmart extends bitmartRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         table: 'spot/trade',
-        //         data: [
+        //         "table": "spot/trade",
+        //         "data": [
         //             {
-        //                 price: '52700.50',
-        //                 s_t: 1630982050,
-        //                 side: 'buy',
-        //                 size: '0.00112',
-        //                 symbol: 'BTC_USDT'
+        //                 "price": "52700.50",
+        //                 "s_t": 1630982050,
+        //                 "side": "buy",
+        //                 "size": "0.00112",
+        //                 "symbol": "BTC_USDT"
         //             },
         //         ]
         //     }
@@ -291,18 +291,18 @@ export default class bitmart extends bitmartRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
-        //                 base_volume_24h: '78615593.81',
-        //                 high_24h: '52756.97',
-        //                 last_price: '52638.31',
-        //                 low_24h: '50991.35',
-        //                 open_24h: '51692.03',
-        //                 s_t: 1630981727,
-        //                 symbol: 'BTC_USDT'
+        //                 "base_volume_24h": "78615593.81",
+        //                 "high_24h": "52756.97",
+        //                 "last_price": "52638.31",
+        //                 "low_24h": "50991.35",
+        //                 "open_24h": "51692.03",
+        //                 "s_t": 1630981727,
+        //                 "symbol": "BTC_USDT"
         //             }
         //         ],
-        //         table: 'spot/ticker'
+        //         "table": "spot/ticker"
         //     }
         //
         const table = this.safeString (message, 'table');
@@ -345,20 +345,20 @@ export default class bitmart extends bitmartRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
-        //                 candle: [
+        //                 "candle": [
         //                     1631056350,
-        //                     '46532.83',
-        //                     '46555.71',
-        //                     '46511.41',
-        //                     '46555.71',
-        //                     '0.25'
+        //                     "46532.83",
+        //                     "46555.71",
+        //                     "46511.41",
+        //                     "46555.71",
+        //                     "0.25"
         //                 ],
-        //                 symbol: 'BTC_USDT'
+        //                 "symbol": "BTC_USDT"
         //             }
         //         ],
-        //         table: 'spot/kline1m'
+        //         "table": "spot/kline1m"
         //     }
         //
         const table = this.safeString (message, 'table');
@@ -422,22 +422,22 @@ export default class bitmart extends bitmartRest {
     handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
-        //         asks: [
-        //             [ '46828.38', '0.21847' ],
-        //             [ '46830.68', '0.08232' ],
-        //             [ '46832.08', '0.09285' ],
-        //             [ '46837.82', '0.02028' ],
-        //             [ '46839.43', '0.15068' ]
+        //         "asks": [
+        //             [ '46828.38', "0.21847" ],
+        //             [ '46830.68', "0.08232" ],
+        //             [ '46832.08', "0.09285" ],
+        //             [ '46837.82', "0.02028" ],
+        //             [ '46839.43', "0.15068" ]
         //         ],
-        //         bids: [
-        //             [ '46820.78', '0.00444' ],
-        //             [ '46814.33', '0.00234' ],
-        //             [ '46813.50', '0.05021' ],
-        //             [ '46808.14', '0.00217' ],
-        //             [ '46808.04', '0.00013' ]
+        //         "bids": [
+        //             [ '46820.78', "0.00444" ],
+        //             [ '46814.33', "0.00234" ],
+        //             [ '46813.50', "0.05021" ],
+        //             [ '46808.14', "0.00217" ],
+        //             [ '46808.04', "0.00013" ]
         //         ],
-        //         ms_t: 1631044962431,
-        //         symbol: 'BTC_USDT'
+        //         "ms_t": 1631044962431,
+        //         "symbol": "BTC_USDT"
         //     }
         //
         const asks = this.safeValue (message, 'asks', []);
@@ -456,27 +456,27 @@ export default class bitmart extends bitmartRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
-        //                 asks: [
-        //                     [ '46828.38', '0.21847' ],
-        //                     [ '46830.68', '0.08232' ],
-        //                     [ '46832.08', '0.09285' ],
-        //                     [ '46837.82', '0.02028' ],
-        //                     [ '46839.43', '0.15068' ]
+        //                 "asks": [
+        //                     [ '46828.38', "0.21847" ],
+        //                     [ '46830.68', "0.08232" ],
+        //                     [ '46832.08', "0.09285" ],
+        //                     [ '46837.82', "0.02028" ],
+        //                     [ '46839.43', "0.15068" ]
         //                 ],
-        //                 bids: [
-        //                     [ '46820.78', '0.00444' ],
-        //                     [ '46814.33', '0.00234' ],
-        //                     [ '46813.50', '0.05021' ],
-        //                     [ '46808.14', '0.00217' ],
-        //                     [ '46808.04', '0.00013' ]
+        //                 "bids": [
+        //                     [ '46820.78', "0.00444" ],
+        //                     [ '46814.33', "0.00234" ],
+        //                     [ '46813.50', "0.05021" ],
+        //                     [ '46808.14', "0.00217" ],
+        //                     [ '46808.04', "0.00013" ]
         //                 ],
-        //                 ms_t: 1631044962431,
-        //                 symbol: 'BTC_USDT'
+        //                 "ms_t": 1631044962431,
+        //                 "symbol": "BTC_USDT"
         //             }
         //         ],
-        //         table: 'spot/depth5'
+        //         "table": "spot/depth5"
         //     }
         //
         const data = this.safeValue (message, 'data', []);
@@ -539,7 +539,7 @@ export default class bitmart extends bitmartRest {
 
     handleAuthenticate (client: Client, message) {
         //
-        //     { event: 'login' }
+        //     { event: "login" }
         //
         const messageHash = 'authenticated';
         const future = this.safeValue (client.futures, messageHash);
@@ -548,7 +548,7 @@ export default class bitmart extends bitmartRest {
 
     handleErrorMessage (client: Client, message) {
         //
-        //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
+        //     { event: "error", message: "Invalid sign", errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //
         const errorCode = this.safeString (message, 'errorCode');
@@ -582,26 +582,26 @@ export default class bitmart extends bitmartRest {
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //     {
-        //         table: "spot/depth",
-        //         action: "partial",
-        //         data: [
+        //         "table": "spot/depth",
+        //         "action": "partial",
+        //         "data": [
         //             {
-        //                 instrument_id:   "BTC-USDT",
-        //                 asks: [
+        //                 "instrument_id":   "BTC-USDT",
+        //                 "asks": [
         //                     ["5301.8", "0.03763319", "1"],
         //                     ["5302.4", "0.00305", "2"],
         //                 ],
-        //                 bids: [
+        //                 "bids": [
         //                     ["5301.7", "0.58911427", "6"],
         //                     ["5301.6", "0.01222922", "4"],
         //                 ],
-        //                 timestamp: "2020-03-16T03:25:00.440Z",
-        //                 checksum: -2088736623
+        //                 "timestamp": "2020-03-16T03:25:00.440Z",
+        //                 "checksum": -2088736623
         //             }
         //         ]
         //     }
         //
-        //     { data: '', table: 'spot/user/order' }
+        //     { data: '', table: "spot/user/order" }
         //
         const table = this.safeString (message, 'table');
         if (table === undefined) {

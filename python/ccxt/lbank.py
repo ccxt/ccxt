@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -235,7 +234,7 @@ class lbank(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "symbol":"btc_usdt",
@@ -348,7 +347,7 @@ class lbank(Exchange, ImplicitAPI):
         response = self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         market = self.safe_market(None, market)
         timestamp = self.safe_integer(trade, 'date_ms')
         priceString = self.safe_string(trade, 'price')
@@ -400,7 +399,7 @@ class lbank(Exchange, ImplicitAPI):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1590969600,
@@ -453,7 +452,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -516,7 +515,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "symbol"："eth_btc",
@@ -705,21 +704,21 @@ class lbank(Exchange, ImplicitAPI):
         response = self.privatePostWithdraw(self.extend(request, params))
         #
         #     {
-        #         'result': 'true',
-        #         'withdrawId': 90082,
-        #         'fee':0.001
+        #         "result": "true",
+        #         "withdrawId": 90082,
+        #         "fee":0.001
         #     }
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
         #     {
-        #         'result': 'true',
-        #         'withdrawId': 90082,
-        #         'fee':0.001
+        #         "result": "true",
+        #         "withdrawId": 90082,
+        #         "fee":0.001
         #     }
         #
         currency = self.safe_currency(None, currency)

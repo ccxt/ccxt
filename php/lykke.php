@@ -344,7 +344,7 @@ class lykke extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTickers
         //
@@ -517,15 +517,15 @@ class lykke extends Exchange {
         //     {
         //         "payload":array(
         //             {
-        //                 assetPairId => 'BTCUSD',
-        //                 $timestamp => '1643298038203',
-        //                 bids => array(
+        //                 "assetPairId" => "BTCUSD",
+        //                 "timestamp" => "1643298038203",
+        //                 "bids" => array(
         //                     {
         //                         "v":0.59034382,
         //                         "p":36665.329
         //                     }
         //                 ),
-        //                 asks => array(
+        //                 "asks" => array(
         //                     {
         //                         "v":-0.003,
         //                         "p":36729.686
@@ -541,7 +541,7 @@ class lykke extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         //  public fetchTrades
         //
@@ -637,7 +637,7 @@ class lykke extends Exchange {
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //     array(
         //         {
@@ -703,7 +703,7 @@ class lykke extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "id":"1b367978-7e4f-454b-b870-64040d484443",
@@ -1097,7 +1097,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"

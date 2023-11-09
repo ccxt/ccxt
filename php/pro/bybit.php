@@ -486,7 +486,7 @@ class bybit extends \ccxt\async\bybit {
         $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "start" => 1670363160000,
@@ -1137,32 +1137,32 @@ class bybit extends \ccxt\async\bybit {
     public function parse_ws_spot_order($order, $market = null) {
         //
         //    {
-        //        e => 'executionReport',
-        //        E => '1653297251061', // $timestamp
-        //        s => 'LTCUSDT', // $symbol
-        //        c => '1653297250740', // user $id
-        //        S => 'SELL', // $side
-        //        o => 'MARKET_OF_BASE', // $order $type
-        //        f => 'GTC', // time in force
-        //        q => '0.16233', // quantity
-        //        p => '0', // $price
-        //        X => 'NEW', // $status
-        //        i => '1162336018974750208', // $order $id
-        //        M => '0',
-        //        l => '0', // last $filled
-        //        z => '0', // total $filled
-        //        L => '0', // last traded $price
-        //        n => '0', // trading $fee
-        //        N => '', // $fee asset
-        //        u => true,
-        //        w => true,
-        //        m => false, // is limit_maker
-        //        O => '1653297251042', // $order creation
-        //        Z => '0', // total $filled
-        //        A => '0', // account $id
-        //        C => false, // is close
-        //        v => '0', // leverage
-        //        d => 'NO_LIQ'
+        //        "e" => "executionReport",
+        //        "E" => "1653297251061", // $timestamp
+        //        "s" => "LTCUSDT", // $symbol
+        //        "c" => "1653297250740", // user $id
+        //        "S" => "SELL", // $side
+        //        "o" => "MARKET_OF_BASE", // $order $type
+        //        "f" => "GTC", // time in force
+        //        "q" => "0.16233", // quantity
+        //        "p" => "0", // $price
+        //        "X" => "NEW", // $status
+        //        "i" => "1162336018974750208", // $order $id
+        //        "M" => "0",
+        //        "l" => "0", // last $filled
+        //        "z" => "0", // total $filled
+        //        "L" => "0", // last traded $price
+        //        "n" => "0", // trading $fee
+        //        "N" => '', // $fee asset
+        //        "u" => true,
+        //        "w" => true,
+        //        "m" => false, // is limit_maker
+        //        "O" => "1653297251042", // $order creation
+        //        "Z" => "0", // total $filled
+        //        "A" => "0", // account $id
+        //        "C" => false, // is close
+        //        "v" => "0", // leverage
+        //        "d" => "NO_LIQ"
         //    }
         // v5
         //    {
@@ -1602,28 +1602,28 @@ class bybit extends \ccxt\async\bybit {
     public function handle_error_message(Client $client, $message) {
         //
         //   {
-        //       $success => false,
-        //       $ret_msg => 'error:invalid op',
-        //       conn_id => '5e079fdd-9c7f-404d-9dbf-969d650838b5',
-        //       $request => array( $op => '', args => null )
+        //       "success" => false,
+        //       "ret_msg" => "error:invalid $op",
+        //       "conn_id" => "5e079fdd-9c7f-404d-9dbf-969d650838b5",
+        //       "request" => array( $op => '', args => null )
         //   }
         //
         // auth $error
         //
         //   {
-        //       $success => false,
-        //       $ret_msg => 'error:USVC1111',
-        //       conn_id => 'e73770fb-a0dc-45bd-8028-140e20958090',
-        //       $request => {
-        //         $op => 'auth',
-        //         args => array(
-        //           '9rFT6uR4uz9Imkw4Wx',
-        //           '1653405853543',
-        //           '542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889'
+        //       "success" => false,
+        //       "ret_msg" => "error:USVC1111",
+        //       "conn_id" => "e73770fb-a0dc-45bd-8028-140e20958090",
+        //       "request" => {
+        //         "op" => "auth",
+        //         "args" => array(
+        //           "9rFT6uR4uz9Imkw4Wx",
+        //           "1653405853543",
+        //           "542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889"
         //         )
         //   }
         //
-        //   array( $code => '-10009', desc => 'Invalid period!' )
+        //   array( $code => '-10009', desc => "Invalid period!" )
         //
         $code = $this->safe_string_2($message, 'code', 'ret_code');
         try {
@@ -1731,10 +1731,10 @@ class bybit extends \ccxt\async\bybit {
     public function handle_pong(Client $client, $message) {
         //
         //   {
-        //       success => true,
-        //       ret_msg => 'pong',
-        //       conn_id => 'db3158a0-8960-44b9-a9de-ac350ee13158',
-        //       request => array( op => 'ping', args => null )
+        //       "success" => true,
+        //       "ret_msg" => "pong",
+        //       "conn_id" => "db3158a0-8960-44b9-a9de-ac350ee13158",
+        //       "request" => array( op => "ping", args => null )
         //   }
         //
         //   array( pong => 1653296711335 )
@@ -1746,10 +1746,10 @@ class bybit extends \ccxt\async\bybit {
     public function handle_authenticate(Client $client, $message) {
         //
         //    {
-        //        $success => true,
-        //        ret_msg => '',
-        //        op => 'auth',
-        //        conn_id => 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success" => true,
+        //        "ret_msg" => '',
+        //        "op" => "auth",
+        //        "conn_id" => "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         $success = $this->safe_value($message, 'success');
@@ -1770,16 +1770,16 @@ class bybit extends \ccxt\async\bybit {
     public function handle_subscription_status(Client $client, $message) {
         //
         //    {
-        //        topic => 'kline',
-        //        event => 'sub',
-        //        params => array(
-        //          symbol => 'LTCUSDT',
-        //          binary => 'false',
-        //          klineType => '1m',
-        //          symbolName => 'LTCUSDT'
+        //        "topic" => "kline",
+        //        "event" => "sub",
+        //        "params" => array(
+        //          "symbol" => "LTCUSDT",
+        //          "binary" => "false",
+        //          "klineType" => "1m",
+        //          "symbolName" => "LTCUSDT"
         //        ),
-        //        code => '0',
-        //        msg => 'Success'
+        //        "code" => "0",
+        //        "msg" => "Success"
         //    }
         //
         return $message;

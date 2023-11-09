@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequire
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -223,7 +223,7 @@ export default class coinfalcon extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "name":"ETH-BTC",
@@ -343,7 +343,7 @@ export default class coinfalcon extends Exchange {
         return this.parseOrderBook (data, market['symbol'], undefined, 'bids', 'asks', 'price', 'size');
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -500,10 +500,10 @@ export default class coinfalcon extends Exchange {
         const response = await this.privateGetUserFees (params);
         //
         //    {
-        //        data: {
-        //            maker_fee: '0.0',
-        //            taker_fee: '0.2',
-        //            btc_volume_30d: '0.0'
+        //        "data": {
+        //            "maker_fee": "0.0",
+        //            "taker_fee": "0.2",
+        //            "btc_volume_30d": "0.0"
         //        }
         //    }
         //
@@ -527,7 +527,7 @@ export default class coinfalcon extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
@@ -592,9 +592,9 @@ export default class coinfalcon extends Exchange {
         const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
-        //         data: {
-        //             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-        //             tag:null
+        //         "data": {
+        //             "address": "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+        //             "tag":null
         //         }
         //     }
         //
@@ -613,7 +613,7 @@ export default class coinfalcon extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -797,16 +797,16 @@ export default class coinfalcon extends Exchange {
         }
         const response = await this.privateGetAccountDeposits (this.extend (request, params));
         //
-        //     data: [
+        //     "data": [
         //         {
-        //             id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        //             amount: '0.1',
-        //             status: 'completed',
-        //             currency_code: 'eth',
-        //             txid: '0xxxx',
-        //             address: '0xxxx',
-        //             tag: null,
-        //             type: 'deposit'
+        //             "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        //             "amount": "0.1",
+        //             "status": "completed",
+        //             "currency_code": "eth",
+        //             "txid": "0xxxx",
+        //             "address": "0xxxx",
+        //             "tag": null,
+        //             "type": "deposit"
         //         },
         //     ]
         //
@@ -844,17 +844,17 @@ export default class coinfalcon extends Exchange {
         }
         const response = await this.privateGetAccountWithdrawals (this.extend (request, params));
         //
-        //     data: [
+        //     "data": [
         //         {
-        //             id: '25f6f144-3666-xxx-xxx-xxx',
-        //             amount: '0.01',
-        //             status: 'completed',
-        //             fee: '0.0005',
-        //             currency_code: 'btc',
-        //             txid: '4xxx',
-        //             address: 'bc1xxx',
-        //             tag: null,
-        //             type: 'withdraw'
+        //             "id": "25f6f144-3666-xxx-xxx-xxx",
+        //             "amount": "0.01",
+        //             "status": "completed",
+        //             "fee": "0.0005",
+        //             "currency_code": "btc",
+        //             "txid": "4xxx",
+        //             "address": "bc1xxx",
+        //             "tag": null,
+        //             "type": "withdraw"
         //         },
         //     ]
         //
@@ -890,17 +890,17 @@ export default class coinfalcon extends Exchange {
         }
         const response = await this.privatePostAccountWithdraw (this.extend (request, params));
         //
-        //     data: [
+        //     "data": [
         //         {
-        //             id: '25f6f144-3666-xxx-xxx-xxx',
-        //             amount: '0.01',
-        //             status: 'approval_pending',
-        //             fee: '0.0005',
-        //             currency_code: 'btc',
-        //             txid: null,
-        //             address: 'bc1xxx',
-        //             tag: null,
-        //             type: 'withdraw'
+        //             "id": "25f6f144-3666-xxx-xxx-xxx",
+        //             "amount": "0.01",
+        //             "status": "approval_pending",
+        //             "fee": "0.0005",
+        //             "currency_code": "btc",
+        //             "txid": null,
+        //             "address": "bc1xxx",
+        //             "tag": null,
+        //             "type": "withdraw"
         //         },
         //     ]
         //
@@ -917,33 +917,33 @@ export default class coinfalcon extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchWithdrawals, withdraw
         //
         //     {
-        //         id: '25f6f144-3666-xxx-xxx-xxx',
-        //         amount: '0.01',
-        //         status: 'completed',
-        //         fee: '0.0005',
-        //         currency_code: 'btc',
-        //         txid: '4xxx',
-        //         address: 'bc1xxx',
-        //         tag: null,
-        //         type: 'withdraw'
+        //         "id": "25f6f144-3666-xxx-xxx-xxx",
+        //         "amount": "0.01",
+        //         "status": "completed",
+        //         "fee": "0.0005",
+        //         "currency_code": "btc",
+        //         "txid": "4xxx",
+        //         "address": "bc1xxx",
+        //         "tag": null,
+        //         "type": "withdraw"
         //     },
         //
         // fetchDeposits
         //
         //     {
-        //         id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        //         amount: '0.1',
-        //         status: 'completed',
-        //         currency_code: 'eth',
-        //         txid: '0xxxx',
-        //         address: '0xxxx',
-        //         tag: null,
-        //         type: 'deposit'
+        //         "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        //         "amount": "0.1",
+        //         "status": "completed",
+        //         "currency_code": "eth",
+        //         "txid": "0xxxx",
+        //         "address": "0xxxx",
+        //         "tag": null,
+        //         "type": "deposit"
         //     },
         //
         const id = this.safeString (transaction, 'id');

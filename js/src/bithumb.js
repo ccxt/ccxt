@@ -491,11 +491,11 @@ export default class bithumb extends Exchange {
         //
         //     [
         //         1576823400000, // 기준 시간
-        //         '8284000', // 시가
-        //         '8286000', // 종가
-        //         '8289000', // 고가
-        //         '8276000', // 저가
-        //         '15.41503692' // 거래량
+        //         "8284000", // 시가
+        //         "8286000", // 종가
+        //         "8289000", // 고가
+        //         "8276000", // 저가
+        //         "15.41503692" // 거래량
         //     ]
         //
         return [
@@ -529,23 +529,23 @@ export default class bithumb extends Exchange {
         const response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, params));
         //
         //     {
-        //         'status': '0000',
-        //         'data': {
+        //         "status": "0000",
+        //         "data": {
         //             [
         //                 1576823400000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8286000', // 종가
-        //                 '8289000', // 고가
-        //                 '8276000', // 저가
-        //                 '15.41503692' // 거래량
+        //                 "8284000", // 시가
+        //                 "8286000", // 종가
+        //                 "8289000", // 고가
+        //                 "8276000", // 저가
+        //                 "15.41503692" // 거래량
         //             ],
         //             [
         //                 1576824000000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8281000', // 종가
-        //                 '8289000', // 고가
-        //                 '8275000', // 저가
-        //                 '6.19584467' // 거래량
+        //                 "8284000", // 시가
+        //                 "8281000", // 종가
+        //                 "8289000", // 고가
+        //                 "8275000", // 저가
+        //                 "6.19584467" // 거래량
         //             ],
         //         }
         //     }
@@ -735,24 +735,24 @@ export default class bithumb extends Exchange {
         //     {
         //         "status": "0000",
         //         "data": {
-        //             order_date: '1603161798539254',
-        //             type: 'ask',
-        //             order_status: 'Cancel',
-        //             order_currency: 'BTC',
-        //             payment_currency: 'KRW',
-        //             watch_price: '0',
-        //             order_price: '13344000',
-        //             order_qty: '0.0125',
-        //             cancel_date: '1603161803809993',
-        //             cancel_type: '사용자취소',
-        //             contract: [
+        //             "order_date": "1603161798539254",
+        //             "type": "ask",
+        //             "order_status": "Cancel",
+        //             "order_currency": "BTC",
+        //             "payment_currency": "KRW",
+        //             "watch_price": "0",
+        //             "order_price": "13344000",
+        //             "order_qty": "0.0125",
+        //             "cancel_date": "1603161803809993",
+        //             "cancel_type": "사용자취소",
+        //             "contract": [
         //                 {
-        //                     transaction_date: '1603161799976383',
-        //                     price: '13344000',
-        //                     units: '0.0015',
-        //                     fee_currency: 'KRW',
-        //                     fee: '0',
-        //                     total: '20016'
+        //                     "transaction_date": "1603161799976383",
+        //                     "price": "13344000",
+        //                     "units": "0.0015",
+        //                     "fee_currency": "KRW",
+        //                     "fee": "0",
+        //                     "total": "20016"
         //                 }
         //             ],
         //         }
@@ -780,7 +780,7 @@ export default class bithumb extends Exchange {
         //         "order_status": "Completed", // Completed, Cancel ...
         //         "order_currency": "BTC",
         //         "payment_currency": "KRW",
-        //         "watch_price": '0', // present in Cancel order
+        //         "watch_price": "0", // present in Cancel order
         //         "order_price": "8601000",
         //         "order_qty": "0.007",
         //         "cancel_date": "", // filled in Cancel order

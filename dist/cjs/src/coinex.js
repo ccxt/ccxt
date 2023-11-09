@@ -307,8 +307,8 @@ class coinex extends coinex$1 {
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetCommonAssetConfig(params);
         //     {
-        //         code: 0,
-        //         data: {
+        //         "code": 0,
+        //         "data": {
         //             "USDT-ERC20": {
         //                  "asset": "USDT",
         //                  "chain": "ERC20",
@@ -322,7 +322,7 @@ class coinex extends coinex$1 {
         //             },
         //             ...
         //         },
-        //         message: 'Success',
+        //         "message": "Success",
         //     }
         //
         const data = this.safeValue(response, 'data', []);
@@ -884,9 +884,9 @@ class coinex extends coinex$1 {
         const response = await this.perpetualPublicGetTime(params);
         //
         //     {
-        //         code: '0',
-        //         data: '1653261274414',
-        //         message: 'OK'
+        //         "code": "0",
+        //         "data": "1653261274414",
+        //         "message": "OK"
         //     }
         //
         return this.safeInteger(response, 'data');
@@ -2731,12 +2731,12 @@ class coinex extends coinex$1 {
         const response = await this.privatePutBalanceDepositAddressCoinType(this.extend(request, params));
         //
         //     {
-        //         code: 0,
-        //         data: {
-        //             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        //             is_bitcoin_cash: false
+        //         "code": 0,
+        //         "data": {
+        //             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        //             "is_bitcoin_cash": false
         //         },
-        //         message: 'Success'
+        //         "message": "Success"
         //     }
         const data = this.safeValue(response, 'data', {});
         return this.parseDepositAddress(data, currency);
@@ -2774,13 +2774,13 @@ class coinex extends coinex$1 {
         const response = await this.privateGetBalanceDepositAddressCoinType(this.extend(request, params));
         //
         //      {
-        //          code: 0,
-        //          data: {
-        //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //            // coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
-        //            is_bitcoin_cash: false
+        //          "code": 0,
+        //          "data": {
+        //            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //            // coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy", // with embedded tag/memo
+        //            "is_bitcoin_cash": false
         //          },
-        //          message: 'Success'
+        //          "message": "Success"
         //      }
         //
         const data = this.safeValue(response, 'data', {});
@@ -2811,8 +2811,8 @@ class coinex extends coinex$1 {
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //     {
-        //         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        //         is_bitcoin_cash: false
+        //         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        //         "is_bitcoin_cash": false
         //     }
         //
         const coinAddress = this.safeString(depositAddress, 'coin_address');
