@@ -2558,15 +2558,9 @@ export default class okx extends Exchange {
             request['tdMode'] = tradeMode;
         } else if (contract) {
             if (market['swap'] || market['future']) {
-                let positionSide = this.safeString2 (params, 'posSide', 'positionSide');
-                params = this.omit (params, 'positionSide');
-                if (positionSide === undefined) {
-                    const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-                    if (reduceOnly) {
-                        positionSide = (side === 'buy') ? 'short' : 'long';
-                    } else {
-                        positionSide = (side === 'buy') ? 'long' : 'short';
-                    }
+                let positionSide = undefined;
+                [ positionSide, params ] = this.handleOptionAndParams (params, 'createOrder', 'positionSide');
+                if (positionSide !== undefined) {
                     request['posSide'] = positionSide;
                 }
             }
