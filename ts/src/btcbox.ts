@@ -142,7 +142,7 @@ export default class btcbox extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name btcbox#fetchBalance

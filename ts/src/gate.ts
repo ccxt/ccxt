@@ -2623,7 +2623,7 @@ export default class gate extends Exchange {
         return account;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @param {object} [params] exchange specific parameters
          * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
@@ -3451,7 +3451,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name gate#fetchDeposits
@@ -3490,7 +3490,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name gate#fetchWithdrawals

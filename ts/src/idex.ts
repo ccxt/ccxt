@@ -791,7 +791,7 @@ export default class idex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name idex#fetchBalance
@@ -1509,7 +1509,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name idex#fetchDeposits
@@ -1562,7 +1562,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name idex#fetchWithdrawals

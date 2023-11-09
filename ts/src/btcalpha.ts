@@ -452,7 +452,7 @@ export default class btcalpha extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name btcalpha#fetchDeposits
@@ -482,7 +482,7 @@ export default class btcalpha extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name btcalpha#fetchWithdrawals
@@ -641,7 +641,7 @@ export default class btcalpha extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name btcalpha#fetchBalance

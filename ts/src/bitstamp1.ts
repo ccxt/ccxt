@@ -307,7 +307,7 @@ export default class bitstamp1 extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitstamp1#fetchBalance
