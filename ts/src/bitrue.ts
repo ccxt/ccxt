@@ -1576,22 +1576,7 @@ export default class bitrue extends Exchange {
 
     parseTrade (trade, market = undefined): Trade {
         //
-        // aggregate trades
-        //  - "T" is timestamp of *api-call* not trades. Use more expensive spotV1PublicGetHistoricalTrades if actual timestamp of trades matter
-        //  - Trades are aggregated by timestamp, price, and side. But "m" is always True. Use method above if side of trades matter
-        //
-        //     {
-        //         "a": 26129,         // Aggregate tradeId
-        //         "p": "0.01633102",  // Price
-        //         "q": "4.70443515",  // Quantity
-        //         "f": 27781,         // First tradeId
-        //         "l": 27781,         // Last tradeId
-        //         "T": 1498793709153, // Timestamp of *Api-call* not trade!
-        //         "m": true,          // Was the buyer the maker?  // Always True -> ignore it and leave side undefined
-        //         "M": true           // Was the trade the best price match?
-        //     }
-        //
-        // recent public trades and old public trades
+        // fetchTrades
         //
         //     {
         //         "id": 28457,
@@ -1602,7 +1587,7 @@ export default class bitrue extends Exchange {
         //         "isBestMatch": true
         //     }
         //
-        // private trades
+        // fetchTrades - spot
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1619,14 +1604,32 @@ export default class bitrue extends Exchange {
         //         "isBestMatch":true
         //     }
         //
-        const timestamp = this.safeInteger2 (trade, 'T', 'time');
-        const priceString = this.safeString2 (trade, 'p', 'price');
-        const amountString = this.safeString2 (trade, 'q', 'qty');
-        const marketId = this.safeString (trade, 'symbol');
+        // fetchTrades - future
+        //
+        //     {
+        //         "tradeId":12,
+        //         "price":0.9,
+        //         "qty":1,
+        //         "amount":9,
+        //         "contractName":"E-SAND-USDT",
+        //         "side":"BUY",
+        //         "fee":"0.0018",
+        //         "bidId":1558124009467904992,
+        //         "askId":1558124043827644908,
+        //         "bidUserId":10294,
+        //         "askUserId":10467,
+        //         "isBuyer":true,
+        //         "isMaker":true,
+        //         "ctime":1678426306000
+        //     }
+        //
+        const timestamp = this.safeInteger2 (trade, 'ctime', 'time');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'qty');
+        const marketId = this.safeString2 (trade, 'symbol', 'contractName');
         const symbol = this.safeSymbol (marketId, market);
         const orderId = this.safeString (trade, 'orderId');
-        let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString2 (trade, 'id', 'tradeId', id);
+        const id = this.safeString2 (trade, 'id', 'tradeId');
         let side = undefined;
         const buyerMaker = this.safeValue (trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
         const isBuyer = this.safeValue (trade, 'isBuyer');
@@ -1639,12 +1642,12 @@ export default class bitrue extends Exchange {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': this.safeString (trade, 'commission'),
+                'cost': this.safeString2 (trade, 'commission', 'fee'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeValue2 (trade, 'isMaker', 'maker');
+        const isMaker = this.safeValue (trade, 'isMaker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -2062,30 +2065,39 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
-        if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
-            throw new ArgumentsRequired (this.id + ' v2PrivateGetMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const request = {
-            // 'symbol': market['id'],
-            // 'startTime': since,
-            // 'endTime': this.milliseconds (),
-            // 'fromId': 12345, // trade id to fetch from, most recent trades by default
-            // 'limit': limit, // default 100, max 1000
-        };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
+            if (limit > 1000) {
+                limit = 1000;
+            }
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        if (market['future']) {
+            request['contractName'] = market['id'];
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV2PrivateGetMyTrades (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV2PrivateGetMyTrades (this.extend (request, params));
+            }
+            data = this.safeValue (response, 'data');
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.spotV2PrivateGetMyTrades (this.extend (request, params));
+            data = response;
+        }
+        //
+        // spot
         //
         //     [
         //         {
@@ -2104,7 +2116,32 @@ export default class bitrue extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        // future
+        //
+        //     {
+        //         "code":"0",
+        //         "msg":"Success",
+        //         "data":[
+        //             {
+        //                 "tradeId":12,
+        //                 "price":0.9,
+        //                 "qty":1,
+        //                 "amount":9,
+        //                 "contractName":"E-SAND-USDT",
+        //                 "side":"BUY",
+        //                 "fee":"0.0018",
+        //                 "bidId":1558124009467904992,
+        //                 "askId":1558124043827644908,
+        //                 "bidUserId":10294,
+        //                 "askUserId":10467,
+        //                 "isBuyer":true,
+        //                 "isMaker":true,
+        //                 "ctime":1678426306000
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
