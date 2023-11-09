@@ -2521,7 +2521,7 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-trade
         //
