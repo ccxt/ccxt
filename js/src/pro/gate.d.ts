@@ -21,6 +21,10 @@ export default class gate extends gateRest {
     handleMyTrades(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, type: any, symbols?: string[]): void;
+    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    handlePositions(client: any, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
@@ -30,6 +34,7 @@ export default class gate extends gateRest {
     getUrlByMarket(market: any): any;
     getTypeByMarket(market: any): "spot" | "futures" | "options";
     getUrlByMarketType(type: any, isInverse?: boolean): any;
+    getMarketTypeByUrl(url: string): any;
     requestId(): any;
     subscribePublic(url: any, messageHash: any, payload: any, channel: any, params?: {}, subscription?: any): Promise<any>;
     subscribePrivate(url: any, messageHash: any, payload: any, channel: any, params: any, requiresUid?: boolean): Promise<any>;

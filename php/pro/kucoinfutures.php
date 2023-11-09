@@ -21,6 +21,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchBalance' => true,
+                'watchPosition' => true,
+                'watchPositions' => false,
+                'watchPositionForSymbols' => false,
                 'watchTradesForSymbols' => true,
                 'watchOrderBookForSymbols' => true,
             ),
@@ -45,6 +48,10 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 ),
                 'watchTicker' => array(
                     'name' => 'contractMarket/tickerV2', // market/ticker
+                ),
+                'watchPosition' => array(
+                    'fetchPositionSnapshot' => true, // or false
+                    'awaitPositionSnapshot' => true, // whether to wait for the position snapshot before providing updates
                 ),
             ),
             'streaming' => array(
@@ -189,6 +196,185 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         $messageHash = 'ticker:' . $market['symbol'];
         $client->resolve ($ticker, $messageHash);
         return $message;
+    }
+
+    public function watch_position(?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch open positions for a specific $symbol
+             * @see https://docs.kucoin.com/futures/#position-change-events
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            $this->check_required_symbol('watchPosition', $symbol);
+            Async\await($this->load_markets());
+            $url = Async\await($this->negotiate(true));
+            $market = $this->market($symbol);
+            $topic = '/contract/position:' . $market['id'];
+            $request = array(
+                'privateChannel' => true,
+            );
+            $messageHash = 'position:' . $market['symbol'];
+            $client = $this->client($url);
+            $this->set_position_cache($client, $symbol);
+            $fetchPositionSnapshot = $this->handle_option('watchPosition', 'fetchPositionSnapshot', true);
+            $awaitPositionSnapshot = $this->safe_value('watchPosition', 'awaitPositionSnapshot', true);
+            $currentPosition = $this->get_current_position($symbol);
+            if ($fetchPositionSnapshot && $awaitPositionSnapshot && $currentPosition === null) {
+                $snapshot = Async\await($client->future ('fetchPositionSnapshot:' . $symbol));
+                return $snapshot;
+            }
+            return Async\await($this->subscribe($url, $messageHash, $topic, null, array_merge($request, $params)));
+        }) ();
+    }
+
+    public function get_current_position($symbol) {
+        if ($this->positions === null) {
+            return null;
+        }
+        $cache = $this->positions.hashmap;
+        $symbolCache = $this->safe_value($cache, $symbol, array());
+        $values = is_array($symbolCache) ? array_values($symbolCache) : array();
+        return $this->safe_value($values, 0);
+    }
+
+    public function set_position_cache(Client $client, string $symbol) {
+        $fetchPositionSnapshot = $this->handle_option('watchPosition', 'fetchPositionSnapshot', false);
+        if ($fetchPositionSnapshot) {
+            $messageHash = 'fetchPositionSnapshot:' . $symbol;
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_position_snapshot'), $client, $messageHash, $symbol);
+            }
+        }
+    }
+
+    public function load_position_snapshot($client, $messageHash, $symbol) {
+        return Async\async(function () use ($client, $messageHash, $symbol) {
+            $position = Async\await($this->fetch_position($symbol));
+            $this->positions = new ArrayCacheBySymbolById ();
+            $cache = $this->positions;
+            $cache->append ($position);
+            // don't remove the $future from the .futures $cache
+            $future = $client->futures[$messageHash];
+            $future->resolve ($cache);
+            $client->resolve ($position, 'position:' . $symbol);
+        }) ();
+    }
+
+    public function handle_position(Client $client, $message) {
+        //
+        // Position Changes Caused Operations
+        //    {
+        //        "type" => "message",
+        //        "userId" => "5c32d69203aa676ce4b543c7", // Deprecated, will detele later
+        //        "channelType" => "private",
+        //        "topic" => "/contract/position:XBTUSDM",
+        //        "subject" => "position.change",
+        //        "data" => {
+        //            "realisedGrossPnl" => 0E-8, //Accumulated realised profit and loss
+        //            "symbol" => "XBTUSDM", //Symbol
+        //            "crossMode" => false, //Cross mode or not
+        //            "liquidationPrice" => 1000000.0, //Liquidation price
+        //            "posLoss" => 0E-8, //Manually added margin amount
+        //            "avgEntryPrice" => 7508.22, //Average entry price
+        //            "unrealisedPnl" => -0.00014735, //Unrealised profit and loss
+        //            "markPrice" => 7947.83, //Mark price
+        //            "posMargin" => 0.00266779, //Position margin
+        //            "autoDeposit" => false, //Auto deposit margin or not
+        //            "riskLimit" => 100000, //Risk limit
+        //            "unrealisedCost" => 0.00266375, //Unrealised value
+        //            "posComm" => 0.00000392, //Bankruptcy cost
+        //            "posMaint" => 0.00001724, //Maintenance margin
+        //            "posCost" => 0.00266375, //Position value
+        //            "maintMarginReq" => 0.005, //Maintenance margin rate
+        //            "bankruptPrice" => 1000000.0, //Bankruptcy price
+        //            "realisedCost" => 0.00000271, //Currently accumulated realised $position value
+        //            "markValue" => 0.00251640, //Mark value
+        //            "posInit" => 0.00266375, //Position margin
+        //            "realisedPnl" => -0.00000253, //Realised profit and losts
+        //            "maintMargin" => 0.00252044, //Position margin
+        //            "realLeverage" => 1.06, //Leverage of the order
+        //            "changeReason" => "positionChange", //changeReason:marginChange、positionChange、liquidation、autoAppendMarginStatusChange、adl
+        //            "currentCost" => 0.00266375, //Current $position value
+        //            "openingTimestamp" => 1558433191000, //Open time
+        //            "currentQty" => -20, //Current $position
+        //            "delevPercentage" => 0.52, //ADL ranking percentile
+        //            "currentComm" => 0.00000271, //Current commission
+        //            "realisedGrossCost" => 0E-8, //Accumulated reliased gross profit value
+        //            "isOpen" => true, //Opened $position or not
+        //            "posCross" => 1.2E-7, //Manually added margin
+        //            "currentTimestamp" => 1558506060394, //Current timestamp
+        //            "unrealisedRoePcnt" => -0.0553, //Rate of return on investment
+        //            "unrealisedPnlPcnt" => -0.0553, //Position profit and loss ratio
+        //            "settleCurrency" => "XBT" //Currency used to clear and settle the trades
+        //        }
+        //    }
+        // Position Changes Caused by Mark Price
+        //    {
+        //        "userId" => "5cd3f1a7b7ebc19ae9558591", // Deprecated, will detele later
+        //        "topic" => "/contract/position:XBTUSDM",
+        //        "subject" => "position.change",
+        //          "data" => {
+        //              "markPrice" => 7947.83,                   //Mark price
+        //              "markValue" => 0.00251640,                 //Mark value
+        //              "maintMargin" => 0.00252044,              //Position margin
+        //              "realLeverage" => 10.06,                   //Leverage of the order
+        //              "unrealisedPnl" => -0.00014735,           //Unrealised profit and lost
+        //              "unrealisedRoePcnt" => -0.0553,           //Rate of return on investment
+        //              "unrealisedPnlPcnt" => -0.0553,            //Position profit and loss ratio
+        //              "delevPercentage" => 0.52,             //ADL ranking percentile
+        //              "currentTimestamp" => 1558087175068,      //Current timestamp
+        //              "settleCurrency" => "XBT"                 //Currency used to clear and settle the trades
+        //          }
+        //    }
+        //  Funding Settlement
+        //    {
+        //        "userId" => "xbc453tg732eba53a88ggyt8c", // Deprecated, will detele later
+        //        "topic" => "/contract/position:XBTUSDM",
+        //        "subject" => "position.settlement",
+        //        "data" => {
+        //            "fundingTime" => 1551770400000,          //Funding time
+        //            "qty" => 100,                            //Position siz
+        //            "markPrice" => 3610.85,                 //Settlement price
+        //            "fundingRate" => -0.002966,             //Funding rate
+        //            "fundingFee" => -296,                   //Funding fees
+        //            "ts" => 1547697294838004923,             //Current time (nanosecond)
+        //            "settleCurrency" => "XBT"                //Currency used to clear and settle the trades
+        //        }
+        //    }
+        // Adjustmet result of risk limit level
+        //     {
+        //         "userId" => "xbc453tg732eba53a88ggyt8c",
+        //         "topic" => "/contract/position:ADAUSDTM",
+        //         "subject" => "position.adjustRiskLimit",
+        //         "data" => {
+        //           "success" => true, // Successful or not
+        //           "riskLimitLevel" => 1, // Current risk limit level
+        //           "msg" => "" // Failure reason
+        //         }
+        //     }
+        //
+        $topic = $this->safe_string($message, 'topic', '');
+        $parts = explode(':', $topic);
+        $marketId = $this->safe_string($parts, 1);
+        $symbol = $this->safe_symbol($marketId, null, '');
+        $cache = $this->positions;
+        $currentPosition = $this->get_current_position($symbol);
+        $messageHash = 'position:' . $symbol;
+        $data = $this->safe_value($message, 'data', array());
+        $newPosition = $this->parse_position($data);
+        $keys = is_array($newPosition) ? array_keys($newPosition) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($newPosition[$key] === null) {
+                unset($newPosition[$key]);
+            }
+        }
+        $position = array_merge($currentPosition, $newPosition);
+        $cache->append ($position);
+        $client->resolve ($position, $messageHash);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -762,6 +948,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             'match' => array($this, 'handle_trade'),
             'orderChange' => array($this, 'handle_order'),
             'orderUpdated' => array($this, 'handle_order'),
+            'position.change' => array($this, 'handle_position'),
+            'position.settlement' => array($this, 'handle_position'),
+            'position.adjustRiskLimit' => array($this, 'handle_position'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method === null) {

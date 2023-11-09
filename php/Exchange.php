@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.45';
+$version = '4.1.46';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.45';
+    const VERSION = '4.1.46';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4078,6 +4078,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchPositionsBySymbol() is not supported yet');
     }
 
+    public function fetch_positions(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
+    }
+
     public function fetch_positions_risk(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
     }
@@ -4883,11 +4887,6 @@ class Exchange {
 
     public function filter_by_symbol_since_limit($array, ?string $symbol = null, ?int $since = null, ?int $limit = null, $tail = false) {
         return $this->filter_by_value_since_limit($array, 'symbol', $symbol, $since, $limit, 'timestamp', $tail);
-    }
-
-    public function filter_by_symbols_since_limit($array, ?array $symbols = null, ?int $since = null, ?int $limit = null, $tail = false) {
-        $result = $this->filter_by_array($array, 'symbol', $symbols);
-        return $this->filter_by_since_limit($result, $since, $limit, 'timestamp', $tail);
     }
 
     public function filter_by_currency_since_limit($array, $code = null, ?int $since = null, ?int $limit = null, $tail = false) {

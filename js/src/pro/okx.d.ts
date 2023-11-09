@@ -25,6 +25,8 @@ export default class okx extends okxRest {
     handleBalance(client: Client, message: any): void;
     orderToTrade(order: any, market?: any): import("../base/types.js").Trade;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handlePositions(client: any, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any, subscription?: any): void;
     handleMyTrades(client: Client, message: any): void;

@@ -4817,13 +4817,14 @@ class gate(Exchange, ImplicitAPI):
         takerFee = '0.00075'
         feePaid = Precise.string_mul(takerFee, notional)
         initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
+        timestamp = self.safe_integer(position, 'time_ms')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
             'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
@@ -4832,6 +4833,7 @@ class gate(Exchange, ImplicitAPI):
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'realizedPnl': self.safe_number(position, 'realised_pnl'),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
             # 'realisedPnl': position['realised_pnl'],

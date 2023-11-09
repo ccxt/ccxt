@@ -75,13 +75,13 @@ class huobi extends \ccxt\async\huobi {
                                 ),
                             ),
                             'swap' => array(
-                                'inverse' => array(
-                                    'public' => 'wss://api.hbdm.vn/swap-ws',
-                                    'private' => 'wss://api.hbdm.vn/swap-notification',
-                                ),
                                 'linear' => array(
                                     'public' => 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private' => 'wss://api.hbdm.vn/linear-swap-notification',
+                                ),
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.vn/swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/swap-notification',
                                 ),
                             ),
                         ),
@@ -1203,6 +1203,128 @@ class huobi extends \ccxt\async\huobi {
         ), $market);
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+             * watch all open positions. Note => huobi has one $channel for each $marginMode and $type
+             * @param {[string]|null} $symbols list of unified $market $symbols
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $messageHash = '';
+            if (!$this->is_empty($symbols)) {
+                $market = $this->get_market_from_symbols($symbols);
+                $messageHash = '::' . implode(',', $symbols);
+            }
+            $type = null;
+            $subType = null;
+            if ($market !== null) {
+                $type = $market['type'];
+                $subType = $market['linear'] ? 'linear' : 'inverse';
+            } else {
+                list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
+                if ($type === 'spot') {
+                    $type = 'future';
+                }
+                list($subType, $params) = $this->handle_option_and_params($params, 'watchPositions', 'subType', $subType);
+            }
+            $symbols = $this->market_symbols($symbols);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('watchPositions', $params, 'cross');
+            $isLinear = ($subType === 'linear');
+            $url = $this->get_url_by_market_type($type, $isLinear, true);
+            $messageHash = $marginMode . ':positions' . $messageHash;
+            $channel = ($marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+            $newPositions = Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions[$url][$marginMode], $symbols, $since, $limit, false);
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        op => 'notify',
+        //        $topic => 'positions_cross',
+        //        ts => 1696767149650,
+        //        event => 'snapshot',
+        //        data => array(
+        //          array(
+        //            contract_type => 'swap',
+        //            pair => 'BTC-USDT',
+        //            business_type => 'swap',
+        //            liquidation_price => null,
+        //            symbol => 'BTC',
+        //            contract_code => 'BTC-USDT',
+        //            volume => 1,
+        //            available => 1,
+        //            frozen => 0,
+        //            cost_open => 27802.2,
+        //            cost_hold => 27802.2,
+        //            profit_unreal => 0.0175,
+        //            profit_rate => 0.000629446590557581,
+        //            profit => 0.0175,
+        //            margin_asset => 'USDT',
+        //            position_margin => 27.8197,
+        //            lever_rate => 1,
+        //            direction => 'buy',
+        //            last_price => 27819.7,
+        //            margin_mode => 'cross',
+        //            margin_account => 'USDT',
+        //            trade_partition => 'USDT',
+        //            position_mode => 'dual_side'
+        //          ),
+        //        )
+        //    }
+        //
+        $url = $client->url;
+        $topic = $this->safe_string($message, 'topic', '');
+        $marginMode = ($topic === 'positions_cross') ? 'cross' : 'isolated';
+        if ($this->positions === null) {
+            $this->positions = array();
+        }
+        $clientPositions = $this->safe_value($this->positions, $url);
+        if ($clientPositions === null) {
+            $this->positions[$url] = array();
+        }
+        $clientMarginModePositions = $this->safe_value($clientPositions, $marginMode);
+        if ($clientMarginModePositions === null) {
+            $this->positions[$url][$marginMode] = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions[$url][$marginMode];
+        $rawPositions = $this->safe_value($message, 'data', array());
+        $newPositions = array();
+        $timestamp = $this->safe_integer($message, 'ts');
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_position($rawPosition);
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $marginMode . ':$positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, $marginMode . ':positions');
+    }
+
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -1695,6 +1817,9 @@ class huobi extends \ccxt\async\huobi {
             }
             if (mb_strpos($topic, 'account') !== false) {
                 $this->handle_balance($client, $message);
+            }
+            if (mb_strpos($topic, 'positions') !== false) {
+                $this->handle_positions($client, $message);
             }
         }
     }

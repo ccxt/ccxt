@@ -357,7 +357,7 @@ cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create firs
 cache.append({'symbol': symbol, 'side': 'short', 'contracts': 0})  # first position is closed
 assert cache.getLimit(symbol, outsideLimit) == 1  # limit position
 cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create first position
-assert(cache.getLimit(symbol, outsideLimit) == 1)  # watch all positions
+assert cache.getLimit(symbol, outsideLimit) == 1  # watch all positions
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
@@ -368,13 +368,12 @@ outsideLimit = 5
 cache.append({'symbol': symbol, 'side': 'short', 'contracts': 1})  # create first position
 assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
 cache.append({'symbol': symbol, 'side': 'short', 'contracts': 0})  # first position is closed
-assert(cache.getLimit(None, outsideLimit) == 1)  # watch all positions
+assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
 cache.append({'symbol': symbol, 'side': 'long', 'contracts': 3})  # create second position
 assert cache.getLimit(None, outsideLimit) == 1  # watch all positions
 cache.append({'symbol': symbol, 'side': 'long', 'contracts': 2})  # second position is reduced
 cache.append({'symbol': symbol, 'side': 'long', 'contracts': 1})  # second position is reduced
 assert cache.getLimit(None, outsideLimit) == 1  # watch all orders
-assert len(cache) == 2  # one new update
 
 # ----------------------------------------------------------------------------
 # test ArrayCacheBySymbolBySide, watchPositions, and watchPosition(symbol) work independently

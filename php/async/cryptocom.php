@@ -3185,7 +3185,7 @@ class cryptocom extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
             'side' => null,
-            'contracts' => null,
+            'contracts' => $this->safe_number($position, 'quantity'),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,

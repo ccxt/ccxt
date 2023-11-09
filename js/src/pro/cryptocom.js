@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class cryptocom extends cryptocomRest {
@@ -25,6 +25,7 @@ export default class cryptocom extends cryptocomRest {
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchOHLCV': true,
+                'watchPositions': true,
                 'createOrderWs': true,
                 'cancelOrderWs': true,
                 'cancelAllOrders': true,
@@ -41,7 +42,12 @@ export default class cryptocom extends cryptocomRest {
                     'private': 'wss://uat-stream.3ona.co/exchange/v1/user',
                 },
             },
-            'options': {},
+            'options': {
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+            },
             'streaming': {},
         });
     }
@@ -450,6 +456,129 @@ export default class cryptocom extends cryptocomRest {
             client.resolve(stored, 'user.order');
         }
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchPositions
+         * @description watch all open positions
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        await this.authenticate();
+        const url = this.urls['api']['ws']['private'];
+        const id = this.nonce();
+        const request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': ['user.position_balance'],
+            },
+            'nonce': id,
+        };
+        let messageHash = 'positions';
+        symbols = this.marketSymbols(symbols);
+        if (!this.isEmpty(symbols)) {
+            messageHash = '::' + symbols.join(',');
+        }
+        const client = this.client(url);
+        this.setPositionsCache(client, symbols);
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watch(url, messageHash, this.extend(request, params));
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+    setPositionsCache(client, type, symbols = undefined) {
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, client, messageHash);
+            }
+        }
+        else {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+    }
+    async loadPositionsSnapshot(client, messageHash) {
+        const positions = await this.fetchPositions();
+        this.positions = new ArrayCacheBySymbolBySide();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve(cache);
+        client.resolve(cache, 'positions');
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        subscription: "user.position_balance",
+        //        channel: "user.position_balance",
+        //        data: [{
+        //            balances: [{
+        //                instrument_name: "USD",
+        //                quantity: "8.9979961950886",
+        //                update_timestamp_ms: 1695598760597,
+        //            }],
+        //            positions: [{
+        //                account_id: "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        //                instrument_name: "LTCUSD-PERP",
+        //                type: "PERPETUAL_SWAP",
+        //                quantity: "1.8",
+        //                cost: "114.766",
+        //                open_position_pnl: "-0.0216206",
+        //                session_pnl: "0.00962994",
+        //                update_timestamp_ms: 1695598760597,
+        //                open_pos_cost: "114.766",
+        //            }],
+        //        }],
+        //    }
+        //
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        const data = this.safeValue(message, 'data', []);
+        const firstData = this.safeValue(data, 0, {});
+        const rawPositions = this.safeValue(firstData, 'positions', []);
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions;
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition(rawPosition);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, 'positions');
+    }
     async watchBalance(params = {}) {
         /**
          * @method
@@ -716,6 +845,7 @@ export default class cryptocom extends cryptocomRest {
             'user.order': this.handleOrders,
             'user.trade': this.handleTrades,
             'user.balance': this.handleBalance,
+            'user.position_balance': this.handlePositions,
         };
         const result = this.safeValue2(message, 'result', 'info');
         const channel = this.safeString(result, 'channel');

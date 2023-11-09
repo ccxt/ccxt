@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.45'
+__version__ = '4.1.46'
 
 # -----------------------------------------------------------------------------
 
@@ -3080,7 +3080,7 @@ class Exchange(object):
         symbol = self.safe_string(position, 'symbol')
         market = None
         if symbol is not None:
-            market = self.market(symbol)
+            market = self.safe_value(self.markets, symbol)
         if contractSize is None and market is not None:
             contractSize = self.safe_number(market, 'contractSize')
             position['contractSize'] = contractSize
@@ -3293,6 +3293,9 @@ class Exchange(object):
         :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
+
+    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
     def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
@@ -3925,10 +3928,6 @@ class Exchange(object):
 
     def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
-
-    def filter_by_symbols_since_limit(self, array, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
-        result = self.filter_by_array(array, 'symbol', symbols)
-        return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
     def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
