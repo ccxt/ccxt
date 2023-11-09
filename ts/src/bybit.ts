@@ -2713,25 +2713,21 @@ export default class bybit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
-        if (isSpotTrade) {
-            return this.parseSpotTrade (trade, market);
-        } else {
-            return this.parseContractTrade (trade, market);
-        }
-    }
-
-    parseSpotTrade (trade, market = undefined) {
         //
-        //   public:
+        // public https://bybit-exchange.github.io/docs/v5/market/recent-trade
+        //
         //     {
-        //        "price": "39548.68",
-        //        "time": "1651748717850",
-        //        "qty": "0.166872",
-        //        "isBuyerMaker": 0
+        //         "execId": "666042b4-50c6-58f3-bd9c-89b2088663ff",
+        //         "symbol": "ETHUSD",
+        //         "price": "1162.95",
+        //         "size": "1",
+        //         "side": "Sell",
+        //         "time": "1669191277315",
+        //         "isBlockTrade": false
         //     }
         //
-        //   private:
+        // private trades classic spot https://bybit-exchange.github.io/docs/v5/position/execution
+        //
         //     {
         //         "symbol": "QNTUSDT",
         //         "orderId": "1538686353240339712",
@@ -2759,130 +2755,37 @@ export default class bybit extends Exchange {
         //         "blockTradeId": ""
         //     }
         //
-        const timestamp = this.safeIntegerN (trade, [ 'time', 'creatTime' ]);
-        let takerOrMaker = undefined;
-        let side = undefined;
-        const isBuyerMaker = this.safeInteger (trade, 'isBuyerMaker');
-        if (isBuyerMaker !== undefined) {
-            // if public response
-            side = (isBuyerMaker === 1) ? 'buy' : 'sell';
-        } else {
-            // if private response
-            const isBuyer = this.safeInteger (trade, 'isBuyer');
-            const isMaker = this.safeInteger (trade, 'isMaker');
-            takerOrMaker = (isMaker === 0) ? 'maker' : 'taker';
-            side = (isBuyer === 0) ? 'buy' : 'sell';
-        }
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'spot');
-        const symbol = market['symbol'];
-        let fee = undefined;
-        const feeCost = this.safeString (trade, 'execFee');
-        if (feeCost !== undefined) {
-            let feeCurrency = undefined;
-            const [ base, quote ] = symbol.split ('/');
-            if (Precise.stringGt (feeCost, '0')) {
-                if (side === 'buy') {
-                    feeCurrency = base;
-                } else {
-                    feeCurrency = quote;
-                }
-            } else {
-                if (side === 'buy') {
-                    feeCurrency = quote;
-                } else {
-                    feeCurrency = base;
-                }
-            }
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            };
-        }
-        return this.safeTrade ({
-            'id': this.safeString (trade, 'tradeId'),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': this.safeString (trade, 'orderId'),
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': this.safeString2 (trade, 'price', 'orderPrice'),
-            'amount': this.safeString2 (trade, 'qty', 'orderQty'),
-            'cost': undefined,
-            'fee': fee,
-        }, market);
-    }
-
-    parseContractTrade (trade, market = undefined) {
-        //
-        // public contract
+        // private trades unified https://bybit-exchange.github.io/docs/v5/position/execution
         //
         //     {
-        //         "execId": "666042b4-50c6-58f3-bd9c-89b2088663ff",
-        //         "symbol": "ETHUSD",
-        //         "price": "1162.95",
-        //         "size": "1",
-        //         "side": "Sell",
-        //         "time": "1669191277315",
-        //         "isBlockTrade": false
-        //     }
-        //
-        // public unified margin
-        //
-        //     {
-        //         "execId": "da66abbc-f358-5864-8d34-84ef7274d853",
-        //         "symbol": "BTCUSDT",
-        //         "price": "20802.50",
-        //         "size": "0.200",
-        //         "side": "Sell",
-        //         "time": "1657870316630"
-        //     }
-        //
-        // private contract trades
-        //
-        //     {
-        //         "symbol": "ETHUSD",
-        //         "execFee": "0.00005484",
-        //         "execId": "acf78206-d464-589b-b888-51bd130821c1",
-        //         "execPrice": "1367.80",
-        //         "execQty": "100",
+        //         "symbol": "QNTUSDT",
+        //         "orderType": "Limit",
+        //         "underlyingPrice": "",
+        //         "orderLinkId": "1549452573428424449",
+        //         "orderId": "1549452573428424448",
+        //         "stopOrderType": "",
+        //         "execTime": "1699445151998",
+        //         "feeRate": "0.00025",
+        //         "tradeIv": "",
+        //         "blockTradeId": "",
+        //         "markPrice": "",
+        //         "execPrice": "102.8",
+        //         "markIv": "",
+        //         "orderQty": "3.652",
+        //         "orderPrice": "102.8",
+        //         "execValue": "1.028",
+        //         "closedSize": "",
         //         "execType": "Trade",
-        //         "execValue": "0.0731101",
-        //         "feeRate": "0.00075",
-        //         "lastLiquidityInd": "RemovedLiquidity",
-        //         "leavesQty": "0",
-        //         "orderId": "fdc584c3-be5d-41ff-8f54-5be7649b1d1c",
-        //         "orderLinkId": "",
-        //         "orderPrice": "1299.50",
-        //         "orderQty": "100",
-        //         "orderType": "Market",
-        //         "stopOrderType": "UNKNOWN",
-        //         "side": "Sell",
-        //         "execTime": "1611528105547",
-        //         "closedSize": "100"
-        //     }
-        //
-        // private unified margin
-        //
-        //     {
-        //         "symbol": "AAVEUSDT",
-        //         "id": "1274785101965716991",
-        //         "orderId": "1274784252359089664",
-        //         "tradeId": "2270000000031365639",
-        //         "orderPrice": "82.5",
-        //         "orderQty": "0.016",
-        //         "execFee": "0",
-        //         "feeTokenId": "AAVE",
-        //         "creatTime": "1666702226326",
-        //         "isBuyer": "0",
-        //         "isMaker": "0",
-        //         "matchOrderId": "1274785101865076224",
-        //         "makerRebate": "0",
-        //         "executionTime": "1666702226335"
-        //     }
+        //         "seq": "19157444346",
+        //         "side": "Buy",
+        //         "indexPrice": "",
+        //         "leavesQty": "3.642",
+        //         "isMaker": true,
+        //         "execFee": "0.0000025",
+        //         "execId": "2210000000101610464",
+        //         "execQty": "0.01",
+        //         "nextPageCursor": "267951%3A0%2C38567%3A0"
+        //     },
         //
         // private USDC settled trades
         //
@@ -2952,15 +2855,29 @@ export default class bybit extends Exchange {
         const feeCostString = this.safeString (trade, 'execFee');
         let fee = undefined;
         if (feeCostString !== undefined) {
+            const feeRateString = this.safeString (trade, 'feeRate');
             let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
+                if (Precise.stringGt (feeCostString, '0')) {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['base'];
+                    } else {
+                        feeCurrencyCode = market['quote'];
+                    }
+                } else {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['quote'];
+                    } else {
+                        feeCurrencyCode = market['base'];
+                    }
+                }
             } else {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
+                'rate': feeRateString,
             };
         }
         return this.safeTrade ({
