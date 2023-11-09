@@ -72,7 +72,7 @@ export default class Exchange {
     transactions: {};
     ohlcvs: any;
     myTrades: any;
-    positions: {};
+    positions: any;
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -576,6 +576,7 @@ export default class Exchange {
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
+    parseToNumeric(number: any): number;
     afterConstruct(): void;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {
@@ -674,6 +675,9 @@ export default class Exchange {
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    watchPosition(symbol?: string, params?: {}): Promise<Position>;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositionForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -633,7 +633,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -646,7 +646,7 @@ class cryptocom(Exchange, ImplicitAPI):
         tickers = self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
@@ -720,7 +720,7 @@ class cryptocom(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get a list of the most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
@@ -773,7 +773,7 @@ class cryptocom(Exchange, ImplicitAPI):
         trades = self.safe_value(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
@@ -830,7 +830,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
@@ -871,7 +871,7 @@ class cryptocom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderBook, 't')
         return self.parse_order_book(orderBook, symbol, timestamp)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         responseResult = self.safe_value(response, 'result', {})
         data = self.safe_value(responseResult, 'data', [])
         positionBalances = self.safe_value(data[0], 'position_balances', [])
@@ -886,7 +886,7 @@ class cryptocom(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
@@ -1350,7 +1350,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, None, None, params)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
@@ -1615,7 +1615,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         return self.safe_string(networksById, networkId, networkId)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
@@ -1668,7 +1668,7 @@ class cryptocom(Exchange, ImplicitAPI):
         depositList = self.safe_value(data, 'deposit_list', [])
         return self.parse_transactions(depositList, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
@@ -1789,18 +1789,18 @@ class cryptocom(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
-        #       id: '1641032709328',
-        #       method: 'private/deriv/get-transfer-history',
-        #       code: '0',
-        #       result: {
-        #         transfer_list: [
+        #       "id": "1641032709328",
+        #       "method": "private/deriv/get-transfer-history",
+        #       "code": "0",
+        #       "result": {
+        #         "transfer_list": [
         #           {
-        #             direction: 'IN',
-        #             time: '1641025185223',
-        #             amount: '109.56',
-        #             status: 'COMPLETED',
-        #             information: 'From Spot Wallet',
-        #             currency: 'USDC'
+        #             "direction": "IN",
+        #             "time": "1641025185223",
+        #             "amount": "109.56",
+        #             "status": "COMPLETED",
+        #             "information": "From Spot Wallet",
+        #             "currency": "USDC"
         #           }
         #         ]
         #       }
@@ -1822,19 +1822,19 @@ class cryptocom(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer, currency=None):
         #
         #   {
-        #     response: {
-        #       id: '1641032709328',
-        #       method: 'private/deriv/get-transfer-history',
-        #       code: '0',
-        #       result: {
-        #         transfer_list: [
+        #     "response": {
+        #       "id": "1641032709328",
+        #       "method": "private/deriv/get-transfer-history",
+        #       "code": "0",
+        #       "result": {
+        #         "transfer_list": [
         #           {
-        #             direction: 'IN',
-        #             time: '1641025185223',
-        #             amount: '109.56',
-        #             status: 'COMPLETED',
-        #             information: 'From Spot Wallet',
-        #             currency: 'USDC'
+        #             "direction": "IN",
+        #             "time": "1641025185223",
+        #             "amount": "109.56",
+        #             "status": "COMPLETED",
+        #             "information": "From Spot Wallet",
+        #             "currency": "USDC"
         #           }
         #         ]
         #       }
@@ -1888,7 +1888,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -1948,7 +1948,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #
@@ -2159,7 +2159,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2408,16 +2408,16 @@ class cryptocom(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         #    {
-        #        full_name: 'Alchemix',
-        #        default_network: 'ETH',
-        #        network_list: [
+        #        "full_name": "Alchemix",
+        #        "default_network": "ETH",
+        #        "network_list": [
         #          {
-        #            network_id: 'ETH',
-        #            withdrawal_fee: '0.25000000',
-        #            withdraw_enabled: True,
-        #            min_withdrawal_amount: '0.5',
-        #            deposit_enabled: True,
-        #            confirmation_required: '0'
+        #            "network_id": "ETH",
+        #            "withdrawal_fee": "0.25000000",
+        #            "withdraw_enabled": True,
+        #            "min_withdrawal_amount": "0.5",
+        #            "deposit_enabled": True,
+        #            "confirmation_required": "0"
         #          }
         #        ]
         #    }
@@ -2950,7 +2950,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'hedged': None,
             'side': None,
-            'contracts': None,
+            'contracts': self.safe_number(position, 'quantity'),
             'contractSize': market['contractSize'],
             'entryPrice': None,
             'markPrice': None,

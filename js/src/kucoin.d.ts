@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class kucoin
  * @extends Exchange
@@ -48,9 +48,9 @@ export default class kucoin extends Exchange {
         networks: {};
     };
     isFuturesMethod(methodName: any, params: any): boolean;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
@@ -75,7 +75,7 @@ export default class kucoin extends Exchange {
         network: string;
     };
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTriggerPrices(params: any): any[];
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -100,51 +100,11 @@ export default class kucoin extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        address: string;
-        addressTo: string;
-        addressFrom: any;
-        tag: string;
-        tagTo: string;
-        tagFrom: any;
-        currency: any;
-        amount: number;
-        txid: string;
-        type: string;
-        status: string;
-        comment: string;
-        fee: any;
-        updated: number;
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        address: string;
-        addressTo: string;
-        addressFrom: any;
-        tag: string;
-        tagTo: string;
-        tagFrom: any;
-        currency: any;
-        amount: number;
-        txid: string;
-        type: string;
-        status: string;
-        comment: string;
-        fee: any;
-        updated: number;
-    };
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     fetchBalance(params?: {}): Promise<Balances>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{

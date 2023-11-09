@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1185,23 +1185,23 @@ class kucoin(Exchange, ImplicitAPI):
         response = await self.privateGetAccounts(params)
         #
         #     {
-        #         code: "200000",
-        #         data: [
+        #         "code": "200000",
+        #         "data": [
         #             {
-        #                 balance: "0.00009788",
-        #                 available: "0.00009788",
-        #                 holds: "0",
-        #                 currency: "BTC",
-        #                 id: "5c6a4fd399a1d81c4f9cc4d0",
-        #                 type: "trade"
+        #                 "balance": "0.00009788",
+        #                 "available": "0.00009788",
+        #                 "holds": "0",
+        #                 "currency": "BTC",
+        #                 "id": "5c6a4fd399a1d81c4f9cc4d0",
+        #                 "type": "trade"
         #             },
         #             {
-        #                 balance: "0.00000001",
-        #                 available: "0.00000001",
-        #                 holds: "0",
-        #                 currency: "ETH",
-        #                 id: "5c6a49ec99a1d819392e8e9f",
-        #                 type: "trade"
+        #                 "balance": "0.00000001",
+        #                 "available": "0.00000001",
+        #                 "holds": "0",
+        #                 "currency": "ETH",
+        #                 "id": "5c6a49ec99a1d819392e8e9f",
+        #                 "type": "trade"
         #             }
         #         ]
         #     }
@@ -1351,7 +1351,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "symbol": "BTC-USDT",   # symbol
@@ -1397,14 +1397,14 @@ class kucoin(Exchange, ImplicitAPI):
         # market/ticker ws subscription
         #
         #     {
-        #         bestAsk: '62258.9',
-        #         bestAskSize: '0.38579986',
-        #         bestBid: '62258.8',
-        #         bestBidSize: '0.0078381',
-        #         price: '62260.7',
-        #         sequence: '1621383297064',
-        #         size: '0.00002841',
-        #         time: 1634641777363
+        #         "bestAsk": "62258.9",
+        #         "bestAskSize": "0.38579986",
+        #         "bestBid": "62258.8",
+        #         "bestBidSize": "0.0078381",
+        #         "price": "62260.7",
+        #         "sequence": "1621383297064",
+        #         "size": "0.00002841",
+        #         "time": 1634641777363
         #     }
         #
         percentage = self.safe_string(ticker, 'changeRate')
@@ -1492,7 +1492,7 @@ class kucoin(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.kucoin.com/#get-24hr-stats
@@ -1552,7 +1552,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.kucoin.com/#get-klines
@@ -1718,7 +1718,7 @@ class kucoin(Exchange, ImplicitAPI):
         })
         return self.index_by(parsed, 'network')
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.kucoin.com/#get-part-order-book-aggregated
@@ -1864,8 +1864,8 @@ class kucoin(Exchange, ImplicitAPI):
             response = await self.privatePostOrders(orderRequest)
         #
         #     {
-        #         code: '200000',
-        #         data: {
+        #         "code": "200000",
+        #         "data": {
         #             "orderId": "5bd6e9286d99522a52e458de"
         #         }
         #    }
@@ -2185,8 +2185,8 @@ class kucoin(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
-        #         code: '200000',
-        #         data: {
+        #         "code": "200000",
+        #         "data": {
         #             "currentPage": 1,
         #             "pageSize": 1,
         #             "totalNum": 153408,
@@ -2230,7 +2230,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_value(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.kucoin.com/spot#list-orders
@@ -2257,7 +2257,7 @@ class kucoin(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.kucoin.com/spot#list-orders
@@ -2639,7 +2639,7 @@ class kucoin(Exchange, ImplicitAPI):
             trades = self.safe_value(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.kucoin.com/#get-trade-histories
@@ -2679,7 +2679,7 @@ class kucoin(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -2692,16 +2692,16 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         #     {
-        #         sequence: '1568787654360',
-        #         symbol: 'BTC-USDT',
-        #         side: 'buy',
-        #         size: '0.00536577',
-        #         price: '9345',
-        #         takerOrderId: '5e356c4a9f1a790008f8d921',
-        #         time: '1580559434436443257',
-        #         type: 'match',
-        #         makerOrderId: '5e356bffedf0010008fa5d7f',
-        #         tradeId: '5e356c4aeefabd62c62a1ece'
+        #         "sequence": "1568787654360",
+        #         "symbol": "BTC-USDT",
+        #         "side": "buy",
+        #         "size": "0.00536577",
+        #         "price": "9345",
+        #         "takerOrderId": "5e356c4a9f1a790008f8d921",
+        #         "time": "1580559434436443257",
+        #         "type": "match",
+        #         "makerOrderId": "5e356bffedf0010008fa5d7f",
+        #         "tradeId": "5e356c4aeefabd62c62a1ece"
         #     }
         #
         # fetchMyTrades(private) v2
@@ -2728,19 +2728,19 @@ class kucoin(Exchange, ImplicitAPI):
         # fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
         #
         #     {
-        #         symbol: "OPEN-BTC",
-        #         forceTaker:  False,
-        #         orderId: "5ce36420054b4663b1fff2c9",
-        #         fee: "0",
-        #         feeCurrency: "",
-        #         type: "",
-        #         feeRate: "0",
-        #         createdAt: 1558417615000,
-        #         size: "12.8206",
-        #         stop: "",
-        #         price: "0",
-        #         funds: "0",
-        #         tradeId: "5ce390cf6e0db23b861c6e80"
+        #         "symbol": "OPEN-BTC",
+        #         "forceTaker":  False,
+        #         "orderId": "5ce36420054b4663b1fff2c9",
+        #         "fee": "0",
+        #         "feeCurrency": "",
+        #         "type": "",
+        #         "feeRate": "0",
+        #         "createdAt": 1558417615000,
+        #         "size": "12.8206",
+        #         "stop": "",
+        #         "price": "0",
+        #         "funds": "0",
+        #         "tradeId": "5ce390cf6e0db23b861c6e80"
         #     }
         #
         # fetchMyTrades(private) v1(historical)
@@ -2820,12 +2820,12 @@ class kucoin(Exchange, ImplicitAPI):
         response = await self.privateGetTradeFees(self.extend(request, params))
         #
         #     {
-        #         code: '200000',
-        #         data: [
+        #         "code": "200000",
+        #         "data": [
         #           {
-        #             symbol: 'BTC-USDT',
-        #             takerFeeRate: '0.001',
-        #             makerFeeRate: '0.001'
+        #             "symbol": "BTC-USDT",
+        #             "takerFeeRate": "0.001",
+        #             "makerFeeRate": "0.001"
         #           }
         #         ]
         #     }
@@ -2899,7 +2899,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -3001,7 +3001,7 @@ class kucoin(Exchange, ImplicitAPI):
             'updated': updated,
         }
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         :see: https://docs.kucoin.com/#get-deposit-list
         :see: https://docs.kucoin.com/#get-v1-historical-deposits-list
@@ -3040,8 +3040,8 @@ class kucoin(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #         code: '200000',
-        #         data: {
+        #         "code": "200000",
+        #         "data": {
         #             "currentPage": 1,
         #             "pageSize": 5,
         #             "totalNum": 2,
@@ -3079,7 +3079,7 @@ class kucoin(Exchange, ImplicitAPI):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://docs.kucoin.com/#get-withdrawals-list
@@ -3116,8 +3116,8 @@ class kucoin(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
-        #         code: '200000',
-        #         data: {
+        #         "code": "200000",
+        #         "data": {
         #             "currentPage": 1,
         #             "pageSize": 5,
         #             "totalNum": 2,
@@ -3166,7 +3166,7 @@ class kucoin(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.kucoin.com/#list-accounts
@@ -3222,32 +3222,32 @@ class kucoin(Exchange, ImplicitAPI):
         # Isolated
         #
         #    {
-        #        code: '200000',
-        #        data: {
-        #            totalConversionBalance: '0',
-        #            liabilityConversionBalance: '0',
-        #            assets: [
+        #        "code": "200000",
+        #        "data": {
+        #            "totalConversionBalance": "0",
+        #            "liabilityConversionBalance": "0",
+        #            "assets": [
         #                {
-        #                    symbol: 'MANA-USDT',
-        #                    status: 'CLEAR',
-        #                    debtRatio: '0',
-        #                    baseAsset: {
-        #                        currency: 'MANA',
-        #                        totalBalance: '0',
-        #                        holdBalance: '0',
-        #                        availableBalance: '0',
-        #                        liability: '0',
-        #                        interest: '0',
-        #                        borrowableAmount: '0'
+        #                    "symbol": "MANA-USDT",
+        #                    "status": "CLEAR",
+        #                    "debtRatio": "0",
+        #                    "baseAsset": {
+        #                        "currency": "MANA",
+        #                        "totalBalance": "0",
+        #                        "holdBalance": "0",
+        #                        "availableBalance": "0",
+        #                        "liability": "0",
+        #                        "interest": "0",
+        #                        "borrowableAmount": "0"
         #                    },
-        #                    quoteAsset: {
-        #                        currency: 'USDT',
-        #                        totalBalance: '0',
-        #                        holdBalance: '0',
-        #                        availableBalance: '0',
-        #                        liability: '0',
-        #                        interest: '0',
-        #                        borrowableAmount: '0'
+        #                    "quoteAsset": {
+        #                        "currency": "USDT",
+        #                        "totalBalance": "0",
+        #                        "holdBalance": "0",
+        #                        "availableBalance": "0",
+        #                        "liability": "0",
+        #                        "interest": "0",
+        #                        "borrowableAmount": "0"
         #                    }
         #                },
         #                ...
@@ -3330,25 +3330,25 @@ class kucoin(Exchange, ImplicitAPI):
             response = await self.futuresPrivatePostTransferOut(self.extend(request, params))
             #
             #     {
-            #         'code': '200000',
-            #         'data': {
-            #             'applyId': '605a87217dff1500063d485d',
-            #             'bizNo': 'bcd6e5e1291f4905af84dc',
-            #             'payAccountType': 'CONTRACT',
-            #             'payTag': 'DEFAULT',
-            #             'remark': '',
-            #             'recAccountType': 'MAIN',
-            #             'recTag': 'DEFAULT',
-            #             'recRemark': '',
-            #             'recSystem': 'KUCOIN',
-            #             'status': 'PROCESSING',
-            #             'currency': 'XBT',
-            #             'amount': '0.00001',
-            #             'fee': '0',
-            #             'sn': '573688685663948',
-            #             'reason': '',
-            #             'createdAt': 1616545569000,
-            #             'updatedAt': 1616545569000
+            #         "code": "200000",
+            #         "data": {
+            #             "applyId": "605a87217dff1500063d485d",
+            #             "bizNo": "bcd6e5e1291f4905af84dc",
+            #             "payAccountType": "CONTRACT",
+            #             "payTag": "DEFAULT",
+            #             "remark": '',
+            #             "recAccountType": "MAIN",
+            #             "recTag": "DEFAULT",
+            #             "recRemark": '',
+            #             "recSystem": "KUCOIN",
+            #             "status": "PROCESSING",
+            #             "currency": "XBT",
+            #             "amount": "0.00001",
+            #             "fee": "0",
+            #             "sn": "573688685663948",
+            #             "reason": '',
+            #             "createdAt": 1616545569000,
+            #             "updatedAt": 1616545569000
             #         }
             #     }
             #
@@ -3373,9 +3373,9 @@ class kucoin(Exchange, ImplicitAPI):
             response = await self.privatePostAccountsInnerTransfer(self.extend(request, params))
             #
             #     {
-            #         'code': '200000',
-            #         'data': {
-            #              'orderId': '605a6211e657f00006ad0ad6'
+            #         "code": "200000",
+            #         "data": {
+            #              "orderId": "605a6211e657f00006ad0ad6"
             #         }
             #     }
             #
@@ -3387,7 +3387,7 @@ class kucoin(Exchange, ImplicitAPI):
         # transfer(spot)
         #
         #    {
-        #        'orderId': '605a6211e657f00006ad0ad6'
+        #        "orderId": "605a6211e657f00006ad0ad6"
         #    }
         #
         #    {
@@ -3398,23 +3398,23 @@ class kucoin(Exchange, ImplicitAPI):
         # transfer(futures)
         #
         #     {
-        #         'applyId': '605a87217dff1500063d485d',
-        #         'bizNo': 'bcd6e5e1291f4905af84dc',
-        #         'payAccountType': 'CONTRACT',
-        #         'payTag': 'DEFAULT',
-        #         'remark': '',
-        #         'recAccountType': 'MAIN',
-        #         'recTag': 'DEFAULT',
-        #         'recRemark': '',
-        #         'recSystem': 'KUCOIN',
-        #         'status': 'PROCESSING',
-        #         'currency': 'XBT',
-        #         'amount': '0.00001',
-        #         'fee': '0',
-        #         'sn': '573688685663948',
-        #         'reason': '',
-        #         'createdAt': 1616545569000,
-        #         'updatedAt': 1616545569000
+        #         "applyId": "605a87217dff1500063d485d",
+        #         "bizNo": "bcd6e5e1291f4905af84dc",
+        #         "payAccountType": "CONTRACT",
+        #         "payTag": "DEFAULT",
+        #         "remark": '',
+        #         "recAccountType": "MAIN",
+        #         "recTag": "DEFAULT",
+        #         "recRemark": '',
+        #         "recSystem": "KUCOIN",
+        #         "status": "PROCESSING",
+        #         "currency": "XBT",
+        #         "amount": "0.00001",
+        #         "fee": "0",
+        #         "sn": "573688685663948",
+        #         "reason": '',
+        #         "createdAt": 1616545569000,
+        #         "updatedAt": 1616545569000
         #     }
         #
         timestamp = self.safe_integer(transfer, 'createdAt')

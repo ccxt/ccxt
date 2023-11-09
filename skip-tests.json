@@ -417,7 +417,9 @@
                 "networks": "missing"
             },
             "loadMarkets": {
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "taker": "is undefined",
+                "maker": "is undefined"
             },
             "fetchTickers": {
                 "bid":"broken bid-ask",
@@ -1078,6 +1080,11 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            },
+            "fetchCurrencies": {
+                "deposit":"is undefined",
+                "withdraw":"is undefined",
+                "active":"is undefined"
             }
         }
     },
@@ -1368,6 +1375,7 @@
         }
     },
     "tidex": {
+        "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
         "skipWs": true,
@@ -1565,6 +1573,17 @@
                 "lastPrice": "undefined",
                 "percentage": "undefined",
                 "liquidationPrice": "undefined"
+            }
+        }
+    },
+    "coinlist": {
+        "skipMethods": {
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
+                "ask": "invalid"
             }
         }
     }

@@ -90,18 +90,18 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->watch($url, $messageHash, $request, $messageHash);
             //
             //    {
-            //        jsonrpc => '2.0',
-            //        result => true
+            //        "jsonrpc" => "2.0",
+            //        "result" => true
             //    }
             //
             //    # Failure to return results
             //
             //    {
-            //        jsonrpc => '2.0',
-            //        error => {
-            //            code => 1002,
-            //            message => 'Authorization is required or has been failed',
-            //            description => 'invalid $signature format'
+            //        "jsonrpc" => "2.0",
+            //        "error" => {
+            //            "code" => 1002,
+            //            "message" => "Authorization is required or has been failed",
+            //            "description" => "invalid $signature format"
             //        }
             //    }
             //
@@ -997,7 +997,7 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function handle_notification(Client $client, $message) {
         //
-        //     array( jsonrpc => '2.0', result => true, id => null )
+        //     array( jsonrpc => "2.0", result => true, id => null )
         //
         return $message;
     }
@@ -1036,8 +1036,8 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_authenticate(Client $client, $message) {
         //
         //    {
-        //        jsonrpc => '2.0',
-        //        result => true
+        //        "jsonrpc" => "2.0",
+        //        "result" => true
         //    }
         //
         $success = $this->safe_value($message, 'result');

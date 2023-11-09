@@ -147,7 +147,7 @@ export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Ba
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
 import totp from './functions/totp.js';
 
 // ----------------------------------------------------------------------------
@@ -233,7 +233,7 @@ export default class Exchange {
     ohlcvs: any
     myLiquidations = {}
     myTrades: any
-    positions    = {}
+    positions: any
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -706,7 +706,7 @@ export default class Exchange {
         this.ohlcvs       = {}
         this.myLiquidations = {}
         this.myTrades     = undefined
-        this.positions    = {}
+        this.positions    = undefined
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -1804,6 +1804,18 @@ export default class Exchange {
         const stringifiedNumber = number.toString ();
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
+    }
+
+    parseToNumeric (number) {
+        const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf ('.') > 0) {
+            return parseFloat (stringVersion);
+        }
+        return parseInt (stringVersion);
     }
 
     afterConstruct () {
@@ -3103,7 +3115,7 @@ export default class Exchange {
         const symbol = this.safeString (position, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market (symbol);
+            market = this.safeValue (this.markets, symbol);
         }
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber (market, 'contractSize');
@@ -3343,6 +3355,18 @@ export default class Exchange {
 
     async fetchPosition (symbol: string, params = {}): Promise<Position> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    async watchPosition (symbol: string = undefined, params = {}): Promise<Position> {
+        throw new NotSupported (this.id + ' watchPosition() is not supported yet');
+    }
+
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' watchPositions() is not supported yet');
+    }
+
+    async watchPositionForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        return this.watchPositions (symbols, since, limit, params);
     }
 
     async fetchPositionsBySymbol (symbol: string, params = {}): Promise<Position[]> {
@@ -4931,7 +4955,12 @@ export default class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method] (params);
+                } else {
+                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {

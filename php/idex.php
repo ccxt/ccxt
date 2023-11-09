@@ -310,7 +310,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -324,20 +324,20 @@ class idex extends Exchange {
         );
         // array(
         //   {
-        //     $market => 'DIL-ETH',
-        //     time => 1598367493008,
-        //     open => '0.09695361',
-        //     high => '0.10245881',
-        //     low => '0.09572507',
-        //     close => '0.09917079',
-        //     closeQuantity => '0.71320950',
-        //     baseVolume => '309.17380612',
-        //     quoteVolume => '30.57633981',
-        //     percentChange => '2.28',
-        //     numTrades => 205,
-        //     ask => '0.09910476',
-        //     bid => '0.09688340',
-        //     sequence => 3902
+        //     "market" => "DIL-ETH",
+        //     "time" => 1598367493008,
+        //     "open" => "0.09695361",
+        //     "high" => "0.10245881",
+        //     "low" => "0.09572507",
+        //     "close" => "0.09917079",
+        //     "closeQuantity" => "0.71320950",
+        //     "baseVolume" => "309.17380612",
+        //     "quoteVolume" => "30.57633981",
+        //     "percentChange" => "2.28",
+        //     "numTrades" => 205,
+        //     "ask" => "0.09910476",
+        //     "bid" => "0.09688340",
+        //     "sequence" => 3902
         //   }
         // )
         $response = $this->publicGetTickers (array_merge($request, $params));
@@ -355,42 +355,42 @@ class idex extends Exchange {
         $this->load_markets();
         // array(
         //   array(
-        //     market => 'DIL-ETH',
-        //     time => 1598367493008,
-        //     open => '0.09695361',
-        //     high => '0.10245881',
-        //     low => '0.09572507',
-        //     close => '0.09917079',
-        //     closeQuantity => '0.71320950',
-        //     baseVolume => '309.17380612',
-        //     quoteVolume => '30.57633981',
-        //     percentChange => '2.28',
-        //     numTrades => 205,
-        //     ask => '0.09910476',
-        //     bid => '0.09688340',
-        //     sequence => 3902
+        //     "market" => "DIL-ETH",
+        //     "time" => 1598367493008,
+        //     "open" => "0.09695361",
+        //     "high" => "0.10245881",
+        //     "low" => "0.09572507",
+        //     "close" => "0.09917079",
+        //     "closeQuantity" => "0.71320950",
+        //     "baseVolume" => "309.17380612",
+        //     "quoteVolume" => "30.57633981",
+        //     "percentChange" => "2.28",
+        //     "numTrades" => 205,
+        //     "ask" => "0.09910476",
+        //     "bid" => "0.09688340",
+        //     "sequence" => 3902
         //   ), ...
         // )
         $response = $this->publicGetTickers ($params);
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         // {
-        //   $market => 'DIL-ETH',
-        //   time => 1598367493008,
-        //   open => '0.09695361',
-        //   high => '0.10245881',
-        //   low => '0.09572507',
-        //   $close => '0.09917079',
-        //   closeQuantity => '0.71320950',
-        //   baseVolume => '309.17380612',
-        //   quoteVolume => '30.57633981',
-        //   percentChange => '2.28',
-        //   numTrades => 205,
-        //   ask => '0.09910476',
-        //   bid => '0.09688340',
-        //   sequence => 3902
+        //   "market" => "DIL-ETH",
+        //   "time" => 1598367493008,
+        //   "open" => "0.09695361",
+        //   "high" => "0.10245881",
+        //   "low" => "0.09572507",
+        //   "close" => "0.09917079",
+        //   "closeQuantity" => "0.71320950",
+        //   "baseVolume" => "309.17380612",
+        //   "quoteVolume" => "30.57633981",
+        //   "percentChange" => "2.28",
+        //   "numTrades" => 205,
+        //   "ask" => "0.09910476",
+        //   "bid" => "0.09688340",
+        //   "sequence" => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, $market, '-');
@@ -421,7 +421,7 @@ class idex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -447,13 +447,13 @@ class idex extends Exchange {
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // array(
             //   array(
-            //     start => 1598345580000,
-            //     open => '0.09771286',
-            //     high => '0.09771286',
-            //     low => '0.09771286',
-            //     close => '0.09771286',
-            //     volume => '1.45340410',
-            //     sequence => 3853
+            //     "start" => 1598345580000,
+            //     "open" => "0.09771286",
+            //     "high" => "0.09771286",
+            //     "low" => "0.09771286",
+            //     "close" => "0.09771286",
+            //     "volume" => "1.45340410",
+            //     "sequence" => 3853
             //   ), ...
             // )
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -465,13 +465,13 @@ class idex extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null): array {
         // {
-        //   start => 1598345580000,
-        //   $open => '0.09771286',
-        //   $high => '0.09771286',
-        //   $low => '0.09771286',
-        //   $close => '0.09771286',
-        //   $volume => '1.45340410',
-        //   sequence => 3853
+        //   "start" => 1598345580000,
+        //   "open" => "0.09771286",
+        //   "high" => "0.09771286",
+        //   "low" => "0.09771286",
+        //   "close" => "0.09771286",
+        //   "volume" => "1.45340410",
+        //   "sequence" => 3853
         // }
         $timestamp = $this->safe_integer($ohlcv, 'start');
         $open = $this->safe_number($ohlcv, 'open');
@@ -482,7 +482,7 @@ class idex extends Exchange {
         return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -504,20 +504,20 @@ class idex extends Exchange {
         }
         // array(
         //   array(
-        //     fillId => 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //     price => '0.09771286',
-        //     quantity => '1.45340410',
-        //     quoteQuantity => '0.14201627',
-        //     time => 1598345638994,
-        //     makerSide => 'buy',
-        //     sequence => 3853
+        //     "fillId" => "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        //     "price" => "0.09771286",
+        //     "quantity" => "1.45340410",
+        //     "quoteQuantity" => "0.14201627",
+        //     "time" => 1598345638994,
+        //     "makerSide" => "buy",
+        //     "sequence" => 3853
         //   ), ...
         // )
         $response = $this->publicGetTrades (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public trades
         //  {
@@ -611,15 +611,15 @@ class idex extends Exchange {
         $response = $this->privateGetUser (array_merge($request, $params));
         //
         //     {
-        //         depositEnabled => true,
-        //         orderEnabled => true,
-        //         cancelEnabled => true,
-        //         withdrawEnabled => true,
-        //         totalPortfolioValueUsd => '0.00',
-        //         makerFeeRate => '0.0000',
-        //         takerFeeRate => '0.0025',
-        //         takerIdexFeeRate => '0.0005',
-        //         takerLiquidityProviderFeeRate => '0.0020'
+        //         "depositEnabled" => true,
+        //         "orderEnabled" => true,
+        //         "cancelEnabled" => true,
+        //         "withdrawEnabled" => true,
+        //         "totalPortfolioValueUsd" => "0.00",
+        //         "makerFeeRate" => "0.0000",
+        //         "takerFeeRate" => "0.0025",
+        //         "takerIdexFeeRate" => "0.0005",
+        //         "takerLiquidityProviderFeeRate" => "0.0020"
         //     }
         //
         $maker = $this->safe_number($response, 'makerFeeRate');
@@ -639,7 +639,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -657,23 +657,23 @@ class idex extends Exchange {
             $request['limit'] = $limit;
         }
         // {
-        //   sequence => 36416753,
-        //   bids => array(
-        //     array( '0.09672815', '8.22284267', 1 ),
-        //     array( '0.09672814', '1.83685554', 1 ),
-        //     array( '0.09672143', '4.10962617', 1 ),
-        //     array( '0.09658884', '4.03863759', 1 ),
-        //     array( '0.09653781', '3.35730684', 1 ),
-        //     array( '0.09624660', '2.54163586', 1 ),
-        //     array( '0.09617490', '1.93065030', 1 )
+        //   "sequence" => 36416753,
+        //   "bids" => array(
+        //     array( '0.09672815', "8.22284267", 1 ),
+        //     array( '0.09672814', "1.83685554", 1 ),
+        //     array( '0.09672143', "4.10962617", 1 ),
+        //     array( '0.09658884', "4.03863759", 1 ),
+        //     array( '0.09653781', "3.35730684", 1 ),
+        //     array( '0.09624660', "2.54163586", 1 ),
+        //     array( '0.09617490', "1.93065030", 1 )
         //   ),
-        //   asks => array(
-        //     array( '0.09910476', '3.22840154', 1 ),
-        //     array( '0.09940587', '3.39796593', 1 ),
-        //     array( '0.09948189', '4.25088898', 1 ),
-        //     array( '0.09958362', '2.42195784', 1 ),
-        //     array( '0.09974393', '4.25234367', 1 ),
-        //     array( '0.09995250', '3.40192141', 1 )
+        //   "asks" => array(
+        //     array( '0.09910476', "3.22840154", 1 ),
+        //     array( '0.09940587', "3.39796593", 1 ),
+        //     array( '0.09948189', "4.25088898", 1 ),
+        //     array( '0.09958362', "2.42195784", 1 ),
+        //     array( '0.09974393', "4.25234367", 1 ),
+        //     array( '0.09995250', "3.40192141", 1 )
         //   )
         // }
         $response = $this->publicGetOrderbook (array_merge($request, $params));
@@ -748,7 +748,7 @@ class idex extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -767,7 +767,7 @@ class idex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the idex api endpoint
@@ -782,11 +782,11 @@ class idex extends Exchange {
         );
         // array(
         //   array(
-        //     asset => 'DIL',
-        //     quantity => '0.00000000',
-        //     availableForTrade => '0.00000000',
-        //     locked => '0.00000000',
-        //     usdValue => null
+        //     "asset" => "DIL",
+        //     "quantity" => "0.00000000",
+        //     "availableForTrade" => "0.00000000",
+        //     "locked" => "0.00000000",
+        //     "usdValue" => null
         //   ), ...
         // )
         $extendedRequest = array_merge($request, $params);
@@ -836,22 +836,22 @@ class idex extends Exchange {
         }
         // array(
         //   {
-        //     fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //     price => '0.09905990',
-        //     quantity => '0.40000000',
-        //     quoteQuantity => '0.03962396',
-        //     time => 1598873478762,
-        //     makerSide => 'sell',
-        //     sequence => 5053,
-        //     $market => 'DIL-ETH',
-        //     orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //     side => 'buy',
-        //     fee => '0.00080000',
-        //     feeAsset => 'DIL',
-        //     gas => '0.00857497',
-        //     liquidity => 'taker',
-        //     txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //     txStatus => 'mined'
+        //     "fillId" => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //     "price" => "0.09905990",
+        //     "quantity" => "0.40000000",
+        //     "quoteQuantity" => "0.03962396",
+        //     "time" => 1598873478762,
+        //     "makerSide" => "sell",
+        //     "sequence" => 5053,
+        //     "market" => "DIL-ETH",
+        //     "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //     "side" => "buy",
+        //     "fee" => "0.00080000",
+        //     "feeAsset" => "DIL",
+        //     "gas" => "0.00857497",
+        //     "liquidity" => "taker",
+        //     "txId" => "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //     "txStatus" => "mined"
         //   }
         // )
         $extendedRequest = array_merge($request, $params);
@@ -886,7 +886,7 @@ class idex extends Exchange {
         return $this->fetch_orders_helper($symbol, null, null, array_merge($request, $params));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified market $symbol
@@ -901,7 +901,7 @@ class idex extends Exchange {
         return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
@@ -969,32 +969,32 @@ class idex extends Exchange {
         //   }
         // )
         // fetchOrder
-        // { $market => 'DIL-ETH',
-        //   orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time => 1598873478650,
-        //   status => 'filled',
-        //   type => 'limit',
-        //   side => 'buy',
-        //   originalQuantity => '0.40000000',
-        //   executedQuantity => '0.40000000',
-        //   cumulativeQuoteQuantity => '0.03962396',
-        //   avgExecutionPrice => '0.09905990',
-        //   price => '1.00000000',
-        //   fills:
-        //    array( { fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //        price => '0.09905990',
-        //        quantity => '0.40000000',
-        //        quoteQuantity => '0.03962396',
-        //        time => 1598873478650,
-        //        makerSide => 'sell',
-        //        sequence => 5053,
-        //        fee => '0.00080000',
-        //        feeAsset => 'DIL',
-        //        gas => '0.00857497',
-        //        liquidity => 'taker',
-        //        txId => '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //        txStatus => 'mined' } ) }
+        // { $market => "DIL-ETH",
+        //   "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time" => 1598873478650,
+        //   "status" => "filled",
+        //   "type" => "limit",
+        //   "side" => "buy",
+        //   "originalQuantity" => "0.40000000",
+        //   "executedQuantity" => "0.40000000",
+        //   "cumulativeQuoteQuantity" => "0.03962396",
+        //   "avgExecutionPrice" => "0.09905990",
+        //   "price" => "1.00000000",
+        //   "fills":
+        //    array( { fillId => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //        "price" => "0.09905990",
+        //        "quantity" => "0.40000000",
+        //        "quoteQuantity" => "0.03962396",
+        //        "time" => 1598873478650,
+        //        "makerSide" => "sell",
+        //        "sequence" => 5053,
+        //        "fee" => "0.00080000",
+        //        "feeAsset" => "DIL",
+        //        "gas" => "0.00857497",
+        //        "liquidity" => "taker",
+        //        "txId" => "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //        "txStatus" => "mined" } ) }
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, $market, $since, $limit);
         } else {
@@ -1099,9 +1099,9 @@ class idex extends Exchange {
         $hash = $this->hash($binary, 'keccak', 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         // {
-        //   address => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   totalPortfolioValueUsd => '0.00',
-        //   time => 1598468353626
+        //   "address" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "totalPortfolioValueUsd" => "0.00",
+        //   "time" => 1598468353626
         // }
         $request = array(
             'parameters' => array(
@@ -1271,34 +1271,34 @@ class idex extends Exchange {
             $request['parameters']['clientOrderId'] = $clientOrderId;
         }
         // {
-        //   $market => 'DIL-ETH',
-        //   orderId => '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time => 1598873478650,
-        //   status => 'filled',
-        //   $type => 'limit',
-        //   $side => 'buy',
-        //   originalQuantity => '0.40000000',
-        //   executedQuantity => '0.40000000',
-        //   cumulativeQuoteQuantity => '0.03962396',
-        //   $price => '1.00000000',
-        //   fills => array(
+        //   "market" => "DIL-ETH",
+        //   "orderId" => "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet" => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time" => 1598873478650,
+        //   "status" => "filled",
+        //   "type" => "limit",
+        //   "side" => "buy",
+        //   "originalQuantity" => "0.40000000",
+        //   "executedQuantity" => "0.40000000",
+        //   "cumulativeQuoteQuantity" => "0.03962396",
+        //   "price" => "1.00000000",
+        //   "fills" => array(
         //     {
-        //       fillId => '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //       $price => '0.09905990',
-        //       quantity => '0.40000000',
-        //       quoteQuantity => '0.03962396',
-        //       time => 1598873478650,
-        //       makerSide => 'sell',
-        //       sequence => 5053,
-        //       fee => '0.00080000',
-        //       feeAsset => 'DIL',
-        //       gas => '0.00857497',
-        //       liquidity => 'taker',
-        //       txStatus => 'pending'
+        //       "fillId" => "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //       "price" => "0.09905990",
+        //       "quantity" => "0.40000000",
+        //       "quoteQuantity" => "0.03962396",
+        //       "time" => 1598873478650,
+        //       "makerSide" => "sell",
+        //       "sequence" => 5053,
+        //       "fee" => "0.00080000",
+        //       "feeAsset" => "DIL",
+        //       "gas" => "0.00857497",
+        //       "liquidity" => "taker",
+        //       "txStatus" => "pending"
         //     }
         //   ),
-        //   avgExecutionPrice => '0.09905990'
+        //   "avgExecutionPrice" => "0.09905990"
         // }
         // we don't use extend here because it is a signed endpoint
         $response = $this->privatePostOrders ($request);
@@ -1344,14 +1344,14 @@ class idex extends Exchange {
         $response = $this->privatePostWithdrawals ($request);
         //
         //     {
-        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset => 'ETH',
-        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //         quantity => '0.20000000',
-        //         time => 1598962883190,
-        //         fee => '0.00024000',
-        //         txStatus => 'pending',
-        //         txId => null
+        //         "withdrawalId" => "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset" => "ETH",
+        //         "assetContractAddress" => "0x0000000000000000000000000000000000000000",
+        //         "quantity" => "0.20000000",
+        //         "time" => 1598962883190,
+        //         "fee" => "0.00024000",
+        //         "txStatus" => "pending",
+        //         "txId" => null
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1390,7 +1390,7 @@ class idex extends Exchange {
         $hash = $this->hash($binary, 'keccak', 'hex');
         $signature = $this->sign_message_string($hash, $this->privateKey);
         $request['signature'] = $signature;
-        // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
+        // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
         $response = $this->privateDeleteOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market);
     }
@@ -1427,7 +1427,7 @@ class idex extends Exchange {
             ),
             'signature' => $signature,
         );
-        // array( array( orderId => '688336f0-ec50-11ea-9842-b332f8a34d0e' ) )
+        // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
         $response = $this->privateDeleteOrders (array_merge($request, $params));
         $canceledOrder = $this->safe_value($response, 0);
         return $this->parse_order($canceledOrder, $market);
@@ -1465,7 +1465,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $code);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified currency $code
@@ -1488,7 +1488,7 @@ class idex extends Exchange {
          */
         $response = $this->publicGetTime ($params);
         //
-        //    array( serverTime => '1655258263236' )
+        //    array( serverTime => "1655258263236" )
         //
         return $this->safe_integer($response, 'serverTime');
     }
@@ -1512,7 +1512,7 @@ class idex extends Exchange {
         return $this->parse_transaction($response, $code);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified currency $code
@@ -1547,12 +1547,12 @@ class idex extends Exchange {
         }
         // array(
         //   {
-        //     depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
-        //     asset => 'ETH',
-        //     quantity => '1.00000000',
-        //     txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //     txTime => 1598865853000,
-        //     confirmationTime => 1598865930231
+        //     "depositId" => "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
+        //     "asset" => "ETH",
+        //     "quantity" => "1.00000000",
+        //     "txId" => "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //     "txTime" => 1598865853000,
+        //     "confirmationTime" => 1598865930231
         //   }
         // )
         $method = $params['method'];
@@ -1568,43 +1568,43 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
         //     {
-        //         depositId => 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        //         asset => 'ETH',
-        //         quantity => '1.00000000',
-        //         txId => '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //         txTime => 1598865853000,
-        //         confirmationTime => 1598865930231
+        //         "depositId" => "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
+        //         "asset" => "ETH",
+        //         "quantity" => "1.00000000",
+        //         "txId" => "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //         "txTime" => 1598865853000,
+        //         "confirmationTime" => 1598865930231
         //     }
         //
         // fetchWithdrwalas
         //
         //     {
-        //         withdrawalId => 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        //         asset => 'ETH',
-        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //         quantity => '0.20000000',
-        //         time => 1598962883288,
-        //         $fee => '0.00024000',
-        //         txId => '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        //         txStatus => 'mined'
+        //         "withdrawalId" => "a62d8760-ec4d-11ea-9fa6-47904c19499b",
+        //         "asset" => "ETH",
+        //         "assetContractAddress" => "0x0000000000000000000000000000000000000000",
+        //         "quantity" => "0.20000000",
+        //         "time" => 1598962883288,
+        //         "fee" => "0.00024000",
+        //         "txId" => "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
+        //         "txStatus" => "mined"
         //     }
         //
         // withdraw
         //
         //     {
-        //         withdrawalId => 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset => 'ETH',
-        //         assetContractAddress => '0x0000000000000000000000000000000000000000',
-        //         quantity => '0.20000000',
-        //         time => 1598962883190,
-        //         $fee => '0.00024000',
-        //         txStatus => 'pending',
-        //         txId => null
+        //         "withdrawalId" => "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset" => "ETH",
+        //         "assetContractAddress" => "0x0000000000000000000000000000000000000000",
+        //         "quantity" => "0.20000000",
+        //         "time" => 1598962883190,
+        //         "fee" => "0.00024000",
+        //         "txStatus" => "pending",
+        //         "txId" => null
         //     }
         //
         $type = null;

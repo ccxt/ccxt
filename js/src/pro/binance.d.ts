@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int, OrderSide, OrderType, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -16,24 +16,7 @@ export default class binance extends binanceRest {
     handleSubscriptionStatus(client: Client, message: any): any;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTrade(trade: any, market?: any): import("../base/types.js").Trade | {
-        id: any;
-        timestamp: number;
-        datetime: string;
-        symbol: any;
-        order: string;
-        type: any;
-        takerOrMaker: any;
-        side: any;
-        amount: number;
-        price: number;
-        cost: number;
-        fee: {
-            currency: any;
-            cost: number;
-        };
-        info: any;
-    };
+    parseTrade(trade: any, market?: any): Trade;
     handleTrade(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;
@@ -87,11 +70,17 @@ export default class binance extends binanceRest {
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderUpdate(client: Client, message: any): void;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, type: any, symbols?: string[]): void;
+    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    handlePositions(client: any, message: any): void;
+    parseWsPosition(position: any, market?: any): import("../base/types.js").Position;
     fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTradesWs(client: Client, message: any): void;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrade(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
+    handleAcountUpdate(client: any, message: any): void;
     handleWsError(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
 }

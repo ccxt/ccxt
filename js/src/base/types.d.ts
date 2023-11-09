@@ -130,12 +130,20 @@ export interface Transaction {
     timestamp: number;
     datetime: string;
     address: string;
+    addressFrom: string;
+    addressTo: string;
+    tag: string;
+    tagFrom: string;
+    tagTo: string;
     type: 'deposit' | 'withdrawal' | string;
     amount: number;
     currency: string;
     status: 'pending' | 'ok' | string;
     updated: number;
     fee: Fee;
+    network: string;
+    comment?: string;
+    internal?: boolean;
 }
 export interface Tickers extends Dictionary<Ticker> {
     info: any;

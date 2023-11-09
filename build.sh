@@ -59,7 +59,6 @@ build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     npm run test-base
-    npm run static-tests
     npm run test-base-ws
     run_tests
   fi
@@ -74,7 +73,7 @@ if ([[ "$IS_TRAVIS" == "TRUE" ]] && [ "$TRAVIS_PULL_REQUEST" = "false" ]) || ([[
 fi
 
 ##### DETECT CHANGES #####
-# in appveyor, there is no origin/master locally, so we need to fetch it
+# in appveyor, there is no origin/master locally, so we need to fetch it.
 if [[ "$IS_TRAVIS" != "TRUE" ]]; then
   git remote set-branches origin 'master'
   git fetch --depth=1 --no-tags
@@ -84,6 +83,7 @@ diff=$(git diff origin/master --name-only)
 # temporarily remove the below scripts from diff
 diff=$(echo "$diff" | sed -e "s/^build\.sh//")
 diff=$(echo "$diff" | sed -e "s/^skip\-tests\.json//")
+diff=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//") #remove static tests and markets
 # diff=$(echo "$diff" | sed -e "s/^\.travis\.yml//")
 # diff=$(echo "$diff" | sed -e "s/^package\-lock\.json//")
 # diff=$(echo "$diff" | sed -e "s/python\/qa\.py//")
@@ -154,8 +154,8 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
   exit
 fi
 
-# run static tests:
-npm run static-tests
+# run base tests (base js,py,php, brokerId and static-tests)
+npm run test-base
 
 # rest_args=${REST_EXCHANGES[*]} || "skip"
 rest_args=$(IFS=" " ; echo "${REST_EXCHANGES[*]}") || "skip"

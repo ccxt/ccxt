@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.38'
+__version__ = '4.1.46'
 
 # -----------------------------------------------------------------------------
 
@@ -125,7 +125,6 @@ class Exchange(BaseExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
-        self.last_request_headers = request_headers
         # ##### PROXY & HEADERS #####
         final_proxy = None  # set default
         final_session = None
@@ -775,6 +774,16 @@ class Exchange(BaseExchange):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
+
+    def parse_to_numeric(self, number):
+        stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        # keep self in mind:
+        # in JS: 1 == 1.0 is True
+        # in Python: 1 == 1.0 is True
+        # in PHP 1 == 1.0 is False
+        if stringVersion.find('.') > 0:
+            return float(stringVersion)
+        return int(stringVersion)
 
     def after_construct(self):
         self.create_networks_by_id_object()
@@ -1860,7 +1869,7 @@ class Exchange(BaseExchange):
         symbol = self.safe_string(position, 'symbol')
         market = None
         if symbol is not None:
-            market = self.market(symbol)
+            market = self.safe_value(self.markets, symbol)
         if contractSize is None and market is not None:
             contractSize = self.safe_number(market, 'contractSize')
             position['contractSize'] = contractSize
@@ -2055,6 +2064,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def watch_position(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' watchPosition() is not supported yet')
+
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchPositions() is not supported yet')
+
+    async def watch_position_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        return self.watchPositions(symbols, since, limit, params)
 
     async def fetch_positions_by_symbol(self, symbol: str, params={}):
         """
@@ -3321,7 +3339,11 @@ class Exchange(BaseExchange):
                     if cursorIncrement is not None:
                         cursorValue = self.parseToInt(cursorValue) + cursorIncrement
                     params[cursorSent] = cursorValue
-                response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
+                response = None
+                if method == 'fetchAccounts':
+                    response = await getattr(self, method)(params)
+                else:
+                    response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:

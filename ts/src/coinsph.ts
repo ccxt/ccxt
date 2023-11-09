@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSym
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 /**
  * @class coinsph
@@ -474,58 +474,58 @@ export default class coinsph extends Exchange {
         const response = await this.publicGetOpenapiV1ExchangeInfo (params);
         //
         //     {
-        //         timezone: 'UTC',
-        //         serverTime: '1677449496897',
-        //         exchangeFilters: [],
-        //         symbols: [
+        //         "timezone": "UTC",
+        //         "serverTime": "1677449496897",
+        //         "exchangeFilters": [],
+        //         "symbols": [
         //             {
-        //                 symbol: 'XRPPHP',
-        //                 status: 'TRADING',
-        //                 baseAsset: 'XRP',
-        //                 baseAssetPrecision: '2',
-        //                 quoteAsset: 'PHP',
-        //                 quoteAssetPrecision: '4',
-        //                 orderTypes: [
-        //                     'LIMIT',
-        //                     'MARKET',
-        //                     'LIMIT_MAKER',
-        //                     'STOP_LOSS_LIMIT',
-        //                     'STOP_LOSS',
-        //                     'TAKE_PROFIT_LIMIT',
-        //                     'TAKE_PROFIT'
+        //                 "symbol": "XRPPHP",
+        //                 "status": "TRADING",
+        //                 "baseAsset": "XRP",
+        //                 "baseAssetPrecision": "2",
+        //                 "quoteAsset": "PHP",
+        //                 "quoteAssetPrecision": "4",
+        //                 "orderTypes": [
+        //                     "LIMIT",
+        //                     "MARKET",
+        //                     "LIMIT_MAKER",
+        //                     "STOP_LOSS_LIMIT",
+        //                     "STOP_LOSS",
+        //                     "TAKE_PROFIT_LIMIT",
+        //                     "TAKE_PROFIT"
         //                 ],
-        //                 filters: [
+        //                 "filters": [
         //                     {
-        //                         minPrice: '0.01',
-        //                         maxPrice: '99999999.00000000',
-        //                         tickSize: '0.01',
-        //                         filterType: 'PRICE_FILTER'
+        //                         "minPrice": "0.01",
+        //                         "maxPrice": "99999999.00000000",
+        //                         "tickSize": "0.01",
+        //                         "filterType": "PRICE_FILTER"
         //                     },
         //                     {
-        //                         minQty: '0.01',
-        //                         maxQty: '99999999999.00000000',
-        //                         stepSize: '0.01',
-        //                         filterType: 'LOT_SIZE'
+        //                         "minQty": "0.01",
+        //                         "maxQty": "99999999999.00000000",
+        //                         "stepSize": "0.01",
+        //                         "filterType": "LOT_SIZE"
         //                     },
-        //                     { minNotional: '50', filterType: 'NOTIONAL' },
-        //                     { minNotional: '50', filterType: 'MIN_NOTIONAL' },
+        //                     { minNotional: "50", filterType: "NOTIONAL" },
+        //                     { minNotional: "50", filterType: "MIN_NOTIONAL" },
         //                     {
-        //                         priceUp: '99999999',
-        //                         priceDown: '0.01',
-        //                         filterType: 'STATIC_PRICE_RANGE'
-        //                     },
-        //                     {
-        //                         multiplierUp: '1.1',
-        //                         multiplierDown: '0.9',
-        //                         filterType: 'PERCENT_PRICE_INDEX'
+        //                         "priceUp": "99999999",
+        //                         "priceDown": "0.01",
+        //                         "filterType": "STATIC_PRICE_RANGE"
         //                     },
         //                     {
-        //                         multiplierUp: '1.1',
-        //                         multiplierDown: '0.9',
-        //                         filterType: 'PERCENT_PRICE_ORDER_SIZE'
+        //                         "multiplierUp": "1.1",
+        //                         "multiplierDown": "0.9",
+        //                         "filterType": "PERCENT_PRICE_INDEX"
         //                     },
-        //                     { maxNumOrders: '200', filterType: 'MAX_NUM_ORDERS' },
-        //                     { maxNumAlgoOrders: '5', filterType: 'MAX_NUM_ALGO_ORDERS' }
+        //                     {
+        //                         "multiplierUp": "1.1",
+        //                         "multiplierDown": "0.9",
+        //                         "filterType": "PERCENT_PRICE_ORDER_SIZE"
+        //                     },
+        //                     { maxNumOrders: "200", filterType: "MAX_NUM_ORDERS" },
+        //                     { maxNumAlgoOrders: "5", filterType: "MAX_NUM_ALGO_ORDERS" }
         //                 ]
         //             },
         //         ]
@@ -627,7 +627,7 @@ export default class coinsph extends Exchange {
         return this.parseTickers (tickers, symbols, params);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinsph#fetchTicker
@@ -648,31 +648,31 @@ export default class coinsph extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
-        //         symbol: 'ETHUSDT',
-        //         priceChange: '41.440000000000000000',
-        //         priceChangePercent: '0.0259',
-        //         weightedAvgPrice: '1631.169825783972125436',
-        //         prevClosePrice: '1601.520000000000000000',
-        //         lastPrice: '1642.96',
-        //         lastQty: '0.000001000000000000',
-        //         bidPrice: '1638.790000000000000000',
-        //         bidQty: '0.280075000000000000',
-        //         askPrice: '1647.340000000000000000',
-        //         askQty: '0.165183000000000000',
-        //         openPrice: '1601.52',
-        //         highPrice: '1648.28',
-        //         lowPrice: '1601.52',
-        //         volume: '0.000287',
-        //         quoteVolume: '0.46814574',
-        //         openTime: '1677417000000',
-        //         closeTime: '1677503415200',
-        //         firstId: '1364680572697591809',
-        //         lastId: '1365389809203560449',
-        //         count: '100'
+        //         "symbol": "ETHUSDT",
+        //         "priceChange": "41.440000000000000000",
+        //         "priceChangePercent": "0.0259",
+        //         "weightedAvgPrice": "1631.169825783972125436",
+        //         "prevClosePrice": "1601.520000000000000000",
+        //         "lastPrice": "1642.96",
+        //         "lastQty": "0.000001000000000000",
+        //         "bidPrice": "1638.790000000000000000",
+        //         "bidQty": "0.280075000000000000",
+        //         "askPrice": "1647.340000000000000000",
+        //         "askQty": "0.165183000000000000",
+        //         "openPrice": "1601.52",
+        //         "highPrice": "1648.28",
+        //         "lowPrice": "1601.52",
+        //         "volume": "0.000287",
+        //         "quoteVolume": "0.46814574",
+        //         "openTime": "1677417000000",
+        //         "closeTime": "1677503415200",
+        //         "firstId": "1364680572697591809",
+        //         "lastId": "1365389809203560449",
+        //         "count": "100"
         //     }
         //
         // publicGetOpenapiQuoteV1TickerPrice
@@ -727,7 +727,7 @@ export default class coinsph extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinsph#fetchOrderBook
@@ -764,7 +764,7 @@ export default class coinsph extends Exchange {
         return orderbook;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinsph#fetchOHLCV
@@ -786,7 +786,7 @@ export default class coinsph extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
             request['limit'] = 1000;
-            // since work properly only when it is "younger" than last 'limit' candle
+            // since work properly only when it is "younger" than last "limit" candle
             if (limit !== undefined) {
                 const duration = this.parseTimeframe (timeframe) * 1000;
                 request['endTime'] = this.sum (since, duration * (limit - 1));
@@ -830,7 +830,7 @@ export default class coinsph extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinsph#fetchTrades
@@ -858,13 +858,13 @@ export default class coinsph extends Exchange {
         //
         //     [
         //         {
-        //             price: '89685.8',
-        //             id: '1365561108437680129',
-        //             qty: '0.000004',
-        //             quoteQty: '0.000004000000000000',
-        //             time: '1677523569575',
-        //             isBuyerMaker: false,
-        //             isBestMatch: true
+        //             "price": "89685.8",
+        //             "id": "1365561108437680129",
+        //             "qty": "0.000004",
+        //             "quoteQty": "0.000004000000000000",
+        //             "time": "1677523569575",
+        //             "isBuyerMaker": false,
+        //             "isBestMatch": true
         //         },
         //     ]
         //
@@ -882,9 +882,7 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -913,26 +911,24 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         const request = {
             'orderId': id,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades
         //     {
-        //         price: '89685.8',
-        //         id: '1365561108437680129',
-        //         qty: '0.000004',
-        //         quoteQty: '0.000004000000000000', // warning: report to exchange - this is not quote quantity, this is base quantity
-        //         time: '1677523569575',
-        //         isBuyerMaker: false,
-        //         isBestMatch: true
+        //         "price": "89685.8",
+        //         "id": "1365561108437680129",
+        //         "qty": "0.000004",
+        //         "quoteQty": "0.000004000000000000", // warning: report to exchange - this is not quote quantity, this is base quantity
+        //         "time": "1677523569575",
+        //         "isBuyerMaker": false,
+        //         "isBestMatch": true
         //     },
         //
         // fetchMyTrades
@@ -1009,7 +1005,7 @@ export default class coinsph extends Exchange {
         }, market);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinsph#fetchBalance
@@ -1021,8 +1017,8 @@ export default class coinsph extends Exchange {
         const response = await this.privateGetOpenapiV1Account (params);
         //
         //     {
-        //         accountType: 'SPOT',
-        //         balances: [
+        //         "accountType": "SPOT",
+        //         "balances": [
         //             {
         //                 "asset": "BTC",
         //                 "free": "4723846.89208129",
@@ -1034,16 +1030,16 @@ export default class coinsph extends Exchange {
         //                 "locked": "0.00000000"
         //             }
         //         ],
-        //         canDeposit: true,
-        //         canTrade: true,
-        //         canWithdraw: true,
-        //         updateTime: '1677430932528'
+        //         "canDeposit": true,
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "updateTime": "1677430932528"
         //     }
         //
         return this.parseBalance (response);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const timestamp = this.milliseconds ();
         const result = {
@@ -1137,27 +1133,27 @@ export default class coinsph extends Exchange {
         const response = await this.privatePostOpenapiV1Order (this.extend (request, params));
         //
         //     {
-        //         symbol: 'ETHUSDT',
-        //         orderId: '1375407140139731486',
-        //         clientOrderId: '1375407140139733169',
-        //         transactTime: '1678697308023',
-        //         price: '1600',
-        //         origQty: '0.02',
-        //         executedQty: '0.02',
-        //         cummulativeQuoteQty: '31.9284',
-        //         status: 'FILLED',
-        //         timeInForce: 'GTC',
-        //         type: 'LIMIT',
-        //         side: 'BUY',
-        //         stopPrice: '0',
-        //         origQuoteOrderQty: '0',
-        //         fills: [
+        //         "symbol": "ETHUSDT",
+        //         "orderId": "1375407140139731486",
+        //         "clientOrderId": "1375407140139733169",
+        //         "transactTime": "1678697308023",
+        //         "price": "1600",
+        //         "origQty": "0.02",
+        //         "executedQty": "0.02",
+        //         "cummulativeQuoteQty": "31.9284",
+        //         "status": "FILLED",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0",
+        //         "origQuoteOrderQty": "0",
+        //         "fills": [
         //             {
-        //                 price: '1596.42',
-        //                 qty: '0.02',
-        //                 commission: '0',
-        //                 commissionAsset: 'ETH',
-        //                 tradeId: '1375407140281532417'
+        //                 "price": "1596.42",
+        //                 "qty": "0.02",
+        //                 "commission": "0",
+        //                 "commissionAsset": "ETH",
+        //                 "tradeId": "1375407140281532417"
         //             }
         //         ]
         //     },
@@ -1188,7 +1184,7 @@ export default class coinsph extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinsph#fetchOpenOrders
@@ -1210,20 +1206,18 @@ export default class coinsph extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinsph#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve (default 500, max 1000)
+         * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1272,9 +1266,7 @@ export default class coinsph extends Exchange {
          * @param {object} [params] extra parameters specific to the coinsph api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelAllOrders', symbol);
         await this.loadMarkets ();
         let market = undefined;
         const request = {};
@@ -1494,14 +1486,14 @@ export default class coinsph extends Exchange {
         //
         //     [
         //         {
-        //             symbol: 'ETHPHP',
-        //             makerCommission: '0.0025',
-        //             takerCommission: '0.003'
+        //             "symbol": "ETHPHP",
+        //             "makerCommission": "0.0025",
+        //             "takerCommission": "0.003"
         //         },
         //         {
-        //             symbol: 'UNIPHP',
-        //             makerCommission: '0.0025',
-        //             takerCommission: '0.003'
+        //             "symbol": "UNIPHP",
+        //             "makerCommission": "0.0025",
+        //             "takerCommission": "0.003"
         //         },
         //     ]
         //
@@ -1602,7 +1594,7 @@ export default class coinsph extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinsph#fetchDeposits
@@ -1660,7 +1652,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinsph#fetchWithdrawals
@@ -1724,7 +1716,7 @@ export default class coinsph extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //     {

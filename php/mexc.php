@@ -889,38 +889,38 @@ class mexc extends Exchange {
         $response = $this->spotPrivateGetCapitalConfigGetall ($params);
         //
         // {
-        //     coin => 'QANX',
-        //     $name => 'QANplatform',
-        //     networkList => array(
+        //     "coin" => "QANX",
+        //     "name" => "QANplatform",
+        //     "networkList" => array(
         //       array(
-        //         coin => 'QANX',
-        //         depositDesc => null,
-        //         depositEnable => true,
-        //         minConfirm => '0',
-        //         $name => 'QANplatform',
-        //         $network => 'BEP20(BSC)',
-        //         withdrawEnable => false,
-        //         withdrawFee => '42.000000000000000000',
-        //         withdrawIntegerMultiple => null,
-        //         $withdrawMax => '24000000.000000000000000000',
-        //         $withdrawMin => '20.000000000000000000',
-        //         sameAddress => false,
-        //         contract => '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        //         "coin" => "QANX",
+        //         "depositDesc" => null,
+        //         "depositEnable" => true,
+        //         "minConfirm" => "0",
+        //         "name" => "QANplatform",
+        //         "network" => "BEP20(BSC)",
+        //         "withdrawEnable" => false,
+        //         "withdrawFee" => "42.000000000000000000",
+        //         "withdrawIntegerMultiple" => null,
+        //         "withdrawMax" => "24000000.000000000000000000",
+        //         "withdrawMin" => "20.000000000000000000",
+        //         "sameAddress" => false,
+        //         "contract" => "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         //       ),
         //       {
-        //         coin => 'QANX',
-        //         depositDesc => null,
-        //         depositEnable => true,
-        //         minConfirm => '0',
-        //         $name => 'QANplatform',
-        //         $network => 'ERC20',
-        //         withdrawEnable => true,
-        //         withdrawFee => '2732.000000000000000000',
-        //         withdrawIntegerMultiple => null,
-        //         $withdrawMax => '24000000.000000000000000000',
-        //         $withdrawMin => '240.000000000000000000',
-        //         sameAddress => false,
-        //         contract => '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        //         "coin" => "QANX",
+        //         "depositDesc" => null,
+        //         "depositEnable" => true,
+        //         "minConfirm" => "0",
+        //         "name" => "QANplatform",
+        //         "network" => "ERC20",
+        //         "withdrawEnable" => true,
+        //         "withdrawFee" => "2732.000000000000000000",
+        //         "withdrawIntegerMultiple" => null,
+        //         "withdrawMax" => "24000000.000000000000000000",
+        //         "withdrawMin" => "240.000000000000000000",
+        //         "sameAddress" => false,
+        //         "contract" => "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
         //       }
         //     )
         //   }
@@ -1274,7 +1274,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
          * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
@@ -1348,7 +1348,7 @@ class mexc extends Exchange {
         return array( $price, $amount );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-$trades-list
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-$trades-list
@@ -1440,7 +1440,7 @@ class mexc extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -1610,7 +1610,7 @@ class mexc extends Exchange {
         return $id;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-$data
@@ -1810,7 +1810,7 @@ class mexc extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -1881,7 +1881,7 @@ class mexc extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = null;
@@ -2314,9 +2314,7 @@ class mexc extends Exchange {
          * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -2424,7 +2422,7 @@ class mexc extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
@@ -2651,7 +2649,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -2664,16 +2662,16 @@ class mexc extends Exchange {
         $this->load_markets();
         $request = array();
         $market = null;
+        $marketType = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
         }
-        $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         if ($marketType === 'spot') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
             }
+            $request['symbol'] = $market['id'];
             $method = 'spotPrivateGetOpenOrders';
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             if ($marginMode !== null) {
@@ -2738,7 +2736,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
@@ -2768,7 +2766,6 @@ class mexc extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
         }
         list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
         if ($marketType === 'spot') {
@@ -3366,7 +3363,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function custom_parse_balance($response, $marketType): Balances {
+    public function custom_parse_balance($response, $marketType): array {
         //
         // spot
         //
@@ -3487,7 +3484,7 @@ class mexc extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
@@ -3623,9 +3620,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
@@ -4007,9 +4002,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the mexc api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -4284,7 +4277,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
@@ -4327,23 +4320,23 @@ class mexc extends Exchange {
         //
         // array(
         //     {
-        //         amount => '10',
-        //         coin => 'USDC-TRX',
-        //         network => 'TRX',
-        //         status => '5',
-        //         address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //         txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        //         insertTime => '1664805021000',
-        //         unlockConfirm => '200',
-        //         confirmTimes => '203',
-        //         memo => 'xxyy1122'
+        //         "amount" => "10",
+        //         "coin" => "USDC-TRX",
+        //         "network" => "TRX",
+        //         "status" => "5",
+        //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //         "insertTime" => "1664805021000",
+        //         "unlockConfirm" => "200",
+        //         "confirmTimes" => "203",
+        //         "memo" => "xxyy1122"
         //     }
         // )
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
@@ -4379,58 +4372,58 @@ class mexc extends Exchange {
         //
         // array(
         //     {
-        //       id => 'adcd1c8322154de691b815eedcd10c42',
-        //       txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        //       coin => 'USDC-MATIC',
-        //       network => 'MATIC',
-        //       address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        //       amount => '2',
-        //       transferType => '0',
-        //       status => '7',
-        //       transactionFee => '1',
-        //       confirmNo => null,
-        //       applyTime => '1664882739000',
-        //       remark => '',
-        //       memo => null
+        //       "id" => "adcd1c8322154de691b815eedcd10c42",
+        //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //       "coin" => "USDC-MATIC",
+        //       "network" => "MATIC",
+        //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //       "amount" => "2",
+        //       "transferType" => "0",
+        //       "status" => "7",
+        //       "transactionFee" => "1",
+        //       "confirmNo" => null,
+        //       "applyTime" => "1664882739000",
+        //       "remark" => '',
+        //       "memo" => null
         //     }
         // )
         //
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
         // {
-        //     amount => '10',
-        //     coin => 'USDC-TRX',
-        //     $network => 'TRX',
-        //     $status => '5',
-        //     $address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //     txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        //     insertTime => '1664805021000',
-        //     unlockConfirm => '200',
-        //     confirmTimes => '203',
-        //     memo => 'xxyy1122'
+        //     "amount" => "10",
+        //     "coin" => "USDC-TRX",
+        //     "network" => "TRX",
+        //     "status" => "5",
+        //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "insertTime" => "1664805021000",
+        //     "unlockConfirm" => "200",
+        //     "confirmTimes" => "203",
+        //     "memo" => "xxyy1122"
         // }
         //
         // fetchWithdrawals
         //
         // {
-        //     $id => 'adcd1c8322154de691b815eedcd10c42',
-        //     txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        //     coin => 'USDC-MATIC',
-        //     $network => 'MATIC',
-        //     $address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        //     amount => '2',
-        //     transferType => '0',
-        //     $status => '7',
-        //     transactionFee => '1',
-        //     confirmNo => null,
-        //     applyTime => '1664882739000',
-        //     remark => '',
-        //     memo => null
+        //     "id" => "adcd1c8322154de691b815eedcd10c42",
+        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "coin" => "USDC-MATIC",
+        //     "network" => "MATIC",
+        //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //     "amount" => "2",
+        //     "transferType" => "0",
+        //     "status" => "7",
+        //     "transactionFee" => "1",
+        //     "confirmNo" => null,
+        //     "applyTime" => "1664882739000",
+        //     "remark" => '',
+        //     "memo" => null
         //   }
         //
         // withdraw
@@ -4656,14 +4649,14 @@ class mexc extends Exchange {
             $response = $this->spot2PrivateGetAssetInternalTransferInfo (array_merge($request, $query));
             //
             //     {
-            //         code => '200',
-            //         $data => {
-            //             currency => 'USDT',
-            //             amount => '1',
-            //             transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
-            //             from => 'MAIN',
-            //             to => 'CONTRACT',
-            //             transact_state => 'SUCCESS'
+            //         "code" => "200",
+            //         "data" => {
+            //             "currency" => "USDT",
+            //             "amount" => "1",
+            //             "transact_id" => "954877a2ef54499db9b28a7cf9ebcf41",
+            //             "from" => "MAIN",
+            //             "to" => "CONTRACT",
+            //             "transact_state" => "SUCCESS"
             //         }
             //     }
             //
@@ -4706,17 +4699,17 @@ class mexc extends Exchange {
             $response = $this->spot2PrivateGetAssetInternalTransferRecord (array_merge($request, $query));
             //
             //     {
-            //         $code => '200',
-            //         $data => {
-            //             total_page => '1',
-            //             total_size => '5',
-            //             result_list => [array(
-            //                     $currency => 'USDT',
-            //                     amount => '1',
-            //                     transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
-            //                     from => 'MAIN',
-            //                     to => 'CONTRACT',
-            //                     transact_state => 'SUCCESS'
+            //         "code" => "200",
+            //         "data" => {
+            //             "total_page" => "1",
+            //             "total_size" => "5",
+            //             "result_list" => [array(
+            //                     "currency" => "USDT",
+            //                     "amount" => "1",
+            //                     "transact_id" => "954877a2ef54499db9b28a7cf9ebcf41",
+            //                     "from" => "MAIN",
+            //                     "to" => "CONTRACT",
+            //                     "transact_state" => "SUCCESS"
             //                 ),
             //                 ...
             //             ]
@@ -4823,12 +4816,12 @@ class mexc extends Exchange {
         // spot => fetchTransfer
         //
         //     {
-        //         $currency => 'USDT',
-        //         amount => '1',
-        //         transact_id => 'b60c1df8e7b24b268858003f374ecb75',
-        //         from => 'MAIN',
-        //         to => 'CONTRACT',
-        //         transact_state => 'WAIT'
+        //         "currency" => "USDT",
+        //         "amount" => "1",
+        //         "transact_id" => "b60c1df8e7b24b268858003f374ecb75",
+        //         "from" => "MAIN",
+        //         "to" => "CONTRACT",
+        //         "transact_state" => "WAIT"
         //     }
         //
         // swap => fetchTransfer
@@ -4973,10 +4966,8 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
+        $this->check_required_symbol('borrowMargin', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-        }
         $market = $this->market($symbol);
         $currency = $this->currency($code);
         $request = array(
@@ -5008,10 +4999,8 @@ class mexc extends Exchange {
          * @param {string} [$params->borrowId] $transaction $id '762407666453712896'
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
          */
+        $this->check_required_symbol('repayMargin', $symbol);
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-        }
         $id = $this->safe_string_2($params, 'id', 'borrowId');
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
@@ -5050,25 +5039,25 @@ class mexc extends Exchange {
         //
         //    array(
         //       {
-        //           coin => 'AGLD',
-        //           name => 'Adventure Gold',
-        //           networkList => array(
+        //           "coin" => "AGLD",
+        //           "name" => "Adventure Gold",
+        //           "networkList" => array(
         //               array(
-        //                   coin => 'AGLD',
-        //                   depositDesc => null,
-        //                   depositEnable => true,
-        //                   minConfirm => '0',
-        //                   name => 'Adventure Gold',
-        //                   network => 'ERC20',
-        //                   withdrawEnable => true,
-        //                   withdrawFee => '10.000000000000000000',
-        //                   withdrawIntegerMultiple => null,
-        //                   withdrawMax => '1200000.000000000000000000',
-        //                   withdrawMin => '20.000000000000000000',
-        //                   sameAddress => false,
-        //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                   withdrawTips => null,
-        //                   depositTips => null
+        //                   "coin" => "AGLD",
+        //                   "depositDesc" => null,
+        //                   "depositEnable" => true,
+        //                   "minConfirm" => "0",
+        //                   "name" => "Adventure Gold",
+        //                   "network" => "ERC20",
+        //                   "withdrawEnable" => true,
+        //                   "withdrawFee" => "10.000000000000000000",
+        //                   "withdrawIntegerMultiple" => null,
+        //                   "withdrawMax" => "1200000.000000000000000000",
+        //                   "withdrawMin" => "20.000000000000000000",
+        //                   "sameAddress" => false,
+        //                   "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                   "withdrawTips" => null,
+        //                   "depositTips" => null
         //               }
         //               ...
         //           )
@@ -5100,25 +5089,25 @@ class mexc extends Exchange {
     public function parse_transaction_fee($transaction, $currency = null) {
         //
         //    {
-        //        coin => 'AGLD',
-        //        name => 'Adventure Gold',
-        //        $networkList => array(
+        //        "coin" => "AGLD",
+        //        "name" => "Adventure Gold",
+        //        "networkList" => array(
         //            {
-        //                coin => 'AGLD',
-        //                depositDesc => null,
-        //                depositEnable => true,
-        //                minConfirm => '0',
-        //                name => 'Adventure Gold',
-        //                network => 'ERC20',
-        //                withdrawEnable => true,
-        //                withdrawFee => '10.000000000000000000',
-        //                withdrawIntegerMultiple => null,
-        //                withdrawMax => '1200000.000000000000000000',
-        //                withdrawMin => '20.000000000000000000',
-        //                sameAddress => false,
-        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                withdrawTips => null,
-        //                depositTips => null
+        //                "coin" => "AGLD",
+        //                "depositDesc" => null,
+        //                "depositEnable" => true,
+        //                "minConfirm" => "0",
+        //                "name" => "Adventure Gold",
+        //                "network" => "ERC20",
+        //                "withdrawEnable" => true,
+        //                "withdrawFee" => "10.000000000000000000",
+        //                "withdrawIntegerMultiple" => null,
+        //                "withdrawMax" => "1200000.000000000000000000",
+        //                "withdrawMin" => "20.000000000000000000",
+        //                "sameAddress" => false,
+        //                "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips" => null,
+        //                "depositTips" => null
         //            }
         //            ...
         //        )
@@ -5149,25 +5138,25 @@ class mexc extends Exchange {
         //
         //    array(
         //       {
-        //           coin => 'AGLD',
-        //           name => 'Adventure Gold',
-        //           networkList => array(
+        //           "coin" => "AGLD",
+        //           "name" => "Adventure Gold",
+        //           "networkList" => array(
         //               array(
-        //                   coin => 'AGLD',
-        //                   depositDesc => null,
-        //                   depositEnable => true,
-        //                   minConfirm => '0',
-        //                   name => 'Adventure Gold',
-        //                   network => 'ERC20',
-        //                   withdrawEnable => true,
-        //                   withdrawFee => '10.000000000000000000',
-        //                   withdrawIntegerMultiple => null,
-        //                   withdrawMax => '1200000.000000000000000000',
-        //                   withdrawMin => '20.000000000000000000',
-        //                   sameAddress => false,
-        //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                   withdrawTips => null,
-        //                   depositTips => null
+        //                   "coin" => "AGLD",
+        //                   "depositDesc" => null,
+        //                   "depositEnable" => true,
+        //                   "minConfirm" => "0",
+        //                   "name" => "Adventure Gold",
+        //                   "network" => "ERC20",
+        //                   "withdrawEnable" => true,
+        //                   "withdrawFee" => "10.000000000000000000",
+        //                   "withdrawIntegerMultiple" => null,
+        //                   "withdrawMax" => "1200000.000000000000000000",
+        //                   "withdrawMin" => "20.000000000000000000",
+        //                   "sameAddress" => false,
+        //                   "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                   "withdrawTips" => null,
+        //                   "depositTips" => null
         //               }
         //               ...
         //           )
@@ -5181,25 +5170,25 @@ class mexc extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         //    {
-        //        coin => 'AGLD',
-        //        name => 'Adventure Gold',
-        //        $networkList => array(
+        //        "coin" => "AGLD",
+        //        "name" => "Adventure Gold",
+        //        "networkList" => array(
         //            {
-        //                coin => 'AGLD',
-        //                depositDesc => null,
-        //                depositEnable => true,
-        //                minConfirm => '0',
-        //                name => 'Adventure Gold',
-        //                network => 'ERC20',
-        //                withdrawEnable => true,
-        //                withdrawFee => '10.000000000000000000',
-        //                withdrawIntegerMultiple => null,
-        //                withdrawMax => '1200000.000000000000000000',
-        //                withdrawMin => '20.000000000000000000',
-        //                sameAddress => false,
-        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                withdrawTips => null,
-        //                depositTips => null
+        //                "coin" => "AGLD",
+        //                "depositDesc" => null,
+        //                "depositEnable" => true,
+        //                "minConfirm" => "0",
+        //                "name" => "Adventure Gold",
+        //                "network" => "ERC20",
+        //                "withdrawEnable" => true,
+        //                "withdrawFee" => "10.000000000000000000",
+        //                "withdrawIntegerMultiple" => null,
+        //                "withdrawMax" => "1200000.000000000000000000",
+        //                "withdrawMin" => "20.000000000000000000",
+        //                "sameAddress" => false,
+        //                "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips" => null,
+        //                "depositTips" => null
         //            }
         //            ...
         //        )

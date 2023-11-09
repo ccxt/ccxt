@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -633,7 +633,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitstamp#fetchOrderBook
@@ -672,7 +672,7 @@ export default class bitstamp extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "timestamp": "1686068944",
@@ -720,7 +720,7 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitstamp#fetchTicker
@@ -851,7 +851,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -982,7 +982,7 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitstamp#fetchTrades
@@ -1003,18 +1003,18 @@ export default class bitstamp extends Exchange {
         //
         //     [
         //         {
-        //             date: '1551814435',
-        //             tid: '83581898',
-        //             price: '0.03532850',
-        //             type: '1',
-        //             amount: '0.85945907'
+        //             "date": "1551814435",
+        //             "tid": "83581898",
+        //             "price": "0.03532850",
+        //             "type": "1",
+        //             "amount": "0.85945907"
         //         },
         //         {
-        //             date: '1551814434',
-        //             tid: '83581896',
-        //             price: '0.03532851',
-        //             type: '1',
-        //             amount: '11.34130961'
+        //             "date": "1551814434",
+        //             "tid": "83581896",
+        //             "price": "0.03532851",
+        //             "type": "1",
+        //             "amount": "11.34130961"
         //         },
         //     ]
         //
@@ -1042,7 +1042,7 @@ export default class bitstamp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitstamp#fetchOHLCV
@@ -1097,7 +1097,7 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1117,7 +1117,7 @@ export default class bitstamp extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitstamp#fetchBalance
@@ -1223,18 +1223,18 @@ export default class bitstamp extends Exchange {
     parseTransactionFees (response, codes = undefined) {
         //
         //  {
-        //     yfi_available: '0.00000000',
-        //     yfi_balance: '0.00000000',
-        //     yfi_reserved: '0.00000000',
-        //     yfi_withdrawal_fee: '0.00070000',
-        //     yfieur_fee: '0.000',
-        //     yfiusd_fee: '0.000',
-        //     zrx_available: '0.00000000',
-        //     zrx_balance: '0.00000000',
-        //     zrx_reserved: '0.00000000',
-        //     zrx_withdrawal_fee: '12.00000000',
-        //     zrxeur_fee: '0.000',
-        //     zrxusd_fee: '0.000',
+        //     "yfi_available": "0.00000000",
+        //     "yfi_balance": "0.00000000",
+        //     "yfi_reserved": "0.00000000",
+        //     "yfi_withdrawal_fee": "0.00070000",
+        //     "yfieur_fee": "0.000",
+        //     "yfiusd_fee": "0.000",
+        //     "zrx_available": "0.00000000",
+        //     "zrx_balance": "0.00000000",
+        //     "zrx_reserved": "0.00000000",
+        //     "zrx_withdrawal_fee": "12.00000000",
+        //     "zrxeur_fee": "0.000",
+        //     "zrxusd_fee": "0.000",
         //     ...
         //  }
         //
@@ -1283,18 +1283,18 @@ export default class bitstamp extends Exchange {
         const response = await this.privatePostBalance (params);
         //
         //    {
-        //        yfi_available: '0.00000000',
-        //        yfi_balance: '0.00000000',
-        //        yfi_reserved: '0.00000000',
-        //        yfi_withdrawal_fee: '0.00070000',
-        //        yfieur_fee: '0.000',
-        //        yfiusd_fee: '0.000',
-        //        zrx_available: '0.00000000',
-        //        zrx_balance: '0.00000000',
-        //        zrx_reserved: '0.00000000',
-        //        zrx_withdrawal_fee: '12.00000000',
-        //        zrxeur_fee: '0.000',
-        //        zrxusd_fee: '0.000',
+        //        "yfi_available": "0.00000000",
+        //        "yfi_balance": "0.00000000",
+        //        "yfi_reserved": "0.00000000",
+        //        "yfi_withdrawal_fee": "0.00070000",
+        //        "yfieur_fee": "0.000",
+        //        "yfiusd_fee": "0.000",
+        //        "zrx_available": "0.00000000",
+        //        "zrx_balance": "0.00000000",
+        //        "zrx_reserved": "0.00000000",
+        //        "zrx_withdrawal_fee": "12.00000000",
+        //        "zrxeur_fee": "0.000",
+        //        "zrxusd_fee": "0.000",
         //        ...
         //    }
         //
@@ -1304,18 +1304,18 @@ export default class bitstamp extends Exchange {
     parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
-        //        yfi_available: '0.00000000',
-        //        yfi_balance: '0.00000000',
-        //        yfi_reserved: '0.00000000',
-        //        yfi_withdrawal_fee: '0.00070000',
-        //        yfieur_fee: '0.000',
-        //        yfiusd_fee: '0.000',
-        //        zrx_available: '0.00000000',
-        //        zrx_balance: '0.00000000',
-        //        zrx_reserved: '0.00000000',
-        //        zrx_withdrawal_fee: '12.00000000',
-        //        zrxeur_fee: '0.000',
-        //        zrxusd_fee: '0.000',
+        //        "yfi_available": "0.00000000",
+        //        "yfi_balance": "0.00000000",
+        //        "yfi_reserved": "0.00000000",
+        //        "yfi_withdrawal_fee": "0.00070000",
+        //        "yfieur_fee": "0.000",
+        //        "yfiusd_fee": "0.000",
+        //        "zrx_available": "0.00000000",
+        //        "zrx_balance": "0.00000000",
+        //        "zrx_reserved": "0.00000000",
+        //        "zrx_withdrawal_fee": "12.00000000",
+        //        "zrxeur_fee": "0.000",
+        //        "zrxusd_fee": "0.000",
         //        ...
         //    }
         //
@@ -1516,7 +1516,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitstamp#fetchDepositsWithdrawals
@@ -1567,7 +1567,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitstamp#fetchWithdrawals
@@ -1589,31 +1589,31 @@ export default class bitstamp extends Exchange {
         //
         //     [
         //         {
-        //             status: 2,
-        //             datetime: '2018-10-17 10:58:13',
-        //             currency: 'BTC',
-        //             amount: '0.29669259',
-        //             address: 'aaaaa',
-        //             type: 1,
-        //             id: 111111,
-        //             transaction_id: 'xxxx',
+        //             "status": 2,
+        //             "datetime": "2018-10-17 10:58:13",
+        //             "currency": "BTC",
+        //             "amount": "0.29669259",
+        //             "address": "aaaaa",
+        //             "type": 1,
+        //             "id": 111111,
+        //             "transaction_id": "xxxx",
         //         },
         //         {
-        //             status: 2,
-        //             datetime: '2018-10-17 10:55:17',
-        //             currency: 'ETH',
-        //             amount: '1.11010664',
-        //             address: 'aaaa',
-        //             type: 16,
-        //             id: 222222,
-        //             transaction_id: 'xxxxx',
+        //             "status": 2,
+        //             "datetime": "2018-10-17 10:55:17",
+        //             "currency": "ETH",
+        //             "amount": "1.11010664",
+        //             "address": "aaaa",
+        //             "type": 16,
+        //             "id": 222222,
+        //             "transaction_id": "xxxxx",
         //         },
         //     ]
         //
         return this.parseTransactions (response, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -1632,14 +1632,14 @@ export default class bitstamp extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         status: 2,
-        //         datetime: '2018-10-17 10:58:13',
-        //         currency: 'BTC',
-        //         amount: '0.29669259',
-        //         address: 'aaaaa',
-        //         type: 1,
-        //         id: 111111,
-        //         transaction_id: 'xxxx',
+        //         "status": 2,
+        //         "datetime": "2018-10-17 10:58:13",
+        //         "currency": "BTC",
+        //         "amount": "0.29669259",
+        //         "address": "aaaaa",
+        //         "type": 1,
+        //         "id": 111111,
+        //         "transaction_id": "xxxx",
         //     }
         //
         //     {
@@ -1753,17 +1753,17 @@ export default class bitstamp extends Exchange {
     parseOrder (order, market = undefined): Order {
         //
         //   from fetch order:
-        //     { status: 'Finished',
-        //       id: 731693945,
-        //       client_order_id: '',
-        //       transactions:
-        //       [ { fee: '0.000019',
-        //           price: '0.00015803',
-        //           datetime: '2018-01-07 10:45:34.132551',
-        //           btc: '0.0079015000000000',
-        //           tid: 42777395,
-        //           type: 2,
-        //           xrp: '50.00000000' } ] }
+        //     { status: "Finished",
+        //       "id": 731693945,
+        //       "client_order_id": '',
+        //       "transactions":
+        //       [ { fee: "0.000019",
+        //           "price": "0.00015803",
+        //           "datetime": "2018-01-07 10:45:34.132551",
+        //           "btc": "0.0079015000000000",
+        //           "tid": 42777395,
+        //           "type": 2,
+        //           "xrp": "50.00000000" } ] }
         //
         //   partially filled order:
         //     { "id": 468646390,
@@ -1781,13 +1781,13 @@ export default class bitstamp extends Exchange {
         //
         //   from create order response:
         //       {
-        //           price: '0.00008012',
-        //           client_order_id: '',
-        //           currency_pair: 'XRP/BTC',
-        //           datetime: '2019-01-31 21:23:36',
-        //           amount: '15.00000000',
-        //           type: '0',
-        //           id: '2814205012'
+        //           "price": "0.00008012",
+        //           "client_order_id": '',
+        //           "currency_pair": "XRP/BTC",
+        //           "datetime": "2019-01-31 21:23:36",
+        //           "amount": "15.00000000",
+        //           "type": "0",
+        //           "id": "2814205012"
         //       }
         //
         const id = this.safeString (order, 'id');
@@ -1957,7 +1957,7 @@ export default class bitstamp extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitstamp#fetchOpenOrders
@@ -1977,13 +1977,13 @@ export default class bitstamp extends Exchange {
         //
         //     [
         //         {
-        //             price: '0.00008012',
-        //             currency_pair: 'XRP/BTC',
-        //             client_order_id: '',
-        //             datetime: '2019-01-31 21:23:36',
-        //             amount: '15.00000000',
-        //             type: '0',
-        //             id: '2814205012',
+        //             "price": "0.00008012",
+        //             "currency_pair": "XRP/BTC",
+        //             "client_order_id": '',
+        //             "datetime": "2019-01-31 21:23:36",
+        //             "amount": "15.00000000",
+        //             "type": "0",
+        //             "id": "2814205012",
         //         }
         //     ]
         //

@@ -14,6 +14,7 @@ use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinbasepro extends Exchange {
 
@@ -242,25 +243,25 @@ class coinbasepro extends Exchange {
             //
             //     array(
             //         {
-            //             $id => 'XTZ',
-            //             $name => 'Tezos',
-            //             min_size => '0.000001',
-            //             $status => 'online',
-            //             message => '',
-            //             max_precision => '0.000001',
-            //             convertible_to => array(),
-            //             $details => {
-            //                 type => 'crypto',
-            //                 symbol => 'Τ',
-            //                 network_confirmations => 60,
-            //                 sort_order => 53,
-            //                 crypto_address_link => 'https://tzstats.com/array({address})',
-            //                 crypto_transaction_link => 'https://tzstats.com/array({txId})',
-            //                 push_payment_methods => array( 'crypto' ),
-            //                 group_types => array(),
-            //                 display_name => '',
-            //                 processing_time_seconds => 0,
-            //                 min_withdrawal_amount => 1
+            //             "id" => "XTZ",
+            //             "name" => "Tezos",
+            //             "min_size" => "0.000001",
+            //             "status" => "online",
+            //             "message" => '',
+            //             "max_precision" => "0.000001",
+            //             "convertible_to" => array(),
+            //             "details" => {
+            //                 "type" => "crypto",
+            //                 "symbol" => "Τ",
+            //                 "network_confirmations" => 60,
+            //                 "sort_order" => 53,
+            //                 "crypto_address_link" => "https://tzstats.com/array({address})",
+            //                 "crypto_transaction_link" => "https://tzstats.com/array({txId})",
+            //                 "push_payment_methods" => array( "crypto" ),
+            //                 "group_types" => array(),
+            //                 "display_name" => '',
+            //                 "processing_time_seconds" => 0,
+            //                 "min_withdrawal_amount" => 1
             //             }
             //         }
             //     )
@@ -313,48 +314,48 @@ class coinbasepro extends Exchange {
             //
             //     array(
             //         array(
-            //             $id => 'BTCAUCTION-USD',
-            //             base_currency => 'BTC',
-            //             quote_currency => 'USD',
-            //             base_min_size => '0.000016',
-            //             base_max_size => '1500',
-            //             quote_increment => '0.01',
-            //             base_increment => '0.00000001',
-            //             display_name => 'BTCAUCTION/USD',
-            //             min_market_funds => '1',
-            //             max_market_funds => '20000000',
-            //             margin_enabled => false,
-            //             fx_stablecoin => false,
-            //             max_slippage_percentage => '0.02000000',
-            //             post_only => false,
-            //             limit_only => false,
-            //             cancel_only => true,
-            //             trading_disabled => false,
-            //             $status => 'online',
-            //             status_message => '',
-            //             auction_mode => false
+            //             "id" => "BTCAUCTION-USD",
+            //             "base_currency" => "BTC",
+            //             "quote_currency" => "USD",
+            //             "base_min_size" => "0.000016",
+            //             "base_max_size" => "1500",
+            //             "quote_increment" => "0.01",
+            //             "base_increment" => "0.00000001",
+            //             "display_name" => "BTCAUCTION/USD",
+            //             "min_market_funds" => "1",
+            //             "max_market_funds" => "20000000",
+            //             "margin_enabled" => false,
+            //             "fx_stablecoin" => false,
+            //             "max_slippage_percentage" => "0.02000000",
+            //             "post_only" => false,
+            //             "limit_only" => false,
+            //             "cancel_only" => true,
+            //             "trading_disabled" => false,
+            //             "status" => "online",
+            //             "status_message" => '',
+            //             "auction_mode" => false
             //         ),
             //         {
-            //             $id => 'BTC-USD',
-            //             base_currency => 'BTC',
-            //             quote_currency => 'USD',
-            //             base_min_size => '0.000016',
-            //             base_max_size => '1500',
-            //             quote_increment => '0.01',
-            //             base_increment => '0.00000001',
-            //             display_name => 'BTC/USD',
-            //             min_market_funds => '1',
-            //             max_market_funds => '20000000',
-            //             margin_enabled => false,
-            //             fx_stablecoin => false,
-            //             max_slippage_percentage => '0.02000000',
-            //             post_only => false,
-            //             limit_only => false,
-            //             cancel_only => false,
-            //             trading_disabled => false,
-            //             $status => 'online',
-            //             status_message => '',
-            //             auction_mode => false
+            //             "id" => "BTC-USD",
+            //             "base_currency" => "BTC",
+            //             "quote_currency" => "USD",
+            //             "base_min_size" => "0.000016",
+            //             "base_max_size" => "1500",
+            //             "quote_increment" => "0.01",
+            //             "base_increment" => "0.00000001",
+            //             "display_name" => "BTC/USD",
+            //             "min_market_funds" => "1",
+            //             "max_market_funds" => "20000000",
+            //             "margin_enabled" => false,
+            //             "fx_stablecoin" => false,
+            //             "max_slippage_percentage" => "0.02000000",
+            //             "post_only" => false,
+            //             "limit_only" => false,
+            //             "cancel_only" => false,
+            //             "trading_disabled" => false,
+            //             "status" => "online",
+            //             "status_message" => '',
+            //             "auction_mode" => false
             //         }
             //     )
             //
@@ -435,20 +436,20 @@ class coinbasepro extends Exchange {
             //
             //     array(
             //         array(
-            //             id => '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-            //             currency => 'BTC',
-            //             balance => '0.0000000000000000',
-            //             available => '0',
-            //             hold => '0.0000000000000000',
-            //             profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+            //             "id" => "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+            //             "currency" => "BTC",
+            //             "balance" => "0.0000000000000000",
+            //             "available" => "0",
+            //             "hold" => "0.0000000000000000",
+            //             "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
             //         ),
             //         array(
-            //             id => 'f75fa69a-1ad1-4a80-bd61-ee7faa6135a3',
-            //             currency => 'USDC',
-            //             balance => '0.0000000000000000',
-            //             available => '0',
-            //             hold => '0.0000000000000000',
-            //             profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+            //             "id" => "f75fa69a-1ad1-4a80-bd61-ee7faa6135a3",
+            //             "currency" => "USDC",
+            //             "balance" => "0.0000000000000000",
+            //             "available" => "0",
+            //             "hold" => "0.0000000000000000",
+            //             "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
             //         ),
             //     )
             //
@@ -459,12 +460,12 @@ class coinbasepro extends Exchange {
     public function parse_account($account) {
         //
         //     {
-        //         id => '4aac9c60-cbda-4396-9da4-4aa71e95fba0',
-        //         currency => 'BTC',
-        //         balance => '0.0000000000000000',
-        //         available => '0',
-        //         hold => '0.0000000000000000',
-        //         profile_id => 'b709263e-f42a-4c7d-949a-a95c83d065da'
+        //         "id" => "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
+        //         "currency" => "BTC",
+        //         "balance" => "0.0000000000000000",
+        //         "available" => "0",
+        //         "hold" => "0.0000000000000000",
+        //         "profile_id" => "b709263e-f42a-4c7d-949a-a95c83d065da"
         //     }
         //
         $currencyId = $this->safe_string($account, 'currency');
@@ -476,7 +477,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -491,7 +492,7 @@ class coinbasepro extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -504,7 +505,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
@@ -544,7 +545,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTickers
         //
@@ -672,7 +673,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
@@ -715,27 +716,27 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         //     {
-        //         type => 'match',
-        //         trade_id => 82047307,
-        //         maker_order_id => '0f358725-2134-435e-be11-753912a326e0',
-        //         taker_order_id => '252b7002-87a3-425c-ac73-f5b9e23f3caf',
-        //         order_id => 'd50ec984-77a8-460a-b958-66f114b0de9b',
-        //         $side => 'sell',
-        //         size => '0.00513192',
-        //         $price => '9314.78',
-        //         product_id => 'BTC-USD',
-        //         profile_id => '6244401d-c078-40d9-b305-7ad3551bc3b0',
-        //         sequence => 12038915443,
-        //         time => '2020-01-31T20:03:41.158814Z'
-        //         created_at => '2014-11-07T22:19:28.578544Z',
-        //         $liquidity => 'T',
-        //         $fee => '0.00025',
-        //         settled => true,
-        //         usd_volume => '0.0924556000000000',
-        //         user_id => '595eb864313c2b02ddf2937d'
+        //         "type" => "match",
+        //         "trade_id" => 82047307,
+        //         "maker_order_id" => "0f358725-2134-435e-be11-753912a326e0",
+        //         "taker_order_id" => "252b7002-87a3-425c-ac73-f5b9e23f3caf",
+        //         "order_id" => "d50ec984-77a8-460a-b958-66f114b0de9b",
+        //         "side" => "sell",
+        //         "size" => "0.00513192",
+        //         "price" => "9314.78",
+        //         "product_id" => "BTC-USD",
+        //         "profile_id" => "6244401d-c078-40d9-b305-7ad3551bc3b0",
+        //         "sequence" => 12038915443,
+        //         "time" => "2020-01-31T20:03:41.158814Z"
+        //         "created_at" => "2014-11-07T22:19:28.578544Z",
+        //         "liquidity" => "T",
+        //         "fee" => "0.00025",
+        //         "settled" => true,
+        //         "usd_volume" => "0.0924556000000000",
+        //         "user_id" => "595eb864313c2b02ddf2937d"
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'time', 'created_at'));
@@ -828,7 +829,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
@@ -918,7 +919,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
@@ -1137,7 +1138,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1156,7 +1157,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1197,7 +1198,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1255,7 +1256,7 @@ class coinbasepro extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_oid'] = $clientOrderId;
             }
-            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
+            $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
             if ($stopPrice !== null) {
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
             }
@@ -1267,7 +1268,7 @@ class coinbasepro extends Exchange {
             if ($postOnly) {
                 $request['post_only'] = true;
             }
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
+            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -1461,27 +1462,27 @@ class coinbasepro extends Exchange {
 
     public function parse_ledger_entry($item, $currency = null) {
         //  {
-        //      $id => '12087495079',
-        //      $amount => '-0.0100000000000000',
-        //      balance => '0.0645419900000000',
-        //      created_at => '2021-10-28T17:14:32.593168Z',
-        //      $type => 'transfer',
-        //      $details => array(
-        //          from => '2f74edf7-1440-4586-86dc-ae58c5693691',
-        //          profile_transfer_id => '3ef093ad-2482-40d1-8ede-2f89cff5099e',
-        //          to => 'dda99503-4980-4b60-9549-0b770ee51336'
+        //      "id" => "12087495079",
+        //      "amount" => "-0.0100000000000000",
+        //      "balance" => "0.0645419900000000",
+        //      "created_at" => "2021-10-28T17:14:32.593168Z",
+        //      "type" => "transfer",
+        //      "details" => array(
+        //          "from" => "2f74edf7-1440-4586-86dc-ae58c5693691",
+        //          "profile_transfer_id" => "3ef093ad-2482-40d1-8ede-2f89cff5099e",
+        //          "to" => "dda99503-4980-4b60-9549-0b770ee51336"
         //      }
         //  ),
         //  {
-        //     $id => '11740725774',
-        //     $amount => '-1.7565669701255000',
-        //     balance => '0.0016490047745000',
-        //     created_at => '2021-10-22T03:47:34.764122Z',
-        //     $type => 'fee',
-        //     $details => {
-        //         order_id => 'ad06abf4-95ab-432a-a1d8-059ef572e296',
-        //         product_id => 'ETH-DAI',
-        //         trade_id => '1740617'
+        //     "id" => "11740725774",
+        //     "amount" => "-1.7565669701255000",
+        //     "balance" => "0.0016490047745000",
+        //     "created_at" => "2021-10-22T03:47:34.764122Z",
+        //     "type" => "fee",
+        //     "details" => {
+        //         "order_id" => "ad06abf4-95ab-432a-a1d8-059ef572e296",
+        //         "product_id" => "ETH-DAI",
+        //         "trade_id" => "1740617"
         //     }
         //  }
         $id = $this->safe_string($item, 'id');
@@ -1584,7 +1585,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1692,7 +1693,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1706,7 +1707,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1736,7 +1737,7 @@ class coinbasepro extends Exchange {
         }
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // privateGetTransfers
         //

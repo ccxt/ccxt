@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -603,12 +603,12 @@ export default class okcoin extends Exchange {
         // spot markets
         //
         //     {
-        //         base_currency: "EOS",
-        //         instrument_id: "EOS-OKB",
-        //         min_size: "0.01",
-        //         quote_currency: "OKB",
-        //         size_increment: "0.000001",
-        //         tick_size: "0.0001"
+        //         "base_currency": "EOS",
+        //         "instrument_id": "EOS-OKB",
+        //         "min_size": "0.01",
+        //         "quote_currency": "OKB",
+        //         "size_increment": "0.000001",
+        //         "tick_size": "0.0001"
         //     }
         //
         const id = this.safeString (market, 'instId');
@@ -782,7 +782,7 @@ export default class okcoin extends Exchange {
         }
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name okcoin#fetchOrderBook
@@ -830,7 +830,7 @@ export default class okcoin extends Exchange {
         return this.parseOrderBook (first, symbol, timestamp);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "instType": "SPOT",
@@ -886,7 +886,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name okcoin#fetchTicker
@@ -952,7 +952,7 @@ export default class okcoin extends Exchange {
         return this.parseTickers (data, symbols, params);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public fetchTrades
         //
@@ -1028,7 +1028,7 @@ export default class okcoin extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name okcoin#fetchTrades
@@ -1085,7 +1085,7 @@ export default class okcoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name okcoin#fetchOHLCV
@@ -1131,16 +1131,16 @@ export default class okcoin extends Exchange {
         //
         //     [
         //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "BTC",
-        //             hold:  0
+        //             "balance":  0,
+        //             "available":  0,
+        //             "currency": "BTC",
+        //             "hold":  0
         //         },
         //         {
-        //             balance:  0,
-        //             available:  0,
-        //             currency: "ETH",
-        //             hold:  0
+        //             "balance":  0,
+        //             "available":  0,
+        //             "currency": "ETH",
+        //             "hold":  0
         //         }
         //     ]
         //
@@ -1148,22 +1148,22 @@ export default class okcoin extends Exchange {
         //
         //     [
         //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "BTC",
-        //             balance: "0.0000000497717339",
-        //             available: "0.0000000497717339",
-        //             holds: "0"
+        //             "frozen": "0",
+        //             "hold": "0",
+        //             "id": "2149632",
+        //             "currency": "BTC",
+        //             "balance": "0.0000000497717339",
+        //             "available": "0.0000000497717339",
+        //             "holds": "0"
         //         },
         //         {
-        //             frozen: "0",
-        //             hold: "0",
-        //             id: "2149632",
-        //             currency: "ICN",
-        //             balance: "0.00000000925",
-        //             available: "0.00000000925",
-        //             holds: "0"
+        //             "frozen": "0",
+        //             "hold": "0",
+        //             "id": "2149632",
+        //             "currency": "ICN",
+        //             "balance": "0.00000000925",
+        //             "available": "0.00000000925",
+        //             "holds": "0"
         //         }
         //     ]
         //
@@ -1185,7 +1185,7 @@ export default class okcoin extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name okcoin#fetchBalance
@@ -1937,7 +1937,7 @@ export default class okcoin extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#fetchOpenOrders
@@ -1985,7 +1985,7 @@ export default class okcoin extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name okcoin#fetchClosedOrders
@@ -2128,29 +2128,29 @@ export default class okcoin extends Exchange {
         //      }
         // network information from currency['networks'] field:
         // Polygon: {
-        //        info: {
-        //            canDep: false,
-        //            canInternal: false,
-        //            canWd: false,
-        //            ccy: 'USDT',
-        //            chain: 'USDT-Polygon-Bridge',
-        //            mainNet: false,
-        //            maxFee: '26.879528',
-        //            minFee: '13.439764',
-        //            minWd: '0.001',
-        //            name: ''
+        //        "info": {
+        //            "canDep": false,
+        //            "canInternal": false,
+        //            "canWd": false,
+        //            "ccy": "USDT",
+        //            "chain": "USDT-Polygon-Bridge",
+        //            "mainNet": false,
+        //            "maxFee": "26.879528",
+        //            "minFee": "13.439764",
+        //            "minWd": "0.001",
+        //            "name": ''
         //        },
-        //        id: 'USDT-Polygon-Bridge',
-        //        network: 'Polygon',
-        //        active: false,
-        //        deposit: false,
-        //        withdraw: false,
-        //        fee: 13.439764,
-        //        precision: undefined,
-        //        limits: {
-        //            withdraw: {
-        //                min: 0.001,
-        //                max: undefined
+        //        "id": "USDT-Polygon-Bridge",
+        //        "network": "Polygon",
+        //        "active": false,
+        //        "deposit": false,
+        //        "withdraw": false,
+        //        "fee": 13.439764,
+        //        "precision": undefined,
+        //        "limits": {
+        //            "withdraw": {
+        //                "min": 0.001,
+        //                "max": undefined
         //            }
         //        }
         //     },
@@ -2438,7 +2438,7 @@ export default class okcoin extends Exchange {
         return this.parseTransaction (transaction, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name okcoin#fetchDeposits
@@ -2513,7 +2513,7 @@ export default class okcoin extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name okcoin#fetchWithdrawals
@@ -2585,23 +2585,23 @@ export default class okcoin extends Exchange {
         // deposit statuses
         //
         //     {
-        //         '0': 'waiting for confirmation',
-        //         '1': 'confirmation account',
-        //         '2': 'recharge success'
+        //         "0": "waiting for confirmation",
+        //         "1": "confirmation account",
+        //         "2": "recharge success"
         //     }
         //
         // withdrawal statues
         //
         //     {
-        //        '-3': 'pending cancel',
-        //        '-2': 'cancelled',
-        //        '-1': 'failed',
-        //         '0': 'pending',
-        //         '1': 'sending',
-        //         '2': 'sent',
-        //         '3': 'email confirmation',
-        //         '4': 'manual confirmation',
-        //         '5': 'awaiting identity confirmation'
+        //        '-3': "pending cancel",
+        //        "-2": "cancelled",
+        //        "-1": "failed",
+        //         "0": "pending",
+        //         "1": "sending",
+        //         "2": "sent",
+        //         "3": "email confirmation",
+        //         "4": "manual confirmation",
+        //         "5": "awaiting identity confirmation"
         //     }
         //
         const statuses = {
@@ -2618,7 +2618,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -2638,9 +2638,9 @@ export default class okcoin extends Exchange {
         //         "ccy": "ETH",
         //         "from": "13426335357",
         //         "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-        //         'tag',
-        //         'pmtId',
-        //         'memo',
+        //         "tag",
+        //         "pmtId",
+        //         "memo",
         //         "ts": "1597026383085",
         //         "state": "2"
         //     }
