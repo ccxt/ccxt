@@ -700,9 +700,7 @@ class ace extends ace$1 {
          * @param {object} [params] extra parameters specific to the ace api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -992,9 +990,9 @@ class ace extends ace$1 {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance(balances);

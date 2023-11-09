@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -425,8 +424,8 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostAccountFees(params)
         #
         # {
-        #     'withdraw': {
-        #         'BTC': '0.0004',
+        #     "withdraw": {
+        #         "BTC": "0.0004",
         #     }
         # }
         #
@@ -456,8 +455,8 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostAccountFees(params)
         #
         #    {
-        #        'withdraw': {
-        #            'BTC': '0.0004',
+        #        "withdraw": {
+        #            "BTC": "0.0004",
         #            ...
         #        }
         #    }
@@ -492,41 +491,41 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostSummary(params)
         #
         #     {
-        #          time: '2022-02-23T16:05:47.659000Z',
-        #          status: {resid_hint: null, login_last: '2022-02-23T16:05:48Z'},
-        #          is_locked: False,
-        #          leo_lev: '0',
-        #          leo_amount_avg: '0.0',
-        #          trade_vol_30d: [
+        #          "time": "2022-02-23T16:05:47.659000Z",
+        #          "status": {resid_hint: null, login_last: "2022-02-23T16:05:48Z"},
+        #          "is_locked": False,
+        #          "leo_lev": "0",
+        #          "leo_amount_avg": "0.0",
+        #          "trade_vol_30d": [
         #          {
-        #              curr: 'Total(USD)',
-        #              vol: '0.0',
-        #              vol_safe: '0.0',
-        #              vol_maker: '0.0',
-        #              vol_BFX: '0.0',
-        #              vol_BFX_safe: '0.0',
-        #              vol_BFX_maker: '0.0'
+        #              "curr": "Total(USD)",
+        #              "vol": "0.0",
+        #              "vol_safe": "0.0",
+        #              "vol_maker": "0.0",
+        #              "vol_BFX": "0.0",
+        #              "vol_BFX_safe": "0.0",
+        #              "vol_BFX_maker": "0.0"
         #          }
         #          ],
-        #          fees_funding_30d: {},
-        #          fees_funding_total_30d: '0',
-        #          fees_trading_30d: {},
-        #          fees_trading_total_30d: '0',
-        #          rebates_trading_30d: {},
-        #          rebates_trading_total_30d: '0',
-        #          maker_fee: '0.001',
-        #          taker_fee: '0.002',
-        #          maker_fee_2crypto: '0.001',
-        #          maker_fee_2stablecoin: '0.001',
-        #          maker_fee_2fiat: '0.001',
-        #          maker_fee_2deriv: '0.0002',
-        #          taker_fee_2crypto: '0.002',
-        #          taker_fee_2stablecoin: '0.002',
-        #          taker_fee_2fiat: '0.002',
-        #          taker_fee_2deriv: '0.00065',
-        #          deriv_maker_rebate: '0.0002',
-        #          deriv_taker_fee: '0.00065',
-        #          trade_last: null
+        #          "fees_funding_30d": {},
+        #          "fees_funding_total_30d": "0",
+        #          "fees_trading_30d": {},
+        #          "fees_trading_total_30d": "0",
+        #          "rebates_trading_30d": {},
+        #          "rebates_trading_total_30d": "0",
+        #          "maker_fee": "0.001",
+        #          "taker_fee": "0.002",
+        #          "maker_fee_2crypto": "0.001",
+        #          "maker_fee_2stablecoin": "0.001",
+        #          "maker_fee_2fiat": "0.001",
+        #          "maker_fee_2deriv": "0.0002",
+        #          "taker_fee_2crypto": "0.002",
+        #          "taker_fee_2stablecoin": "0.002",
+        #          "taker_fee_2fiat": "0.002",
+        #          "taker_fee_2deriv": "0.00065",
+        #          "deriv_maker_rebate": "0.0002",
+        #          "deriv_taker_fee": "0.00065",
+        #          "trade_last": null
         #     }
         #
         result = {}
@@ -690,18 +689,18 @@ class bitfinex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         query = self.omit(params, 'type')
         response = await self.privatePostBalances(query)
-        #    [{type: 'deposit',
-        #        currency: 'btc',
-        #        amount: '0.00116721',
-        #        available: '0.00116721'},
-        #      {type: 'exchange',
-        #        currency: 'ust',
-        #        amount: '0.0000002',
-        #        available: '0.0000002'},
-        #      {type: 'trading',
-        #        currency: 'btc',
-        #        amount: '0.0005',
-        #        available: '0.0005'}],
+        #    [{type: "deposit",
+        #        "currency": "btc",
+        #        "amount": "0.00116721",
+        #        "available": "0.00116721"},
+        #      {type: "exchange",
+        #        "currency": "ust",
+        #        "amount": "0.0000002",
+        #        "available": "0.0000002"},
+        #      {type: "trading",
+        #        "currency": "btc",
+        #        "amount": "0.0005",
+        #        "available": "0.0005"}],
         result = {'info': response}
         isDerivative = requestedType == 'derivatives'
         for i in range(0, len(response)):
@@ -757,8 +756,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             status: 'success',
-        #             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #             "status": "success",
+        #             "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         #         }
         #     ]
         #
@@ -775,8 +774,8 @@ class bitfinex(Exchange, ImplicitAPI):
     def parse_transfer(self, transfer, currency=None):
         #
         #     {
-        #         status: 'success',
-        #         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #         "status": "success",
+        #         "message": "0.0001 Bitcoin transfered from Margin to Exchange"
         #     }
         #
         timestamp = self.milliseconds()
@@ -807,7 +806,7 @@ class bitfinex(Exchange, ImplicitAPI):
             currencyId = currencyId + 'F0'
         return currencyId
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -843,7 +842,7 @@ class bitfinex(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -858,7 +857,7 @@ class bitfinex(Exchange, ImplicitAPI):
         ticker = await self.publicGetPubtickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market)
@@ -887,7 +886,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public) v1
         #
@@ -956,7 +955,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=50, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=50, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -997,8 +996,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitfinex api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1090,29 +1088,29 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         return await self.privatePostOrderCancelAll(params)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
-        #           id: 57334010955,
-        #           cid: 1611584840966,
-        #           cid_date: null,
-        #           gid: null,
-        #           symbol: 'ltcbtc',
-        #           exchange: null,
-        #           price: '0.0042125',
-        #           avg_execution_price: '0.0042097',
-        #           side: 'sell',
-        #           type: 'exchange market',
-        #           timestamp: '1611584841.0',
-        #           is_live: False,
-        #           is_cancelled: False,
-        #           is_hidden: 0,
-        #           oco_order: 0,
-        #           was_forced: False,
-        #           original_amount: '0.205176',
-        #           remaining_amount: '0.0',
-        #           executed_amount: '0.205176',
-        #           src: 'web'
+        #           "id": 57334010955,
+        #           "cid": 1611584840966,
+        #           "cid_date": null,
+        #           "gid": null,
+        #           "symbol": "ltcbtc",
+        #           "exchange": null,
+        #           "price": "0.0042125",
+        #           "avg_execution_price": "0.0042097",
+        #           "side": "sell",
+        #           "type": "exchange market",
+        #           "timestamp": "1611584841.0",
+        #           "is_live": False,
+        #           "is_cancelled": False,
+        #           "is_hidden": 0,
+        #           "oco_order": 0,
+        #           "was_forced": False,
+        #           "original_amount": "0.205176",
+        #           "remaining_amount": "0.0",
+        #           "executed_amount": "0.205176",
+        #           "src": "web"
         #     }
         #
         side = self.safe_string(order, 'side')
@@ -1159,7 +1157,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1178,7 +1176,7 @@ class bitfinex(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1213,7 +1211,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order(response)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1457539800000,
@@ -1233,7 +1231,7 @@ class bitfinex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1358,7 +1356,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # crypto
         #

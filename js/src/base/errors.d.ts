@@ -4,9 +4,6 @@ declare class BaseError extends Error {
 declare class ExchangeError extends Error {
     constructor(message: any);
 }
-declare class OperationFailed extends ExchangeError {
-    constructor(message: any);
-}
 declare class AuthenticationError extends ExchangeError {
     constructor(message: any);
 }
@@ -98,6 +95,9 @@ declare class InvalidNonce extends NetworkError {
     constructor(message: any);
 }
 declare class RequestTimeout extends NetworkError {
+    constructor(message: any);
+}
+declare class OperationFailed extends NetworkError {
     constructor(message: any);
 }
 declare const errors: {

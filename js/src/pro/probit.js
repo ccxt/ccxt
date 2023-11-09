@@ -73,12 +73,12 @@ export default class probit extends probitRest {
     handleBalance(client, message) {
         //
         //     {
-        //         channel: 'balance',
-        //         reset: false,
-        //         data: {
-        //             USDT: {
-        //                 available: '15',
-        //                 total: '15'
+        //         "channel": "balance",
+        //         "reset": false,
+        //         "data": {
+        //             "USDT": {
+        //                 "available": "15",
+        //                 "total": "15"
         //             }
         //         }
         //     }
@@ -90,12 +90,12 @@ export default class probit extends probitRest {
     parseWSBalance(message) {
         //
         //     {
-        //         channel: 'balance',
-        //         reset: false,
-        //         data: {
-        //             USDT: {
-        //                 available: '15',
-        //                 total: '15'
+        //         "channel": "balance",
+        //         "reset": false,
+        //         "data": {
+        //             "USDT": {
+        //                 "available": "15",
+        //                 "total": "15"
         //             }
         //         }
         //     }
@@ -135,20 +135,20 @@ export default class probit extends probitRest {
     handleTicker(client, message) {
         //
         //     {
-        //         channel: 'marketdata',
-        //         market_id: 'BTC-USDT',
-        //         status: 'ok',
-        //         lag: 0,
-        //         ticker: {
-        //             time: '2022-07-21T14:18:04.000Z',
-        //             last: '22591.3',
-        //             low: '22500.1',
-        //             high: '39790.7',
-        //             change: '-1224',
-        //             base_volume: '1002.32005445',
-        //             quote_volume: '23304489.385351021'
+        //         "channel": "marketdata",
+        //         "market_id": "BTC-USDT",
+        //         "status": "ok",
+        //         "lag": 0,
+        //         "ticker": {
+        //             "time": "2022-07-21T14:18:04.000Z",
+        //             "last": "22591.3",
+        //             "low": "22500.1",
+        //             "high": "39790.7",
+        //             "change": "-1224",
+        //             "base_volume": "1002.32005445",
+        //             "quote_volume": "23304489.385351021"
         //         },
-        //         reset: true
+        //         "reset": true
         //     }
         //
         const marketId = this.safeString(message, 'market_id');
@@ -184,22 +184,22 @@ export default class probit extends probitRest {
     handleTrades(client, message) {
         //
         //     {
-        //         channel: 'marketdata',
-        //         market_id: 'BTC-USDT',
-        //         status: 'ok',
-        //         lag: 0,
-        //         recent_trades: [
+        //         "channel": "marketdata",
+        //         "market_id": "BTC-USDT",
+        //         "status": "ok",
+        //         "lag": 0,
+        //         "recent_trades": [
         //             {
-        //                 id: 'BTC-USDT:8010233',
-        //                 price: '22701.4',
-        //                 quantity: '0.011011',
-        //                 time: '2022-07-21T13:40:40.983Z',
-        //                 side: 'buy',
-        //                 tick_direction: 'up'
+        //                 "id": "BTC-USDT:8010233",
+        //                 "price": "22701.4",
+        //                 "quantity": "0.011011",
+        //                 "time": "2022-07-21T13:40:40.983Z",
+        //                 "side": "buy",
+        //                 "tick_direction": "up"
         //             }
         //             ...
         //         ]
-        //         reset: true
+        //         "reset": true
         //     }
         //
         const marketId = this.safeString(message, 'market_id');
@@ -257,20 +257,20 @@ export default class probit extends probitRest {
     handleMyTrades(client, message) {
         //
         //     {
-        //         channel: 'trade_history',
-        //         reset: false,
-        //         data: [{
-        //             id: 'BTC-USDT:8010722',
-        //             order_id: '4124999207',
-        //             side: 'buy',
-        //             fee_amount: '0.0134999868096',
-        //             fee_currency_id: 'USDT',
-        //             status: 'settled',
-        //             price: '23136.7',
-        //             quantity: '0.00032416',
-        //             cost: '7.499992672',
-        //             time: '2022-07-21T17:09:33.056Z',
-        //             market_id: 'BTC-USDT'
+        //         "channel": "trade_history",
+        //         "reset": false,
+        //         "data": [{
+        //             "id": "BTC-USDT:8010722",
+        //             "order_id": "4124999207",
+        //             "side": "buy",
+        //             "fee_amount": "0.0134999868096",
+        //             "fee_currency_id": "USDT",
+        //             "status": "settled",
+        //             "price": "23136.7",
+        //             "quantity": "0.00032416",
+        //             "cost": "7.499992672",
+        //             "time": "2022-07-21T17:09:33.056Z",
+        //             "market_id": "BTC-USDT"
         //         }]
         //     }
         //
@@ -339,23 +339,23 @@ export default class probit extends probitRest {
     handleOrders(client, message) {
         //
         //     {
-        //         channel: 'order_history',
-        //         reset: true,
-        //         data: [{
-        //                 id: '4124999207',
-        //                 user_id: '633dc56a-621b-4680-8a4e-85a823499b6d',
-        //                 market_id: 'BTC-USDT',
-        //                 type: 'market',
-        //                 side: 'buy',
-        //                 limit_price: '0',
-        //                 time_in_force: 'ioc',
-        //                 filled_cost: '7.499992672',
-        //                 filled_quantity: '0.00032416',
-        //                 open_quantity: '0',
-        //                 status: 'filled',
-        //                 time: '2022-07-21T17:09:33.056Z',
-        //                 client_order_id: '',
-        //                 cost: '7.5'
+        //         "channel": "order_history",
+        //         "reset": true,
+        //         "data": [{
+        //                 "id": "4124999207",
+        //                 "user_id": "633dc56a-621b-4680-8a4e-85a823499b6d",
+        //                 "market_id": "BTC-USDT",
+        //                 "type": "market",
+        //                 "side": "buy",
+        //                 "limit_price": "0",
+        //                 "time_in_force": "ioc",
+        //                 "filled_cost": "7.499992672",
+        //                 "filled_quantity": "0.00032416",
+        //                 "open_quantity": "0",
+        //                 "status": "filled",
+        //                 "time": "2022-07-21T17:09:33.056Z",
+        //                 "client_order_id": '',
+        //                 "cost": "7.5"
         //             },
         //             ...
         //         ]
@@ -439,15 +439,15 @@ export default class probit extends probitRest {
     handleOrderBook(client, message, orderBook) {
         //
         //     {
-        //         channel: 'marketdata',
-        //         market_id: 'BTC-USDT',
-        //         status: 'ok',
-        //         lag: 0,
-        //         order_books: [
-        //           { side: 'buy', price: '1420.7', quantity: '0.057' },
+        //         "channel": "marketdata",
+        //         "market_id": "BTC-USDT",
+        //         "status": "ok",
+        //         "lag": 0,
+        //         "order_books": [
+        //           { side: "buy", price: '1420.7', quantity: "0.057" },
         //           ...
         //         ],
-        //         reset: true
+        //         "reset": true
         //     }
         //
         const marketId = this.safeString(message, 'market_id');
@@ -487,10 +487,10 @@ export default class probit extends probitRest {
     handleErrorMessage(client, message) {
         //
         //     {
-        //         errorCode: 'INVALID_ARGUMENT',
-        //         message: '',
-        //         details: {
-        //             interval: 'invalid'
+        //         "errorCode": "INVALID_ARGUMENT",
+        //         "message": '',
+        //         "details": {
+        //             "interval": "invalid"
         //         }
         //     }
         //
@@ -502,7 +502,7 @@ export default class probit extends probitRest {
     }
     handleAuthenticate(client, message) {
         //
-        //     { type: 'authorization', result: 'ok' }
+        //     { type: "authorization", result: "ok" }
         //
         const result = this.safeString(message, 'result');
         const future = client.subscriptions['authenticated'];
@@ -531,10 +531,10 @@ export default class probit extends probitRest {
     handleMessage(client, message) {
         //
         //     {
-        //         errorCode: 'INVALID_ARGUMENT',
-        //         message: '',
-        //         details: {
-        //             interval: 'invalid'
+        //         "errorCode": "INVALID_ARGUMENT",
+        //         "message": '',
+        //         "details": {
+        //             "interval": "invalid"
         //         }
         //     }
         //
@@ -571,9 +571,9 @@ export default class probit extends probitRest {
             const response = await this.signIn();
             //
             //     {
-            //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-            //         token_type: 'bearer',
-            //         expires_in: 900
+            //         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+            //         "token_type": "bearer",
+            //         "expires_in": 900
             //     }
             //
             const accessToken = this.safeString(response, 'access_token');

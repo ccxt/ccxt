@@ -26,6 +26,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 // 'watchStatus' => true, // https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
                 'watchOrders' => true,
                 'watchMyTrades' => true,
+                'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -216,6 +217,136 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $orderbook = Async\await($this->subscribe_public('book', array( $symbol ), $params));
             return $orderbook->limit ();
         }) ();
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+             * watch all open positions
+             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the krakenfutures api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $messageHash = '';
+            $symbols = $this->market_symbols($symbols);
+            if (!$this->is_empty($symbols)) {
+                $messageHash = '::' . implode(',', $symbols);
+            }
+            $messageHash = 'positions' . $messageHash;
+            $newPositions = Async\await($this->subscribe_private('open_positions', $messageHash, $params));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        feed => 'open_positions',
+        //        account => '3b111acc-4fcc-45be-a622-57e611fe9f7f',
+        //        $positions => array(
+        //            {
+        //                instrument => 'PF_LTCUSD',
+        //                balance => 0.5,
+        //                pnl => -0.8628305877699987,
+        //                entry_price => 70.53,
+        //                mark_price => 68.80433882446,
+        //                index_price => 68.8091,
+        //                liquidation_threshold => 0,
+        //                effective_leverage => 0.007028866753648637,
+        //                return_on_equity => -1.2233525985679834,
+        //                unrealized_funding => 0.0000690610530935388,
+        //                initial_margin => 0.7053,
+        //                initial_margin_with_orders => 0.7053,
+        //                maintenance_margin => 0.35265,
+        //                pnl_currency => 'USD'
+        //            }
+        //        ),
+        //        seq => 0,
+        //        $timestamp => 1698608414910
+        //    }
+        //
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolById ();
+        }
+        $cache = $this->positions;
+        $rawPositions = $this->safe_value($message, 'positions', array());
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_ws_position($rawPosition);
+            $timestamp = $this->safe_integer($message, 'timestamp');
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, 'positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, 'positions');
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        //
+        //        {
+        //            instrument => 'PF_LTCUSD',
+        //            $balance => 0.5,
+        //            pnl => -0.8628305877699987,
+        //            entry_price => 70.53,
+        //            mark_price => 68.80433882446,
+        //            index_price => 68.8091,
+        //            liquidation_threshold => 0,
+        //            effective_leverage => 0.007028866753648637,
+        //            return_on_equity => -1.2233525985679834,
+        //            unrealized_funding => 0.0000690610530935388,
+        //            initial_margin => 0.7053,
+        //            initial_margin_with_orders => 0.7053,
+        //            maintenance_margin => 0.35265,
+        //            pnl_currency => 'USD'
+        //        }
+        //
+        $marketId = $this->safe_string($position, 'instrument');
+        $hedged = 'both';
+        $balance = $this->safe_number($position, 'balance');
+        $side = ($balance > 0) ? 'long' : 'short';
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $this->safe_symbol($marketId),
+            'notional' => null,
+            'marginMode' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_threshold'),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'unrealizedPnl' => $this->safe_number($position, 'pnl'),
+            'percentage' => $this->safe_number($position, 'return_on_equity'),
+            'contracts' => $this->parse_number(Precise::string_abs($this->number_to_string($balance))),
+            'contractSize' => null,
+            'markPrice' => $this->safe_number($position, 'mark_price'),
+            'side' => $side,
+            'hedged' => $hedged,
+            'timestamp' => null,
+            'datetime' => null,
+            'maintenanceMargin' => $this->safe_number($position, 'maintenance_margin'),
+            'maintenanceMarginPercentage' => null,
+            'collateral' => null,
+            'initialMargin' => $this->safe_number($position, 'initial_margin'),
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        ));
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -497,10 +628,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "reason" => "new_placed_order_by_user"
         //    }
         //    {
-        //        feed => 'open_orders',
-        //        order_id => 'ea8a7144-37db-449b-bb4a-b53c814a0f43',
-        //        is_cancel => true,
-        //        reason => 'cancelled_by_user'
+        //        "feed" => "open_orders",
+        //        "order_id" => "ea8a7144-37db-449b-bb4a-b53c814a0f43",
+        //        "is_cancel" => true,
+        //        "reason" => "cancelled_by_user"
         //    }
         //
         $orders = $this->orders;
@@ -740,33 +871,33 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function handle_ticker(Client $client, $message) {
         //
         //    {
-        //        time => 1680811086487,
-        //        product_id => 'PI_XBTUSD',
-        //        funding_rate => 7.792297e-12,
-        //        funding_rate_prediction => -4.2671095e-11,
-        //        relative_funding_rate => 2.18013888889e-7,
-        //        relative_funding_rate_prediction => -0.0000011974,
-        //        next_funding_rate_time => 1680811200000,
-        //        $feed => 'ticker',
-        //        bid => 28060,
-        //        ask => 28070,
-        //        bid_size => 2844,
-        //        ask_size => 1902,
-        //        volume => 19628180,
-        //        dtm => 0,
-        //        leverage => '50x',
-        //        index => 28062.14,
-        //        premium => 0,
-        //        last => 28053.5,
-        //        change => -0.7710945651981715,
-        //        suspended => false,
-        //        tag => 'perpetual',
-        //        pair => 'XBT:USD',
-        //        openInterest => 28875946,
-        //        markPrice => 28064.92082724592,
-        //        maturityTime => 0,
-        //        post_only => false,
-        //        volumeQuote => 19628180
+        //        "time" => 1680811086487,
+        //        "product_id" => "PI_XBTUSD",
+        //        "funding_rate" => 7.792297e-12,
+        //        "funding_rate_prediction" => -4.2671095e-11,
+        //        "relative_funding_rate" => 2.18013888889e-7,
+        //        "relative_funding_rate_prediction" => -0.0000011974,
+        //        "next_funding_rate_time" => 1680811200000,
+        //        "feed" => "ticker",
+        //        "bid" => 28060,
+        //        "ask" => 28070,
+        //        "bid_size" => 2844,
+        //        "ask_size" => 1902,
+        //        "volume" => 19628180,
+        //        "dtm" => 0,
+        //        "leverage" => "50x",
+        //        "index" => 28062.14,
+        //        "premium" => 0,
+        //        "last" => 28053.5,
+        //        "change" => -0.7710945651981715,
+        //        "suspended" => false,
+        //        "tag" => "perpetual",
+        //        "pair" => "XBT:USD",
+        //        "openInterest" => 28875946,
+        //        "markPrice" => 28064.92082724592,
+        //        "maturityTime" => 0,
+        //        "post_only" => false,
+        //        "volumeQuote" => 19628180
         //    }
         //
         // ticker_lite
@@ -802,33 +933,33 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function parse_ws_ticker($ticker, $market = null) {
         //
         //    {
-        //        time => 1680811086487,
-        //        product_id => 'PI_XBTUSD',
-        //        funding_rate => 7.792297e-12,
-        //        funding_rate_prediction => -4.2671095e-11,
-        //        relative_funding_rate => 2.18013888889e-7,
-        //        relative_funding_rate_prediction => -0.0000011974,
-        //        next_funding_rate_time => 1680811200000,
-        //        feed => 'ticker',
-        //        bid => 28060,
-        //        ask => 28070,
-        //        bid_size => 2844,
-        //        ask_size => 1902,
-        //        volume => 19628180,
-        //        dtm => 0,
-        //        leverage => '50x',
-        //        index => 28062.14,
-        //        premium => 0,
-        //        $last => 28053.5,
-        //        change => -0.7710945651981715,
-        //        suspended => false,
-        //        tag => 'perpetual',
-        //        pair => 'XBT:USD',
-        //        openInterest => 28875946,
-        //        markPrice => 28064.92082724592,
-        //        maturityTime => 0,
-        //        post_only => false,
-        //        volumeQuote => 19628180
+        //        "time" => 1680811086487,
+        //        "product_id" => "PI_XBTUSD",
+        //        "funding_rate" => 7.792297e-12,
+        //        "funding_rate_prediction" => -4.2671095e-11,
+        //        "relative_funding_rate" => 2.18013888889e-7,
+        //        "relative_funding_rate_prediction" => -0.0000011974,
+        //        "next_funding_rate_time" => 1680811200000,
+        //        "feed" => "ticker",
+        //        "bid" => 28060,
+        //        "ask" => 28070,
+        //        "bid_size" => 2844,
+        //        "ask_size" => 1902,
+        //        "volume" => 19628180,
+        //        "dtm" => 0,
+        //        "leverage" => "50x",
+        //        "index" => 28062.14,
+        //        "premium" => 0,
+        //        "last" => 28053.5,
+        //        "change" => -0.7710945651981715,
+        //        "suspended" => false,
+        //        "tag" => "perpetual",
+        //        "pair" => "XBT:USD",
+        //        "openInterest" => 28875946,
+        //        "markPrice" => 28064.92082724592,
+        //        "maturityTime" => 0,
+        //        "post_only" => false,
+        //        "volumeQuote" => 19628180
         //    }
         //
         // ticker_lite
@@ -1303,6 +1434,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'open_orders_snapshot' => array($this, 'handle_order_snapshot'),
                 'balances' => array($this, 'handle_balance'),
                 'balances_snapshot' => array($this, 'handle_balance'),
+                'open_positions' => array($this, 'handle_positions'),
             );
             $method = $this->safe_value($methods, $feed);
             if ($method !== null) {

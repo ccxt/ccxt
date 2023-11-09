@@ -319,7 +319,7 @@ export default class gemini extends Exchange {
         //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, precisions seem to be the 5th index
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
         //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
-        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
+        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ],
         //            ...
         //        ],
         //        "networks": [
@@ -1454,9 +1454,7 @@ export default class gemini extends Exchange {
          * @param {object} [params] extra parameters specific to the gemini api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1616,9 +1614,9 @@ export default class gemini extends Exchange {
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //      {
-        //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        //          timestamp: "1636813923098",
-        //          addressVersion: "eV1"                                         }
+        //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          "timestamp": "1636813923098",
+        //          "addressVersion": "eV1"                                         }
         //      }
         //
         const address = this.safeString(depositAddress, 'address');

@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -235,7 +234,7 @@ class lbank(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "symbol":"btc_usdt",
@@ -281,7 +280,7 @@ class lbank(Exchange, ImplicitAPI):
             'info': info,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -348,7 +347,7 @@ class lbank(Exchange, ImplicitAPI):
         response = self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         market = self.safe_market(None, market)
         timestamp = self.safe_integer(trade, 'date_ms')
         priceString = self.safe_string(trade, 'price')
@@ -378,7 +377,7 @@ class lbank(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -400,7 +399,7 @@ class lbank(Exchange, ImplicitAPI):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1590969600,
@@ -420,7 +419,7 @@ class lbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=1000, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=1000, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -453,7 +452,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -516,7 +515,7 @@ class lbank(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "symbol"："eth_btc",
@@ -639,7 +638,7 @@ class lbank(Exchange, ImplicitAPI):
         else:
             raise BadRequest(self.id + ' fetchOrder() can only return one order at a time. Found ' + numOrders + ' orders.')
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -661,7 +660,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'orders', [])
         return self.parse_orders(data, None, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -705,21 +704,21 @@ class lbank(Exchange, ImplicitAPI):
         response = self.privatePostWithdraw(self.extend(request, params))
         #
         #     {
-        #         'result': 'true',
-        #         'withdrawId': 90082,
-        #         'fee':0.001
+        #         "result": "true",
+        #         "withdrawId": 90082,
+        #         "fee":0.001
         #     }
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # withdraw
         #
         #     {
-        #         'result': 'true',
-        #         'withdrawId': 90082,
-        #         'fee':0.001
+        #         "result": "true",
+        #         "withdrawId": 90082,
+        #         "fee":0.001
         #     }
         #
         currency = self.safe_currency(None, currency)

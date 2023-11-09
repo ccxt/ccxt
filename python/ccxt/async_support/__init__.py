@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.35'
+__version__ = '4.1.46'
 
 # -----------------------------------------------------------------------------
 
@@ -34,7 +34,6 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import OperationRejected                        # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
-from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -54,6 +53,7 @@ from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F4
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
@@ -103,6 +103,7 @@ from ccxt.async_support.coinbasepro import coinbasepro                          
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinfalcon import coinfalcon                            # noqa: F401
+from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
@@ -210,6 +211,7 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinfalcon',
+    'coinlist',
     'coinmate',
     'coinone',
     'coinsph',

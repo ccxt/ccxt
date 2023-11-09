@@ -1,5 +1,5 @@
 import hitbtcRest from '../hitbtc.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Trade } from '../base/types';
 export default class hitbtc extends hitbtcRest {
@@ -21,7 +21,7 @@ export default class hitbtc extends hitbtcRest {
     parseWsTrade(trade: any, market?: any): Trade;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): any;
-    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): any;
     handleOrderHelper(client: Client, message: any, order: any): void;

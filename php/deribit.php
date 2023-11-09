@@ -405,12 +405,12 @@ class deribit extends Exchange {
         $response = $this->publicGetGetTime ($params);
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         result => 1583922446019,
-        //         usIn => 1583922446019955,
-        //         usOut => 1583922446019956,
-        //         usDiff => 1,
-        //         testnet => false
+        //         "jsonrpc" => "2.0",
+        //         "result" => 1583922446019,
+        //         "usIn" => 1583922446019955,
+        //         "usOut" => 1583922446019956,
+        //         "usDiff" => 1,
+        //         "testnet" => false
         //     }
         //
         return $this->safe_integer($response, 'result');
@@ -531,36 +531,36 @@ class deribit extends Exchange {
         $response = $this->privateGetGetSubaccounts ($params);
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => [array(
-        //                 username => 'someusername',
-        //                 type => 'main',
-        //                 system_name => 'someusername',
-        //                 security_keys_enabled => false,
-        //                 security_keys_assignments => array(),
-        //                 receive_notifications => false,
-        //                 login_enabled => true,
-        //                 is_password => true,
-        //                 id => '238216',
-        //                 email => 'pablo@abcdef.com'
+        //         "jsonrpc" => "2.0",
+        //         "result" => [array(
+        //                 "username" => "someusername",
+        //                 "type" => "main",
+        //                 "system_name" => "someusername",
+        //                 "security_keys_enabled" => false,
+        //                 "security_keys_assignments" => array(),
+        //                 "receive_notifications" => false,
+        //                 "login_enabled" => true,
+        //                 "is_password" => true,
+        //                 "id" => "238216",
+        //                 "email" => "pablo@abcdef.com"
         //             ),
         //             {
-        //                 username => 'someusername_1',
-        //                 type => 'subaccount',
-        //                 system_name => 'someusername_1',
-        //                 security_keys_enabled => false,
-        //                 security_keys_assignments => array(),
-        //                 receive_notifications => false,
-        //                 login_enabled => false,
-        //                 is_password => false,
-        //                 id => '245499',
-        //                 email => 'pablo@abcdef.com'
+        //                 "username" => "someusername_1",
+        //                 "type" => "subaccount",
+        //                 "system_name" => "someusername_1",
+        //                 "security_keys_enabled" => false,
+        //                 "security_keys_assignments" => array(),
+        //                 "receive_notifications" => false,
+        //                 "login_enabled" => false,
+        //                 "is_password" => false,
+        //                 "id" => "245499",
+        //                 "email" => "pablo@abcdef.com"
         //             }
         //         ],
-        //         usIn => '1652736468292006',
-        //         usOut => '1652736468292377',
-        //         usDiff => '371',
-        //         testnet => false
+        //         "usIn" => "1652736468292006",
+        //         "usOut" => "1652736468292377",
+        //         "usDiff" => "371",
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -570,16 +570,16 @@ class deribit extends Exchange {
     public function parse_account($account, $currency = null) {
         //
         //      {
-        //          username => 'someusername_1',
-        //          type => 'subaccount',
-        //          system_name => 'someusername_1',
-        //          security_keys_enabled => false,
-        //          security_keys_assignments => array(),
-        //          receive_notifications => false,
-        //          login_enabled => false,
-        //          is_password => false,
-        //          id => '245499',
-        //          email => 'pablo@abcdef.com'
+        //          "username" => "someusername_1",
+        //          "type" => "subaccount",
+        //          "system_name" => "someusername_1",
+        //          "security_keys_enabled" => false,
+        //          "security_keys_assignments" => array(),
+        //          "receive_notifications" => false,
+        //          "login_enabled" => false,
+        //          "is_password" => false,
+        //          "id" => "245499",
+        //          "email" => "pablo@abcdef.com"
         //      }
         //
         return array(
@@ -599,26 +599,26 @@ class deribit extends Exchange {
         $currenciesResponse = $this->publicGetGetCurrencies ($params);
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
         //             {
-        //                 withdrawal_priorities => array(
-        //                     array( value => 0.15, name => 'very_low' ),
-        //                     array( value => 1.5, name => 'very_high' ),
+        //                 "withdrawal_priorities" => array(
+        //                     array( value => 0.15, name => "very_low" ),
+        //                     array( value => 1.5, name => "very_high" ),
         //                 ),
-        //                 withdrawal_fee => 0.0005,
-        //                 min_withdrawal_fee => 0.0005,
-        //                 min_confirmations => 1,
-        //                 fee_precision => 4,
-        //                 currency_long => 'Bitcoin',
-        //                 currency => 'BTC',
-        //                 coin_type => 'BITCOIN'
+        //                 "withdrawal_fee" => 0.0005,
+        //                 "min_withdrawal_fee" => 0.0005,
+        //                 "min_confirmations" => 1,
+        //                 "fee_precision" => 4,
+        //                 "currency_long" => "Bitcoin",
+        //                 "currency" => "BTC",
+        //                 "coin_type" => "BITCOIN"
         //             }
         //         ),
-        //         usIn => 1583761588590479,
-        //         usOut => 1583761588590544,
-        //         usDiff => 65,
-        //         testnet => false
+        //         "usIn" => 1583761588590479,
+        //         "usOut" => 1583761588590544,
+        //         "usDiff" => 65,
+        //         "testnet" => false
         //     }
         //
         $parsedMarkets = array();
@@ -809,7 +809,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function parse_balance($balance) {
+    public function parse_balance($balance): array {
         $result = array(
             'info' => $balance,
         );
@@ -838,44 +838,44 @@ class deribit extends Exchange {
         $response = $this->privateGetGetAccountSummary (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
-        //             total_pl => 0,
-        //             session_upl => 0,
-        //             session_rpl => 0,
-        //             session_funding => 0,
-        //             portfolio_margining_enabled => false,
-        //             options_vega => 0,
-        //             options_theta => 0,
-        //             options_session_upl => 0,
-        //             options_session_rpl => 0,
-        //             options_pl => 0,
-        //             options_gamma => 0,
-        //             options_delta => 0,
-        //             margin_balance => 0.00062359,
-        //             maintenance_margin => 0,
-        //             limits => array(
-        //                 non_matching_engine_burst => 300,
-        //                 non_matching_engine => 200,
-        //                 matching_engine_burst => 20,
-        //                 matching_engine => 2
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "total_pl" => 0,
+        //             "session_upl" => 0,
+        //             "session_rpl" => 0,
+        //             "session_funding" => 0,
+        //             "portfolio_margining_enabled" => false,
+        //             "options_vega" => 0,
+        //             "options_theta" => 0,
+        //             "options_session_upl" => 0,
+        //             "options_session_rpl" => 0,
+        //             "options_pl" => 0,
+        //             "options_gamma" => 0,
+        //             "options_delta" => 0,
+        //             "margin_balance" => 0.00062359,
+        //             "maintenance_margin" => 0,
+        //             "limits" => array(
+        //                 "non_matching_engine_burst" => 300,
+        //                 "non_matching_engine" => 200,
+        //                 "matching_engine_burst" => 20,
+        //                 "matching_engine" => 2
         //             ),
-        //             initial_margin => 0,
-        //             futures_session_upl => 0,
-        //             futures_session_rpl => 0,
-        //             futures_pl => 0,
-        //             equity => 0.00062359,
-        //             deposit_address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total => 0,
-        //             $currency => 'BTC',
-        //             balance => 0.00062359,
-        //             available_withdrawal_funds => 0.00062359,
-        //             available_funds => 0.00062359
+        //             "initial_margin" => 0,
+        //             "futures_session_upl" => 0,
+        //             "futures_session_rpl" => 0,
+        //             "futures_pl" => 0,
+        //             "equity" => 0.00062359,
+        //             "deposit_address" => "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "delta_total" => 0,
+        //             "currency" => "BTC",
+        //             "balance" => 0.00062359,
+        //             "available_withdrawal_funds" => 0.00062359,
+        //             "available_funds" => 0.00062359
         //         ),
-        //         usIn => 1583775838115975,
-        //         usOut => 1583775838116520,
-        //         usDiff => 545,
-        //         testnet => false
+        //         "usIn" => 1583775838115975,
+        //         "usOut" => 1583775838116520,
+        //         "usDiff" => 545,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -897,13 +897,13 @@ class deribit extends Exchange {
         $response = $this->privateGetCreateDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         'jsonrpc' => '2.0',
-        //         'id' => 7538,
-        //         'result' => {
-        //             'address' => '2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB',
-        //             'creation_timestamp' => 1550575165170,
-        //             'currency' => 'BTC',
-        //             'type' => 'deposit'
+        //         "jsonrpc" => "2.0",
+        //         "id" => 7538,
+        //         "result" => {
+        //             "address" => "2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB",
+        //             "creation_timestamp" => 1550575165170,
+        //             "currency" => "BTC",
+        //             "type" => "deposit"
         //         }
         //     }
         //
@@ -933,19 +933,19 @@ class deribit extends Exchange {
         $response = $this->privateGetGetCurrentDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
-        //             type => 'deposit',
-        //             status => 'ready',
-        //             requires_confirmation => true,
-        //             $currency => 'BTC',
-        //             creation_timestamp => 1514694684651,
-        //             $address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw'
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "type" => "deposit",
+        //             "status" => "ready",
+        //             "requires_confirmation" => true,
+        //             "currency" => "BTC",
+        //             "creation_timestamp" => 1514694684651,
+        //             "address" => "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw"
         //         ),
-        //         usIn => 1583785137274288,
-        //         usOut => 1583785137274454,
-        //         usDiff => 166,
-        //         testnet => false
+        //         "usIn" => 1583785137274288,
+        //         "usOut" => 1583785137274454,
+        //         "usDiff" => 166,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -960,51 +960,51 @@ class deribit extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker /public/ticker
         //
         //     {
-        //         $timestamp => 1583778859480,
-        //         $stats => array( volume => 60627.57263769, low => 7631.5, high => 8311.5 ),
-        //         state => 'open',
-        //         settlement_price => 7903.21,
-        //         open_interest => 111543850,
-        //         min_price => 7634,
-        //         max_price => 7866.51,
-        //         mark_price => 7750.02,
-        //         last_price => 7750.5,
-        //         instrument_name => 'BTC-PERPETUAL',
-        //         index_price => 7748.01,
-        //         funding_8h => 0.0000026,
-        //         current_funding => 0,
-        //         best_bid_price => 7750,
-        //         best_bid_amount => 19470,
-        //         best_ask_price => 7750.5,
-        //         best_ask_amount => 343280
+        //         "timestamp" => 1583778859480,
+        //         "stats" => array( volume => 60627.57263769, low => 7631.5, high => 8311.5 ),
+        //         "state" => "open",
+        //         "settlement_price" => 7903.21,
+        //         "open_interest" => 111543850,
+        //         "min_price" => 7634,
+        //         "max_price" => 7866.51,
+        //         "mark_price" => 7750.02,
+        //         "last_price" => 7750.5,
+        //         "instrument_name" => "BTC-PERPETUAL",
+        //         "index_price" => 7748.01,
+        //         "funding_8h" => 0.0000026,
+        //         "current_funding" => 0,
+        //         "best_bid_price" => 7750,
+        //         "best_bid_amount" => 19470,
+        //         "best_ask_price" => 7750.5,
+        //         "best_ask_amount" => 343280
         //     }
         //
         // fetchTicker /public/get_book_summary_by_instrument
         // fetchTickers /public/get_book_summary_by_currency
         //
         //     array(
-        //         volume => 124.1,
-        //         underlying_price => 7856.445926872601,
-        //         underlying_index => 'SYN.BTC-10MAR20',
-        //         quote_currency => 'USD',
-        //         open_interest => 121.8,
-        //         mid_price => 0.01975,
-        //         mark_price => 0.01984559,
-        //         low => 0.0095,
-        //         $last => 0.0205,
-        //         interest_rate => 0,
-        //         instrument_name => 'BTC-10MAR20-7750-C',
-        //         high => 0.0295,
-        //         estimated_delivery_price => 7856.29,
-        //         creation_timestamp => 1583783678366,
-        //         bid_price => 0.0185,
-        //         base_currency => 'BTC',
-        //         ask_price => 0.021
+        //         "volume" => 124.1,
+        //         "underlying_price" => 7856.445926872601,
+        //         "underlying_index" => "SYN.BTC-10MAR20",
+        //         "quote_currency" => "USD",
+        //         "open_interest" => 121.8,
+        //         "mid_price" => 0.01975,
+        //         "mark_price" => 0.01984559,
+        //         "low" => 0.0095,
+        //         "last" => 0.0205,
+        //         "interest_rate" => 0,
+        //         "instrument_name" => "BTC-10MAR20-7750-C",
+        //         "high" => 0.0295,
+        //         "estimated_delivery_price" => 7856.29,
+        //         "creation_timestamp" => 1583783678366,
+        //         "bid_price" => 0.0185,
+        //         "base_currency" => "BTC",
+        //         "ask_price" => 0.021
         //     ),
         //
         $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'creation_timestamp');
@@ -1036,7 +1036,7 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -1051,30 +1051,30 @@ class deribit extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
-        //             timestamp => 1583778859480,
-        //             stats => array( volume => 60627.57263769, low => 7631.5, high => 8311.5 ),
-        //             state => 'open',
-        //             settlement_price => 7903.21,
-        //             open_interest => 111543850,
-        //             min_price => 7634,
-        //             max_price => 7866.51,
-        //             mark_price => 7750.02,
-        //             last_price => 7750.5,
-        //             instrument_name => 'BTC-PERPETUAL',
-        //             index_price => 7748.01,
-        //             funding_8h => 0.0000026,
-        //             current_funding => 0,
-        //             best_bid_price => 7750,
-        //             best_bid_amount => 19470,
-        //             best_ask_price => 7750.5,
-        //             best_ask_amount => 343280
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "timestamp" => 1583778859480,
+        //             "stats" => array( volume => 60627.57263769, low => 7631.5, high => 8311.5 ),
+        //             "state" => "open",
+        //             "settlement_price" => 7903.21,
+        //             "open_interest" => 111543850,
+        //             "min_price" => 7634,
+        //             "max_price" => 7866.51,
+        //             "mark_price" => 7750.02,
+        //             "last_price" => 7750.5,
+        //             "instrument_name" => "BTC-PERPETUAL",
+        //             "index_price" => 7748.01,
+        //             "funding_8h" => 0.0000026,
+        //             "current_funding" => 0,
+        //             "best_bid_price" => 7750,
+        //             "best_bid_amount" => 19470,
+        //             "best_ask_price" => 7750.5,
+        //             "best_ask_amount" => 343280
         //         ),
-        //         usIn => 1583778859483941,
-        //         usOut => 1583778859484075,
-        //         usDiff => 134,
-        //         testnet => false
+        //         "usIn" => 1583778859483941,
+        //         "usOut" => 1583778859484075,
+        //         "usDiff" => 134,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result');
@@ -1098,32 +1098,32 @@ class deribit extends Exchange {
         $response = $this->publicGetGetBookSummaryByCurrency (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
         //             array(
-        //                 volume => 124.1,
-        //                 underlying_price => 7856.445926872601,
-        //                 underlying_index => 'SYN.BTC-10MAR20',
-        //                 quote_currency => 'USD',
-        //                 open_interest => 121.8,
-        //                 mid_price => 0.01975,
-        //                 mark_price => 0.01984559,
-        //                 low => 0.0095,
-        //                 last => 0.0205,
-        //                 interest_rate => 0,
-        //                 instrument_name => 'BTC-10MAR20-7750-C',
-        //                 high => 0.0295,
-        //                 estimated_delivery_price => 7856.29,
-        //                 creation_timestamp => 1583783678366,
-        //                 bid_price => 0.0185,
-        //                 base_currency => 'BTC',
-        //                 ask_price => 0.021
+        //                 "volume" => 124.1,
+        //                 "underlying_price" => 7856.445926872601,
+        //                 "underlying_index" => "SYN.BTC-10MAR20",
+        //                 "quote_currency" => "USD",
+        //                 "open_interest" => 121.8,
+        //                 "mid_price" => 0.01975,
+        //                 "mark_price" => 0.01984559,
+        //                 "low" => 0.0095,
+        //                 "last" => 0.0205,
+        //                 "interest_rate" => 0,
+        //                 "instrument_name" => "BTC-10MAR20-7750-C",
+        //                 "high" => 0.0295,
+        //                 "estimated_delivery_price" => 7856.29,
+        //                 "creation_timestamp" => 1583783678366,
+        //                 "bid_price" => 0.0185,
+        //                 "base_currency" => "BTC",
+        //                 "ask_price" => 0.021
         //             ),
         //         ),
-        //         usIn => 1583783678361966,
-        //         usOut => 1583783678372069,
-        //         usDiff => 10103,
-        //         testnet => false
+        //         "usIn" => 1583783678361966,
+        //         "usOut" => 1583783678372069,
+        //         "usDiff" => 10103,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -1136,7 +1136,7 @@ class deribit extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1171,21 +1171,21 @@ class deribit extends Exchange {
         $response = $this->publicGetGetTradingviewChartData (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
-        //             volume => array( 3.6680847969999992, 22.682721123, 3.011587939, 0 ),
-        //             ticks => array( 1583916960000, 1583917020000, 1583917080000, 1583917140000 ),
-        //             status => 'ok',
-        //             open => array( 7834, 7839, 7833.5, 7833 ),
-        //             low => array( 7834, 7833.5, 7832.5, 7833 ),
-        //             high => array( 7839.5, 7839, 7833.5, 7833 ),
-        //             cost => array( 28740, 177740, 23590, 0 ),
-        //             close => array( 7839.5, 7833.5, 7833, 7833 )
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "volume" => array( 3.6680847969999992, 22.682721123, 3.011587939, 0 ),
+        //             "ticks" => array( 1583916960000, 1583917020000, 1583917080000, 1583917140000 ),
+        //             "status" => "ok",
+        //             "open" => array( 7834, 7839, 7833.5, 7833 ),
+        //             "low" => array( 7834, 7833.5, 7832.5, 7833 ),
+        //             "high" => array( 7839.5, 7839, 7833.5, 7833 ),
+        //             "cost" => array( 28740, 177740, 23590, 0 ),
+        //             "close" => array( 7839.5, 7833.5, 7833, 7833 )
         //         ),
-        //         usIn => 1583917166709801,
-        //         usOut => 1583917166710175,
-        //         usDiff => 374,
-        //         testnet => false
+        //         "usIn" => 1583917166709801,
+        //         "usOut" => 1583917166710175,
+        //         "usDiff" => 374,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -1193,7 +1193,7 @@ class deribit extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1283,7 +1283,7 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.deribit.com/#private-get_user_trades_by_currency
          * get the list of most recent $trades for a particular $symbol->
@@ -1353,51 +1353,51 @@ class deribit extends Exchange {
         $response = $this->privateGetGetAccountSummary (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
-        //             total_pl => 0,
-        //             session_upl => 0,
-        //             session_rpl => 0,
-        //             session_funding => 0,
-        //             portfolio_margining_enabled => false,
-        //             options_vega => 0,
-        //             options_theta => 0,
-        //             options_session_upl => 0,
-        //             options_session_rpl => 0,
-        //             options_pl => 0,
-        //             options_gamma => 0,
-        //             options_delta => 0,
-        //             margin_balance => 0.00062359,
-        //             maintenance_margin => 0,
-        //             limits => array(
-        //                 non_matching_engine_burst => 300,
-        //                 non_matching_engine => 200,
-        //                 matching_engine_burst => 20,
-        //                 matching_engine => 2
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "total_pl" => 0,
+        //             "session_upl" => 0,
+        //             "session_rpl" => 0,
+        //             "session_funding" => 0,
+        //             "portfolio_margining_enabled" => false,
+        //             "options_vega" => 0,
+        //             "options_theta" => 0,
+        //             "options_session_upl" => 0,
+        //             "options_session_rpl" => 0,
+        //             "options_pl" => 0,
+        //             "options_gamma" => 0,
+        //             "options_delta" => 0,
+        //             "margin_balance" => 0.00062359,
+        //             "maintenance_margin" => 0,
+        //             "limits" => array(
+        //                 "non_matching_engine_burst" => 300,
+        //                 "non_matching_engine" => 200,
+        //                 "matching_engine_burst" => 20,
+        //                 "matching_engine" => 2
         //             ),
-        //             initial_margin => 0,
-        //             futures_session_upl => 0,
-        //             futures_session_rpl => 0,
-        //             futures_pl => 0,
-        //             equity => 0.00062359,
-        //             deposit_address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total => 0,
-        //             $currency => 'BTC',
-        //             balance => 0.00062359,
-        //             available_withdrawal_funds => 0.00062359,
-        //             available_funds => 0.00062359,
-        //             $fees => array(
-        //                 $currency => '',
-        //                 instrument_type => 'perpetual',
-        //                 fee_type => 'relative',
-        //                 maker_fee => 0,
-        //                 taker_fee => 0,
+        //             "initial_margin" => 0,
+        //             "futures_session_upl" => 0,
+        //             "futures_session_rpl" => 0,
+        //             "futures_pl" => 0,
+        //             "equity" => 0.00062359,
+        //             "deposit_address" => "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "delta_total" => 0,
+        //             "currency" => "BTC",
+        //             "balance" => 0.00062359,
+        //             "available_withdrawal_funds" => 0.00062359,
+        //             "available_funds" => 0.00062359,
+        //             "fees" => array(
+        //                 "currency" => '',
+        //                 "instrument_type" => "perpetual",
+        //                 "fee_type" => "relative",
+        //                 "maker_fee" => 0,
+        //                 "taker_fee" => 0,
         //             ),
         //         ),
-        //         usIn => 1583775838115975,
-        //         usOut => 1583775838116520,
-        //         usDiff => 545,
-        //         testnet => false
+        //         "usIn" => 1583775838115975,
+        //         "usOut" => 1583775838116520,
+        //         "usDiff" => 545,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -1452,7 +1452,7 @@ class deribit extends Exchange {
         return $parsedFees;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -1471,41 +1471,41 @@ class deribit extends Exchange {
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $result => array(
-        //             $timestamp => 1583781354740,
-        //             stats => array( volume => 61249.66735634, low => 7631.5, high => 8311.5 ),
-        //             state => 'open',
-        //             settlement_price => 7903.21,
-        //             open_interest => 111536690,
-        //             min_price => 7695.13,
-        //             max_price => 7929.49,
-        //             mark_price => 7813.06,
-        //             last_price => 7814.5,
-        //             instrument_name => 'BTC-PERPETUAL',
-        //             index_price => 7810.12,
-        //             funding_8h => 0.0000031,
-        //             current_funding => 0,
-        //             change_id => 17538025952,
-        //             bids => [
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "timestamp" => 1583781354740,
+        //             "stats" => array( volume => 61249.66735634, low => 7631.5, high => 8311.5 ),
+        //             "state" => "open",
+        //             "settlement_price" => 7903.21,
+        //             "open_interest" => 111536690,
+        //             "min_price" => 7695.13,
+        //             "max_price" => 7929.49,
+        //             "mark_price" => 7813.06,
+        //             "last_price" => 7814.5,
+        //             "instrument_name" => "BTC-PERPETUAL",
+        //             "index_price" => 7810.12,
+        //             "funding_8h" => 0.0000031,
+        //             "current_funding" => 0,
+        //             "change_id" => 17538025952,
+        //             "bids" => [
         //                 [7814, 351820],
         //                 [7813.5, 207490],
         //                 [7813, 32160],
         //             ],
-        //             best_bid_price => 7814,
-        //             best_bid_amount => 351820,
-        //             best_ask_price => 7814.5,
-        //             best_ask_amount => 11880,
-        //             asks => [
+        //             "best_bid_price" => 7814,
+        //             "best_bid_amount" => 351820,
+        //             "best_ask_price" => 7814.5,
+        //             "best_ask_amount" => 11880,
+        //             "asks" => [
         //                 [7814.5, 11880],
         //                 [7815, 18100],
         //                 [7815.5, 2640],
         //             ],
         //         ),
-        //         usIn => 1583781354745804,
-        //         usOut => 1583781354745932,
-        //         usDiff => 128,
-        //         testnet => false
+        //         "usIn" => 1583781354745804,
+        //         "usOut" => 1583781354745932,
+        //         "usDiff" => 128,
+        //         "testnet" => false
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
@@ -1546,7 +1546,7 @@ class deribit extends Exchange {
         return $this->safe_string($orderTypes, $orderType, $orderType);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -1921,7 +1921,7 @@ class deribit extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1949,7 +1949,7 @@ class deribit extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
@@ -2210,7 +2210,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchWithdrawals
         //
@@ -2273,6 +2273,7 @@ class deribit extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'network' => null,
             'fee' => $fee,
         );
     }
@@ -3024,7 +3025,7 @@ class deribit extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($liquidation, 'timestamp');
-        return array(
+        return $this->safe_liquidation(array(
             'info' => $liquidation,
             'symbol' => $this->safe_symbol(null, $market),
             'contracts' => null,
@@ -3034,7 +3035,7 @@ class deribit extends Exchange {
             'quoteValue' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-        );
+        ));
     }
 
     public function nonce() {
@@ -3073,16 +3074,16 @@ class deribit extends Exchange {
         }
         //
         //     {
-        //         jsonrpc => '2.0',
-        //         $error => array(
-        //             message => 'Invalid params',
-        //             data => array( $reason => 'invalid currency', param => 'currency' ),
-        //             code => -32602
+        //         "jsonrpc" => "2.0",
+        //         "error" => array(
+        //             "message" => "Invalid params",
+        //             "data" => array( $reason => "invalid currency", param => "currency" ),
+        //             "code" => -32602
         //         ),
-        //         testnet => false,
-        //         usIn => 1583763842150374,
-        //         usOut => 1583763842150410,
-        //         usDiff => 36
+        //         "testnet" => false,
+        //         "usIn" => 1583763842150374,
+        //         "usOut" => 1583763842150410,
+        //         "usDiff" => 36
         //     }
         //
         $error = $this->safe_value($response, 'error');

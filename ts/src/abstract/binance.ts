@@ -453,6 +453,7 @@ interface Exchange {
     fapiDataGetTopLongShortPositionRatio (params?: {}): Promise<implicitReturnType>;
     fapiDataGetGlobalLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
     fapiDataGetTakerlongshortRatio (params?: {}): Promise<implicitReturnType>;
+    fapiDataGetBasis (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetForceOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetOpenOrder (params?: {}): Promise<implicitReturnType>;
@@ -554,6 +555,7 @@ interface Exchange {
     publicGetKlines (params?: {}): Promise<implicitReturnType>;
     publicGetUiKlines (params?: {}): Promise<implicitReturnType>;
     publicGetTicker24hr (params?: {}): Promise<implicitReturnType>;
+    publicGetTicker (params?: {}): Promise<implicitReturnType>;
     publicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     publicGetTickerBookTicker (params?: {}): Promise<implicitReturnType>;
     publicGetExchangeInfo (params?: {}): Promise<implicitReturnType>;

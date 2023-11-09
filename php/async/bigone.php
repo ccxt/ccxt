@@ -8,10 +8,10 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bigone as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bigone extends Exchange {
 
@@ -307,91 +307,91 @@ class bigone extends Exchange {
             }
             //
             // {
-            //     $code => "0",
-            //     message => "",
-            //     $data => array(
+            //     "code" => "0",
+            //     "message" => "",
+            //     "data" => array(
             //       array(
-            //         $name => "TetherUS",
-            //         symbol => "USDT",
-            //         contract_address => "31",
-            //         is_deposit_enabled => true,
-            //         is_withdrawal_enabled => true,
-            //         is_stub => false,
-            //         withdrawal_fee => "5.0",
-            //         is_fiat => false,
-            //         is_memo_required => false,
-            //         logo => array(
-            //           default => "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-            //           white => "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+            //         "name" => "TetherUS",
+            //         "symbol" => "USDT",
+            //         "contract_address" => "31",
+            //         "is_deposit_enabled" => true,
+            //         "is_withdrawal_enabled" => true,
+            //         "is_stub" => false,
+            //         "withdrawal_fee" => "5.0",
+            //         "is_fiat" => false,
+            //         "is_memo_required" => false,
+            //         "logo" => array(
+            //           "default" => "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
+            //           "white" => "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
             //         ),
-            //         info_link => null,
-            //         scale => "12",
-            //         default_gateway => ..., // one object from "gateways"
-            //         gateways => array(
+            //         "info_link" => null,
+            //         "scale" => "12",
+            //         "default_gateway" => ..., // one object from "gateways"
+            //         "gateways" => array(
             //           array(
-            //             uuid => "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-            //             $name => "Mixin",
-            //             kind => "CHAIN",
-            //             required_confirmations => "0",
+            //             "uuid" => "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+            //             "name" => "Mixin",
+            //             "kind" => "CHAIN",
+            //             "required_confirmations" => "0",
             //           ),
             //           array(
-            //             uuid => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-            //             $name => "Ethereum",
-            //             kind => "CHAIN",
-            //             required_confirmations => "18",
+            //             "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+            //             "name" => "Ethereum",
+            //             "kind" => "CHAIN",
+            //             "required_confirmations" => "18",
             //           ),
             //           array(
-            //             uuid => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-            //             $name => "Tron",
-            //             kind => "CHAIN",
-            //             required_confirmations => "1",
+            //             "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+            //             "name" => "Tron",
+            //             "kind" => "CHAIN",
+            //             "required_confirmations" => "1",
             //           ),
             //          ...
             //         ),
-            //         payments => array(),
-            //         uuid => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-            //         binding_gateways => array(
+            //         "payments" => array(),
+            //         "uuid" => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+            //         "binding_gateways" => array(
             //           array(
-            //             guid => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-            //             contract_address => "0xdac17f958d2ee523a2206206994597c13d831ec7",
-            //             is_deposit_enabled => true,
-            //             display_name => "Ethereum(ERC20)",
-            //             gateway_name => "Ethereum",
-            //             min_withdrawal_amount => "0.000001",
-            //             min_internal_withdrawal_amount => "0.00000001",
-            //             withdrawal_fee => "14",
-            //             is_withdrawal_enabled => true,
-            //             min_deposit_amount => "0.000001",
-            //             is_memo_required => false,
-            //             withdrawal_scale => "2",
-            //             gateway => array(
-            //               uuid => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-            //               $name => "Ethereum",
-            //               kind => "CHAIN",
-            //               required_confirmations => "18",
+            //             "guid" => "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+            //             "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            //             "is_deposit_enabled" => true,
+            //             "display_name" => "Ethereum(ERC20)",
+            //             "gateway_name" => "Ethereum",
+            //             "min_withdrawal_amount" => "0.000001",
+            //             "min_internal_withdrawal_amount" => "0.00000001",
+            //             "withdrawal_fee" => "14",
+            //             "is_withdrawal_enabled" => true,
+            //             "min_deposit_amount" => "0.000001",
+            //             "is_memo_required" => false,
+            //             "withdrawal_scale" => "2",
+            //             "gateway" => array(
+            //               "uuid" => "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+            //               "name" => "Ethereum",
+            //               "kind" => "CHAIN",
+            //               "required_confirmations" => "18",
             //             ),
-            //             scale => "12",
+            //             "scale" => "12",
             //          ),
             //          array(
-            //             guid => "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-            //             contract_address => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-            //             is_deposit_enabled => true,
-            //             display_name => "Tron(TRC20)",
-            //             gateway_name => "Tron",
-            //             min_withdrawal_amount => "0.000001",
-            //             min_internal_withdrawal_amount => "0.00000001",
-            //             withdrawal_fee => "1",
-            //             is_withdrawal_enabled => true,
-            //             min_deposit_amount => "0.000001",
-            //             is_memo_required => false,
-            //             withdrawal_scale => "6",
-            //             gateway => array(
-            //               uuid => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-            //               $name => "Tron",
-            //               kind => "CHAIN",
-            //               required_confirmations => "1",
+            //             "guid" => "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+            //             "contract_address" => "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+            //             "is_deposit_enabled" => true,
+            //             "display_name" => "Tron(TRC20)",
+            //             "gateway_name" => "Tron",
+            //             "min_withdrawal_amount" => "0.000001",
+            //             "min_internal_withdrawal_amount" => "0.00000001",
+            //             "withdrawal_fee" => "1",
+            //             "is_withdrawal_enabled" => true,
+            //             "min_deposit_amount" => "0.000001",
+            //             "is_memo_required" => false,
+            //             "withdrawal_scale" => "6",
+            //             "gateway" => array(
+            //               "uuid" => "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+            //               "name" => "Tron",
+            //               "kind" => "CHAIN",
+            //               "required_confirmations" => "1",
             //             ),
-            //             scale => "12",
+            //             "scale" => "12",
             //           ),
             //           ...
             //         ),
@@ -597,7 +597,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "asset_pair_name":"ETH-BTC",
@@ -641,7 +641,7 @@ class bigone extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -753,7 +753,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -790,7 +790,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -929,7 +929,7 @@ class bigone extends Exchange {
         return $this->safe_trade($result, $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -971,15 +971,15 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
-        //         close => '0.021562',
-        //         high => '0.021563',
-        //         low => '0.02156',
-        //         open => '0.021563',
-        //         time => '2019-11-21T07:54:00Z',
-        //         volume => '59.84376'
+        //         "close" => "0.021562",
+        //         "high" => "0.021563",
+        //         "low" => "0.02156",
+        //         "open" => "0.021563",
+        //         "time" => "2019-11-21T07:54:00Z",
+        //         "volume" => "59.84376"
         //     }
         //
         return array(
@@ -992,7 +992,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1022,23 +1022,23 @@ class bigone extends Exchange {
             $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params)));
             //
             //     {
-            //         code => 0,
-            //         $data => array(
+            //         "code" => 0,
+            //         "data" => array(
             //             array(
-            //                 close => '0.021656',
-            //                 high => '0.021658',
-            //                 low => '0.021652',
-            //                 open => '0.021652',
-            //                 time => '2019-11-21T09:30:00Z',
-            //                 volume => '53.08664'
+            //                 "close" => "0.021656",
+            //                 "high" => "0.021658",
+            //                 "low" => "0.021652",
+            //                 "open" => "0.021652",
+            //                 "time" => "2019-11-21T09:30:00Z",
+            //                 "volume" => "53.08664"
             //             ),
             //             array(
-            //                 close => '0.021652',
-            //                 high => '0.021656',
-            //                 low => '0.021652',
-            //                 open => '0.021656',
-            //                 time => '2019-11-21T09:29:00Z',
-            //                 volume => '88.39861'
+            //                 "close" => "0.021652",
+            //                 "high" => "0.021656",
+            //                 "low" => "0.021652",
+            //                 "open" => "0.021656",
+            //                 "time" => "2019-11-21T09:29:00Z",
+            //                 "volume" => "88.39861"
             //             ),
             //         )
             //     }
@@ -1048,7 +1048,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1107,21 +1107,21 @@ class bigone extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //    {
-        //        "id" => '42154072251',
-        //        "asset_pair_name" => 'SOL-USDT',
-        //        "price" => '20',
-        //        "amount" => '0.5',
-        //        "filled_amount" => '0',
-        //        "avg_deal_price" => '0',
-        //        "side" => 'ASK',
-        //        "state" => 'PENDING',
-        //        "created_at" => '2023-09-13T03:42:00Z',
-        //        "updated_at" => '2023-09-13T03:42:00Z',
-        //        "type" => 'LIMIT',
-        //        "stop_price" => '0',
+        //        "id" => "42154072251",
+        //        "asset_pair_name" => "SOL-USDT",
+        //        "price" => "20",
+        //        "amount" => "0.5",
+        //        "filled_amount" => "0",
+        //        "avg_deal_price" => "0",
+        //        "side" => "ASK",
+        //        "state" => "PENDING",
+        //        "created_at" => "2023-09-13T03:42:00Z",
+        //        "updated_at" => "2023-09-13T03:42:00Z",
+        //        "type" => "LIMIT",
+        //        "stop_price" => "0",
         //        "immediate_or_cancel" => false,
         //        "post_only" => false,
         //        "client_order_id" => ''
@@ -1217,10 +1217,10 @@ class bigone extends Exchange {
                 'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
                 'side' => $requestSide, // $order $side one of "ASK"/"BID", required
                 'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
-                // 'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
-                // 'operator' => 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
-                // 'immediate_or_cancel' => false, // limit orders only, must be false when post_only is true
-                // 'post_only' => false, // limit orders only, must be false when immediate_or_cancel is true
+                // "price" => $this->price_to_precision($symbol, $price), // $order $price, string, required
+                // "operator" => "GTE", // stop orders only, GTE greater than and equal, LTE less than and equal
+                // "immediate_or_cancel" => false, // limit orders only, must be false when post_only is true
+                // "post_only" => false, // limit orders only, must be false when immediate_or_cancel is true
             );
             if ($isLimit || ($uppercaseType === 'STOP_LIMIT')) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1352,7 +1352,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -1362,9 +1362,7 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1413,10 +1411,8 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the bigone api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
@@ -1474,7 +1470,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1491,7 +1487,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1611,7 +1607,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1665,7 +1661,7 @@ class bigone extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'asset_symbol');
         $code = $this->safe_currency_code($currencyId);
-        $id = $this->safe_integer($transaction, 'id');
+        $id = $this->safe_string($transaction, 'id');
         $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $timestamp = $this->parse8601($this->safe_string($transaction, 'inserted_at'));

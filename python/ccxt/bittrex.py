@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bittrex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -387,7 +386,7 @@ class bittrex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         indexed = self.index_by(response, 'currencySymbol')
         currencyIds = list(indexed.keys())
@@ -411,7 +410,7 @@ class bittrex(Exchange, ImplicitAPI):
         response = self.privateGetBalances(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -511,10 +510,11 @@ class bittrex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'networks': {},
             }
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # ticker
         #
@@ -612,7 +612,7 @@ class bittrex(Exchange, ImplicitAPI):
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -675,7 +675,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -766,7 +766,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -856,7 +856,7 @@ class bittrex(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "startsAt":"2020-06-12T02:35:00Z",
@@ -877,7 +877,7 @@ class bittrex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -937,7 +937,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1151,19 +1151,19 @@ class bittrex(Exchange, ImplicitAPI):
         # Spot
         #
         #     {
-        #         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
-        #         marketSymbol: 'BTC-USDT',
-        #         direction: 'SELL',
-        #         type: 'LIMIT',
-        #         quantity: '0.01',
-        #         limit: '6000',
-        #         timeInForce: 'GOOD_TIL_CANCELLED',
-        #         fillQuantity: '0.00000000',
-        #         commission: '0.00000000',
-        #         proceeds: '0.00000000',
-        #         status: 'OPEN',
-        #         createdAt: '2020-03-18T02:37:33.42Z',
-        #         updatedAt: '2020-03-18T02:37:33.42Z'
+        #         "id": "f03d5e98-b5ac-48fb-8647-dd4db828a297",
+        #         "marketSymbol": "BTC-USDT",
+        #         "direction": "SELL",
+        #         "type": "LIMIT",
+        #         "quantity": "0.01",
+        #         "limit": "6000",
+        #         "timeInForce": "GOOD_TIL_CANCELLED",
+        #         "fillQuantity": "0.00000000",
+        #         "commission": "0.00000000",
+        #         "proceeds": "0.00000000",
+        #         "status": "OPEN",
+        #         "createdAt": "2020-03-18T02:37:33.42Z",
+        #         "updatedAt": "2020-03-18T02:37:33.42Z"
         #       }
         #
         # Stop
@@ -1452,7 +1452,7 @@ class bittrex(Exchange, ImplicitAPI):
         self.load_markets()
         return self.fetch_withdrawals(code, since, limit, self.extend(params, {'status': 'pending'}))
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -1576,26 +1576,26 @@ class bittrex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         #
         #     {
-        #         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
-        #         marketSymbol: 'LTC-ETH',
-        #         direction: 'BUY',
-        #         type: 'LIMIT',
-        #         quantity: '0.50000000',
-        #         limit: '0.17846699',
-        #         timeInForce: 'GOOD_TIL_CANCELLED',
-        #         clientOrderId: 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
-        #         fillQuantity: '0.50000000',
-        #         commission: '0.00022286',
-        #         proceeds: '0.08914915',
-        #         status: 'CLOSED',
-        #         createdAt: '2018-06-23T13:14:28.613Z',
-        #         updatedAt: '2018-06-23T13:14:30.19Z',
-        #         closedAt: '2018-06-23T13:14:30.19Z'
+        #         "id": "1be35109-b763-44ce-b6ea-05b6b0735c0c",
+        #         "marketSymbol": "LTC-ETH",
+        #         "direction": "BUY",
+        #         "type": "LIMIT",
+        #         "quantity": "0.50000000",
+        #         "limit": "0.17846699",
+        #         "timeInForce": "GOOD_TIL_CANCELLED",
+        #         "clientOrderId": "ff156d39-fe01-44ca-8f21-b0afa19ef228",
+        #         "fillQuantity": "0.50000000",
+        #         "commission": "0.00022286",
+        #         "proceeds": "0.08914915",
+        #         "status": "CLOSED",
+        #         "createdAt": "2018-06-23T13:14:28.613Z",
+        #         "updatedAt": "2018-06-23T13:14:30.19Z",
+        #         "closedAt": "2018-06-23T13:14:30.19Z"
         #     }
         #
         # Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
@@ -1767,7 +1767,7 @@ class bittrex(Exchange, ImplicitAPI):
         trades = self.parse_trades(response, market, since, limit)
         return trades
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

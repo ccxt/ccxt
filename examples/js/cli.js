@@ -35,6 +35,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
+    , shouldCreateReport = process.argv.includes ('--report')
 
 //-----------------------------------------------------------------------------
 
@@ -120,6 +121,22 @@ try {
     log.red (e)
     printUsage ()
     process.exit ()
+}
+
+//-----------------------------------------------------------------------------
+
+function createTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'url': exchange.last_request_url ?? '',
+        'input': args,
+        'output': exchange.last_request_body ?? undefined
+    }
+    log('Report: (paste inside static/data/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
 }
 
 //-----------------------------------------------------------------------------
@@ -303,6 +320,9 @@ async function run () {
                         printHumanReadable (exchange, result)
                         if (!isWsMethod) {
                             log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
+                        if (shouldCreateReport) {
+                            createTemplate(exchange, methodName, args, result)
                         }
                         start = end
                     } catch (e) {

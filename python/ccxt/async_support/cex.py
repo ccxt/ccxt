@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -448,7 +447,7 @@ class cex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         ommited = ['username', 'timestamp']
         balances = self.omit(response, ommited)
@@ -474,7 +473,7 @@ class cex(Exchange, ImplicitAPI):
         response = await self.privatePostBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -493,7 +492,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591403940,
@@ -513,7 +512,7 @@ class cex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -551,7 +550,7 @@ class cex(Exchange, ImplicitAPI):
                 return []
         return None
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'high')
@@ -607,7 +606,7 @@ class cex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -622,7 +621,7 @@ class cex(Exchange, ImplicitAPI):
         ticker = await self.publicGetTickerPair(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -657,7 +656,7 @@ class cex(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -684,11 +683,11 @@ class cex(Exchange, ImplicitAPI):
         response = await self.privatePostGetMyfee(params)
         #
         #      {
-        #          e: 'get_myfee',
-        #          ok: 'ok',
-        #          data: {
-        #            'BTC:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
-        #            'ETH:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
+        #          "e": "get_myfee",
+        #          "ok": "ok",
+        #          "data": {
+        #            'BTC:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15"},
+        #            'ETH:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: "0.15"},
         #            ..
         #          }
         #      }
@@ -802,7 +801,7 @@ class cex(Exchange, ImplicitAPI):
         # 'true'
         return self.extend(self.parse_order({}), {'info': response, 'type': None, 'id': id, 'status': 'canceled'})
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
         # Yes, really
         timestamp = self.safe_value(order, 'time')
@@ -876,23 +875,23 @@ class cex(Exchange, ImplicitAPI):
                 tradeSide = self.safe_string(item, 'type')
                 if tradeSide == 'cancel':
                     # looks like self might represent the cancelled part of an order
-                    #   {id: '4426729543',
-                    #     type: 'cancel',
-                    #     time: '2017-09-22T00:24:30.476Z',
-                    #     user: 'up106404164',
-                    #     c: 'user:up106404164:a:BCH',
-                    #     d: 'order:4426728375:a:BCH',
-                    #     a: '0.09935956',
-                    #     amount: '0.09935956',
-                    #     balance: '0.42580261',
-                    #     symbol: 'BCH',
-                    #     order: '4426728375',
-                    #     buy: null,
-                    #     sell: null,
-                    #     pair: null,
-                    #     pos: null,
-                    #     cs: '0.42580261',
-                    #     ds: 0}
+                    #   {"id": "4426729543",
+                    #     "type": "cancel",
+                    #     "time": "2017-09-22T00:24:30.476Z",
+                    #     "user": "up106404164",
+                    #     "c": "user:up106404164:a:BCH",
+                    #     "d": "order:4426728375:a:BCH",
+                    #     "a": "0.09935956",
+                    #     "amount": "0.09935956",
+                    #     "balance": "0.42580261",
+                    #     "symbol": "BCH",
+                    #     "order": "4426728375",
+                    #     "buy": null,
+                    #     "sell": null,
+                    #     "pair": null,
+                    #     "pos": null,
+                    #     "cs": "0.42580261",
+                    #     "ds": 0}
                     continue
                 tradePrice = self.safe_string(item, 'price')
                 if tradePrice is None:
@@ -1048,7 +1047,7 @@ class cex(Exchange, ImplicitAPI):
             'average': None,
         })
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1070,19 +1069,18 @@ class cex(Exchange, ImplicitAPI):
             orders[i] = self.extend(orders[i], {'status': 'open'})
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
+        self.check_required_symbol('fetchClosedOrders', symbol)
         await self.load_markets()
         method = 'privatePostArchivedOrdersPair'
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = await getattr(self, method)(self.extend(request, params))
@@ -1203,7 +1201,7 @@ class cex(Exchange, ImplicitAPI):
         #
         return self.parse_order(data)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1223,95 +1221,95 @@ class cex(Exchange, ImplicitAPI):
         results = []
         for i in range(0, len(response)):
             # cancelled(unfilled):
-            #    {id: '4005785516',
-            #     type: 'sell',
-            #     time: '2017-07-18T19:08:34.223Z',
-            #     lastTxTime: '2017-07-18T19:08:34.396Z',
-            #     lastTx: '4005785522',
-            #     pos: null,
-            #     status: 'c',
-            #     symbol1: 'ETH',
-            #     symbol2: 'GBP',
-            #     amount: '0.20000000',
-            #     price: '200.5625',
-            #     remains: '0.20000000',
-            #     'a:ETH:cds': '0.20000000',
-            #     tradingFeeMaker: '0',
-            #     tradingFeeTaker: '0.16',
-            #     tradingFeeUserVolumeAmount: '10155061217',
-            #     orderId: '4005785516'}
+            #    {"id": "4005785516",
+            #     "type": "sell",
+            #     "time": "2017-07-18T19:08:34.223Z",
+            #     "lastTxTime": "2017-07-18T19:08:34.396Z",
+            #     "lastTx": "4005785522",
+            #     "pos": null,
+            #     "status": "c",
+            #     "symbol1": "ETH",
+            #     "symbol2": "GBP",
+            #     "amount": "0.20000000",
+            #     "price": "200.5625",
+            #     "remains": "0.20000000",
+            #     'a:ETH:cds': "0.20000000",
+            #     "tradingFeeMaker": "0",
+            #     "tradingFeeTaker": "0.16",
+            #     "tradingFeeUserVolumeAmount": "10155061217",
+            #     "orderId": "4005785516"}
             # --
             # cancelled(partially filled buy):
-            #    {id: '4084911657',
-            #     type: 'buy',
-            #     time: '2017-08-05T03:18:39.596Z',
-            #     lastTxTime: '2019-03-19T17:37:46.404Z',
-            #     lastTx: '8459265833',
-            #     pos: null,
-            #     status: 'cd',
-            #     symbol1: 'BTC',
-            #     symbol2: 'GBP',
-            #     amount: '0.05000000',
-            #     price: '2241.4692',
-            #     tfacf: '1',
-            #     remains: '0.03910535',
-            #     'tfa:GBP': '0.04',
-            #     'tta:GBP': '24.39',
-            #     'a:BTC:cds': '0.01089465',
-            #     'a:GBP:cds': '112.26',
-            #     'f:GBP:cds': '0.04',
-            #     tradingFeeMaker: '0',
-            #     tradingFeeTaker: '0.16',
-            #     tradingFeeUserVolumeAmount: '13336396963',
-            #     orderId: '4084911657'}
+            #    {"id": "4084911657",
+            #     "type": "buy",
+            #     "time": "2017-08-05T03:18:39.596Z",
+            #     "lastTxTime": "2019-03-19T17:37:46.404Z",
+            #     "lastTx": "8459265833",
+            #     "pos": null,
+            #     "status": "cd",
+            #     "symbol1": "BTC",
+            #     "symbol2": "GBP",
+            #     "amount": "0.05000000",
+            #     "price": "2241.4692",
+            #     "tfacf": "1",
+            #     "remains": "0.03910535",
+            #     'tfa:GBP': "0.04",
+            #     'tta:GBP': "24.39",
+            #     'a:BTC:cds': "0.01089465",
+            #     'a:GBP:cds': "112.26",
+            #     'f:GBP:cds': "0.04",
+            #     "tradingFeeMaker": "0",
+            #     "tradingFeeTaker": "0.16",
+            #     "tradingFeeUserVolumeAmount": "13336396963",
+            #     "orderId": "4084911657"}
             # --
             # cancelled(partially filled sell):
-            #    {id: '4426728375',
-            #     type: 'sell',
-            #     time: '2017-09-22T00:24:20.126Z',
-            #     lastTxTime: '2017-09-22T00:24:30.476Z',
-            #     lastTx: '4426729543',
-            #     pos: null,
-            #     status: 'cd',
-            #     symbol1: 'BCH',
-            #     symbol2: 'BTC',
-            #     amount: '0.10000000',
-            #     price: '0.11757182',
-            #     tfacf: '1',
-            #     remains: '0.09935956',
-            #     'tfa:BTC': '0.00000014',
-            #     'tta:BTC': '0.00007537',
-            #     'a:BCH:cds': '0.10000000',
-            #     'a:BTC:cds': '0.00007537',
-            #     'f:BTC:cds': '0.00000014',
-            #     tradingFeeMaker: '0',
-            #     tradingFeeTaker: '0.18',
-            #     tradingFeeUserVolumeAmount: '3466715450',
-            #     orderId: '4426728375'}
+            #    {"id": "4426728375",
+            #     "type": "sell",
+            #     "time": "2017-09-22T00:24:20.126Z",
+            #     "lastTxTime": "2017-09-22T00:24:30.476Z",
+            #     "lastTx": "4426729543",
+            #     "pos": null,
+            #     "status": "cd",
+            #     "symbol1": "BCH",
+            #     "symbol2": "BTC",
+            #     "amount": "0.10000000",
+            #     "price": "0.11757182",
+            #     "tfacf": "1",
+            #     "remains": "0.09935956",
+            #     'tfa:BTC': "0.00000014",
+            #     'tta:BTC': "0.00007537",
+            #     'a:BCH:cds': "0.10000000",
+            #     'a:BTC:cds': "0.00007537",
+            #     'f:BTC:cds': "0.00000014",
+            #     "tradingFeeMaker": "0",
+            #     "tradingFeeTaker": "0.18",
+            #     "tradingFeeUserVolumeAmount": "3466715450",
+            #     "orderId": "4426728375"}
             # --
             # filled:
-            #    {id: '5342275378',
-            #     type: 'sell',
-            #     time: '2018-01-04T00:28:12.992Z',
-            #     lastTxTime: '2018-01-04T00:28:12.992Z',
-            #     lastTx: '5342275393',
-            #     pos: null,
-            #     status: 'd',
-            #     symbol1: 'BCH',
-            #     symbol2: 'BTC',
-            #     amount: '0.10000000',
-            #     kind: 'api',
-            #     price: '0.17',
-            #     remains: '0.00000000',
-            #     'tfa:BTC': '0.00003902',
-            #     'tta:BTC': '0.01699999',
-            #     'a:BCH:cds': '0.10000000',
-            #     'a:BTC:cds': '0.01699999',
-            #     'f:BTC:cds': '0.00003902',
-            #     tradingFeeMaker: '0.15',
-            #     tradingFeeTaker: '0.23',
-            #     tradingFeeUserVolumeAmount: '1525951128',
-            #     orderId: '5342275378'}
+            #    {"id": "5342275378",
+            #     "type": "sell",
+            #     "time": "2018-01-04T00:28:12.992Z",
+            #     "lastTxTime": "2018-01-04T00:28:12.992Z",
+            #     "lastTx": "5342275393",
+            #     "pos": null,
+            #     "status": "d",
+            #     "symbol1": "BCH",
+            #     "symbol2": "BTC",
+            #     "amount": "0.10000000",
+            #     "kind": "api",
+            #     "price": "0.17",
+            #     "remains": "0.00000000",
+            #     'tfa:BTC': "0.00003902",
+            #     'tta:BTC': "0.01699999",
+            #     'a:BCH:cds': "0.10000000",
+            #     'a:BTC:cds': "0.01699999",
+            #     'f:BTC:cds': "0.00003902",
+            #     "tradingFeeMaker": "0.15",
+            #     "tradingFeeTaker": "0.23",
+            #     "tradingFeeUserVolumeAmount": "1525951128",
+            #     "orderId": "5342275378"}
             # --
             # market order(buy):
             #    {"id": "6281946200",

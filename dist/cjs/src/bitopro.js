@@ -120,6 +120,7 @@ class bitopro extends bitopro$1 {
                         'provisioning/trading-pairs': 1,
                         'provisioning/limitations-and-fees': 1,
                         'trading-history/{pair}': 1,
+                        'price/otc/{currency}': 1,
                     },
                 },
                 'private': {
@@ -896,12 +897,12 @@ class bitopro extends bitopro$1 {
         //
         // createOrder
         //         {
-        //             orderId: '2220595581',
-        //             timestamp: '1644896744886',
-        //             action: 'SELL',
-        //             amount: '0.01',
-        //             price: '15000',
-        //             timeInForce: 'GTC'
+        //             "orderId": "2220595581",
+        //             "timestamp": "1644896744886",
+        //             "action": "SELL",
+        //             "amount": "0.01",
+        //             "price": "15000",
+        //             "timeInForce": "GTC"
         //         }
         //
         // fetchOrder
@@ -1033,12 +1034,12 @@ class bitopro extends bitopro$1 {
         const response = await this.privatePostOrdersPair(this.extend(request, params));
         //
         //     {
-        //         orderId: '2220595581',
-        //         timestamp: '1644896744886',
-        //         action: 'SELL',
-        //         amount: '0.01',
-        //         price: '15000',
-        //         timeInForce: 'GTC'
+        //         "orderId": "2220595581",
+        //         "timestamp": "1644896744886",
+        //         "action": "SELL",
+        //         "amount": "0.01",
+        //         "price": "15000",
+        //         "timeInForce": "GTC"
         //     }
         //
         return this.parseOrder(response, market);
@@ -1054,9 +1055,7 @@ class bitopro extends bitopro$1 {
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1086,9 +1085,7 @@ class bitopro extends bitopro$1 {
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const id = market['uppercaseId'];
@@ -1153,9 +1150,7 @@ class bitopro extends bitopro$1 {
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1196,13 +1191,11 @@ class bitopro extends bitopro$1 {
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1286,9 +1279,7 @@ class bitopro extends bitopro$1 {
          * @param {object} [params] extra parameters specific to the bitopro api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

@@ -250,7 +250,7 @@ class bitbank extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
@@ -278,7 +278,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#ticker
@@ -296,7 +296,7 @@ class bitbank extends Exchange {
         return $this->parse_ticker($data, $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#depth
@@ -316,7 +316,7 @@ class bitbank extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -362,7 +362,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#transactions
@@ -394,26 +394,26 @@ class bitbank extends Exchange {
         $response = $this->marketsGetSpotPairs ($params);
         //
         //     {
-        //         success => '1',
-        //         $data => {
-        //           $pairs => array(
+        //         "success" => "1",
+        //         "data" => {
+        //           "pairs" => array(
         //             array(
-        //               name => 'btc_jpy',
-        //               base_asset => 'btc',
-        //               quote_asset => 'jpy',
-        //               maker_fee_rate_base => '0',
-        //               taker_fee_rate_base => '0',
-        //               maker_fee_rate_quote => '-0.0002',
-        //               taker_fee_rate_quote => '0.0012',
-        //               unit_amount => '0.0001',
-        //               limit_max_amount => '1000',
-        //               market_max_amount => '10',
-        //               market_allowance_rate => '0.2',
-        //               price_digits => '0',
-        //               amount_digits => '4',
-        //               is_enabled => true,
-        //               stop_order => false,
-        //               stop_order_and_cancel => false
+        //               "name" => "btc_jpy",
+        //               "base_asset" => "btc",
+        //               "quote_asset" => "jpy",
+        //               "maker_fee_rate_base" => "0",
+        //               "taker_fee_rate_base" => "0",
+        //               "maker_fee_rate_quote" => "-0.0002",
+        //               "taker_fee_rate_quote" => "0.0012",
+        //               "unit_amount" => "0.0001",
+        //               "limit_max_amount" => "1000",
+        //               "market_max_amount" => "10",
+        //               "market_allowance_rate" => "0.2",
+        //               "price_digits" => "0",
+        //               "amount_digits" => "4",
+        //               "is_enabled" => true,
+        //               "stop_order" => false,
+        //               "stop_order_and_cancel" => false
         //             ),
         //             ...
         //           )
@@ -440,7 +440,7 @@ class bitbank extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "0.02501786",
@@ -461,7 +461,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/public-api.md#$candlestick
@@ -512,7 +512,7 @@ class bitbank extends Exchange {
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -589,7 +589,7 @@ class bitbank extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 'order_id');
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);
@@ -695,7 +695,7 @@ class bitbank extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#fetch-active-$orders
@@ -822,7 +822,7 @@ class bitbank extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //

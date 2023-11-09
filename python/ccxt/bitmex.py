@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -661,7 +660,7 @@ class bitmex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #     [
         #         {
@@ -782,7 +781,7 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -838,7 +837,7 @@ class bitmex(Exchange, ImplicitAPI):
             return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
         fetches information on multiple orders made by the user
@@ -877,7 +876,7 @@ class bitmex(Exchange, ImplicitAPI):
         response = self.privateGetOrder(request)
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -893,7 +892,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -904,7 +903,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         # Bitmex barfs if you set 'open': False in the filter...
         orders = self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_array(orders, 'status', ['closed', 'canceled'], False)
 
     def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1012,20 +1011,20 @@ class bitmex(Exchange, ImplicitAPI):
     def parse_ledger_entry(self, item, currency=None):
         #
         #     {
-        #         transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        #         account:  24321,
-        #         currency: "XBt",
-        #         transactType: "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        #         amount:  -1000000,
-        #         fee:  300000,
-        #         transactStatus: "Completed",  # "Canceled", ...
-        #         address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        #         tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        #         text: "",
-        #         transactTime: "2017-03-21T20:05:14.388Z",
-        #         walletBalance:  0,  # balance after
-        #         marginBalance:  null,
-        #         timestamp: "2017-03-22T13:09:23.514Z"
+        #         "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        #         "account":  24321,
+        #         "currency": "XBt",
+        #         "transactType": "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #         "amount":  -1000000,
+        #         "fee":  300000,
+        #         "transactStatus": "Completed",  # "Canceled", ...
+        #         "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        #         "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        #         "text": "",
+        #         "transactTime": "2017-03-21T20:05:14.388Z",
+        #         "walletBalance":  0,  # balance after
+        #         "marginBalance":  null,
+        #         "timestamp": "2017-03-22T13:09:23.514Z"
         #     }
         #
         # ButMEX returns the unrealized pnl from the wallet history endpoint.
@@ -1130,20 +1129,20 @@ class bitmex(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             transactID: "69573da3-7744-5467-3207-89fd6efe7a47",
-        #             account:  24321,
-        #             currency: "XBt",
-        #             transactType: "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
-        #             amount:  -1000000,
-        #             fee:  300000,
-        #             transactStatus: "Completed",  # "Canceled", ...
-        #             address: "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
-        #             tx: "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
-        #             text: "",
-        #             transactTime: "2017-03-21T20:05:14.388Z",
-        #             walletBalance:  0,  # balance after
-        #             marginBalance:  null,
-        #             timestamp: "2017-03-22T13:09:23.514Z"
+        #             "transactID": "69573da3-7744-5467-3207-89fd6efe7a47",
+        #             "account":  24321,
+        #             "currency": "XBt",
+        #             "transactType": "Withdrawal",  # "AffiliatePayout", "Transfer", "Deposit", "RealisedPNL", ...
+        #             "amount":  -1000000,
+        #             "fee":  300000,
+        #             "transactStatus": "Completed",  # "Canceled", ...
+        #             "address": "1Ex4fkF4NhQaQdRWNoYpqiPbDBbq18Kdd9",
+        #             "tx": "3BMEX91ZhhKoWtsH9QRb5dNXnmnGpiEetA",
+        #             "text": "",
+        #             "transactTime": "2017-03-21T20:05:14.388Z",
+        #             "walletBalance":  0,  # balance after
+        #             "marginBalance":  null,
+        #             "timestamp": "2017-03-22T13:09:23.514Z"
         #         }
         #     ]
         #
@@ -1187,24 +1186,24 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #    {
-        #        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        #        'account': 123456,
-        #        'currency': 'XBt',
-        #        'network':'',  # "tron" for USDt, etc...
-        #        'transactType': 'Withdrawal',
-        #        'amount': -100100000,
-        #        'fee': 100000,
-        #        'transactStatus': 'Completed',
-        #        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        #        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        #        'text': '',
-        #        'transactTime': '2019-01-02T01:00:00.000Z',
-        #        'walletBalance': 99900000,  # self field might be inexistent
-        #        'marginBalance': None,  # self field might be inexistent
-        #        'timestamp': '2019-01-02T13:00:00.000Z'
+        #        "transactID": "ffe699c2-95ee-4c13-91f9-0faf41daec25",
+        #        "account": 123456,
+        #        "currency": "XBt",
+        #        "network":'',  # "tron" for USDt, etc...
+        #        "transactType": "Withdrawal",
+        #        "amount": -100100000,
+        #        "fee": 100000,
+        #        "transactStatus": "Completed",
+        #        "address": "385cR5DM96n1HvBDMzLHPYcw89fZAXULJP",
+        #        "tx": "3BMEXabcdefghijklmnopqrstuvwxyz123",
+        #        "text": '',
+        #        "transactTime": "2019-01-02T01:00:00.000Z",
+        #        "walletBalance": 99900000,  # self field might be inexistent
+        #        "marginBalance": None,  # self field might be inexistent
+        #        "timestamp": "2019-01-02T13:00:00.000Z"
         #    }
         #
         currencyId = self.safe_string(transaction, 'currency')
@@ -1259,7 +1258,7 @@ class bitmex(Exchange, ImplicitAPI):
             },
         }
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1296,7 +1295,7 @@ class bitmex(Exchange, ImplicitAPI):
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         # see response sample under "fetchMarkets" because same endpoint is being used here
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
@@ -1326,7 +1325,7 @@ class bitmex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -1356,7 +1355,7 @@ class bitmex(Exchange, ImplicitAPI):
             volume,
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://www.bitmex.com/api/explorer/#not /Trade/Trade_getBucketed
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1424,21 +1423,21 @@ class bitmex(Exchange, ImplicitAPI):
                 result[i][0] = result[i][0] - duration
         return result
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
         #     {
-        #         timestamp: '2018-08-28T00:00:02.735Z',
-        #         symbol: 'XBTUSD',
-        #         side: 'Buy',
-        #         size: 2000,
-        #         price: 6906.5,
-        #         tickDirection: 'PlusTick',
-        #         trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
-        #         grossValue: 28958000,
-        #         homeNotional: 0.28958,
-        #         foreignNotional: 2000
+        #         "timestamp": "2018-08-28T00:00:02.735Z",
+        #         "symbol": "XBTUSD",
+        #         "side": "Buy",
+        #         "size": 2000,
+        #         "price": 6906.5,
+        #         "tickDirection": "PlusTick",
+        #         "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        #         "grossValue": 28958000,
+        #         "homeNotional": 0.28958,
+        #         "foreignNotional": 2000
         #     }
         #
         # fetchMyTrades(private)
@@ -1562,7 +1561,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "orderID":"56222c7a-9956-413a-82cf-99f4812c214b",
@@ -1655,7 +1654,7 @@ class bitmex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://www.bitmex.com/api/explorer/#not /Trade/Trade_get
         get the list of most recent trades for a particular symbol
@@ -1690,28 +1689,28 @@ class bitmex(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             timestamp: '2018-08-28T00:00:02.735Z',
-        #             symbol: 'XBTUSD',
-        #             side: 'Buy',
-        #             size: 2000,
-        #             price: 6906.5,
-        #             tickDirection: 'PlusTick',
-        #             trdMatchID: 'b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8',
-        #             grossValue: 28958000,
-        #             homeNotional: 0.28958,
-        #             foreignNotional: 2000
+        #             "timestamp": "2018-08-28T00:00:02.735Z",
+        #             "symbol": "XBTUSD",
+        #             "side": "Buy",
+        #             "size": 2000,
+        #             "price": 6906.5,
+        #             "tickDirection": "PlusTick",
+        #             "trdMatchID": "b9a42432-0a46-6a2f-5ecc-c32e9ca4baf8",
+        #             "grossValue": 28958000,
+        #             "homeNotional": 0.28958,
+        #             "foreignNotional": 2000
         #         },
         #         {
-        #             timestamp: '2018-08-28T00:00:03.778Z',
-        #             symbol: 'XBTUSD',
-        #             side: 'Sell',
-        #             size: 1000,
-        #             price: 6906,
-        #             tickDirection: 'MinusTick',
-        #             trdMatchID: '0d4f1682-5270-a800-569b-4a0eb92db97c',
-        #             grossValue: 14480000,
-        #             homeNotional: 0.1448,
-        #             foreignNotional: 1000
+        #             "timestamp": "2018-08-28T00:00:03.778Z",
+        #             "symbol": "XBTUSD",
+        #             "side": "Sell",
+        #             "size": 1000,
+        #             "price": 6906,
+        #             "tickDirection": "MinusTick",
+        #             "trdMatchID": "0d4f1682-5270-a800-569b-4a0eb92db97c",
+        #             "grossValue": 14480000,
+        #             "homeNotional": 0.1448,
+        #             "foreignNotional": 1000
         #         },
         #     ]
         #
@@ -2310,8 +2309,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitmex api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         if (leverage < 0.01) or (leverage > 100):
             raise BadRequest(self.id + ' leverage should be between 0.01 and 100')
         self.load_markets()
@@ -2332,8 +2330,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitmex api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
@@ -2386,26 +2383,26 @@ class bitmex(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         #    {
-        #        asset: 'XBT',
-        #        currency: 'XBt',
-        #        majorCurrency: 'XBT',
-        #        name: 'Bitcoin',
-        #        currencyType: 'Crypto',
-        #        scale: '8',
-        #        enabled: True,
-        #        isMarginCurrency: True,
-        #        minDepositAmount: '10000',
-        #        minWithdrawalAmount: '1000',
-        #        maxWithdrawalAmount: '100000000000000',
-        #        networks: [
+        #        "asset": "XBT",
+        #        "currency": "XBt",
+        #        "majorCurrency": "XBT",
+        #        "name": "Bitcoin",
+        #        "currencyType": "Crypto",
+        #        "scale": "8",
+        #        "enabled": True,
+        #        "isMarginCurrency": True,
+        #        "minDepositAmount": "10000",
+        #        "minWithdrawalAmount": "1000",
+        #        "maxWithdrawalAmount": "100000000000000",
+        #        "networks": [
         #            {
-        #                asset: 'btc',
-        #                tokenAddress: '',
-        #                depositEnabled: True,
-        #                withdrawalEnabled: True,
-        #                withdrawalFee: '20000',
-        #                minFee: '20000',
-        #                maxFee: '10000000'
+        #                "asset": "btc",
+        #                "tokenAddress": '',
+        #                "depositEnabled": True,
+        #                "withdrawalEnabled": True,
+        #                "withdrawalFee": "20000",
+        #                "minFee": "20000",
+        #                "maxFee": "10000000"
         #            }
         #        ]
         #    }
@@ -2456,26 +2453,26 @@ class bitmex(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            asset: 'XBT',
-        #            currency: 'XBt',
-        #            majorCurrency: 'XBT',
-        #            name: 'Bitcoin',
-        #            currencyType: 'Crypto',
-        #            scale: '8',
-        #            enabled: True,
-        #            isMarginCurrency: True,
-        #            minDepositAmount: '10000',
-        #            minWithdrawalAmount: '1000',
-        #            maxWithdrawalAmount: '100000000000000',
-        #            networks: [
+        #            "asset": "XBT",
+        #            "currency": "XBt",
+        #            "majorCurrency": "XBT",
+        #            "name": "Bitcoin",
+        #            "currencyType": "Crypto",
+        #            "scale": "8",
+        #            "enabled": True,
+        #            "isMarginCurrency": True,
+        #            "minDepositAmount": "10000",
+        #            "minWithdrawalAmount": "1000",
+        #            "maxWithdrawalAmount": "100000000000000",
+        #            "networks": [
         #                {
-        #                    asset: 'btc',
-        #                    tokenAddress: '',
-        #                    depositEnabled: True,
-        #                    withdrawalEnabled: True,
-        #                    withdrawalFee: '20000',
-        #                    minFee: '20000',
-        #                    maxFee: '10000000'
+        #                    "asset": "btc",
+        #                    "tokenAddress": '',
+        #                    "depositEnabled": True,
+        #                    "withdrawalEnabled": True,
+        #                    "withdrawalFee": "20000",
+        #                    "minFee": "20000",
+        #                    "maxFee": "10000000"
         #                }
         #            ]
         #        },
@@ -2545,7 +2542,7 @@ class bitmex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(liquidation, 'symbol')
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': None,
@@ -2555,7 +2552,7 @@ class bitmex(Exchange, ImplicitAPI):
             'quoteValue': None,
             'timestamp': None,
             'datetime': None,
-        }
+        })
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

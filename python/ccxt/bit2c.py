@@ -6,12 +6,11 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bit2c import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
@@ -188,7 +187,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -258,7 +257,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -274,7 +273,7 @@ class bit2c(Exchange, ImplicitAPI):
         orderbook = self.publicGetExchangesPairOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         averagePrice = self.safe_string(ticker, 'av')
@@ -303,7 +302,7 @@ class bit2c(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -318,7 +317,7 @@ class bit2c(Exchange, ImplicitAPI):
         response = self.publicGetExchangesPairTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -436,17 +435,16 @@ class bit2c(Exchange, ImplicitAPI):
         }
         return self.privatePostOrderCancelOrder(self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the bit2c api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -487,7 +485,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #      createOrder
         #      {
@@ -663,7 +661,7 @@ class bit2c(Exchange, ImplicitAPI):
             newString += strParts[i]
         return newString
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -777,8 +775,8 @@ class bit2c(Exchange, ImplicitAPI):
         response = self.privatePostFundsAddCoinFundsRequest(self.extend(request, params))
         #
         #     {
-        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        #         'hasTx': False
+        #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        #         "hasTx": False
         #     }
         #
         return self.parse_deposit_address(response, currency)
@@ -786,8 +784,8 @@ class bit2c(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         'address': '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        #         'hasTx': False
+        #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
+        #         "hasTx": False
         #     }
         #
         address = self.safe_string(depositAddress, 'address')

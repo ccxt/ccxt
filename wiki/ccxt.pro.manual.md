@@ -445,11 +445,21 @@ Every CCXT Pro instance contains all properties of the underlying CCXT instance.
         'ws': true, // only available in CCXT Pro
         'watchOrderBook': true,
         'watchTicker': true,
+        'watchTickers': true,
         'watchTrades': true,
+        'watchMyTrades': true,
         'watchOHLCV': true,
         'watchBalance': true,
-        'watchCreateOrder': true,
-        'watchCancelOrder': true,
+        'watchPositions': true,
+        'createOrderWs': true,
+        'editOrderWs': true,
+        'cancelOrderWs': true,
+        'cancelOrdersWs': false,
+        'cancelAllOrdersWs': true,
+        'fetchOrderWs': true,
+        'fetchOrdersWs': true,
+        'fetchBalanceWs': true,
+        'fetchMyTradesWs': true,
         ...
     },
     'urls': {
@@ -1024,6 +1034,24 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```
 
+##### watchPositions
+watch all open positions and returns a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
+
+```javascript
+// JavaScript
+watchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) 
+```
+
+```python
+# Python
+watch_positions(symbols=None, since=None, limit=None, params={})
+```
+
+```php
+// PHP
+watch_positions($symbols = null, $since = null, $lmit = null, $params = array());
+```
+
 #### Trading
 ##### createOrderWs
 
@@ -1105,7 +1133,7 @@ cancel_all_orders_ws(self, symbol: str, params={})
 
 ```php
 // PHP
-cancel__all_orders_ws(string $symbol, $params = array ())
+cancel_all_orders_ws(string $symbol, $params = array ())
 ```
 
 #### Funding

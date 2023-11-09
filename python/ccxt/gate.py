@@ -6,9 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Order, OrderBook, OrderSide, OrderType, FundingHistory, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -2183,7 +2181,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbol, since, limit)
 
-    def parse_funding_histories(self, response, symbol, since, limit):
+    def parse_funding_histories(self, response, symbol, since, limit) -> List[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -2215,7 +2213,7 @@ class gate(Exchange, ImplicitAPI):
             'amount': self.safe_number(info, 'change'),
         }
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
@@ -2323,7 +2321,7 @@ class gate(Exchange, ImplicitAPI):
         result['nonce'] = nonce
         return result
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
@@ -2360,7 +2358,7 @@ class gate(Exchange, ImplicitAPI):
             ticker = self.safe_value(response, 0)
         return self.parse_ticker(ticker, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # SPOT
         #
@@ -2399,13 +2397,13 @@ class gate(Exchange, ImplicitAPI):
         #
         # bookTicker
         #    {
-        #        t: 1671363004228,
-        #        u: 9793320464,
-        #        s: 'BTC_USDT',
-        #        b: '16716.8',  # best bid price
-        #        B: '0.0134',  # best bid size
-        #        a: '16716.9',  # best ask price
-        #        A: '0.0353'  # best ask size
+        #        "t": 1671363004228,
+        #        "u": 9793320464,
+        #        "s": "BTC_USDT",
+        #        "b": "16716.8",  # best bid price
+        #        "B": "0.0134",  # best bid size
+        #        "a": "16716.9",  # best ask price
+        #        "A": "0.0353"  # best ask size
         #     }
         #
         # option
@@ -2606,52 +2604,52 @@ class gate(Exchange, ImplicitAPI):
         #  Perpetual Swap
         #
         #    {
-        #        order_margin: "0",
-        #        point: "0",
-        #        bonus: "0",
-        #        history: {
-        #            dnw: "2.1321",
-        #            pnl: "11.5351",
-        #            refr: "0",
-        #            point_fee: "0",
-        #            fund: "-0.32340576684",
-        #            bonus_dnw: "0",
-        #            point_refr: "0",
-        #            bonus_offset: "0",
-        #            fee: "-0.20132775",
-        #            point_dnw: "0",
+        #        "order_margin": "0",
+        #        "point": "0",
+        #        "bonus": "0",
+        #        "history": {
+        #            "dnw": "2.1321",
+        #            "pnl": "11.5351",
+        #            "refr": "0",
+        #            "point_fee": "0",
+        #            "fund": "-0.32340576684",
+        #            "bonus_dnw": "0",
+        #            "point_refr": "0",
+        #            "bonus_offset": "0",
+        #            "fee": "-0.20132775",
+        #            "point_dnw": "0",
         #        },
-        #        unrealised_pnl: "13.315100000006",
-        #        total: "12.51345151332",
-        #        available: "0",
-        #        in_dual_mode: False,
-        #        currency: "USDT",
-        #        position_margin: "12.51345151332",
-        #        user: "6333333",
+        #        "unrealised_pnl": "13.315100000006",
+        #        "total": "12.51345151332",
+        #        "available": "0",
+        #        "in_dual_mode": False,
+        #        "currency": "USDT",
+        #        "position_margin": "12.51345151332",
+        #        "user": "6333333",
         #    }
         #
         # Delivery Future
         #
         #    {
-        #        order_margin: "0",
-        #        point: "0",
-        #        history: {
-        #            dnw: "1",
-        #            pnl: "0",
-        #            refr: "0",
-        #            point_fee: "0",
-        #            point_dnw: "0",
-        #            settle: "0",
-        #            settle_fee: "0",
-        #            point_refr: "0",
-        #            fee: "0",
+        #        "order_margin": "0",
+        #        "point": "0",
+        #        "history": {
+        #            "dnw": "1",
+        #            "pnl": "0",
+        #            "refr": "0",
+        #            "point_fee": "0",
+        #            "point_dnw": "0",
+        #            "settle": "0",
+        #            "settle_fee": "0",
+        #            "point_refr": "0",
+        #            "fee": "0",
         #        },
-        #        unrealised_pnl: "0",
-        #        total: "1",
-        #        available: "1",
-        #        currency: "USDT",
-        #        position_margin: "0",
-        #        user: "6333333",
+        #        "unrealised_pnl": "0",
+        #        "total": "1",
+        #        "available": "1",
+        #        "currency": "USDT",
+        #        "position_margin": "0",
+        #        "user": "6333333",
         #    }
         #
         # option
@@ -2722,7 +2720,7 @@ class gate(Exchange, ImplicitAPI):
         returnResult = result if isolated else self.safe_balance(result)
         return returnResult
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       # spot
@@ -2807,8 +2805,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the gate api endpoint
         :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
@@ -2838,7 +2835,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         # Spot market candles
         #
@@ -2883,7 +2880,7 @@ class gate(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 'v'),    # trading volume, None for mark or index price
             ]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
@@ -2947,13 +2944,13 @@ class gate(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             id: "1852958144",
-        #             create_time: "1634673259",
-        #             create_time_ms: "1634673259378.105000",
-        #             currency_pair: "ADA_USDT",
-        #             side: "sell",
-        #             amount: "307.078",
-        #             price: "2.104",
+        #             "id": "1852958144",
+        #             "create_time": "1634673259",
+        #             "create_time_ms": "1634673259378.105000",
+        #             "currency_pair": "ADA_USDT",
+        #             "side": "sell",
+        #             "amount": "307.078",
+        #             "price": "2.104",
         #         }
         #     ]
         #
@@ -2961,12 +2958,12 @@ class gate(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #              size: "2",
-        #              id: "2522911",
-        #              create_time_ms: "1634673380.182",
-        #              create_time: "1634673380.182",
-        #              contract: "ADA_USDT",
-        #              price: "2.10486",
+        #              "size": "2",
+        #              "id": "2522911",
+        #              "create_time_ms": "1634673380.182",
+        #              "create_time": "1634673380.182",
+        #              "contract": "ADA_USDT",
+        #              "price": "2.10486",
         #         }
         #     ]
         #
@@ -3147,7 +3144,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public
         #
@@ -3164,11 +3161,11 @@ class gate(Exchange, ImplicitAPI):
         # public ws
         #
         #     {
-        #         id: 221994511,
-        #         time: 1580311438.618647,
-        #         price: '9309',
-        #         amount: '0.0019',
-        #         type: 'sell'
+        #         "id": 221994511,
+        #         "time": 1580311438.618647,
+        #         "price": "9309",
+        #         "amount": "0.0019",
+        #         "type": "sell"
         #     }
         #
         # spot rest
@@ -3413,7 +3410,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # deposits
         #
@@ -3934,7 +3931,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # SPOT
         # createOrder/cancelOrder/fetchOrder/editOrder
@@ -4225,7 +4222,7 @@ class gate(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
@@ -4240,7 +4237,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-orders
@@ -4533,27 +4530,27 @@ class gate(Exchange, ImplicitAPI):
         # swap, future and option
         #
         #     {
-        #         id: "82241928192",
-        #         contract: "BTC_USDT",
-        #         mkfr: "0",
-        #         tkfr: "0.0005",
-        #         tif: "gtc",
-        #         is_reduce_only: False,
-        #         create_time: "1635196145.06",
-        #         finish_time: "1635196233.396",
-        #         price: "61000",
-        #         size: "4",
-        #         refr: "0",
-        #         left: "4",
-        #         text: "web",
-        #         fill_price: "0",
-        #         user: "6693577",
-        #         finish_as: "cancelled",
-        #         status: "finished",
-        #         is_liq: False,
-        #         refu: "0",
-        #         is_close: False,
-        #         iceberg: "0",
+        #         "id": "82241928192",
+        #         "contract": "BTC_USDT",
+        #         "mkfr": "0",
+        #         "tkfr": "0.0005",
+        #         "tif": "gtc",
+        #         "is_reduce_only": False,
+        #         "create_time": "1635196145.06",
+        #         "finish_time": "1635196233.396",
+        #         "price": "61000",
+        #         "size": "4",
+        #         "refr": "0",
+        #         "left": "4",
+        #         "text": "web",
+        #         "fill_price": "0",
+        #         "user": "6693577",
+        #         "finish_as": "cancelled",
+        #         "status": "finished",
+        #         "is_liq": False,
+        #         "refu": "0",
+        #         "is_close": False,
+        #         "iceberg": "0",
         #     }
         #
         return self.parse_order(response, market)
@@ -4692,8 +4689,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the gate api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 0) or (leverage > 100):
@@ -4751,29 +4747,29 @@ class gate(Exchange, ImplicitAPI):
         # swap and future
         #
         #     {
-        #         value: "12.475572",
-        #         leverage: "0",
-        #         mode: "single",
-        #         realised_point: "0",
-        #         contract: "BTC_USDT",
-        #         entry_price: "62422.6",
-        #         mark_price: "62377.86",
-        #         history_point: "0",
-        #         realised_pnl: "-0.00624226",
-        #         close_order:  null,
-        #         size: "2",
-        #         cross_leverage_limit: "25",
-        #         pending_orders: "0",
-        #         adl_ranking: "5",
-        #         maintenance_rate: "0.005",
-        #         unrealised_pnl: "-0.008948",
-        #         user: "663337",
-        #         leverage_max: "100",
-        #         history_pnl: "14.98868396636",
-        #         risk_limit: "1000000",
-        #         margin: "0.740721495056",
-        #         last_close_pnl: "-0.041996015",
-        #         liq_price: "59058.58"
+        #         "value": "12.475572",
+        #         "leverage": "0",
+        #         "mode": "single",
+        #         "realised_point": "0",
+        #         "contract": "BTC_USDT",
+        #         "entry_price": "62422.6",
+        #         "mark_price": "62377.86",
+        #         "history_point": "0",
+        #         "realised_pnl": "-0.00624226",
+        #         "close_order":  null,
+        #         "size": "2",
+        #         "cross_leverage_limit": "25",
+        #         "pending_orders": "0",
+        #         "adl_ranking": "5",
+        #         "maintenance_rate": "0.005",
+        #         "unrealised_pnl": "-0.008948",
+        #         "user": "663337",
+        #         "leverage_max": "100",
+        #         "history_pnl": "14.98868396636",
+        #         "risk_limit": "1000000",
+        #         "margin": "0.740721495056",
+        #         "last_close_pnl": "-0.041996015",
+        #         "liq_price": "59058.58"
         #     }
         #
         # option
@@ -4820,13 +4816,14 @@ class gate(Exchange, ImplicitAPI):
         takerFee = '0.00075'
         feePaid = Precise.string_mul(takerFee, notional)
         initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
+        timestamp = self.safe_integer(position, 'time_ms')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
             'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
@@ -4835,6 +4832,7 @@ class gate(Exchange, ImplicitAPI):
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'realizedPnl': self.safe_number(position, 'realised_pnl'),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
             # 'realisedPnl': position['realised_pnl'],
@@ -4940,19 +4938,16 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
+        symbols = self.market_symbols(symbols, None, True, True, True)
         if symbols is not None:
-            symbols = self.market_symbols(symbols)
             symbolsLength = len(symbols)
             if symbolsLength > 0:
                 market = self.market(symbols[0])
-                for i in range(1, len(symbols)):
-                    checkMarket = self.market(symbols[i])
-                    if checkMarket['type'] != market['type']:
-                        raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
         type = None
         request = {}
         type, params = self.handle_market_type_and_params('fetchPositions', market, params)
-        self.check_required_argument('fetchPositions', type, 'type', ['swap', 'future', 'option'])
+        if (type is None) or (type == 'spot'):
+            type = 'swap'  # default to swap
         if type == 'option':
             if symbols is not None:
                 marketId = market['id']
@@ -4960,40 +4955,41 @@ class gate(Exchange, ImplicitAPI):
                 request['underlying'] = self.safe_string(optionParts, 0)
         else:
             request, params = self.prepare_request(None, type, params)
-        method = self.get_supported_mapping(type, {
-            'swap': 'privateFuturesGetSettlePositions',
-            'future': 'privateDeliveryGetSettlePositions',
-            'option': 'privateOptionsGetPositions',
-        })
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'swap':
+            response = self.privateFuturesGetSettlePositions(self.extend(request, params))
+        elif type == 'future':
+            response = self.privateDeliveryGetSettlePositions(self.extend(request, params))
+        elif type == 'option':
+            response = self.privateOptionsGetPositions(self.extend(request, params))
         #
         # swap and future
         #
         #     [
         #         {
-        #             value: "12.475572",
-        #             leverage: "0",
-        #             mode: "single",
-        #             realised_point: "0",
-        #             contract: "BTC_USDT",
-        #             entry_price: "62422.6",
-        #             mark_price: "62377.86",
-        #             history_point: "0",
-        #             realised_pnl: "-0.00624226",
-        #             close_order:  null,
-        #             size: "2",
-        #             cross_leverage_limit: "25",
-        #             pending_orders: "0",
-        #             adl_ranking: "5",
-        #             maintenance_rate: "0.005",
-        #             unrealised_pnl: "-0.008948",
-        #             user: "6693577",
-        #             leverage_max: "100",
-        #             history_pnl: "14.98868396636",
-        #             risk_limit: "1000000",
-        #             margin: "0.740721495056",
-        #             last_close_pnl: "-0.041996015",
-        #             liq_price: "59058.58"
+        #             "value": "12.475572",
+        #             "leverage": "0",
+        #             "mode": "single",
+        #             "realised_point": "0",
+        #             "contract": "BTC_USDT",
+        #             "entry_price": "62422.6",
+        #             "mark_price": "62377.86",
+        #             "history_point": "0",
+        #             "realised_pnl": "-0.00624226",
+        #             "close_order":  null,
+        #             "size": "2",
+        #             "cross_leverage_limit": "25",
+        #             "pending_orders": "0",
+        #             "adl_ranking": "5",
+        #             "maintenance_rate": "0.005",
+        #             "unrealised_pnl": "-0.008948",
+        #             "user": "6693577",
+        #             "leverage_max": "100",
+        #             "history_pnl": "14.98868396636",
+        #             "risk_limit": "1000000",
+        #             "margin": "0.740721495056",
+        #             "last_close_pnl": "-0.041996015",
+        #             "liq_price": "59058.58"
         #         }
         #     ]
         #
@@ -5604,7 +5600,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
         :param int [limit]: default 30
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         self.load_markets()
         paginate = False
@@ -5627,20 +5623,20 @@ class gate(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            long_liq_size: '0',
-        #            short_liq_size: '0',
-        #            short_liq_usd: '0',
-        #            lsr_account: '3.2808988764045',
-        #            mark_price: '0.34619',
-        #            top_lsr_size: '0',
-        #            time: '1674057000',
-        #            short_liq_amount: '0',
-        #            long_liq_amount: '0',
-        #            open_interest_usd: '9872386.7775',
-        #            top_lsr_account: '0',
-        #            open_interest: '2851725',
-        #            long_liq_usd: '0',
-        #            lsr_taker: '9.3765153315902'
+        #            "long_liq_size": "0",
+        #            "short_liq_size": "0",
+        #            "short_liq_usd": "0",
+        #            "lsr_account": "3.2808988764045",
+        #            "mark_price": "0.34619",
+        #            "top_lsr_size": "0",
+        #            "time": "1674057000",
+        #            "short_liq_amount": "0",
+        #            "long_liq_amount": "0",
+        #            "open_interest_usd": "9872386.7775",
+        #            "top_lsr_account": "0",
+        #            "open_interest": "2851725",
+        #            "long_liq_usd": "0",
+        #            "lsr_taker": "9.3765153315902"
         #        },
         #        ...
         #    ]
@@ -5650,20 +5646,20 @@ class gate(Exchange, ImplicitAPI):
     def parse_open_interest(self, interest, market=None):
         #
         #    {
-        #        long_liq_size: '0',
-        #        short_liq_size: '0',
-        #        short_liq_usd: '0',
-        #        lsr_account: '3.2808988764045',
-        #        mark_price: '0.34619',
-        #        top_lsr_size: '0',
-        #        time: '1674057000',
-        #        short_liq_amount: '0',
-        #        long_liq_amount: '0',
-        #        open_interest_usd: '9872386.7775',
-        #        top_lsr_account: '0',
-        #        open_interest: '2851725',
-        #        long_liq_usd: '0',
-        #        lsr_taker: '9.3765153315902'
+        #        "long_liq_size": "0",
+        #        "short_liq_size": "0",
+        #        "short_liq_usd": "0",
+        #        "lsr_account": "3.2808988764045",
+        #        "mark_price": "0.34619",
+        #        "top_lsr_size": "0",
+        #        "time": "1674057000",
+        #        "short_liq_amount": "0",
+        #        "long_liq_amount": "0",
+        #        "open_interest_usd": "9872386.7775",
+        #        "top_lsr_account": "0",
+        #        "open_interest": "2851725",
+        #        "long_liq_usd": "0",
+        #        "lsr_taker": "9.3765153315902"
         #    }
         #
         timestamp = self.safe_timestamp(interest, 'time')
@@ -6277,7 +6273,7 @@ class gate(Exchange, ImplicitAPI):
         quoteValueString = self.safe_string(liquidation, 'pnl')
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
-        return {
+        return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
@@ -6287,7 +6283,7 @@ class gate(Exchange, ImplicitAPI):
             'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-        }
+        })
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
