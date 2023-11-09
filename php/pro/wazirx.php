@@ -461,7 +461,7 @@ class wazirx extends \ccxt\async\wazirx {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "E":1631683058904,      Event time
@@ -678,8 +678,8 @@ class wazirx extends \ccxt\async\wazirx {
         //             "a" => 114144050,
         //             "b" => 114144121,
         //             "f" => "0.2",
-        //             "ga" => '0.0',
-        //             "gc" => 'usdt',
+        //             "ga" => "0.0",
+        //             "gc" => "usdt",
         //             "m" => true,
         //             "o" => 26946170,
         //             "p" => "5.0",
@@ -709,10 +709,10 @@ class wazirx extends \ccxt\async\wazirx {
     public function handle_connected(Client $client, $message) {
         //
         //     {
-        //         data => array(
-        //             timeout_duration => 1800
+        //         "data" => array(
+        //             "timeout_duration" => 1800
         //         ),
-        //         event => 'connected'
+        //         "event" => "connected"
         //     }
         //
         return $message;
@@ -721,11 +721,11 @@ class wazirx extends \ccxt\async\wazirx {
     public function handle_subscribed(Client $client, $message) {
         //
         //     {
-        //         data => array(
-        //             streams => ['!ticker@arr']
+        //         "data" => array(
+        //             "streams" => ["!ticker@arr"]
         //         ),
-        //         event => 'subscribed',
-        //         id => 0
+        //         "event" => "subscribed",
+        //         "id" => 0
         //     }
         //
         return $message;
@@ -743,8 +743,8 @@ class wazirx extends \ccxt\async\wazirx {
         //     }
         //
         //     {
-        //         $message => 'HeartBeat $message not received, closing the connection',
-        //         status => 'error'
+        //         "message" => "HeartBeat $message not received, closing the connection",
+        //         "status" => "error"
         //     }
         //
         throw new ExchangeError($this->id . ' ' . $this->json($message));

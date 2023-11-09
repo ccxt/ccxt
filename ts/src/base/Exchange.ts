@@ -1243,7 +1243,7 @@ export default class Exchange {
                             //               V
                             client.throttle (cost).then (() => {
                                 client.send (message);
-                            }).catch ((e) => { 
+                            }).catch ((e) => {
                                 delete client.subscriptions[subscribeHash];
                                 future.reject (e);
                             });
@@ -1728,7 +1728,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market = undefined) {
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -1758,6 +1758,18 @@ export default class Exchange {
         const stringifiedNumber = number.toString ();
         const convertedNumber = parseFloat (stringifiedNumber) as any;
         return parseInt (convertedNumber);
+    }
+
+    parseToNumeric (number) {
+        const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf ('.') > 0) {
+            return parseFloat (stringVersion);
+        }
+        return parseInt (stringVersion);
     }
 
     afterConstruct () {
@@ -2838,7 +2850,7 @@ export default class Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -4885,7 +4897,12 @@ export default class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                const response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method] (params);
+                } else {
+                    response = await this[method] (symbol, since, maxEntriesPerRequest, params);
+                }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {

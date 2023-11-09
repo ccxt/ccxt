@@ -277,7 +277,7 @@ class bitbns extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -315,7 +315,7 @@ class bitbns extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], $timestamp);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "symbol":"BTC/INR",
@@ -418,7 +418,7 @@ class bitbns extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $timestamp = null;
         $result = array(
             'info' => $response,
@@ -491,7 +491,7 @@ class bitbns extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -642,9 +642,7 @@ class bitbns extends Exchange {
          * @param {boolean} [$params->trigger] true if cancelling a trigger order
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
@@ -671,9 +669,7 @@ class bitbns extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitbns api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -715,7 +711,7 @@ class bitbns extends Exchange {
         return $this->parse_order($first, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-$limit
@@ -727,9 +723,7 @@ class bitbns extends Exchange {
          * @param {boolean} [$params->trigger] true if fetching trigger orders
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOpenOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
@@ -765,7 +759,7 @@ class bitbns extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchMyTrades
         //
@@ -855,9 +849,7 @@ class bitbns extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitbns api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -913,7 +905,7 @@ class bitbns extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -922,9 +914,7 @@ class bitbns extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitbns api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1034,7 +1024,7 @@ class bitbns extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name idex#fetchTicker
@@ -336,20 +336,20 @@ export default class idex extends Exchange {
         };
         // [
         //   {
-        //     market: 'DIL-ETH',
-        //     time: 1598367493008,
-        //     open: '0.09695361',
-        //     high: '0.10245881',
-        //     low: '0.09572507',
-        //     close: '0.09917079',
-        //     closeQuantity: '0.71320950',
-        //     baseVolume: '309.17380612',
-        //     quoteVolume: '30.57633981',
-        //     percentChange: '2.28',
-        //     numTrades: 205,
-        //     ask: '0.09910476',
-        //     bid: '0.09688340',
-        //     sequence: 3902
+        //     "market": "DIL-ETH",
+        //     "time": 1598367493008,
+        //     "open": "0.09695361",
+        //     "high": "0.10245881",
+        //     "low": "0.09572507",
+        //     "close": "0.09917079",
+        //     "closeQuantity": "0.71320950",
+        //     "baseVolume": "309.17380612",
+        //     "quoteVolume": "30.57633981",
+        //     "percentChange": "2.28",
+        //     "numTrades": 205,
+        //     "ask": "0.09910476",
+        //     "bid": "0.09688340",
+        //     "sequence": 3902
         //   }
         // ]
         const response = await this.publicGetTickers (this.extend (request, params));
@@ -369,42 +369,42 @@ export default class idex extends Exchange {
         await this.loadMarkets ();
         // [
         //   {
-        //     market: 'DIL-ETH',
-        //     time: 1598367493008,
-        //     open: '0.09695361',
-        //     high: '0.10245881',
-        //     low: '0.09572507',
-        //     close: '0.09917079',
-        //     closeQuantity: '0.71320950',
-        //     baseVolume: '309.17380612',
-        //     quoteVolume: '30.57633981',
-        //     percentChange: '2.28',
-        //     numTrades: 205,
-        //     ask: '0.09910476',
-        //     bid: '0.09688340',
-        //     sequence: 3902
+        //     "market": "DIL-ETH",
+        //     "time": 1598367493008,
+        //     "open": "0.09695361",
+        //     "high": "0.10245881",
+        //     "low": "0.09572507",
+        //     "close": "0.09917079",
+        //     "closeQuantity": "0.71320950",
+        //     "baseVolume": "309.17380612",
+        //     "quoteVolume": "30.57633981",
+        //     "percentChange": "2.28",
+        //     "numTrades": 205,
+        //     "ask": "0.09910476",
+        //     "bid": "0.09688340",
+        //     "sequence": 3902
         //   }, ...
         // ]
         const response = await this.publicGetTickers (params);
         return this.parseTickers (response, symbols);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         // {
-        //   market: 'DIL-ETH',
-        //   time: 1598367493008,
-        //   open: '0.09695361',
-        //   high: '0.10245881',
-        //   low: '0.09572507',
-        //   close: '0.09917079',
-        //   closeQuantity: '0.71320950',
-        //   baseVolume: '309.17380612',
-        //   quoteVolume: '30.57633981',
-        //   percentChange: '2.28',
-        //   numTrades: 205,
-        //   ask: '0.09910476',
-        //   bid: '0.09688340',
-        //   sequence: 3902
+        //   "market": "DIL-ETH",
+        //   "time": 1598367493008,
+        //   "open": "0.09695361",
+        //   "high": "0.10245881",
+        //   "low": "0.09572507",
+        //   "close": "0.09917079",
+        //   "closeQuantity": "0.71320950",
+        //   "baseVolume": "309.17380612",
+        //   "quoteVolume": "30.57633981",
+        //   "percentChange": "2.28",
+        //   "numTrades": 205,
+        //   "ask": "0.09910476",
+        //   "bid": "0.09688340",
+        //   "sequence": 3902
         // }
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market, '-');
@@ -435,7 +435,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name idex#fetchOHLCV
@@ -463,13 +463,13 @@ export default class idex extends Exchange {
         if (Array.isArray (response)) {
             // [
             //   {
-            //     start: 1598345580000,
-            //     open: '0.09771286',
-            //     high: '0.09771286',
-            //     low: '0.09771286',
-            //     close: '0.09771286',
-            //     volume: '1.45340410',
-            //     sequence: 3853
+            //     "start": 1598345580000,
+            //     "open": "0.09771286",
+            //     "high": "0.09771286",
+            //     "low": "0.09771286",
+            //     "close": "0.09771286",
+            //     "volume": "1.45340410",
+            //     "sequence": 3853
             //   }, ...
             // ]
             return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -479,15 +479,15 @@ export default class idex extends Exchange {
         }
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // {
-        //   start: 1598345580000,
-        //   open: '0.09771286',
-        //   high: '0.09771286',
-        //   low: '0.09771286',
-        //   close: '0.09771286',
-        //   volume: '1.45340410',
-        //   sequence: 3853
+        //   "start": 1598345580000,
+        //   "open": "0.09771286",
+        //   "high": "0.09771286",
+        //   "low": "0.09771286",
+        //   "close": "0.09771286",
+        //   "volume": "1.45340410",
+        //   "sequence": 3853
         // }
         const timestamp = this.safeInteger (ohlcv, 'start');
         const open = this.safeNumber (ohlcv, 'open');
@@ -498,7 +498,7 @@ export default class idex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name idex#fetchTrades
@@ -522,20 +522,20 @@ export default class idex extends Exchange {
         }
         // [
         //   {
-        //     fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //     price: '0.09771286',
-        //     quantity: '1.45340410',
-        //     quoteQuantity: '0.14201627',
-        //     time: 1598345638994,
-        //     makerSide: 'buy',
-        //     sequence: 3853
+        //     "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        //     "price": "0.09771286",
+        //     "quantity": "1.45340410",
+        //     "quoteQuantity": "0.14201627",
+        //     "time": 1598345638994,
+        //     "makerSide": "buy",
+        //     "sequence": 3853
         //   }, ...
         // ]
         const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public trades
         //  {
@@ -631,15 +631,15 @@ export default class idex extends Exchange {
         response = await this.privateGetUser (this.extend (request, params));
         //
         //     {
-        //         depositEnabled: true,
-        //         orderEnabled: true,
-        //         cancelEnabled: true,
-        //         withdrawEnabled: true,
-        //         totalPortfolioValueUsd: '0.00',
-        //         makerFeeRate: '0.0000',
-        //         takerFeeRate: '0.0025',
-        //         takerIdexFeeRate: '0.0005',
-        //         takerLiquidityProviderFeeRate: '0.0020'
+        //         "depositEnabled": true,
+        //         "orderEnabled": true,
+        //         "cancelEnabled": true,
+        //         "withdrawEnabled": true,
+        //         "totalPortfolioValueUsd": "0.00",
+        //         "makerFeeRate": "0.0000",
+        //         "takerFeeRate": "0.0025",
+        //         "takerIdexFeeRate": "0.0005",
+        //         "takerLiquidityProviderFeeRate": "0.0020"
         //     }
         //
         const maker = this.safeNumber (response, 'makerFeeRate');
@@ -659,7 +659,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name idex#fetchOrderBook
@@ -679,23 +679,23 @@ export default class idex extends Exchange {
             request['limit'] = limit;
         }
         // {
-        //   sequence: 36416753,
-        //   bids: [
-        //     [ '0.09672815', '8.22284267', 1 ],
-        //     [ '0.09672814', '1.83685554', 1 ],
-        //     [ '0.09672143', '4.10962617', 1 ],
-        //     [ '0.09658884', '4.03863759', 1 ],
-        //     [ '0.09653781', '3.35730684', 1 ],
-        //     [ '0.09624660', '2.54163586', 1 ],
-        //     [ '0.09617490', '1.93065030', 1 ]
+        //   "sequence": 36416753,
+        //   "bids": [
+        //     [ '0.09672815', "8.22284267", 1 ],
+        //     [ '0.09672814', "1.83685554", 1 ],
+        //     [ '0.09672143', "4.10962617", 1 ],
+        //     [ '0.09658884', "4.03863759", 1 ],
+        //     [ '0.09653781', "3.35730684", 1 ],
+        //     [ '0.09624660', "2.54163586", 1 ],
+        //     [ '0.09617490', "1.93065030", 1 ]
         //   ],
-        //   asks: [
-        //     [ '0.09910476', '3.22840154', 1 ],
-        //     [ '0.09940587', '3.39796593', 1 ],
-        //     [ '0.09948189', '4.25088898', 1 ],
-        //     [ '0.09958362', '2.42195784', 1 ],
-        //     [ '0.09974393', '4.25234367', 1 ],
-        //     [ '0.09995250', '3.40192141', 1 ]
+        //   "asks": [
+        //     [ '0.09910476', "3.22840154", 1 ],
+        //     [ '0.09940587', "3.39796593", 1 ],
+        //     [ '0.09948189', "4.25088898", 1 ],
+        //     [ '0.09958362', "2.42195784", 1 ],
+        //     [ '0.09974393', "4.25234367", 1 ],
+        //     [ '0.09995250', "3.40192141", 1 ]
         //   ]
         // }
         const response = await this.publicGetOrderbook (this.extend (request, params));
@@ -772,7 +772,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -808,11 +808,11 @@ export default class idex extends Exchange {
         };
         // [
         //   {
-        //     asset: 'DIL',
-        //     quantity: '0.00000000',
-        //     availableForTrade: '0.00000000',
-        //     locked: '0.00000000',
-        //     usdValue: null
+        //     "asset": "DIL",
+        //     "quantity": "0.00000000",
+        //     "availableForTrade": "0.00000000",
+        //     "locked": "0.00000000",
+        //     "usdValue": null
         //   }, ...
         // ]
         const extendedRequest = this.extend (request, params);
@@ -864,22 +864,22 @@ export default class idex extends Exchange {
         }
         // [
         //   {
-        //     fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //     price: '0.09905990',
-        //     quantity: '0.40000000',
-        //     quoteQuantity: '0.03962396',
-        //     time: 1598873478762,
-        //     makerSide: 'sell',
-        //     sequence: 5053,
-        //     market: 'DIL-ETH',
-        //     orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //     side: 'buy',
-        //     fee: '0.00080000',
-        //     feeAsset: 'DIL',
-        //     gas: '0.00857497',
-        //     liquidity: 'taker',
-        //     txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //     txStatus: 'mined'
+        //     "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //     "price": "0.09905990",
+        //     "quantity": "0.40000000",
+        //     "quoteQuantity": "0.03962396",
+        //     "time": 1598873478762,
+        //     "makerSide": "sell",
+        //     "sequence": 5053,
+        //     "market": "DIL-ETH",
+        //     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //     "side": "buy",
+        //     "fee": "0.00080000",
+        //     "feeAsset": "DIL",
+        //     "gas": "0.00857497",
+        //     "liquidity": "taker",
+        //     "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //     "txStatus": "mined"
         //   }
         // ]
         const extendedRequest = this.extend (request, params);
@@ -916,7 +916,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params)) as Order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#fetchOpenOrders
@@ -933,7 +933,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#fetchClosedOrders
@@ -1003,32 +1003,32 @@ export default class idex extends Exchange {
         //   }
         // ]
         // fetchOrder
-        // { market: 'DIL-ETH',
-        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time: 1598873478650,
-        //   status: 'filled',
-        //   type: 'limit',
-        //   side: 'buy',
-        //   originalQuantity: '0.40000000',
-        //   executedQuantity: '0.40000000',
-        //   cumulativeQuoteQuantity: '0.03962396',
-        //   avgExecutionPrice: '0.09905990',
-        //   price: '1.00000000',
-        //   fills:
-        //    [ { fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //        price: '0.09905990',
-        //        quantity: '0.40000000',
-        //        quoteQuantity: '0.03962396',
-        //        time: 1598873478650,
-        //        makerSide: 'sell',
-        //        sequence: 5053,
-        //        fee: '0.00080000',
-        //        feeAsset: 'DIL',
-        //        gas: '0.00857497',
-        //        liquidity: 'taker',
-        //        txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //        txStatus: 'mined' } ] }
+        // { market: "DIL-ETH",
+        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time": 1598873478650,
+        //   "status": "filled",
+        //   "type": "limit",
+        //   "side": "buy",
+        //   "originalQuantity": "0.40000000",
+        //   "executedQuantity": "0.40000000",
+        //   "cumulativeQuoteQuantity": "0.03962396",
+        //   "avgExecutionPrice": "0.09905990",
+        //   "price": "1.00000000",
+        //   "fills":
+        //    [ { fillId: "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //        "price": "0.09905990",
+        //        "quantity": "0.40000000",
+        //        "quoteQuantity": "0.03962396",
+        //        "time": 1598873478650,
+        //        "makerSide": "sell",
+        //        "sequence": 5053,
+        //        "fee": "0.00080000",
+        //        "feeAsset": "DIL",
+        //        "gas": "0.00857497",
+        //        "liquidity": "taker",
+        //        "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        //        "txStatus": "mined" } ] }
         if (Array.isArray (response)) {
             return this.parseOrders (response, market, since, limit) as any;
         } else {
@@ -1047,7 +1047,7 @@ export default class idex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "market": "DIL-ETH",
@@ -1133,9 +1133,9 @@ export default class idex extends Exchange {
         const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         // {
-        //   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   totalPortfolioValueUsd: '0.00',
-        //   time: 1598468353626
+        //   "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "totalPortfolioValueUsd": "0.00",
+        //   "time": 1598468353626
         // }
         const request = {
             'parameters': {
@@ -1307,34 +1307,34 @@ export default class idex extends Exchange {
             request['parameters']['clientOrderId'] = clientOrderId;
         }
         // {
-        //   market: 'DIL-ETH',
-        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //   time: 1598873478650,
-        //   status: 'filled',
-        //   type: 'limit',
-        //   side: 'buy',
-        //   originalQuantity: '0.40000000',
-        //   executedQuantity: '0.40000000',
-        //   cumulativeQuoteQuantity: '0.03962396',
-        //   price: '1.00000000',
-        //   fills: [
+        //   "market": "DIL-ETH",
+        //   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        //   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //   "time": 1598873478650,
+        //   "status": "filled",
+        //   "type": "limit",
+        //   "side": "buy",
+        //   "originalQuantity": "0.40000000",
+        //   "executedQuantity": "0.40000000",
+        //   "cumulativeQuoteQuantity": "0.03962396",
+        //   "price": "1.00000000",
+        //   "fills": [
         //     {
-        //       fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //       price: '0.09905990',
-        //       quantity: '0.40000000',
-        //       quoteQuantity: '0.03962396',
-        //       time: 1598873478650,
-        //       makerSide: 'sell',
-        //       sequence: 5053,
-        //       fee: '0.00080000',
-        //       feeAsset: 'DIL',
-        //       gas: '0.00857497',
-        //       liquidity: 'taker',
-        //       txStatus: 'pending'
+        //       "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        //       "price": "0.09905990",
+        //       "quantity": "0.40000000",
+        //       "quoteQuantity": "0.03962396",
+        //       "time": 1598873478650,
+        //       "makerSide": "sell",
+        //       "sequence": 5053,
+        //       "fee": "0.00080000",
+        //       "feeAsset": "DIL",
+        //       "gas": "0.00857497",
+        //       "liquidity": "taker",
+        //       "txStatus": "pending"
         //     }
         //   ],
-        //   avgExecutionPrice: '0.09905990'
+        //   "avgExecutionPrice": "0.09905990"
         // }
         // we don't use extend here because it is a signed endpoint
         const response = await this.privatePostOrders (request);
@@ -1382,14 +1382,14 @@ export default class idex extends Exchange {
         const response = await this.privatePostWithdrawals (request);
         //
         //     {
-        //         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset: 'ETH',
-        //         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        //         quantity: '0.20000000',
-        //         time: 1598962883190,
-        //         fee: '0.00024000',
-        //         txStatus: 'pending',
-        //         txId: null
+        //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset": "ETH",
+        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        //         "quantity": "0.20000000",
+        //         "time": 1598962883190,
+        //         "fee": "0.00024000",
+        //         "txStatus": "pending",
+        //         "txId": null
         //     }
         //
         return this.parseTransaction (response, currency);
@@ -1430,7 +1430,7 @@ export default class idex extends Exchange {
         const hash = this.hash (binary, keccak, 'hex');
         const signature = this.signMessageString (hash, this.privateKey);
         request['signature'] = signature;
-        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
+        // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
@@ -1469,7 +1469,7 @@ export default class idex extends Exchange {
             },
             'signature': signature,
         };
-        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
+        // [ { orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e" } ]
         const response = await this.privateDeleteOrders (this.extend (request, params));
         const canceledOrder = this.safeValue (response, 0);
         return this.parseOrder (canceledOrder, market);
@@ -1536,7 +1536,7 @@ export default class idex extends Exchange {
          */
         const response = await this.publicGetTime (params);
         //
-        //    { serverTime: '1655258263236' }
+        //    { serverTime: "1655258263236" }
         //
         return this.safeInteger (response, 'serverTime');
     }
@@ -1599,12 +1599,12 @@ export default class idex extends Exchange {
         }
         // [
         //   {
-        //     depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
-        //     asset: 'ETH',
-        //     quantity: '1.00000000',
-        //     txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //     txTime: 1598865853000,
-        //     confirmationTime: 1598865930231
+        //     "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
+        //     "asset": "ETH",
+        //     "quantity": "1.00000000",
+        //     "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //     "txTime": 1598865853000,
+        //     "confirmationTime": 1598865930231
         //   }
         // ]
         const method = params['method'];
@@ -1620,43 +1620,43 @@ export default class idex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //
         //     {
-        //         depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        //         asset: 'ETH',
-        //         quantity: '1.00000000',
-        //         txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        //         txTime: 1598865853000,
-        //         confirmationTime: 1598865930231
+        //         "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
+        //         "asset": "ETH",
+        //         "quantity": "1.00000000",
+        //         "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        //         "txTime": 1598865853000,
+        //         "confirmationTime": 1598865930231
         //     }
         //
         // fetchWithdrwalas
         //
         //     {
-        //         withdrawalId: 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        //         asset: 'ETH',
-        //         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        //         quantity: '0.20000000',
-        //         time: 1598962883288,
-        //         fee: '0.00024000',
-        //         txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        //         txStatus: 'mined'
+        //         "withdrawalId": "a62d8760-ec4d-11ea-9fa6-47904c19499b",
+        //         "asset": "ETH",
+        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        //         "quantity": "0.20000000",
+        //         "time": 1598962883288,
+        //         "fee": "0.00024000",
+        //         "txId": "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
+        //         "txStatus": "mined"
         //     }
         //
         // withdraw
         //
         //     {
-        //         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        //         asset: 'ETH',
-        //         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        //         quantity: '0.20000000',
-        //         time: 1598962883190,
-        //         fee: '0.00024000',
-        //         txStatus: 'pending',
-        //         txId: null
+        //         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        //         "asset": "ETH",
+        //         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        //         "quantity": "0.20000000",
+        //         "time": 1598962883190,
+        //         "fee": "0.00024000",
+        //         "txStatus": "pending",
+        //         "txId": null
         //     }
         //
         let type = undefined;

@@ -5,6 +5,9 @@ var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
+var rsa = require('../base/functions/rsa.js');
+var crypto = require('../base/functions/crypto.js');
+var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -569,17 +572,17 @@ class binance extends binance$1 {
         // public watchTrades
         //
         //     {
-        //         e: 'trade',       // event type
-        //         E: 1579481530911, // event time
-        //         s: 'ETHBTC',      // symbol
-        //         t: 158410082,     // trade id
-        //         p: '0.01914100',  // price
-        //         q: '0.00700000',  // quantity
-        //         b: 586187049,     // buyer order id
-        //         a: 586186710,     // seller order id
-        //         T: 1579481530910, // trade time
-        //         m: false,         // is the buyer the market maker
-        //         M: true           // binance docs say it should be ignored
+        //         "e": "trade",       // event type
+        //         "E": 1579481530911, // event time
+        //         "s": "ETHBTC",      // symbol
+        //         "t": 158410082,     // trade id
+        //         "p": "0.01914100",  // price
+        //         "q": "0.00700000",  // quantity
+        //         "b": 586187049,     // buyer order id
+        //         "a": 586186710,     // seller order id
+        //         "T": 1579481530910, // trade time
+        //         "m": false,         // is the buyer the market maker
+        //         "M": true           // binance docs say it should be ignored
         //     }
         //
         //     {
@@ -599,74 +602,74 @@ class binance extends binance$1 {
         // private watchMyTrades spot
         //
         //     {
-        //         e: 'executionReport',
-        //         E: 1611063861489,
-        //         s: 'BNBUSDT',
-        //         c: 'm4M6AD5MF3b1ERe65l4SPq',
-        //         S: 'BUY',
-        //         o: 'MARKET',
-        //         f: 'GTC',
-        //         q: '2.00000000',
-        //         p: '0.00000000',
-        //         P: '0.00000000',
-        //         F: '0.00000000',
-        //         g: -1,
-        //         C: '',
-        //         x: 'TRADE',
-        //         X: 'PARTIALLY_FILLED',
-        //         r: 'NONE',
-        //         i: 1296882607,
-        //         l: '0.33200000',
-        //         z: '0.33200000',
-        //         L: '46.86600000',
-        //         n: '0.00033200',
-        //         N: 'BNB',
-        //         T: 1611063861488,
-        //         t: 109747654,
-        //         I: 2696953381,
-        //         w: false,
-        //         m: false,
-        //         M: true,
-        //         O: 1611063861488,
-        //         Z: '15.55951200',
-        //         Y: '15.55951200',
-        //         Q: '0.00000000'
+        //         "e": "executionReport",
+        //         "E": 1611063861489,
+        //         "s": "BNBUSDT",
+        //         "c": "m4M6AD5MF3b1ERe65l4SPq",
+        //         "S": "BUY",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "2.00000000",
+        //         "p": "0.00000000",
+        //         "P": "0.00000000",
+        //         "F": "0.00000000",
+        //         "g": -1,
+        //         "C": '',
+        //         "x": "TRADE",
+        //         "X": "PARTIALLY_FILLED",
+        //         "r": "NONE",
+        //         "i": 1296882607,
+        //         "l": "0.33200000",
+        //         "z": "0.33200000",
+        //         "L": "46.86600000",
+        //         "n": "0.00033200",
+        //         "N": "BNB",
+        //         "T": 1611063861488,
+        //         "t": 109747654,
+        //         "I": 2696953381,
+        //         "w": false,
+        //         "m": false,
+        //         "M": true,
+        //         "O": 1611063861488,
+        //         "Z": "15.55951200",
+        //         "Y": "15.55951200",
+        //         "Q": "0.00000000"
         //     }
         //
         // private watchMyTrades future/delivery
         //
         //     {
-        //         s: 'BTCUSDT',
-        //         c: 'pb2jD6ZQHpfzSdUac8VqMK',
-        //         S: 'SELL',
-        //         o: 'MARKET',
-        //         f: 'GTC',
-        //         q: '0.001',
-        //         p: '0',
-        //         ap: '33468.46000',
-        //         sp: '0',
-        //         x: 'TRADE',
-        //         X: 'FILLED',
-        //         i: 13351197194,
-        //         l: '0.001',
-        //         z: '0.001',
-        //         L: '33468.46',
-        //         n: '0.00027086',
-        //         N: 'BNB',
-        //         T: 1612095165362,
-        //         t: 458032604,
-        //         b: '0',
-        //         a: '0',
-        //         m: false,
-        //         R: false,
-        //         wt: 'CONTRACT_PRICE',
-        //         ot: 'MARKET',
-        //         ps: 'BOTH',
-        //         cp: false,
-        //         rp: '0.00335000',
-        //         pP: false,
-        //         si: 0,
-        //         ss: 0
+        //         "s": "BTCUSDT",
+        //         "c": "pb2jD6ZQHpfzSdUac8VqMK",
+        //         "S": "SELL",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "0.001",
+        //         "p": "0",
+        //         "ap": "33468.46000",
+        //         "sp": "0",
+        //         "x": "TRADE",
+        //         "X": "FILLED",
+        //         "i": 13351197194,
+        //         "l": "0.001",
+        //         "z": "0.001",
+        //         "L": "33468.46",
+        //         "n": "0.00027086",
+        //         "N": "BNB",
+        //         "T": 1612095165362,
+        //         "t": 458032604,
+        //         "b": "0",
+        //         "a": "0",
+        //         "m": false,
+        //         "R": false,
+        //         "wt": "CONTRACT_PRICE",
+        //         "ot": "MARKET",
+        //         "ps": "BOTH",
+        //         "cp": false,
+        //         "rp": "0.00335000",
+        //         "pP": false,
+        //         "si": 0,
+        //         "ss": 0
         //     }
         //
         const executionType = this.safeString(trade, 'x');
@@ -855,27 +858,27 @@ class binance extends binance$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         e: 'kline',
-        //         E: 1579482921215,
-        //         s: 'ETHBTC',
-        //         k: {
-        //             t: 1579482900000,
-        //             T: 1579482959999,
-        //             s: 'ETHBTC',
-        //             i: '1m',
-        //             f: 158411535,
-        //             L: 158411550,
-        //             o: '0.01913200',
-        //             c: '0.01913500',
-        //             h: '0.01913700',
-        //             l: '0.01913200',
-        //             v: '5.08400000',
-        //             n: 16,
-        //             x: false,
-        //             q: '0.09728060',
-        //             V: '3.30200000',
-        //             Q: '0.06318500',
-        //             B: '0'
+        //         "e": "kline",
+        //         "E": 1579482921215,
+        //         "s": "ETHBTC",
+        //         "k": {
+        //             "t": 1579482900000,
+        //             "T": 1579482959999,
+        //             "s": "ETHBTC",
+        //             "i": "1m",
+        //             "f": 158411535,
+        //             "L": 158411550,
+        //             "o": "0.01913200",
+        //             "c": "0.01913500",
+        //             "h": "0.01913700",
+        //             "l": "0.01913200",
+        //             "v": "5.08400000",
+        //             "n": 16,
+        //             "x": false,
+        //             "q": "0.09728060",
+        //             "V": "3.30200000",
+        //             "Q": "0.06318500",
+        //             "B": "0"
         //         }
         //     }
         //
@@ -1024,42 +1027,42 @@ class binance extends binance$1 {
         //
         // ticker
         //     {
-        //         e: '24hrTicker',      // event type
-        //         E: 1579485598569,     // event time
-        //         s: 'ETHBTC',          // symbol
-        //         p: '-0.00004000',     // price change
-        //         P: '-0.209',          // price change percent
-        //         w: '0.01920495',      // weighted average price
-        //         x: '0.01916500',      // the price of the first trade before the 24hr rolling window
-        //         c: '0.01912500',      // last (closing) price
-        //         Q: '0.10400000',      // last quantity
-        //         b: '0.01912200',      // best bid
-        //         B: '4.10400000',      // best bid quantity
-        //         a: '0.01912500',      // best ask
-        //         A: '0.00100000',      // best ask quantity
-        //         o: '0.01916500',      // open price
-        //         h: '0.01956500',      // high price
-        //         l: '0.01887700',      // low price
-        //         v: '173518.11900000', // base volume
-        //         q: '3332.40703994',   // quote volume
-        //         O: 1579399197842,     // open time
-        //         C: 1579485597842,     // close time
-        //         F: 158251292,         // first trade id
-        //         L: 158414513,         // last trade id
-        //         n: 163222,            // total number of trades
+        //         "e": "24hrTicker",      // event type
+        //         "E": 1579485598569,     // event time
+        //         "s": "ETHBTC",          // symbol
+        //         "p": "-0.00004000",     // price change
+        //         "P": "-0.209",          // price change percent
+        //         "w": "0.01920495",      // weighted average price
+        //         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
+        //         "c": "0.01912500",      // last (closing) price
+        //         "Q": "0.10400000",      // last quantity
+        //         "b": "0.01912200",      // best bid
+        //         "B": "4.10400000",      // best bid quantity
+        //         "a": "0.01912500",      // best ask
+        //         "A": "0.00100000",      // best ask quantity
+        //         "o": "0.01916500",      // open price
+        //         "h": "0.01956500",      // high price
+        //         "l": "0.01887700",      // low price
+        //         "v": "173518.11900000", // base volume
+        //         "q": "3332.40703994",   // quote volume
+        //         "O": 1579399197842,     // open time
+        //         "C": 1579485597842,     // close time
+        //         "F": 158251292,         // first trade id
+        //         "L": 158414513,         // last trade id
+        //         "n": 163222,            // total number of trades
         //     }
         //
         // miniTicker
         //     {
-        //         e: '24hrMiniTicker',
-        //         E: 1671617114585,
-        //         s: 'MOBBUSD',
-        //         c: '0.95900000',
-        //         o: '0.91200000',
-        //         h: '1.04000000',
-        //         l: '0.89400000',
-        //         v: '2109995.32000000',
-        //         q: '2019254.05788000'
+        //         "e": "24hrMiniTicker",
+        //         "E": 1671617114585,
+        //         "s": "MOBBUSD",
+        //         "c": "0.95900000",
+        //         "o": "0.91200000",
+        //         "h": "1.04000000",
+        //         "l": "0.89400000",
+        //         "v": "2109995.32000000",
+        //         "q": "2019254.05788000"
         //     }
         //
         let event = this.safeString(message, 'e', 'bookTicker');
@@ -1110,29 +1113,29 @@ class binance extends binance$1 {
         // Update Speed 1000ms
         //
         //     {
-        //         e: '24hrTicker',      // event type
-        //         E: 1579485598569,     // event time
-        //         s: 'ETHBTC',          // symbol
-        //         p: '-0.00004000',     // price change
-        //         P: '-0.209',          // price change percent
-        //         w: '0.01920495',      // weighted average price
-        //         x: '0.01916500',      // the price of the first trade before the 24hr rolling window
-        //         c: '0.01912500',      // last (closing) price
-        //         Q: '0.10400000',      // last quantity
-        //         b: '0.01912200',      // best bid
-        //         B: '4.10400000',      // best bid quantity
-        //         a: '0.01912500',      // best ask
-        //         A: '0.00100000',      // best ask quantity
-        //         o: '0.01916500',      // open price
-        //         h: '0.01956500',      // high price
-        //         l: '0.01887700',      // low price
-        //         v: '173518.11900000', // base volume
-        //         q: '3332.40703994',   // quote volume
-        //         O: 1579399197842,     // open time
-        //         C: 1579485597842,     // close time
-        //         F: 158251292,         // first trade id
-        //         L: 158414513,         // last trade id
-        //         n: 163222,            // total number of trades
+        //         "e": "24hrTicker",      // event type
+        //         "E": 1579485598569,     // event time
+        //         "s": "ETHBTC",          // symbol
+        //         "p": "-0.00004000",     // price change
+        //         "P": "-0.209",          // price change percent
+        //         "w": "0.01920495",      // weighted average price
+        //         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
+        //         "c": "0.01912500",      // last (closing) price
+        //         "Q": "0.10400000",      // last quantity
+        //         "b": "0.01912200",      // best bid
+        //         "B": "4.10400000",      // best bid quantity
+        //         "a": "0.01912500",      // best ask
+        //         "A": "0.00100000",      // best ask quantity
+        //         "o": "0.01916500",      // open price
+        //         "h": "0.01956500",      // high price
+        //         "l": "0.01887700",      // low price
+        //         "v": "173518.11900000", // base volume
+        //         "q": "3332.40703994",   // quote volume
+        //         "O": 1579399197842,     // open time
+        //         "C": 1579485597842,     // close time
+        //         "F": 158251292,         // first trade id
+        //         "L": 158414513,         // last trade id
+        //         "n": 163222,            // total number of trades
         //     }
         //
         let event = this.safeString(message, 'e', 'bookTicker');
@@ -1213,15 +1216,29 @@ class binance extends binance$1 {
             params['recvWindow'] = recvWindow;
         }
         extendedParams = this.keysort(extendedParams);
-        extendedParams['signature'] = this.hmac(this.encode(this.urlencode(extendedParams)), this.encode(this.secret), sha256.sha256);
+        const query = this.urlencode(extendedParams);
+        let signature = undefined;
+        if (this.secret.indexOf('PRIVATE KEY') > -1) {
+            if (this.secret.length > 120) {
+                signature = rsa.rsa(query, this.secret, sha256.sha256);
+            }
+            else {
+                signature = crypto.eddsa(this.encode(query), this.secret, ed25519.ed25519);
+            }
+        }
+        else {
+            signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+        }
+        extendedParams['signature'] = signature;
         return extendedParams;
     }
     async authenticate(params = {}) {
         const time = this.milliseconds();
-        let type = this.safeString2(this.options, 'defaultType', 'authenticate', 'spot');
-        type = this.safeString(params, 'type', type);
+        let query = undefined;
+        let type = undefined;
+        [type, query] = this.handleMarketTypeAndParams('authenticate', undefined, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('authenticate', undefined, params);
+        [subType, query] = this.handleSubTypeAndParams('authenticate', undefined, query);
         if (this.isLinear(type, subType)) {
             type = 'future';
         }
@@ -1229,11 +1246,11 @@ class binance extends binance$1 {
             type = 'delivery';
         }
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('authenticate', params);
+        [marginMode, query] = this.handleMarginModeAndParams('authenticate', query);
         const isIsolatedMargin = (marginMode === 'isolated');
         const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
-        const symbol = this.safeString(params, 'symbol');
-        params = this.omit(params, 'symbol');
+        const symbol = this.safeString(query, 'symbol');
+        query = this.omit(query, 'symbol');
         const options = this.safeValue(this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger(options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
@@ -1255,9 +1272,9 @@ class binance extends binance$1 {
                     throw new errors.ArgumentsRequired(this.id + ' authenticate() requires a symbol argument for isolated margin mode');
                 }
                 const marketId = this.marketId(symbol);
-                params = this.extend(params, { 'symbol': marketId });
+                query = this.extend(query, { 'symbol': marketId });
             }
-            const response = await this[method](params);
+            const response = await this[method](query);
             this.options[type] = this.extend(options, {
                 'listenKey': this.safeString(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1269,8 +1286,8 @@ class binance extends binance$1 {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2(this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString(params, 'type', type);
-        let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('keepAliveListenKey', undefined, params);
+        const subTypeInfo = this.handleSubTypeAndParams('keepAliveListenKey', undefined, params);
+        const subType = subTypeInfo[0];
         if (this.isLinear(type, subType)) {
             type = 'future';
         }
@@ -1477,11 +1494,11 @@ class binance extends binance$1 {
         // sent upon a balance update not related to orders
         //
         //     {
-        //         e: 'balanceUpdate',
-        //         E: 1629352505586,
-        //         a: 'IOTX',
-        //         d: '0.43750000',
-        //         T: 1629352505585
+        //         "e": "balanceUpdate",
+        //         "E": 1629352505586,
+        //         "a": "IOTX",
+        //         "d": "0.43750000",
+        //         "T": 1629352505585
         //     }
         //
         // sent upon creating or filling an order
@@ -1637,47 +1654,47 @@ class binance extends binance$1 {
     handleOrderWs(client, message) {
         //
         //    {
-        //        id: 1,
-        //        status: 200,
-        //        result: {
-        //          symbol: 'BTCUSDT',
-        //          orderId: 7663053,
-        //          orderListId: -1,
-        //          clientOrderId: 'x-R4BD3S82d8959d0f5114499487a614',
-        //          transactTime: 1687642291434,
-        //          price: '25000.00000000',
-        //          origQty: '0.00100000',
-        //          executedQty: '0.00000000',
-        //          cummulativeQuoteQty: '0.00000000',
-        //          status: 'NEW',
-        //          timeInForce: 'GTC',
-        //          type: 'LIMIT',
-        //          side: 'BUY',
-        //          workingTime: 1687642291434,
-        //          fills: [],
-        //          selfTradePreventionMode: 'NONE'
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //          "symbol": "BTCUSDT",
+        //          "orderId": 7663053,
+        //          "orderListId": -1,
+        //          "clientOrderId": "x-R4BD3S82d8959d0f5114499487a614",
+        //          "transactTime": 1687642291434,
+        //          "price": "25000.00000000",
+        //          "origQty": "0.00100000",
+        //          "executedQty": "0.00000000",
+        //          "cummulativeQuoteQty": "0.00000000",
+        //          "status": "NEW",
+        //          "timeInForce": "GTC",
+        //          "type": "LIMIT",
+        //          "side": "BUY",
+        //          "workingTime": 1687642291434,
+        //          "fills": [],
+        //          "selfTradePreventionMode": "NONE"
         //        },
-        //        rateLimits: [
+        //        "rateLimits": [
         //          {
-        //            rateLimitType: 'ORDERS',
-        //            interval: 'SECOND',
-        //            intervalNum: 10,
-        //            limit: 50,
-        //            count: 1
+        //            "rateLimitType": "ORDERS",
+        //            "interval": "SECOND",
+        //            "intervalNum": 10,
+        //            "limit": 50,
+        //            "count": 1
         //          },
         //          {
-        //            rateLimitType: 'ORDERS',
-        //            interval: 'DAY',
-        //            intervalNum: 1,
-        //            limit: 160000,
-        //            count: 1
+        //            "rateLimitType": "ORDERS",
+        //            "interval": "DAY",
+        //            "intervalNum": 1,
+        //            "limit": 160000,
+        //            "count": 1
         //          },
         //          {
-        //            rateLimitType: 'REQUEST_WEIGHT',
-        //            interval: 'MINUTE',
-        //            intervalNum: 1,
-        //            limit: 1200,
-        //            count: 12
+        //            "rateLimitType": "REQUEST_WEIGHT",
+        //            "interval": "MINUTE",
+        //            "intervalNum": 1,
+        //            "limit": 1200,
+        //            "count": 12
         //          }
         //        ]
         //    }
@@ -1690,38 +1707,38 @@ class binance extends binance$1 {
     handleOrdersWs(client, message) {
         //
         //    {
-        //        id: 1,
-        //        status: 200,
-        //        result: [{
-        //            symbol: 'BTCUSDT',
-        //            orderId: 7665584,
-        //            orderListId: -1,
-        //            clientOrderId: 'x-R4BD3S82b54769abdd3e4b57874c52',
-        //            price: '26000.00000000',
-        //            origQty: '0.00100000',
-        //            executedQty: '0.00000000',
-        //            cummulativeQuoteQty: '0.00000000',
-        //            status: 'NEW',
-        //            timeInForce: 'GTC',
-        //            type: 'LIMIT',
-        //            side: 'BUY',
-        //            stopPrice: '0.00000000',
-        //            icebergQty: '0.00000000',
-        //            time: 1687642884646,
-        //            updateTime: 1687642884646,
-        //            isWorking: true,
-        //            workingTime: 1687642884646,
-        //            origQuoteOrderQty: '0.00000000',
-        //            selfTradePreventionMode: 'NONE'
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": [{
+        //            "symbol": "BTCUSDT",
+        //            "orderId": 7665584,
+        //            "orderListId": -1,
+        //            "clientOrderId": "x-R4BD3S82b54769abdd3e4b57874c52",
+        //            "price": "26000.00000000",
+        //            "origQty": "0.00100000",
+        //            "executedQty": "0.00000000",
+        //            "cummulativeQuoteQty": "0.00000000",
+        //            "status": "NEW",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "side": "BUY",
+        //            "stopPrice": "0.00000000",
+        //            "icebergQty": "0.00000000",
+        //            "time": 1687642884646,
+        //            "updateTime": 1687642884646,
+        //            "isWorking": true,
+        //            "workingTime": 1687642884646,
+        //            "origQuoteOrderQty": "0.00000000",
+        //            "selfTradePreventionMode": "NONE"
         //        },
         //        ...
         //        ],
-        //        rateLimits: [{
-        //            rateLimitType: 'REQUEST_WEIGHT',
-        //            interval: 'MINUTE',
-        //            intervalNum: 1,
-        //            limit: 1200,
-        //            count: 14
+        //        "rateLimits": [{
+        //            "rateLimitType": "REQUEST_WEIGHT",
+        //            "interval": "MINUTE",
+        //            "intervalNum": 1,
+        //            "limit": 1200,
+        //            "count": 14
         //        }]
         //    }
         //
@@ -1767,66 +1784,66 @@ class binance extends binance$1 {
     handleEditOrderWs(client, message) {
         //
         //    {
-        //        id: 1,
-        //        status: 200,
-        //        result: {
-        //            cancelResult: 'SUCCESS',
-        //            newOrderResult: 'SUCCESS',
-        //            cancelResponse: {
-        //                symbol: 'BTCUSDT',
-        //                origClientOrderId: 'x-R4BD3S82813c5d7ffa594104917de2',
-        //                orderId: 7665177,
-        //                orderListId: -1,
-        //                clientOrderId: 'mbrnbQsQhtCXCLY45d5q7S',
-        //                price: '26000.00000000',
-        //                origQty: '0.00100000',
-        //                executedQty: '0.00000000',
-        //                cummulativeQuoteQty: '0.00000000',
-        //                status: 'CANCELED',
-        //                timeInForce: 'GTC',
-        //                type: 'LIMIT',
-        //                side: 'BUY',
-        //                selfTradePreventionMode: 'NONE'
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //            "cancelResult": "SUCCESS",
+        //            "newOrderResult": "SUCCESS",
+        //            "cancelResponse": {
+        //                "symbol": "BTCUSDT",
+        //                "origClientOrderId": "x-R4BD3S82813c5d7ffa594104917de2",
+        //                "orderId": 7665177,
+        //                "orderListId": -1,
+        //                "clientOrderId": "mbrnbQsQhtCXCLY45d5q7S",
+        //                "price": "26000.00000000",
+        //                "origQty": "0.00100000",
+        //                "executedQty": "0.00000000",
+        //                "cummulativeQuoteQty": "0.00000000",
+        //                "status": "CANCELED",
+        //                "timeInForce": "GTC",
+        //                "type": "LIMIT",
+        //                "side": "BUY",
+        //                "selfTradePreventionMode": "NONE"
         //            },
-        //            newOrderResponse: {
-        //                symbol: 'BTCUSDT',
-        //                orderId: 7665584,
-        //                orderListId: -1,
-        //                clientOrderId: 'x-R4BD3S82b54769abdd3e4b57874c52',
-        //                transactTime: 1687642884646,
-        //                price: '26000.00000000',
-        //                origQty: '0.00100000',
-        //                executedQty: '0.00000000',
-        //                cummulativeQuoteQty: '0.00000000',
-        //                status: 'NEW',
-        //                timeInForce: 'GTC',
-        //                type: 'LIMIT',
-        //                side: 'BUY',
-        //                workingTime: 1687642884646,
-        //                fills: [],
-        //                selfTradePreventionMode: 'NONE'
+        //            "newOrderResponse": {
+        //                "symbol": "BTCUSDT",
+        //                "orderId": 7665584,
+        //                "orderListId": -1,
+        //                "clientOrderId": "x-R4BD3S82b54769abdd3e4b57874c52",
+        //                "transactTime": 1687642884646,
+        //                "price": "26000.00000000",
+        //                "origQty": "0.00100000",
+        //                "executedQty": "0.00000000",
+        //                "cummulativeQuoteQty": "0.00000000",
+        //                "status": "NEW",
+        //                "timeInForce": "GTC",
+        //                "type": "LIMIT",
+        //                "side": "BUY",
+        //                "workingTime": 1687642884646,
+        //                "fills": [],
+        //                "selfTradePreventionMode": "NONE"
         //            }
         //        },
-        //        rateLimits: [{
-        //                rateLimitType: 'ORDERS',
-        //                interval: 'SECOND',
-        //                intervalNum: 10,
-        //                limit: 50,
-        //                count: 1
+        //        "rateLimits": [{
+        //                "rateLimitType": "ORDERS",
+        //                "interval": "SECOND",
+        //                "intervalNum": 10,
+        //                "limit": 50,
+        //                "count": 1
         //            },
         //            {
-        //                rateLimitType: 'ORDERS',
-        //                interval: 'DAY',
-        //                intervalNum: 1,
-        //                limit: 160000,
-        //                count: 3
+        //                "rateLimitType": "ORDERS",
+        //                "interval": "DAY",
+        //                "intervalNum": 1,
+        //                "limit": 160000,
+        //                "count": 3
         //            },
         //            {
-        //                rateLimitType: 'REQUEST_WEIGHT',
-        //                interval: 'MINUTE',
-        //                intervalNum: 1,
-        //                limit: 1200,
-        //                count: 12
+        //                "rateLimitType": "REQUEST_WEIGHT",
+        //                "interval": "MINUTE",
+        //                "intervalNum": 1,
+        //                "limit": 1200,
+        //                "count": 12
         //            }
         //        ]
         //    }
@@ -2047,7 +2064,7 @@ class binance extends binance$1 {
             market = this.market(symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params = this.extend(params, { 'symbol': symbol }); // needed inside authenticate for isolated margin
+            params = this.extend(params, { 'type': market['type'], 'symbol': symbol }); // needed inside authenticate for isolated margin
         }
         await this.authenticate(params);
         let type = undefined;
@@ -2060,7 +2077,11 @@ class binance extends binance$1 {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        let urlType = type;
+        if (type === 'margin') {
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client(url);
         this.setBalanceCache(client, type);
         const message = undefined;
@@ -2400,10 +2421,15 @@ class binance extends binance$1 {
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
          */
         await this.loadMarkets();
-        const defaultType = this.safeString2(this.options, 'watchMyTrades', 'defaultType', 'spot');
-        let type = this.safeString(params, 'type', defaultType);
+        let type = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('watchMyTrades', undefined, params);
+        [subType, params] = this.handleSubTypeAndParams('watchMyTrades', market, params);
         if (this.isLinear(type, subType)) {
             type = 'future';
         }
@@ -2414,10 +2440,14 @@ class binance extends binance$1 {
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += ':' + symbol;
-            params = this.extend(params, { 'symbol': symbol });
+            params = this.extend(params, { 'type': market['type'], 'symbol': symbol });
         }
         await this.authenticate(params);
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        let urlType = type; // we don't change type because the listening key is different
+        if (type === 'margin') {
+            urlType = 'spot'; // spot-margin shares the same stream as regular spot
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client(url);
         this.setBalanceCache(client, type);
         const message = undefined;
@@ -2532,6 +2562,15 @@ class binance extends binance$1 {
         }
     }
     handleWsError(client, message) {
+        //
+        //    {
+        //        "error": {
+        //            "code": 2,
+        //            "msg": "Invalid request: invalid stream"
+        //        },
+        //        "id": 1
+        //    }
+        //
         const id = this.safeString(message, 'id');
         let rejected = false;
         const error = this.safeValue(message, 'error', {});
@@ -2542,7 +2581,17 @@ class binance extends binance$1 {
         }
         catch (e) {
             rejected = true;
+            // private endpoint uses id as messageHash
             client.reject(e, id);
+            // public endpoint stores messageHash in subscriptios
+            const subscriptionKeys = Object.keys(client.subscriptions);
+            for (let i = 0; i < subscriptionKeys.length; i++) {
+                const subscriptionHash = subscriptionKeys[i];
+                const subscriptionId = this.safeString(client.subscriptions[subscriptionHash], 'id');
+                if (id === subscriptionId) {
+                    client.reject(e, subscriptionHash);
+                }
+            }
         }
         if (!rejected) {
             client.reject(message, id);
@@ -2555,7 +2604,8 @@ class binance extends binance$1 {
     handleMessage(client, message) {
         // handle WebSocketAPI
         const status = this.safeString(message, 'status');
-        if (status !== undefined && status !== '200') {
+        const error = this.safeValue(message, 'error');
+        if ((error !== undefined) || (status !== undefined && status !== '200')) {
             return this.handleWsError(client, message);
         }
         const id = this.safeString(message, 'id');
@@ -2597,12 +2647,12 @@ class binance extends binance$1 {
             // special case for the real-time bookTicker, since it comes without an event identifier
             //
             //     {
-            //         u: 7488717758,
-            //         s: 'BTCUSDT',
-            //         b: '28621.74000000',
-            //         B: '1.43278800',
-            //         a: '28621.75000000',
-            //         A: '2.52500800'
+            //         "u": 7488717758,
+            //         "s": "BTCUSDT",
+            //         "b": "28621.74000000",
+            //         "B": "1.43278800",
+            //         "a": "28621.75000000",
+            //         "A": "2.52500800"
             //     }
             //
             if (event === undefined) {

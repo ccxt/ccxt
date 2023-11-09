@@ -2,7 +2,6 @@
 
 import bitrueRest from '../bitrue.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { ArgumentsRequired } from '../base/errors.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -79,47 +78,47 @@ export default class bitrue extends bitrueRest {
     handleBalance (client: Client, message) {
         //
         //     {
-        //         e: 'BALANCE',
-        //         x: 'OutboundAccountPositionTradeEvent',
-        //         E: 1657799510175,
-        //         I: '302274978401288200',
-        //         i: 1657799510175,
-        //         B: [{
-        //                 a: 'btc',
-        //                 F: '0.0006000000000000',
-        //                 T: 1657799510000,
-        //                 f: '0.0006000000000000',
-        //                 t: 0
+        //         "e": "BALANCE",
+        //         "x": "OutboundAccountPositionTradeEvent",
+        //         "E": 1657799510175,
+        //         "I": "302274978401288200",
+        //         "i": 1657799510175,
+        //         "B": [{
+        //                 "a": "btc",
+        //                 "F": "0.0006000000000000",
+        //                 "T": 1657799510000,
+        //                 "f": "0.0006000000000000",
+        //                 "t": 0
         //             },
         //             {
-        //                 a: 'usdt',
-        //                 T: 0,
-        //                 L: '0.0000000000000000',
-        //                 l: '-11.8705317318000000',
-        //                 t: 1657799510000
+        //                 "a": "usdt",
+        //                 "T": 0,
+        //                 "L": "0.0000000000000000",
+        //                 "l": "-11.8705317318000000",
+        //                 "t": 1657799510000
         //             }
         //         ],
-        //         u: 1814396
+        //         "u": 1814396
         //     }
         //
         //     {
-        //      e: 'BALANCE',
-        //      x: 'OutboundAccountPositionOrderEvent',
-        //      E: 1670051332478,
-        //      I: '353662845694083072',
-        //      i: 1670051332478,
-        //      B: [
+        //      "e": "BALANCE",
+        //      "x": "OutboundAccountPositionOrderEvent",
+        //      "E": 1670051332478,
+        //      "I": "353662845694083072",
+        //      "i": 1670051332478,
+        //      "B": [
         //        {
-        //          a: 'eth',
-        //          F: '0.0400000000000000',
-        //          T: 1670051332000,
-        //          f: '-0.0100000000000000',
-        //          L: '0.0100000000000000',
-        //          l: '0.0100000000000000',
-        //          t: 1670051332000
+        //          "a": "eth",
+        //          "F": "0.0400000000000000",
+        //          "T": 1670051332000,
+        //          "f": "-0.0100000000000000",
+        //          "L": "0.0100000000000000",
+        //          "l": "0.0100000000000000",
+        //          "t": 1670051332000
         //        }
         //      ],
-        //      u: 2285311
+        //      "u": 2285311
         //    }
         //
         const balances = this.safeValue (message, 'B', []);
@@ -131,18 +130,18 @@ export default class bitrue extends bitrueRest {
     parseWSBalances (balances) {
         //
         //    [{
-        //         a: 'btc',
-        //         F: '0.0006000000000000',
-        //         T: 1657799510000,
-        //         f: '0.0006000000000000',
-        //         t: 0
+        //         "a": "btc",
+        //         "F": "0.0006000000000000",
+        //         "T": 1657799510000,
+        //         "f": "0.0006000000000000",
+        //         "t": 0
         //     },
         //     {
-        //         a: 'usdt',
-        //         T: 0,
-        //         L: '0.0000000000000000',
-        //         l: '-11.8705317318000000',
-        //         t: 1657799510000
+        //         "a": "usdt",
+        //         "T": 0,
+        //         "L": "0.0000000000000000",
+        //         "l": "-11.8705317318000000",
+        //         "t": 1657799510000
         //     }]
         //
         this.balance['info'] = balances;
@@ -206,25 +205,25 @@ export default class bitrue extends bitrueRest {
     handleOrder (client: Client, message) {
         //
         //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
+        //        "e": "ORDER",
+        //        "i": 16122802798,
+        //        "E": 1657882521876,
+        //        "I": "302623154710888464",
+        //        "u": 1814396,
+        //        "s": "btcusdt",
+        //        "S": 2,
+        //        "o": 1,
+        //        "q": "0.0005",
+        //        "p": "60000",
+        //        "X": 0,
+        //        "x": 1,
+        //        "z": "0",
+        //        "n": "0",
+        //        "N": "usdt",
+        //        "O": 1657882521876,
+        //        "L": "0",
+        //        "l": "0",
+        //        "Y": "0"
         //    }
         //
         const parsed = this.parseWsOrder (message);
@@ -241,25 +240,25 @@ export default class bitrue extends bitrueRest {
     parseWsOrder (order, market = undefined) {
         //
         //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
+        //        "e": "ORDER",
+        //        "i": 16122802798,
+        //        "E": 1657882521876,
+        //        "I": "302623154710888464",
+        //        "u": 1814396,
+        //        "s": "btcusdt",
+        //        "S": 2,
+        //        "o": 1,
+        //        "q": "0.0005",
+        //        "p": "60000",
+        //        "X": 0,
+        //        "x": 1,
+        //        "z": "0",
+        //        "n": "0",
+        //        "N": "usdt",
+        //        "O": 1657882521876,
+        //        "L": "0",
+        //        "l": "0",
+        //        "Y": "0"
         //    }
         //
         const timestamp = this.safeInteger (order, 'E');
@@ -299,9 +298,6 @@ export default class bitrue extends bitrueRest {
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];

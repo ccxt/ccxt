@@ -402,9 +402,9 @@ class upbit extends Exchange {
         //
         //    array(
         //        array(
-        //            $market => "KRW-BTC",
-        //            korean_name => "비트코인",
-        //            english_name => "Bitcoin"
+        //            "market" => "KRW-BTC",
+        //            "korean_name" => "비트코인",
+        //            "english_name" => "Bitcoin"
         //        ),
         //        ...,
         //    )
@@ -471,7 +471,7 @@ class upbit extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -500,15 +500,15 @@ class upbit extends Exchange {
         $response = $this->privateGetAccounts ($params);
         //
         //     array( array(          currency => "BTC",
-        //                   balance => "0.005",
-        //                    locked => "0.0",
-        //         avg_krw_buy_price => "7446000",
-        //                  modified =>  false     ),
+        //                   "balance" => "0.005",
+        //                    "locked" => "0.0",
+        //         "avg_krw_buy_price" => "7446000",
+        //                  "modified" =>  false     ),
         //       {          currency => "ETH",
-        //                   balance => "0.1",
-        //                    locked => "0.0",
-        //         avg_krw_buy_price => "250000",
-        //                  modified =>  false    }   )
+        //                   "balance" => "0.1",
+        //                    "locked" => "0.0",
+        //         "avg_krw_buy_price" => "250000",
+        //                  "modified" =>  false    }   )
         //
         return $this->parse_balance($response);
     }
@@ -541,31 +541,31 @@ class upbit extends Exchange {
         $response = $this->publicGetOrderbook (array_merge($request, $params));
         //
         //     array( {          market =>   "BTC-ETH",
-        //               $timestamp =>    1542899030043,
-        //          total_ask_size =>    109.57065201,
-        //          total_bid_size =>    125.74430631,
-        //         orderbook_units => array( array( ask_price => 0.02926679,
-        //                              bid_price => 0.02919904,
-        //                               ask_size => 4.20293961,
-        //                               bid_size => 11.65043576 ),
+        //               "timestamp" =>    1542899030043,
+        //          "total_ask_size" =>    109.57065201,
+        //          "total_bid_size" =>    125.74430631,
+        //         "orderbook_units" => array( array( ask_price => 0.02926679,
+        //                              "bid_price" => 0.02919904,
+        //                               "ask_size" => 4.20293961,
+        //                               "bid_size" => 11.65043576 ),
         //                            ...,
         //                            array( ask_price => 0.02938209,
-        //                              bid_price => 0.0291231,
-        //                               ask_size => 0.05135782,
-        //                               bid_size => 13.5595     }   ) ),
+        //                              "bid_price" => 0.0291231,
+        //                               "ask_size" => 0.05135782,
+        //                               "bid_size" => 13.5595     }   ) ),
         //       {          market =>   "KRW-BTC",
-        //               $timestamp =>    1542899034662,
-        //          total_ask_size =>    12.89790974,
-        //          total_bid_size =>    4.88395783,
-        //         orderbook_units => array( array( ask_price => 5164000,
-        //                              bid_price => 5162000,
-        //                               ask_size => 2.57606495,
-        //                               bid_size => 0.214       ),
+        //               "timestamp" =>    1542899034662,
+        //          "total_ask_size" =>    12.89790974,
+        //          "total_bid_size" =>    4.88395783,
+        //         "orderbook_units" => array( array( ask_price => 5164000,
+        //                              "bid_price" => 5162000,
+        //                               "ask_size" => 2.57606495,
+        //                               "bid_size" => 0.214       ),
         //                            ...,
         //                            { ask_price => 5176000,
-        //                              bid_price => 5152000,
-        //                               ask_size => 2.752,
-        //                               bid_size => 0.4650305 }    ) }   )
+        //                              "bid_price" => 5152000,
+        //                               "ask_size" => 2.752,
+        //                               "bid_size" => 0.4650305 }    ) }   )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -585,7 +585,7 @@ class upbit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -598,34 +598,34 @@ class upbit extends Exchange {
         return $this->safe_value($orderbooks, $symbol);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //       {                $market => "BTC-ETH",
-        //                    trade_date => "20181122",
-        //                    trade_time => "104543",
-        //                trade_date_kst => "20181122",
-        //                trade_time_kst => "194543",
-        //               trade_timestamp =>  1542883543097,
-        //                 opening_price =>  0.02976455,
-        //                    high_price =>  0.02992577,
-        //                     low_price =>  0.02934283,
-        //                   trade_price =>  0.02947773,
-        //            prev_closing_price =>  0.02966,
-        //                        change => "FALL",
-        //                  change_price =>  0.00018227,
-        //                   change_rate =>  0.0061453136,
-        //           signed_change_price =>  -0.00018227,
-        //            signed_change_rate =>  -0.0061453136,
-        //                  trade_volume =>  1.00000005,
-        //               acc_trade_price =>  100.95825586,
-        //           acc_trade_price_24h =>  289.58650166,
-        //              acc_trade_volume =>  3409.85311036,
-        //          acc_trade_volume_24h =>  9754.40510513,
-        //         highest_52_week_price =>  0.12345678,
-        //          highest_52_week_date => "2018-02-01",
-        //          lowest_52_week_price =>  0.023936,
-        //           lowest_52_week_date => "2017-12-08",
-        //                     $timestamp =>  1542883543813  }
+        //                    "trade_date" => "20181122",
+        //                    "trade_time" => "104543",
+        //                "trade_date_kst" => "20181122",
+        //                "trade_time_kst" => "194543",
+        //               "trade_timestamp" =>  1542883543097,
+        //                 "opening_price" =>  0.02976455,
+        //                    "high_price" =>  0.02992577,
+        //                     "low_price" =>  0.02934283,
+        //                   "trade_price" =>  0.02947773,
+        //            "prev_closing_price" =>  0.02966,
+        //                        "change" => "FALL",
+        //                  "change_price" =>  0.00018227,
+        //                   "change_rate" =>  0.0061453136,
+        //           "signed_change_price" =>  -0.00018227,
+        //            "signed_change_rate" =>  -0.0061453136,
+        //                  "trade_volume" =>  1.00000005,
+        //               "acc_trade_price" =>  100.95825586,
+        //           "acc_trade_price_24h" =>  289.58650166,
+        //              "acc_trade_volume" =>  3409.85311036,
+        //          "acc_trade_volume_24h" =>  9754.40510513,
+        //         "highest_52_week_price" =>  0.12345678,
+        //          "highest_52_week_date" => "2018-02-01",
+        //          "lowest_52_week_price" =>  0.023936,
+        //           "lowest_52_week_date" => "2017-12-08",
+        //                     "timestamp" =>  1542883543813  }
         //
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
         $marketId = $this->safe_string_2($ticker, 'market', 'code');
@@ -683,31 +683,31 @@ class upbit extends Exchange {
         $response = $this->publicGetTicker (array_merge($request, $params));
         //
         //     array( {                market => "BTC-ETH",
-        //                    trade_date => "20181122",
-        //                    trade_time => "104543",
-        //                trade_date_kst => "20181122",
-        //                trade_time_kst => "194543",
-        //               trade_timestamp =>  1542883543097,
-        //                 opening_price =>  0.02976455,
-        //                    high_price =>  0.02992577,
-        //                     low_price =>  0.02934283,
-        //                   trade_price =>  0.02947773,
-        //            prev_closing_price =>  0.02966,
-        //                        change => "FALL",
-        //                  change_price =>  0.00018227,
-        //                   change_rate =>  0.0061453136,
-        //           signed_change_price =>  -0.00018227,
-        //            signed_change_rate =>  -0.0061453136,
-        //                  trade_volume =>  1.00000005,
-        //               acc_trade_price =>  100.95825586,
-        //           acc_trade_price_24h =>  289.58650166,
-        //              acc_trade_volume =>  3409.85311036,
-        //          acc_trade_volume_24h =>  9754.40510513,
-        //         highest_52_week_price =>  0.12345678,
-        //          highest_52_week_date => "2018-02-01",
-        //          lowest_52_week_price =>  0.023936,
-        //           lowest_52_week_date => "2017-12-08",
-        //                     timestamp =>  1542883543813  } )
+        //                    "trade_date" => "20181122",
+        //                    "trade_time" => "104543",
+        //                "trade_date_kst" => "20181122",
+        //                "trade_time_kst" => "194543",
+        //               "trade_timestamp" =>  1542883543097,
+        //                 "opening_price" =>  0.02976455,
+        //                    "high_price" =>  0.02992577,
+        //                     "low_price" =>  0.02934283,
+        //                   "trade_price" =>  0.02947773,
+        //            "prev_closing_price" =>  0.02966,
+        //                        "change" => "FALL",
+        //                  "change_price" =>  0.00018227,
+        //                   "change_rate" =>  0.0061453136,
+        //           "signed_change_price" =>  -0.00018227,
+        //            "signed_change_rate" =>  -0.0061453136,
+        //                  "trade_volume" =>  1.00000005,
+        //               "acc_trade_price" =>  100.95825586,
+        //           "acc_trade_price_24h" =>  289.58650166,
+        //              "acc_trade_volume" =>  3409.85311036,
+        //          "acc_trade_volume_24h" =>  9754.40510513,
+        //         "highest_52_week_price" =>  0.12345678,
+        //          "highest_52_week_date" => "2018-02-01",
+        //          "lowest_52_week_price" =>  0.023936,
+        //           "lowest_52_week_date" => "2017-12-08",
+        //                     "timestamp" =>  1542883543813  } )
         //
         $result = array();
         for ($t = 0; $t < count($response); $t++) {
@@ -718,7 +718,7 @@ class upbit extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/ticker%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -730,20 +730,20 @@ class upbit extends Exchange {
         return $this->safe_value($tickers, $symbol);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
         //       {             $market => "BTC-ETH",
-        //             trade_date_utc => "2018-11-22",
-        //             trade_time_utc => "13:55:24",
-        //                  $timestamp =>  1542894924397,
-        //                trade_price =>  0.02914289,
-        //               trade_volume =>  0.20074397,
-        //         prev_closing_price =>  0.02966,
-        //               change_price =>  -0.00051711,
-        //                    ask_bid => "ASK",
-        //              sequential_id =>  15428949259430000 }
+        //             "trade_date_utc" => "2018-11-22",
+        //             "trade_time_utc" => "13:55:24",
+        //                  "timestamp" =>  1542894924397,
+        //                "trade_price" =>  0.02914289,
+        //               "trade_volume" =>  0.20074397,
+        //         "prev_closing_price" =>  0.02966,
+        //               "change_price" =>  -0.00051711,
+        //                    "ask_bid" => "ASK",
+        //              "sequential_id" =>  15428949259430000 }
         //
         // fetchOrder trades
         //
@@ -802,7 +802,7 @@ class upbit extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD
          * get the list of most recent trades for a particular $symbol
@@ -824,25 +824,25 @@ class upbit extends Exchange {
         $response = $this->publicGetTradesTicks (array_merge($request, $params));
         //
         //     array( array(             $market => "BTC-ETH",
-        //             trade_date_utc => "2018-11-22",
-        //             trade_time_utc => "13:55:24",
-        //                  timestamp =>  1542894924397,
-        //                trade_price =>  0.02914289,
-        //               trade_volume =>  0.20074397,
-        //         prev_closing_price =>  0.02966,
-        //               change_price =>  -0.00051711,
-        //                    ask_bid => "ASK",
-        //              sequential_id =>  15428949259430000 ),
+        //             "trade_date_utc" => "2018-11-22",
+        //             "trade_time_utc" => "13:55:24",
+        //                  "timestamp" =>  1542894924397,
+        //                "trade_price" =>  0.02914289,
+        //               "trade_volume" =>  0.20074397,
+        //         "prev_closing_price" =>  0.02966,
+        //               "change_price" =>  -0.00051711,
+        //                    "ask_bid" => "ASK",
+        //              "sequential_id" =>  15428949259430000 ),
         //       {             $market => "BTC-ETH",
-        //             trade_date_utc => "2018-11-22",
-        //             trade_time_utc => "13:03:10",
-        //                  timestamp =>  1542891790123,
-        //                trade_price =>  0.02917,
-        //               trade_volume =>  7.392,
-        //         prev_closing_price =>  0.02966,
-        //               change_price =>  -0.00049,
-        //                    ask_bid => "ASK",
-        //              sequential_id =>  15428917910540000 }  )
+        //             "trade_date_utc" => "2018-11-22",
+        //             "trade_time_utc" => "13:03:10",
+        //                  "timestamp" =>  1542891790123,
+        //                "trade_price" =>  0.02917,
+        //               "trade_volume" =>  7.392,
+        //         "prev_closing_price" =>  0.02966,
+        //               "change_price" =>  -0.00049,
+        //                    "ask_bid" => "ASK",
+        //              "sequential_id" =>  15428917910540000 }  )
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -911,20 +911,20 @@ class upbit extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
-        //         $market => "BTC-ETH",
-        //         candle_date_time_utc => "2018-11-22T13:47:00",
-        //         candle_date_time_kst => "2018-11-22T22:47:00",
-        //         opening_price => 0.02915963,
-        //         high_price => 0.02915963,
-        //         low_price => 0.02915448,
-        //         trade_price => 0.02915448,
-        //         timestamp => 1542894473674,
-        //         candle_acc_trade_price => 0.0981629437535248,
-        //         candle_acc_trade_volume => 3.36693173,
-        //         unit => 1
+        //         "market" => "BTC-ETH",
+        //         "candle_date_time_utc" => "2018-11-22T13:47:00",
+        //         "candle_date_time_kst" => "2018-11-22T22:47:00",
+        //         "opening_price" => 0.02915963,
+        //         "high_price" => 0.02915963,
+        //         "low_price" => 0.02915448,
+        //         "trade_price" => 0.02915448,
+        //         "timestamp" => 1542894473674,
+        //         "candle_acc_trade_price" => 0.0981629437535248,
+        //         "candle_acc_trade_volume" => 3.36693173,
+        //         "unit" => 1
         //     }
         //
         return array(
@@ -937,7 +937,7 @@ class upbit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EB%B6%84minute-%EC%BA%94%EB%93%A4-1
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -975,30 +975,30 @@ class upbit extends Exchange {
         //
         //     array(
         //         array(
-        //             $market => "BTC-ETH",
-        //             candle_date_time_utc => "2018-11-22T13:47:00",
-        //             candle_date_time_kst => "2018-11-22T22:47:00",
-        //             opening_price => 0.02915963,
-        //             high_price => 0.02915963,
-        //             low_price => 0.02915448,
-        //             trade_price => 0.02915448,
-        //             timestamp => 1542894473674,
-        //             candle_acc_trade_price => 0.0981629437535248,
-        //             candle_acc_trade_volume => 3.36693173,
-        //             unit => 1
+        //             "market" => "BTC-ETH",
+        //             "candle_date_time_utc" => "2018-11-22T13:47:00",
+        //             "candle_date_time_kst" => "2018-11-22T22:47:00",
+        //             "opening_price" => 0.02915963,
+        //             "high_price" => 0.02915963,
+        //             "low_price" => 0.02915448,
+        //             "trade_price" => 0.02915448,
+        //             "timestamp" => 1542894473674,
+        //             "candle_acc_trade_price" => 0.0981629437535248,
+        //             "candle_acc_trade_volume" => 3.36693173,
+        //             "unit" => 1
         //         ),
         //         {
-        //             $market => "BTC-ETH",
-        //             candle_date_time_utc => "2018-11-22T10:06:00",
-        //             candle_date_time_kst => "2018-11-22T19:06:00",
-        //             opening_price => 0.0294,
-        //             high_price => 0.02940882,
-        //             low_price => 0.02934283,
-        //             trade_price => 0.02937354,
-        //             timestamp => 1542881219276,
-        //             candle_acc_trade_price => 0.0762597110943884,
-        //             candle_acc_trade_volume => 2.5949617,
-        //             unit => 1
+        //             "market" => "BTC-ETH",
+        //             "candle_date_time_utc" => "2018-11-22T10:06:00",
+        //             "candle_date_time_kst" => "2018-11-22T19:06:00",
+        //             "opening_price" => 0.0294,
+        //             "high_price" => 0.02940882,
+        //             "low_price" => 0.02934283,
+        //             "trade_price" => 0.02937354,
+        //             "timestamp" => 1542881219276,
+        //             "candle_acc_trade_price" => 0.0762597110943884,
+        //             "candle_acc_trade_volume" => 2.5949617,
+        //             "unit" => 1
         //         }
         //     )
         //
@@ -1064,22 +1064,22 @@ class upbit extends Exchange {
         $response = $this->privatePostOrders (array_merge($request, $params));
         //
         //     {
-        //         'uuid' => 'cdd92199-2897-4e14-9448-f923320408ad',
-        //         'side' => 'bid',
-        //         'ord_type' => 'limit',
-        //         'price' => '100.0',
-        //         'avg_price' => '0.0',
-        //         'state' => 'wait',
-        //         'market' => 'KRW-BTC',
-        //         'created_at' => '2018-04-10T15:42:23+09:00',
-        //         'volume' => '0.01',
-        //         'remaining_volume' => '0.01',
-        //         'reserved_fee' => '0.0015',
-        //         'remaining_fee' => '0.0015',
-        //         'paid_fee' => '0.0',
-        //         'locked' => '1.0015',
-        //         'executed_volume' => '0.0',
-        //         'trades_count' => 0
+        //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
+        //         "side" => "bid",
+        //         "ord_type" => "limit",
+        //         "price" => "100.0",
+        //         "avg_price" => "0.0",
+        //         "state" => "wait",
+        //         "market" => "KRW-BTC",
+        //         "created_at" => "2018-04-10T15:42:23+09:00",
+        //         "volume" => "0.01",
+        //         "remaining_volume" => "0.01",
+        //         "reserved_fee" => "0.0015",
+        //         "remaining_fee" => "0.0015",
+        //         "paid_fee" => "0.0",
+        //         "locked" => "1.0015",
+        //         "executed_volume" => "0.0",
+        //         "trades_count" => 0
         //     }
         //
         return $this->parse_order($response);
@@ -1221,7 +1221,7 @@ class upbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1302,7 +1302,7 @@ class upbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "uuid" => "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -1470,7 +1470,7 @@ class upbit extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
          * fetch all unfilled currently open orders
@@ -1483,7 +1483,7 @@ class upbit extends Exchange {
         return $this->fetch_orders_by_state('wait', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
          * fetches information on multiple closed orders made by the user

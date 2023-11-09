@@ -1,5 +1,7 @@
+import { Exchange } from '../../ccxt.js';
 declare class baseMainTestClass {
     lang: string;
+    idTests: boolean;
     staticTestsFailed: boolean;
     staticTests: boolean;
     info: boolean;
@@ -32,14 +34,27 @@ export default class testMainClass extends baseMainTestClass {
     startTest(exchange: any, symbol: any): Promise<void>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
     loadMarketsFromFile(id: string): any;
-    loadStaticData(): {};
+    loadStaticData(targetExchange?: string): {};
     removeHostnamefromUrl(url: string): string;
     urlencodedToDict(url: string): {};
-    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: object, storedOutput: object): any;
+    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: any, storedOutput: any): void;
     assertStaticOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
+    sanitizeDataInput(input: any): any[];
     testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
-    testExchangeStatically(exchangeName: string, exchangeData: object): Promise<void>;
+    initOfflineExchange(exchangeName: string): Exchange;
+    testExchangeStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
     getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
-    runStaticTests(): Promise<void>;
+    runStaticTests(targetExchange?: string, testName?: string): Promise<void>;
+    runBrokerIdTests(): Promise<void>;
+    testBinance(): Promise<void>;
+    testOkx(): Promise<void>;
+    testCryptocom(): Promise<void>;
+    testBybit(): Promise<void>;
+    testKucoin(): Promise<void>;
+    testKucoinfutures(): Promise<void>;
+    testBitget(): Promise<void>;
+    testMexc(): Promise<void>;
+    testHuobi(): Promise<void>;
+    testWoo(): Promise<void>;
 }
 export {};

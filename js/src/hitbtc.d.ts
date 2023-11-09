@@ -1,5 +1,5 @@
 import Exchange from './abstract/hitbtc.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Trade } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Trade, Balances, Transaction } from './base/types.js';
 /**
  * @class hitbtc
  * @extends Exchange
@@ -25,8 +25,8 @@ export default class hitbtc extends Exchange {
         currency: any;
         network: any;
     }>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     parseTicker(ticker: any, market?: any): Ticker;
@@ -36,32 +36,7 @@ export default class hitbtc extends Exchange {
     fetchTransactionsHelper(types: any, code: any, since: any, limit: any, params: any): Promise<any>;
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        code: any;
-        currency: any;
-        network: any;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: string;
-        addressFrom: string;
-        addressTo: string;
-        tag: string;
-        tagFrom: any;
-        tagTo: string;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -81,7 +56,7 @@ export default class hitbtc extends Exchange {
     }>;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -118,36 +93,14 @@ export default class hitbtc extends Exchange {
     convertCurrencyNetwork(code: string, amount: any, fromNetwork: any, toNetwork: any, params: any): Promise<{
         info: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        code: any;
-        currency: any;
-        network: any;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: string;
-        addressFrom: string;
-        addressTo: string;
-        tag: string;
-        tagFrom: any;
-        tagTo: string;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     parsePosition(position: any, market?: any): Position;
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;

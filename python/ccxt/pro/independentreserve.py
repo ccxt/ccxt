@@ -60,20 +60,20 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_trades(self, client: Client, message):
         #
         #    {
-        #        Channel: 'ticker-btc-usd',
-        #        Nonce: 130,
-        #        Data: {
-        #          TradeGuid: '7a669f2a-d564-472b-8493-6ef982eb1e96',
-        #          Pair: 'btc-aud',
-        #          TradeDate: '2023-02-12T10:04:13.0804889+11:00',
-        #          Price: 31640,
-        #          Volume: 0.00079029,
-        #          BidGuid: 'ba8a78b5-be69-4d33-92bb-9df0daa6314e',
-        #          OfferGuid: '27d20270-f21f-4c25-9905-152e70b2f6ec',
-        #          Side: 'Buy'
+        #        "Channel": "ticker-btc-usd",
+        #        "Nonce": 130,
+        #        "Data": {
+        #          "TradeGuid": "7a669f2a-d564-472b-8493-6ef982eb1e96",
+        #          "Pair": "btc-aud",
+        #          "TradeDate": "2023-02-12T10:04:13.0804889+11:00",
+        #          "Price": 31640,
+        #          "Volume": 0.00079029,
+        #          "BidGuid": "ba8a78b5-be69-4d33-92bb-9df0daa6314e",
+        #          "OfferGuid": "27d20270-f21f-4c25-9905-152e70b2f6ec",
+        #          "Side": "Buy"
         #        },
-        #        Time: 1676156653111,
-        #        Event: 'Trade'
+        #        "Time": 1676156653111,
+        #        "Event": "Trade"
         #    }
         #
         data = self.safe_value(message, 'Data', {})
@@ -146,24 +146,24 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_order_book(self, client: Client, message):
         #
         #    {
-        #        Channel: "orderbook/1/eth/aud",
-        #        Data: {
-        #          Bids: [
+        #        "Channel": "orderbook/1/eth/aud",
+        #        "Data": {
+        #          "Bids": [
         #            {
-        #              Price: 2198.09,
-        #              Volume: 0.16143952,
+        #              "Price": 2198.09,
+        #              "Volume": 0.16143952,
         #            },
         #          ],
-        #          Offers: [
+        #          "Offers": [
         #            {
-        #              Price: 2201.25,
-        #              Volume: 15,
+        #              "Price": 2201.25,
+        #              "Volume": 15,
         #            },
         #          ],
-        #          Crc32: 1519697650,
+        #          "Crc32": 1519697650,
         #        },
-        #        Time: 1676150558254,
-        #        Event: "OrderBookSnapshot",
+        #        "Time": 1676150558254,
+        #        "Event": "OrderBookSnapshot",
         #    }
         #
         event = self.safe_string(message, 'Event')
@@ -235,8 +235,8 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_heartbeat(self, client: Client, message):
         #
         #    {
-        #        Time: 1676156208182,
-        #        Event: 'Heartbeat'
+        #        "Time": 1676156208182,
+        #        "Event": "Heartbeat"
         #    }
         #
         return message
@@ -244,9 +244,9 @@ class independentreserve(ccxt.async_support.independentreserve):
     def handle_subscriptions(self, client: Client, message):
         #
         #    {
-        #        Data: ['ticker-btc-sgd'],
-        #        Time: 1676157556223,
-        #        Event: 'Subscriptions'
+        #        "Data": ["ticker-btc-sgd"],
+        #        "Time": 1676157556223,
+        #        "Event": "Subscriptions"
         #    }
         #
         return message

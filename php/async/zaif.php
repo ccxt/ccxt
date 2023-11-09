@@ -10,6 +10,7 @@ use ccxt\async\abstract\zaif as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class zaif extends Exchange {
 
@@ -245,7 +246,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'return', array());
         $deposit = $this->safe_value($balances, 'deposit');
         $result = array(
@@ -286,7 +287,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
@@ -306,7 +307,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "last" => 9e-08,
@@ -348,7 +349,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
@@ -378,7 +379,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -416,7 +417,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
@@ -505,7 +506,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "currency_pair" => "btc_jpy",
@@ -550,7 +551,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
@@ -576,7 +577,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
@@ -659,7 +660,7 @@ class zaif extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id" => 23634,

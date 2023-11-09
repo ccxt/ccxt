@@ -148,34 +148,34 @@ class huobi extends \ccxt\async\huobi {
 
     public function handle_ticker(Client $client, $message) {
         //
-        // 'market.btcusdt.detail'
+        // "market.btcusdt.detail"
         //     {
-        //         $ch => 'market.btcusdt.detail',
-        //         ts => 1583494163784,
-        //         $tick => {
-        //             id => 209988464418,
-        //             low => 8988,
-        //             high => 9155.41,
-        //             open => 9078.91,
-        //             close => 9136.46,
-        //             vol => 237813910.5928412,
-        //             amount => 26184.202558551195,
-        //             version => 209988464418,
-        //             count => 265673
+        //         "ch" => "market.btcusdt.detail",
+        //         "ts" => 1583494163784,
+        //         "tick" => {
+        //             "id" => 209988464418,
+        //             "low" => 8988,
+        //             "high" => 9155.41,
+        //             "open" => 9078.91,
+        //             "close" => 9136.46,
+        //             "vol" => 237813910.5928412,
+        //             "amount" => 26184.202558551195,
+        //             "version" => 209988464418,
+        //             "count" => 265673
         //         }
         //     }
-        // 'market.btcusdt.bbo'
+        // "market.btcusdt.bbo"
         //     {
-        //         $ch => 'market.btcusdt.bbo',
-        //         ts => 1671941599613,
-        //         $tick => {
-        //             seqId => 161499562790,
-        //             ask => 16829.51,
-        //             askSize => 0.707776,
-        //             bid => 16829.5,
-        //             bidSize => 1.685945,
-        //             quoteTime => 1671941599612,
-        //             $symbol => 'btcusdt'
+        //         "ch" => "market.btcusdt.bbo",
+        //         "ts" => 1671941599613,
+        //         "tick" => {
+        //             "seqId" => 161499562790,
+        //             "ask" => 16829.51,
+        //             "askSize" => 0.707776,
+        //             "bid" => 16829.5,
+        //             "bidSize" => 1.685945,
+        //             "quoteTime" => 1671941599612,
+        //             "symbol" => "btcusdt"
         //         }
         //     }
         //
@@ -220,19 +220,19 @@ class huobi extends \ccxt\async\huobi {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         $ch => "market.btcusdt.trade.detail",
-        //         ts => 1583495834011,
-        //         $tick => {
-        //             id => 105004645372,
-        //             ts => 1583495833751,
-        //             $data => array(
+        //         "ch" => "market.btcusdt.trade.detail",
+        //         "ts" => 1583495834011,
+        //         "tick" => {
+        //             "id" => 105004645372,
+        //             "ts" => 1583495833751,
+        //             "data" => array(
         //                 {
-        //                     id => 1.050046453727319e+22,
-        //                     ts => 1583495833751,
-        //                     tradeId => 102090727790,
-        //                     amount => 0.003893,
-        //                     price => 9150.01,
-        //                     direction => "sell"
+        //                     "id" => 1.050046453727319e+22,
+        //                     "ts" => 1583495833751,
+        //                     "tradeId" => 102090727790,
+        //                     "amount" => 0.003893,
+        //                     "price" => 9150.01,
+        //                     "direction" => "sell"
         //                 }
         //             )
         //         }
@@ -287,17 +287,17 @@ class huobi extends \ccxt\async\huobi {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $ch => 'market.btcusdt.kline.1min',
-        //         ts => 1583501786794,
-        //         $tick => {
-        //             id => 1583501760,
-        //             open => 9094.5,
-        //             close => 9094.51,
-        //             low => 9094.5,
-        //             high => 9094.51,
-        //             amount => 0.44639786263800907,
-        //             vol => 4059.76919054,
-        //             count => 16
+        //         "ch" => "market.btcusdt.kline.1min",
+        //         "ts" => 1583501786794,
+        //         "tick" => {
+        //             "id" => 1583501760,
+        //             "open" => 9094.5,
+        //             "close" => 9094.51,
+        //             "low" => 9094.5,
+        //             "high" => 9094.51,
+        //             "amount" => 0.44639786263800907,
+        //             "vol" => 4059.76919054,
+        //             "count" => 16
         //         }
         //     }
         //
@@ -366,18 +366,18 @@ class huobi extends \ccxt\async\huobi {
     public function handle_order_book_snapshot(Client $client, $message, $subscription) {
         //
         //     {
-        //         $id => 1583473663565,
-        //         rep => 'market.btcusdt.mbp.150',
-        //         status => 'ok',
-        //         ts => 1698359289261,
-        //         $data => {
-        //             seqNum => 104999417756,
-        //             bids => [
+        //         "id" => 1583473663565,
+        //         "rep" => "market.btcusdt.mbp.150",
+        //         "status" => "ok",
+        //         "ts" => 1698359289261,
+        //         "data" => {
+        //             "seqNum" => 104999417756,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -485,17 +485,17 @@ class huobi extends \ccxt\async\huobi {
         // spot markets
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         $tick => {
-        //             $seqNum => 104998984994,
-        //             $prevSeqNum => 104998984977,
-        //             $bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             $asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -584,17 +584,17 @@ class huobi extends \ccxt\async\huobi {
         // spot markets
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         $tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -808,102 +808,102 @@ class huobi extends \ccxt\async\huobi {
         //
         //     {
         //         "action":"push",
-        //         "ch":"orders#btcusdt", // or 'orders#*' for global subscriptions
+        //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data" => {
-        //             orderSource => 'spot-web',
-        //             orderCreateTime => 1645116048355,
-        //             accountId => 44234548,
-        //             orderPrice => '100',
-        //             orderSize => '0.05',
-        //             symbol => 'ethusdt',
-        //             type => 'buy-limit',
-        //             $orderId => '478861479986886',
-        //             $eventType => 'creation',
-        //             clientOrderId => '',
-        //             orderStatus => 'submitted'
+        //             "orderSource" => "spot-web",
+        //             "orderCreateTime" => 1645116048355,
+        //             "accountId" => 44234548,
+        //             "orderPrice" => "100",
+        //             "orderSize" => "0.05",
+        //             "symbol" => "ethusdt",
+        //             "type" => "buy-$limit",
+        //             "orderId" => "478861479986886",
+        //             "eventType" => "creation",
+        //             "clientOrderId" => '',
+        //             "orderStatus" => "submitted"
         //         }
         //     }
         //
         // spot wrapped trade
         //
         //     {
-        //         action => 'push',
-        //         ch => 'orders#ltcusdt',
-        //         $data => {
-        //             tradePrice => '130.01',
-        //             tradeVolume => '0.0385',
-        //             tradeTime => 1648714741525,
-        //             aggressor => true,
-        //             execAmt => '0.0385',
-        //             orderSource => 'spot-web',
-        //             orderSize => '0.0385',
-        //             remainAmt => '0',
-        //             tradeId => 101541578884,
-        //             symbol => 'ltcusdt',
-        //             type => 'sell-market',
-        //             $eventType => 'trade',
-        //             clientOrderId => '',
-        //             orderStatus => 'filled',
-        //             $orderId => 509835753860328
+        //         "action" => "push",
+        //         "ch" => "orders#ltcusdt",
+        //         "data" => {
+        //             "tradePrice" => "130.01",
+        //             "tradeVolume" => "0.0385",
+        //             "tradeTime" => 1648714741525,
+        //             "aggressor" => true,
+        //             "execAmt" => "0.0385",
+        //             "orderSource" => "spot-web",
+        //             "orderSize" => "0.0385",
+        //             "remainAmt" => "0",
+        //             "tradeId" => 101541578884,
+        //             "symbol" => "ltcusdt",
+        //             "type" => "sell-$market",
+        //             "eventType" => "trade",
+        //             "clientOrderId" => '',
+        //             "orderStatus" => "filled",
+        //             "orderId" => 509835753860328
         //         }
         //     }
         //
         // non spot $order
         //
         // {
-        //     contract_type => 'swap',
-        //     pair => 'LTC-USDT',
-        //     business_type => 'swap',
-        //     op => 'notify',
-        //     topic => 'orders_cross.ltc-usdt',
-        //     ts => 1650354508696,
-        //     symbol => 'LTC',
-        //     contract_code => 'LTC-USDT',
-        //     volume => 1,
-        //     price => 110.34,
-        //     order_price_type => 'lightning',
-        //     direction => 'sell',
-        //     offset => 'close',
-        //     status => 6,
-        //     lever_rate => 1,
-        //     order_id => '966002354015051776',
-        //     order_id_str => '966002354015051776',
-        //     client_order_id => null,
-        //     order_source => 'web',
-        //     order_type => 1,
-        //     created_at => 1650354508649,
-        //     trade_volume => 1,
-        //     trade_turnover => 11.072,
-        //     fee => -0.005536,
-        //     trade_avg_price => 110.72,
-        //     margin_frozen => 0,
-        //     profit => -0.045,
-        //     trade => array(
+        //     "contract_type" => "swap",
+        //     "pair" => "LTC-USDT",
+        //     "business_type" => "swap",
+        //     "op" => "notify",
+        //     "topic" => "orders_cross.ltc-usdt",
+        //     "ts" => 1650354508696,
+        //     "symbol" => "LTC",
+        //     "contract_code" => "LTC-USDT",
+        //     "volume" => 1,
+        //     "price" => 110.34,
+        //     "order_price_type" => "lightning",
+        //     "direction" => "sell",
+        //     "offset" => "close",
+        //     "status" => 6,
+        //     "lever_rate" => 1,
+        //     "order_id" => "966002354015051776",
+        //     "order_id_str" => "966002354015051776",
+        //     "client_order_id" => null,
+        //     "order_source" => "web",
+        //     "order_type" => 1,
+        //     "created_at" => 1650354508649,
+        //     "trade_volume" => 1,
+        //     "trade_turnover" => 11.072,
+        //     "fee" => -0.005536,
+        //     "trade_avg_price" => 110.72,
+        //     "margin_frozen" => 0,
+        //     "profit" => -0.045,
+        //     "trade" => array(
         //       {
-        //         trade_fee => -0.005536,
-        //         fee_asset => 'USDT',
-        //         real_profit => 0.473,
-        //         profit => -0.045,
-        //         trade_id => 86678766507,
-        //         id => '86678766507-966002354015051776-1',
-        //         trade_volume => 1,
-        //         trade_price => 110.72,
-        //         trade_turnover => 11.072,
-        //         created_at => 1650354508656,
-        //         role => 'taker'
+        //         "trade_fee" => -0.005536,
+        //         "fee_asset" => "USDT",
+        //         "real_profit" => 0.473,
+        //         "profit" => -0.045,
+        //         "trade_id" => 86678766507,
+        //         "id" => "86678766507-966002354015051776-1",
+        //         "trade_volume" => 1,
+        //         "trade_price" => 110.72,
+        //         "trade_turnover" => 11.072,
+        //         "created_at" => 1650354508656,
+        //         "role" => "taker"
         //       }
         //     ),
-        //     canceled_at => 0,
-        //     fee_asset => 'USDT',
-        //     margin_asset => 'USDT',
-        //     uid => '359305390',
-        //     liquidation_type => '0',
-        //     margin_mode => 'cross',
-        //     margin_account => 'USDT',
-        //     is_tpsl => 0,
-        //     real_profit => 0.473,
-        //     trade_partition => 'USDT',
-        //     reduce_only => 1
+        //     "canceled_at" => 0,
+        //     "fee_asset" => "USDT",
+        //     "margin_asset" => "USDT",
+        //     "uid" => "359305390",
+        //     "liquidation_type" => "0",
+        //     "margin_mode" => "cross",
+        //     "margin_account" => "USDT",
+        //     "is_tpsl" => 0,
+        //     "real_profit" => 0.473,
+        //     "trade_partition" => "USDT",
+        //     "reduce_only" => 1
         //   }
         //
         //
@@ -977,78 +977,78 @@ class huobi extends \ccxt\async\huobi {
         // spot
         //
         //     {
-        //         orderSource => 'spot-web',
-        //         orderCreateTime => 1645116048355, // creating only
-        //         accountId => 44234548,
-        //         orderPrice => '100',
-        //         orderSize => '0.05',
-        //         orderValue => '3.71676361', // $market-buy only
-        //         $symbol => 'ethusdt',
-        //         $type => 'buy-limit',
-        //         orderId => '478861479986886',
-        //         eventType => 'creation',
-        //         $clientOrderId => '',
-        //         orderStatus => 'submitted'
-        //         lastActTime:1645118621810 // except creating
-        //         execAmt:'0'
+        //         "orderSource" => "spot-web",
+        //         "orderCreateTime" => 1645116048355, // creating only
+        //         "accountId" => 44234548,
+        //         "orderPrice" => "100",
+        //         "orderSize" => "0.05",
+        //         "orderValue" => "3.71676361", // $market-buy only
+        //         "symbol" => "ethusdt",
+        //         "type" => "buy-limit",
+        //         "orderId" => "478861479986886",
+        //         "eventType" => "creation",
+        //         "clientOrderId" => '',
+        //         "orderStatus" => "submitted"
+        //         "lastActTime":1645118621810 // except creating
+        //         "execAmt":"0"
         //     }
         //
         // swap $order
         //
         //     {
-        //         contract_type => 'swap',
-        //         pair => 'LTC-USDT',
-        //         business_type => 'swap',
-        //         op => 'notify',
-        //         topic => 'orders_cross.ltc-usdt',
-        //         ts => 1648717911384,
-        //         $symbol => 'LTC',
-        //         contract_code => 'LTC-USDT',
-        //         volume => 1,
-        //         $price => 129.13,
-        //         order_price_type => 'lightning',
-        //         direction => 'sell',
-        //         offset => 'close',
-        //         $status => 6,
-        //         lever_rate => 5,
-        //         order_id => '959137967397068800',
-        //         order_id_str => '959137967397068800',
-        //         client_order_id => null,
-        //         order_source => 'web',
-        //         order_type => 1,
-        //         created_at => 1648717911344,
-        //         trade_volume => 1,
-        //         trade_turnover => 12.952,
-        //         $fee => -0.006476,
-        //         trade_avg_price => 129.52,
-        //         margin_frozen => 0,
-        //         profit => -0.005,
-        //         trade => array(
+        //         "contract_type" => "swap",
+        //         "pair" => "LTC-USDT",
+        //         "business_type" => "swap",
+        //         "op" => "notify",
+        //         "topic" => "orders_cross.ltc-usdt",
+        //         "ts" => 1648717911384,
+        //         "symbol" => "LTC",
+        //         "contract_code" => "LTC-USDT",
+        //         "volume" => 1,
+        //         "price" => 129.13,
+        //         "order_price_type" => "lightning",
+        //         "direction" => "sell",
+        //         "offset" => "close",
+        //         "status" => 6,
+        //         "lever_rate" => 5,
+        //         "order_id" => "959137967397068800",
+        //         "order_id_str" => "959137967397068800",
+        //         "client_order_id" => null,
+        //         "order_source" => "web",
+        //         "order_type" => 1,
+        //         "created_at" => 1648717911344,
+        //         "trade_volume" => 1,
+        //         "trade_turnover" => 12.952,
+        //         "fee" => -0.006476,
+        //         "trade_avg_price" => 129.52,
+        //         "margin_frozen" => 0,
+        //         "profit" => -0.005,
+        //         "trade" => array(
         //             {
-        //                 trade_fee => -0.006476,
-        //                 fee_asset => 'USDT',
-        //                 real_profit => -0.005,
-        //                 profit => -0.005,
-        //                 trade_id => 83619995370,
-        //                 $id => '83619995370-959137967397068800-1',
-        //                 trade_volume => 1,
-        //                 trade_price => 129.52,
-        //                 trade_turnover => 12.952,
-        //                 created_at => 1648717911352,
-        //                 role => 'taker'
+        //                 "trade_fee" => -0.006476,
+        //                 "fee_asset" => "USDT",
+        //                 "real_profit" => -0.005,
+        //                 "profit" => -0.005,
+        //                 "trade_id" => 83619995370,
+        //                 "id" => "83619995370-959137967397068800-1",
+        //                 "trade_volume" => 1,
+        //                 "trade_price" => 129.52,
+        //                 "trade_turnover" => 12.952,
+        //                 "created_at" => 1648717911352,
+        //                 "role" => "taker"
         //             }
         //         ),
-        //         canceled_at => 0,
-        //         fee_asset => 'USDT',
-        //         margin_asset => 'USDT',
-        //         uid => '359305390',
-        //         liquidation_type => '0',
-        //         margin_mode => 'cross',
-        //         margin_account => 'USDT',
-        //         is_tpsl => 0,
-        //         real_profit => -0.005,
-        //         trade_partition => 'USDT',
-        //         reduce_only => 1
+        //         "canceled_at" => 0,
+        //         "fee_asset" => "USDT",
+        //         "margin_asset" => "USDT",
+        //         "uid" => "359305390",
+        //         "liquidation_type" => "0",
+        //         "margin_mode" => "cross",
+        //         "margin_account" => "USDT",
+        //         "is_tpsl" => 0,
+        //         "real_profit" => -0.005,
+        //         "trade_partition" => "USDT",
+        //         "reduce_only" => 1
         //     }
         //
         //     {
@@ -1150,21 +1150,21 @@ class huobi extends \ccxt\async\huobi {
         // spot private wrapped $trade
         //
         //     {
-        //         tradePrice => '130.01',
-        //         tradeVolume => '0.0385',
-        //         tradeTime => 1648714741525,
-        //         $aggressor => true,
-        //         execAmt => '0.0385',
-        //         orderSource => 'spot-web',
-        //         orderSize => '0.0385',
-        //         remainAmt => '0',
-        //         $tradeId => 101541578884,
-        //         $symbol => 'ltcusdt',
-        //         $type => 'sell-market',
-        //         eventType => 'trade',
-        //         clientOrderId => '',
-        //         orderStatus => 'filled',
-        //         orderId => 509835753860328
+        //         "tradePrice" => "130.01",
+        //         "tradeVolume" => "0.0385",
+        //         "tradeTime" => 1648714741525,
+        //         "aggressor" => true,
+        //         "execAmt" => "0.0385",
+        //         "orderSource" => "spot-web",
+        //         "orderSize" => "0.0385",
+        //         "remainAmt" => "0",
+        //         "tradeId" => 101541578884,
+        //         "symbol" => "ltcusdt",
+        //         "type" => "sell-$market",
+        //         "eventType" => "trade",
+        //         "clientOrderId" => '',
+        //         "orderStatus" => "filled",
+        //         "orderId" => 509835753860328
         //     }
         //
         $market = $this->safe_market(null, $market);
@@ -1346,7 +1346,7 @@ class huobi extends \ccxt\async\huobi {
         //
         //     {
         //         "op":"notify",
-        //         "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
+        //         "topic":"accounts.btc-usdt", // or "accounts" for global subscriptions
         //         "ts":1603711370689,
         //         "event":"order.open",
         //         "data":array(
@@ -1413,13 +1413,13 @@ class huobi extends \ccxt\async\huobi {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
-        $timestamp = $this->safe_integer($message, 'ts');
+        $data = $this->safe_value($message, 'data', array());
+        $timestamp = $this->safe_integer($data, 'changeTime', $this->safe_integer($message, 'ts'));
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
-        $this->balance['info'] = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         if ($channel !== null) {
             // spot $balance
-            $data = $this->safe_value($message, 'data', array());
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1430,7 +1430,6 @@ class huobi extends \ccxt\async\huobi {
             $client->resolve ($this->balance, $channel);
         } else {
             // contract $balance
-            $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength === 0) {
                 return;
@@ -1454,17 +1453,17 @@ class huobi extends \ccxt\async\huobi {
             $subType = $this->safe_string($subscription, 'subType');
             if ($topic === 'accounts_unify') {
                 // {
-                //     margin_asset => 'USDT',
-                //     margin_static => 10,
-                //     cross_margin_static => 10,
-                //     margin_balance => 10,
-                //     cross_profit_unreal => 0,
-                //     margin_frozen => 0,
-                //     withdraw_available => 10,
-                //     cross_risk_rate => null,
-                //     cross_swap => array(),
-                //     cross_future => array(),
-                //     isolated_swap => array()
+                //     "margin_asset" => "USDT",
+                //     "margin_static" => 10,
+                //     "cross_margin_static" => 10,
+                //     "margin_balance" => 10,
+                //     "cross_profit_unreal" => 0,
+                //     "margin_frozen" => 0,
+                //     "withdraw_available" => 10,
+                //     "cross_risk_rate" => null,
+                //     "cross_swap" => array(),
+                //     "cross_future" => array(),
+                //     "isolated_swap" => array()
                 // }
                 $marginAsset = $this->safe_string($first, 'margin_asset');
                 $code = $this->safe_currency_code($marginAsset);
@@ -1565,8 +1564,8 @@ class huobi extends \ccxt\async\huobi {
         // involves system status and maintenance updates
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -1575,17 +1574,17 @@ class huobi extends \ccxt\async\huobi {
     public function handle_subject(Client $client, $message) {
         // spot
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -1704,8 +1703,8 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($client, $message) {
             //
             //     array( $ping => 1583491673714 )
-            //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
-            //     array( $op => 'ping', ts => '1645202800015' )
+            //     array( $action => "ping", $data => array( ts => 1645108204665 ) )
+            //     array( $op => "ping", ts => "1645202800015" )
             //
             try {
                 $ping = $this->safe_integer($message, 'ping');
@@ -1750,11 +1749,11 @@ class huobi extends \ccxt\async\huobi {
         // non spot
         //
         //    {
-        //        op => 'auth',
-        //        type => 'api',
-        //        'err-code' => 0,
-        //        ts => 1645200307319,
-        //        data => array( 'user-id' => '35930539' )
+        //        "op" => "auth",
+        //        "type" => "api",
+        //        "err-code" => 0,
+        //        "ts" => 1645200307319,
+        //        "data" => array( "user-id" => "35930539" )
         //    }
         //
         $promise = $client->futures['authenticated'];
@@ -1764,27 +1763,27 @@ class huobi extends \ccxt\async\huobi {
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         action => 'sub',
-        //         $code => 2002,
-        //         ch => 'accounts.update#2',
-        //         $message => 'invalid.auth.state'
+        //         "action" => "sub",
+        //         "code" => 2002,
+        //         "ch" => "accounts.update#2",
+        //         "message" => "invalid.auth.state"
         //      }
         //
         //     {
-        //         ts => 1586323747018,
-        //         $status => 'error',
-        //         'err-code' => 'bad-request',
-        //         'err-msg' => 'invalid mbp.150.symbol linkusdt',
-        //         $id => '2'
+        //         "ts" => 1586323747018,
+        //         "status" => "error",
+        //         'err-code' => "bad-request",
+        //         'err-msg' => "invalid mbp.150.symbol linkusdt",
+        //         "id" => "2"
         //     }
         //
         //     {
-        //         op => 'sub',
-        //         cid => '1',
-        //         topic => 'accounts_unify.USDT',
-        //         'err-code' => 4007,
-        //         'err-msg' => 'Non - single account user is not available, please check through the cross and isolated account asset interface',
-        //         ts => 1698419490189
+        //         "op" => "sub",
+        //         "cid" => "1",
+        //         "topic" => "accounts_unify.USDT",
+        //         "err-$code" => 4007,
+        //         'err-msg' => "Non - single account user is not available, please check through the cross and isolated account asset interface",
+        //         "ts" => 1698419490189
         //     }
         //
         $status = $this->safe_string($message, 'status');
@@ -1835,7 +1834,7 @@ class huobi extends \ccxt\async\huobi {
             //
             // first ping format
             //
-            //    array('ping' => 1645106821667 )
+            //    array("ping" => 1645106821667 )
             //
             // second ping format
             //
@@ -1856,11 +1855,11 @@ class huobi extends \ccxt\async\huobi {
             // auth non spot
             //
             //    {
-            //        $op => 'auth',
-            //        type => 'api',
-            //        'err-code' => 0,
-            //        ts => 1645200307319,
-            //        data => array( 'user-id' => '35930539' )
+            //        "op" => "auth",
+            //        "type" => "api",
+            //        "err-code" => 0,
+            //        "ts" => 1645200307319,
+            //        "data" => array( "user-id" => "35930539" )
             //    }
             //
             // trade

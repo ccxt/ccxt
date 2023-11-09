@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -372,7 +371,7 @@ class bitopro(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "pair":"btc_twd",
@@ -410,7 +409,7 @@ class bitopro(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ticker_data.md
@@ -468,7 +467,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_orderbook_data.md
@@ -507,7 +506,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #         {
@@ -586,7 +585,7 @@ class bitopro(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_trades_data.md
@@ -704,7 +703,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -714,7 +713,7 @@ class bitopro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_ohlc_data.md
@@ -799,7 +798,7 @@ class bitopro(Exchange, ImplicitAPI):
             copyFrom = result[resultLength - 1]
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         #     [{
         #         "currency":"twd",
@@ -862,16 +861,16 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, None)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #         {
-        #             orderId: '2220595581',
-        #             timestamp: '1644896744886',
-        #             action: 'SELL',
-        #             amount: '0.01',
-        #             price: '15000',
-        #             timeInForce: 'GTC'
+        #             "orderId": "2220595581",
+        #             "timestamp": "1644896744886",
+        #             "action": "SELL",
+        #             "amount": "0.01",
+        #             "price": "15000",
+        #             "timeInForce": "GTC"
         #         }
         #
         # fetchOrder
@@ -992,12 +991,12 @@ class bitopro(Exchange, ImplicitAPI):
         response = self.privatePostOrdersPair(self.extend(request, params))
         #
         #     {
-        #         orderId: '2220595581',
-        #         timestamp: '1644896744886',
-        #         action: 'SELL',
-        #         amount: '0.01',
-        #         price: '15000',
-        #         timeInForce: 'GTC'
+        #         "orderId": "2220595581",
+        #         "timestamp": "1644896744886",
+        #         "action": "SELL",
+        #         "amount": "0.01",
+        #         "price": "15000",
+        #         "timeInForce": "GTC"
         #     }
         #
         return self.parse_order(response, market)
@@ -1011,8 +1010,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires the symbol argument')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1040,8 +1038,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        self.check_required_symbol('cancelOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         id = market['uppercaseId']
@@ -1100,8 +1097,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires the symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1134,18 +1130,17 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires the symbol argument')
+        self.check_required_symbol('fetchOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1197,7 +1192,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_orders_data.md
@@ -1222,8 +1217,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitopro api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires the symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1266,7 +1260,7 @@ class bitopro(Exchange, ImplicitAPI):
         }
         return self.safe_string(states, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, Insu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -345,13 +345,13 @@ export default class currencycom extends Exchange {
         //             "minDeposit": "90.0",
         //         },
         //         {
-        //             name: "Bitcoin",
-        //             displaySymbol: "BTC",
-        //             precision: "8",
-        //             type: "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
-        //             minWithdrawal: "0.00020",
-        //             commissionFixed: "0.00010",
-        //             minDeposit: "0.00010",
+        //             "name": "Bitcoin",
+        //             "displaySymbol": "BTC",
+        //             "precision": "8",
+        //             "type": "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+        //             "minWithdrawal": "0.00020",
+        //             "commissionFixed": "0.00010",
+        //             "minDeposit": "0.00010",
         //         },
         //     ]
         //
@@ -402,49 +402,49 @@ export default class currencycom extends Exchange {
         const response = await this.publicGetV2ExchangeInfo (params);
         //
         //     {
-        //         timezone: "UTC",
-        //         serverTime: "1645186287261",
-        //         rateLimits: [
+        //         "timezone": "UTC",
+        //         "serverTime": "1645186287261",
+        //         "rateLimits": [
         //             { rateLimitType: "REQUEST_WEIGHT", interval: "MINUTE", intervalNum: "1", limit: "1200" },
         //             { rateLimitType: "ORDERS", interval: "SECOND", intervalNum: "1", limit: "10" },
         //             { rateLimitType: "ORDERS", interval: "DAY", intervalNum: "1", limit: "864000" },
         //         ],
-        //         exchangeFilters: [],
-        //         symbols: [
+        //         "exchangeFilters": [],
+        //         "symbols": [
         //             {
-        //                 symbol: "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
-        //                 name: "Bitcoin / Tether",
-        //                 status: "TRADING", // TRADING, BREAK, HALT
-        //                 baseAsset: "BTC",
-        //                 baseAssetPrecision: "4",
-        //                 quoteAsset: "USDT",
-        //                 quoteAssetId: "USDT", // USDT, USDT_LEVERAGE
-        //                 quotePrecision: "4",
-        //                 orderTypes: [ "LIMIT", "MARKET" ], // LIMIT, MARKET, STOP
-        //                 filters: [
+        //                 "symbol": "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+        //                 "name": "Bitcoin / Tether",
+        //                 "status": "TRADING", // TRADING, BREAK, HALT
+        //                 "baseAsset": "BTC",
+        //                 "baseAssetPrecision": "4",
+        //                 "quoteAsset": "USDT",
+        //                 "quoteAssetId": "USDT", // USDT, USDT_LEVERAGE
+        //                 "quotePrecision": "4",
+        //                 "orderTypes": [ "LIMIT", "MARKET" ], // LIMIT, MARKET, STOP
+        //                 "filters": [
         //                     { filterType: "LOT_SIZE", minQty: "0.0001", maxQty: "100", stepSize: "0.0001", },
         //                     { filterType: "MIN_NOTIONAL", minNotional: "5", },
         //                 ],
-        //                 marketModes: [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR
-        //                 marketType: "SPOT", // SPOT, LEVERAGE
-        //                 longRate: -0.0684932, // LEVERAGE only
-        //                 shortRate: -0.0684932, // LEVERAGE only
-        //                 swapChargeInterval: 1440, // LEVERAGE only
-        //                 country: "",
-        //                 sector: "",
-        //                 industry: "",
-        //                 tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-        //                 tickSize: "0.01",
-        //                 tickValue: "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-        //                 exchangeFee: "0.2", // SPOT only
-        //                 tradingFee: 0.075, // LEVERAGE only
-        //                 makerFee: -0.025, // LEVERAGE only
-        //                 takerFee: 0.06, // LEVERAGE only
-        //                 maxSLGap: 50, // LEVERAGE only
-        //                 minSLGap: 1, // LEVERAGE only
-        //                 maxTPGap: 50, // LEVERAGE only
-        //                 minTPGap: 0.5, // LEVERAGE only
-        //                 assetType: "CRYPTOCURRENCY",
+        //                 "marketModes": [ "REGULAR" ], // CLOSE_ONLY, LONG_ONLY, REGULAR
+        //                 "marketType": "SPOT", // SPOT, LEVERAGE
+        //                 "longRate": -0.0684932, // LEVERAGE only
+        //                 "shortRate": -0.0684932, // LEVERAGE only
+        //                 "swapChargeInterval": 1440, // LEVERAGE only
+        //                 "country": "",
+        //                 "sector": "",
+        //                 "industry": "",
+        //                 "tradingHours": "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //                 "tickSize": "0.01",
+        //                 "tickValue": "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        //                 "exchangeFee": "0.2", // SPOT only
+        //                 "tradingFee": 0.075, // LEVERAGE only
+        //                 "makerFee": -0.025, // LEVERAGE only
+        //                 "takerFee": 0.06, // LEVERAGE only
+        //                 "maxSLGap": 50, // LEVERAGE only
+        //                 "minSLGap": 1, // LEVERAGE only
+        //                 "maxTPGap": 50, // LEVERAGE only
+        //                 "minTPGap": 0.5, // LEVERAGE only
+        //                 "assetType": "CRYPTOCURRENCY",
         //             },
         //         ]
         //     }
@@ -649,16 +649,16 @@ export default class currencycom extends Exchange {
         const response = await this.privateGetV2Account (params);
         //
         //    {
-        //        makerCommission: '0.20',
-        //        takerCommission: '0.20',
-        //        buyerCommission: '0.20',
-        //        sellerCommission: '0.20',
-        //        canTrade: true,
-        //        canWithdraw: true,
-        //        canDeposit: true,
-        //        updateTime: '1645738976',
-        //        userId: '-1924114235',
-        //        balances: []
+        //        "makerCommission": "0.20",
+        //        "takerCommission": "0.20",
+        //        "buyerCommission": "0.20",
+        //        "sellerCommission": "0.20",
+        //        "canTrade": true,
+        //        "canWithdraw": true,
+        //        "canDeposit": true,
+        //        "updateTime": "1645738976",
+        //        "userId": "-1924114235",
+        //        "balances": []
         //    }
         //
         const makerFee = this.safeNumber (response, 'makerCommission');
@@ -759,7 +759,7 @@ export default class currencycom extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name currencycom#fetchOrderBook
@@ -798,7 +798,7 @@ export default class currencycom extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -877,7 +877,7 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name currencycom#fetchTicker
@@ -947,7 +947,7 @@ export default class currencycom extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1590971040000,
@@ -968,7 +968,7 @@ export default class currencycom extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name currencycom#fetchOHLCV
@@ -1003,7 +1003,7 @@ export default class currencycom extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1081,7 +1081,7 @@ export default class currencycom extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name currencycom#fetchTrades
@@ -1119,7 +1119,7 @@ export default class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -1409,7 +1409,7 @@ export default class currencycom extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name currencycom#fetchOpenOrders
@@ -1465,9 +1465,7 @@ export default class currencycom extends Exchange {
          * @param {object} [params] extra parameters specific to the currencycom api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue (params, 'origClientOrderId');
@@ -1509,9 +1507,7 @@ export default class currencycom extends Exchange {
          * @param {object} [params] extra parameters specific to the currencycom api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1617,7 +1613,7 @@ export default class currencycom extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //    {
         //        "id": "616769213",

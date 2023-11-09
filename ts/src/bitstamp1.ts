@@ -6,7 +6,7 @@ import { BadSymbol, ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -126,7 +126,7 @@ export default class bitstamp1 extends Exchange {
         });
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitstamp1#fetchOrderBook
@@ -145,7 +145,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "volume": "2836.47827985",
@@ -189,7 +189,7 @@ export default class bitstamp1 extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitstamp1#fetchTicker
@@ -220,7 +220,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // public trade
         //
@@ -257,7 +257,7 @@ export default class bitstamp1 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitstamp1#fetchTrades
@@ -291,7 +291,7 @@ export default class bitstamp1 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {

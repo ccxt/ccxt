@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -528,7 +527,7 @@ class lbank2(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -588,7 +587,7 @@ class lbank2(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
@@ -704,7 +703,7 @@ class lbank2(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://www.lbank.info/en-US/docs/index.html#query-market-depth
@@ -784,7 +783,7 @@ class lbank2(Exchange, ImplicitAPI):
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(old) spotPublicGetTrades
         #
@@ -877,7 +876,7 @@ class lbank2(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
@@ -924,7 +923,7 @@ class lbank2(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #   [
         #     1482311500,  # timestamp
@@ -944,7 +943,7 @@ class lbank2(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
@@ -994,7 +993,7 @@ class lbank2(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         # spotPrivatePostUserInfo
         #
@@ -1304,7 +1303,7 @@ class lbank2(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrderSupplement(private)
         #
@@ -1571,7 +1570,7 @@ class lbank2(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://www.lbank.info/en-US/docs/index.html#query-all-orders
@@ -1626,7 +1625,7 @@ class lbank2(Exchange, ImplicitAPI):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://www.lbank.info/en-US/docs/index.html#current-pending-order
@@ -1927,7 +1926,7 @@ class lbank2(Exchange, ImplicitAPI):
         }
         return self.safe_string(self.safe_value(statuses, type, {}), status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits(private)
         #
@@ -2203,23 +2202,23 @@ class lbank2(Exchange, ImplicitAPI):
         response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
-        #        result: 'true',
-        #        data: [
+        #        "result": "true",
+        #        "data": [
         #          {
-        #            amountScale: '4',
-        #            chain: 'heco',
-        #            assetCode: 'lbk',
-        #            min: '200',
-        #            transferAmtScale: '4',
-        #            canWithDraw: True,
-        #            fee: '100',
-        #            minTransfer: '0.0001',
-        #            type: '1'
+        #            "amountScale": "4",
+        #            "chain": "heco",
+        #            "assetCode": "lbk",
+        #            "min": "200",
+        #            "transferAmtScale": "4",
+        #            "canWithDraw": True,
+        #            "fee": "100",
+        #            "minTransfer": "0.0001",
+        #            "type": "1"
         #          },
         #          ...
         #        ],
-        #        error_code: '0',
-        #        ts: '1663364435973'
+        #        "error_code": "0",
+        #        "ts": "1663364435973"
         #    }
         #
         result = self.safe_value(response, 'data', [])
@@ -2312,23 +2311,23 @@ class lbank2(Exchange, ImplicitAPI):
         response = self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
-        #        result: 'true',
-        #        data: [
+        #        "result": "true",
+        #        "data": [
         #            {
-        #                amountScale: '4',
-        #                chain: 'heco',
-        #                assetCode: 'lbk',
-        #                min: '200',
-        #                transferAmtScale: '4',
-        #                canWithDraw: True,
-        #                fee: '100',
-        #                minTransfer: '0.0001',
-        #                type: '1'
+        #                "amountScale": "4",
+        #                "chain": "heco",
+        #                "assetCode": "lbk",
+        #                "min": "200",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "100",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
         #            },
         #            ...
         #        ],
-        #        error_code: '0',
-        #        ts: '1663364435973'
+        #        "error_code": "0",
+        #        "ts": "1663364435973"
         #    }
         #
         data = self.safe_value(response, 'data', [])
@@ -2338,15 +2337,15 @@ class lbank2(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            amountScale: '4',
-        #            chain: 'heco',
-        #            assetCode: 'lbk',
-        #            min: '200',
-        #            transferAmtScale: '4',
-        #            canWithDraw: True,
-        #            fee: '100',
-        #            minTransfer: '0.0001',
-        #            type: '1'
+        #            "amountScale": "4",
+        #            "chain": "heco",
+        #            "assetCode": "lbk",
+        #            "min": "200",
+        #            "transferAmtScale": "4",
+        #            "canWithDraw": True,
+        #            "fee": "100",
+        #            "minTransfer": "0.0001",
+        #            "type": "1"
         #        },
         #        ...
         #    ]

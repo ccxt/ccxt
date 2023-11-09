@@ -8,8 +8,8 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\bitforex as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitforex extends Exchange {
 
@@ -24,29 +24,48 @@ class bitforex extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
+                'swap' => false,  // bitforex has swap contracts, but no swap api
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
                 'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
                 'fetchTrades' => true,
@@ -55,6 +74,12 @@ class bitforex extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
+                'reduceMargin' => false,
+                'repayMargin' => false,
+                'setLeverage' => false,
+                'setMargin' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
@@ -239,7 +264,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public) v1
         //
@@ -312,7 +337,7 @@ class bitforex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -412,7 +437,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $response['data'];
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($data); $i++) {
@@ -442,7 +467,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "buy":7.04E-7,
@@ -480,7 +505,7 @@ class bitforex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -515,7 +540,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "close":0.02505143,
@@ -537,7 +562,7 @@ class bitforex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -575,7 +600,7 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -621,7 +646,7 @@ class bitforex extends Exchange {
         }
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_number($order, 'createTime');
         $lastTradeTimestamp = $this->safe_number($order, 'lastTime');
@@ -687,19 +712,17 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitforex api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -711,19 +734,17 @@ class bitforex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitforex api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchClosedOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(

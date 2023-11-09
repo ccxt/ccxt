@@ -10,6 +10,7 @@ use ccxt\async\abstract\coincheck as Exchange;
 use ccxt\ExchangeError;
 use ccxt\BadSymbol;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coincheck extends Exchange {
 
@@ -165,7 +166,7 @@ class coincheck extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -196,7 +197,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -223,18 +224,18 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOpenOrders
         //
         //     {                        $id =>  202835,
-        //                      order_type => "buy",
-        //                            rate =>  26890,
-        //                            pair => "btc_jpy",
-        //                  pending_amount => "0.5527",
-        //       pending_market_buy_amount =>  null,
-        //                  stop_loss_rate =>  null,
-        //                      created_at => "2015-01-10T05:55:38.000Z" }
+        //                      "order_type" => "buy",
+        //                            "rate" =>  26890,
+        //                            "pair" => "btc_jpy",
+        //                  "pending_amount" => "0.5527",
+        //       "pending_market_buy_amount" =>  null,
+        //                  "stop_loss_rate" =>  null,
+        //                      "created_at" => "2015-01-10T05:55:38.000Z" }
         //
         // todo => add formats for fetchOrder, fetchClosedOrders here
         //
@@ -273,7 +274,7 @@ class coincheck extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -292,7 +293,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "last":4192632.0,
@@ -331,7 +332,7 @@ class coincheck extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -363,7 +364,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -488,7 +489,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -533,20 +534,20 @@ class coincheck extends Exchange {
             $response = Async\await($this->privateGetAccounts ($params));
             //
             //     {
-            //         success => true,
-            //         id => '7487995',
-            //         email => 'some@email.com',
-            //         identity_status => 'identity_pending',
-            //         bitcoin_address => null,
-            //         lending_leverage => '4',
-            //         taker_fee => '0.0',
-            //         maker_fee => '0.0',
-            //         exchange_fees => {
-            //           btc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           etc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           fct_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           mona_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           plt_jpy => array( taker_fee => '0.0', maker_fee => '0.0' )
+            //         "success" => true,
+            //         "id" => "7487995",
+            //         "email" => "some@email.com",
+            //         "identity_status" => "identity_pending",
+            //         "bitcoin_address" => null,
+            //         "lending_leverage" => "4",
+            //         "taker_fee" => "0.0",
+            //         "maker_fee" => "0.0",
+            //         "exchange_fees" => {
+            //           "btc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "etc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "fct_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "mona_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "plt_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" )
             //         }
             //     }
             //
@@ -730,7 +731,7 @@ class coincheck extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

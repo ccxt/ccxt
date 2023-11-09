@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.36';
+$version = '4.1.45';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.36';
+    const VERSION = '4.1.45';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -410,6 +410,7 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinfalcon',
+        'coinlist',
         'coinmate',
         'coinone',
         'coinsph',
@@ -2245,7 +2246,7 @@ class Exchange {
         return $result;
     }
 
-    public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_limit(array $array, ?int $limit = null, int|string $key = 'timestamp') {
         if ($this->valueIsDefined ($limit)) {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
@@ -2263,7 +2264,7 @@ class Exchange {
         return $array;
     }
 
-    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
+    public function filter_by_since_limit(array $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
         $result = $parsedArray;
@@ -2283,7 +2284,7 @@ class Exchange {
         return $this->filter_by_limit($result, $limit, $key);
     }
 
-    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_value_since_limit(array $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->valueIsDefined ($value);
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
@@ -2506,6 +2507,18 @@ class Exchange {
         $stringifiedNumber = (string) $number;
         $convertedNumber = floatval($stringifiedNumber);
         return intval($convertedNumber);
+    }
+
+    public function parse_to_numeric($number) {
+        $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS => 1 == 1.0 is true
+        // in Python => 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (mb_strpos($stringVersion, '.') > 0) {
+            return floatval($stringVersion);
+        }
+        return intval($stringVersion);
     }
 
     public function after_construct() {
@@ -3586,7 +3599,7 @@ class Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
             return array(
                 $this->safe_integer($ohlcv, 0), // timestamp
@@ -3743,7 +3756,7 @@ class Exchange {
         );
     }
 
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs(array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
@@ -5368,7 +5381,7 @@ class Exchange {
         return $market;
     }
 
-    public function parse_ws_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ws_ohlcvs(array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
@@ -5603,7 +5616,12 @@ class Exchange {
                     }
                     $params[$cursorSent] = $cursorValue;
                 }
-                $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
+                $response = null;
+                if ($method === 'fetchAccounts') {
+                    $response = $this->$method ($params);
+                } else {
+                    $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
+                }
                 $errors = 0;
                 $responseLength = count($response);
                 if ($this->verbose) {

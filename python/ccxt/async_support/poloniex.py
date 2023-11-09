@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -388,7 +387,7 @@ class poloniex(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         [
@@ -418,7 +417,7 @@ class poloniex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.poloniex.com/#public-endpoints-market-data-candles
@@ -577,7 +576,7 @@ class poloniex(Exchange, ImplicitAPI):
         response = await self.publicGetTimestamp(params)
         return self.safe_integer(response, 'serverTime')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "symbol" : "BTC_USDT",
@@ -692,8 +691,8 @@ class poloniex(Exchange, ImplicitAPI):
         #                 "delisted": False,
         #                 "tradingState": "NORMAL",
         #                 "walletState": "DISABLED",
-        #                 "walletDepositState": 'DISABLED',
-        #                 "walletWithdrawalState": 'DISABLED',
+        #                 "walletDepositState": "DISABLED",
+        #                 "walletWithdrawalState": "DISABLED",
         #                 "parentChain": null,
         #                 "isMultiChain": False,
         #                 "isChildChain": False,
@@ -796,7 +795,7 @@ class poloniex(Exchange, ImplicitAPI):
             result[code]['fee'] = self.parse_number(minFeeString)
         return result
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.poloniex.com/#public-endpoints-market-data-ticker
@@ -834,7 +833,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #
@@ -924,7 +923,7 @@ class poloniex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.poloniex.com/#public-endpoints-market-data-trades
@@ -1023,7 +1022,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOpenOrder
         #
@@ -1156,7 +1155,7 @@ class poloniex(Exchange, ImplicitAPI):
             result.append(self.parse_order(extended, market))
         return result
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
@@ -1499,7 +1498,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1578,7 +1577,7 @@ class poloniex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.poloniex.com/#public-endpoints-market-data-order-book
@@ -1796,9 +1795,9 @@ class poloniex(Exchange, ImplicitAPI):
         response = await self.privatePostWalletsWithdraw(self.extend(request, params))
         #
         #     {
-        #         response: 'Withdrew 1.00000000 USDT.',
-        #         email2FA: False,
-        #         withdrawalNumber: 13449869
+        #         "response": "Withdrew 1.00000000 USDT.",
+        #         "email2FA": False,
+        #         "withdrawalNumber": 13449869
         #     }
         #
         return self.parse_transaction(response, currency)
@@ -1818,22 +1817,22 @@ class poloniex(Exchange, ImplicitAPI):
         #         "adjustments":[],
         #         "deposits":[
         #             {
-        #                 currency: "BTC",
-        #                 address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        #                 amount: "0.01063000",
-        #                 confirmations:  1,
-        #                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        #                 timestamp:  1507916888,
-        #                 status: "COMPLETE"
+        #                 "currency": "BTC",
+        #                 "address": "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        #                 "amount": "0.01063000",
+        #                 "confirmations":  1,
+        #                 "txid": "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        #                 "timestamp":  1507916888,
+        #                 "status": "COMPLETE"
         #             },
         #             {
-        #                 currency: "ETH",
-        #                 address: "0x20108ba20b65c04d82909e91df06618107460197",
-        #                 amount: "4.00000000",
-        #                 confirmations: 38,
-        #                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        #                 timestamp: 1525060430,
-        #                 status: "COMPLETE"
+        #                 "currency": "ETH",
+        #                 "address": "0x20108ba20b65c04d82909e91df06618107460197",
+        #                 "amount": "4.00000000",
+        #                 "confirmations": 38,
+        #                 "txid": "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        #                 "timestamp": 1525060430,
+        #                 "status": "COMPLETE"
         #             }
         #         ],
         #         "withdrawals":[
@@ -1852,34 +1851,34 @@ class poloniex(Exchange, ImplicitAPI):
         #                 "scope":"crypto"
         #             },
         #             {
-        #                 withdrawalNumber: 8224394,
-        #                 currency: "EMC2",
-        #                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        #                 amount: "63.10796020",
-        #                 fee: "0.01000000",
-        #                 timestamp: 1510819838,
-        #                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        #                 ipAddress: "x.x.x.x"
+        #                 "withdrawalNumber": 8224394,
+        #                 "currency": "EMC2",
+        #                 "address": "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        #                 "amount": "63.10796020",
+        #                 "fee": "0.01000000",
+        #                 "timestamp": 1510819838,
+        #                 "status": "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        #                 "ipAddress": "x.x.x.x"
         #             },
         #             {
-        #                 withdrawalNumber: 9290444,
-        #                 currency: "ETH",
-        #                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        #                 amount: "0.15500000",
-        #                 fee: "0.00500000",
-        #                 timestamp: 1514099289,
-        #                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        #                 ipAddress: "x.x.x.x"
+        #                 "withdrawalNumber": 9290444,
+        #                 "currency": "ETH",
+        #                 "address": "0x191015ff2e75261d50433fbd05bd57e942336149",
+        #                 "amount": "0.15500000",
+        #                 "fee": "0.00500000",
+        #                 "timestamp": 1514099289,
+        #                 "status": "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        #                 "ipAddress": "x.x.x.x"
         #             },
         #             {
-        #                 withdrawalNumber: 11518260,
-        #                 currency: "BTC",
-        #                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        #                 amount: "0.20000000",
-        #                 fee: "0.00050000",
-        #                 timestamp: 1527918155,
-        #                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        #                 ipAddress: "x.x.x.x"
+        #                 "withdrawalNumber": 11518260,
+        #                 "currency": "BTC",
+        #                 "address": "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        #                 "amount": "0.20000000",
+        #                 "fee": "0.00050000",
+        #                 "timestamp": 1527918155,
+        #                 "status": "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        #                 "ipAddress": "x.x.x.x"
         #             }
         #         ]
         #     }
@@ -2074,7 +2073,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # deposits
         #

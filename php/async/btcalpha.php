@@ -13,6 +13,7 @@ use ccxt\DDoSProtection;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btcalpha extends Exchange {
 
@@ -251,15 +252,15 @@ class btcalpha extends Exchange {
             //
             //    array(
             //        array(
-            //            timestamp => '1674658.445272',
-            //            pair => 'BTC_USDT',
-            //            last => '22476.85',
-            //            diff => '458.96',
-            //            vol => '6660.847784',
-            //            high => '23106.08',
-            //            low => '22348.29',
-            //            buy => '22508.46',
-            //            sell => '22521.11'
+            //            "timestamp" => "1674658.445272",
+            //            "pair" => "BTC_USDT",
+            //            "last" => "22476.85",
+            //            "diff" => "458.96",
+            //            "vol" => "6660.847784",
+            //            "high" => "23106.08",
+            //            "low" => "22348.29",
+            //            "buy" => "22508.46",
+            //            "sell" => "22521.11"
             //        ),
             //        ...
             //    )
@@ -268,7 +269,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://btc-alpha.github.io/api-docs/#tickers
@@ -285,33 +286,33 @@ class btcalpha extends Exchange {
             $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
             //
             //    {
-            //        timestamp => '1674658.445272',
-            //        pair => 'BTC_USDT',
-            //        last => '22476.85',
-            //        diff => '458.96',
-            //        vol => '6660.847784',
-            //        high => '23106.08',
-            //        low => '22348.29',
-            //        buy => '22508.46',
-            //        sell => '22521.11'
+            //        "timestamp" => "1674658.445272",
+            //        "pair" => "BTC_USDT",
+            //        "last" => "22476.85",
+            //        "diff" => "458.96",
+            //        "vol" => "6660.847784",
+            //        "high" => "23106.08",
+            //        "low" => "22348.29",
+            //        "buy" => "22508.46",
+            //        "sell" => "22521.11"
             //    }
             //
             return $this->parse_ticker($response, $market);
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //    {
-        //        $timestamp => '1674658.445272',
-        //        pair => 'BTC_USDT',
-        //        $last => '22476.85',
-        //        diff => '458.96',
-        //        vol => '6660.847784',
-        //        high => '23106.08',
-        //        low => '22348.29',
-        //        buy => '22508.46',
-        //        sell => '22521.11'
+        //        "timestamp" => "1674658.445272",
+        //        "pair" => "BTC_USDT",
+        //        "last" => "22476.85",
+        //        "diff" => "458.96",
+        //        "vol" => "6660.847784",
+        //        "high" => "23106.08",
+        //        "low" => "22348.29",
+        //        "buy" => "22508.46",
+        //        "sell" => "22521.11"
         //    }
         //
         $timestampStr = $this->safe_string($ticker, 'timestamp');
@@ -343,7 +344,7 @@ class btcalpha extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://btc-alpha.github.io/api-docs/#get-orderbook
@@ -378,7 +379,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -428,7 +429,7 @@ class btcalpha extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -516,7 +517,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //  deposit
         //      {
@@ -572,7 +573,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "time":1591296000,
@@ -593,7 +594,7 @@ class btcalpha extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -628,7 +629,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -664,7 +665,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -809,7 +810,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://btc-alpha.github.io/api-docs/#list-own-$orders
@@ -835,7 +836,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -852,7 +853,7 @@ class btcalpha extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user

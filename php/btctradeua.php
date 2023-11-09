@@ -132,7 +132,7 @@ class btctradeua extends Exchange {
         return $this->privatePostAuth ($params);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'accounts', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -157,7 +157,7 @@ class btctradeua extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -189,7 +189,7 @@ class btctradeua extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // [
         //     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
@@ -250,7 +250,7 @@ class btctradeua extends Exchange {
         return $this->safe_ticker($result, $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -358,7 +358,7 @@ class btctradeua extends Exchange {
         return $timestamp - 10800000;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -398,7 +398,7 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -480,7 +480,7 @@ class btctradeua extends Exchange {
         return $this->privatePostRemoveOrderId (array_merge($request, $params));
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $side = $this->safe_string($order, 'type');
@@ -513,18 +513,16 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
-         * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
+         * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the btctradeua api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOpenOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

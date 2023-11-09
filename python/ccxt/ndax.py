@@ -7,9 +7,9 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -544,7 +544,7 @@ class ndax(Exchange, ImplicitAPI):
         result['nonce'] = nonce
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -586,7 +586,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_order_book(response, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -652,7 +652,7 @@ class ndax(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -699,7 +699,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1501603632000,  # 0 DateTime
@@ -722,7 +722,7 @@ class ndax(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -762,7 +762,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -927,7 +927,7 @@ class ndax(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -985,7 +985,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1179,7 +1179,7 @@ class ndax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -1528,7 +1528,7 @@ class ndax(Exchange, ImplicitAPI):
             'clientOrderId': clientOrderId,
         })
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1603,7 +1603,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2077,7 +2077,7 @@ class ndax(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -2167,6 +2167,7 @@ class ndax(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status_by_type(transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'network': None,
         }
 
     def withdraw(self, code: str, amount, address, tag=None, params={}):
@@ -2202,10 +2203,10 @@ class ndax(Exchange, ImplicitAPI):
         withdrawTemplateTypesResponse = self.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)
         #
         #     {
-        #         result: True,
-        #         errormsg: null,
-        #         statuscode: "0",
-        #         TemplateTypes: [
+        #         "result": True,
+        #         "errormsg": null,
+        #         "statuscode": "0",
+        #         "TemplateTypes": [
         #             {AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC"},
         #             {AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC"},
         #             {AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1"}
@@ -2227,10 +2228,10 @@ class ndax(Exchange, ImplicitAPI):
         withdrawTemplateResponse = self.privateGetGetWithdrawTemplate(withdrawTemplateRequest)
         #
         #     {
-        #         result: True,
-        #         errormsg: null,
-        #         statuscode: "0",
-        #         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        #         "result": True,
+        #         "errormsg": null,
+        #         "statuscode": "0",
+        #         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         #     }
         #
         template = self.safe_string(withdrawTemplateResponse, 'Template')

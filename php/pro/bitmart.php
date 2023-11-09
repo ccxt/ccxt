@@ -127,13 +127,11 @@ class bitmart extends \ccxt\async\bitmart {
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-            }
+            $this->check_required_symbol('watchOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -154,22 +152,22 @@ class bitmart extends \ccxt\async\bitmart {
         // {
         //     "data":array(
         //         {
-        //             $symbol => 'LTC_USDT',
-        //             notional => '',
-        //             side => 'buy',
-        //             last_fill_time => '0',
-        //             ms_t => '1646216634000',
-        //             type => 'limit',
-        //             filled_notional => '0.000000000000000000000000000000',
-        //             last_fill_price => '0',
-        //             size => '0.500000000000000000000000000000',
-        //             price => '50.000000000000000000000000000000',
-        //             last_fill_count => '0',
-        //             filled_size => '0.000000000000000000000000000000',
-        //             margin_trading => '0',
-        //             state => '8',
-        //             order_id => '24807076628',
-        //             order_type => '0'
+        //             "symbol" => "LTC_USDT",
+        //             "notional" => '',
+        //             "side" => "buy",
+        //             "last_fill_time" => "0",
+        //             "ms_t" => "1646216634000",
+        //             "type" => "limit",
+        //             "filled_notional" => "0.000000000000000000000000000000",
+        //             "last_fill_price" => "0",
+        //             "size" => "0.500000000000000000000000000000",
+        //             "price" => "50.000000000000000000000000000000",
+        //             "last_fill_count" => "0",
+        //             "filled_size" => "0.000000000000000000000000000000",
+        //             "margin_trading" => "0",
+        //             "state" => "8",
+        //             "order_id" => "24807076628",
+        //             "order_type" => "0"
         //           }
         //     ),
         //     "table":"spot/user/order"
@@ -202,22 +200,22 @@ class bitmart extends \ccxt\async\bitmart {
     public function parse_ws_order($order, $market = null) {
         //
         // {
-        //     $symbol => 'LTC_USDT',
-        //     notional => '',
-        //     $side => 'buy',
-        //     last_fill_time => '0',
-        //     ms_t => '1646216634000',
-        //     $type => 'limit',
-        //     filled_notional => '0.000000000000000000000000000000',
-        //     last_fill_price => '0',
-        //     size => '0.500000000000000000000000000000',
-        //     $price => '50.000000000000000000000000000000',
-        //     last_fill_count => '0',
-        //     filled_size => '0.000000000000000000000000000000',
-        //     margin_trading => '0',
-        //     state => '8',
-        //     order_id => '24807076628',
-        //     order_type => '0'
+        //     "symbol" => "LTC_USDT",
+        //     "notional" => '',
+        //     "side" => "buy",
+        //     "last_fill_time" => "0",
+        //     "ms_t" => "1646216634000",
+        //     "type" => "limit",
+        //     "filled_notional" => "0.000000000000000000000000000000",
+        //     "last_fill_price" => "0",
+        //     "size" => "0.500000000000000000000000000000",
+        //     "price" => "50.000000000000000000000000000000",
+        //     "last_fill_count" => "0",
+        //     "filled_size" => "0.000000000000000000000000000000",
+        //     "margin_trading" => "0",
+        //     "state" => "8",
+        //     "order_id" => "24807076628",
+        //     "order_type" => "0"
         //   }
         //
         $marketId = $this->safe_string($order, 'symbol');
@@ -262,14 +260,14 @@ class bitmart extends \ccxt\async\bitmart {
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         $table => 'spot/trade',
-        //         $data => array(
+        //         "table" => "spot/trade",
+        //         "data" => array(
         //             array(
-        //                 price => '52700.50',
-        //                 s_t => 1630982050,
-        //                 side => 'buy',
-        //                 size => '0.00112',
-        //                 $symbol => 'BTC_USDT'
+        //                 "price" => "52700.50",
+        //                 "s_t" => 1630982050,
+        //                 "side" => "buy",
+        //                 "size" => "0.00112",
+        //                 "symbol" => "BTC_USDT"
         //             ),
         //         )
         //     }
@@ -296,18 +294,18 @@ class bitmart extends \ccxt\async\bitmart {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $data => array(
+        //         "data" => array(
         //             {
-        //                 base_volume_24h => '78615593.81',
-        //                 high_24h => '52756.97',
-        //                 last_price => '52638.31',
-        //                 low_24h => '50991.35',
-        //                 open_24h => '51692.03',
-        //                 s_t => 1630981727,
-        //                 $symbol => 'BTC_USDT'
+        //                 "base_volume_24h" => "78615593.81",
+        //                 "high_24h" => "52756.97",
+        //                 "last_price" => "52638.31",
+        //                 "low_24h" => "50991.35",
+        //                 "open_24h" => "51692.03",
+        //                 "s_t" => 1630981727,
+        //                 "symbol" => "BTC_USDT"
         //             }
         //         ),
-        //         $table => 'spot/ticker'
+        //         "table" => "spot/ticker"
         //     }
         //
         $table = $this->safe_string($message, 'table');
@@ -350,20 +348,20 @@ class bitmart extends \ccxt\async\bitmart {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $data => array(
+        //         "data" => array(
         //             {
-        //                 $candle => array(
+        //                 "candle" => array(
         //                     1631056350,
-        //                     '46532.83',
-        //                     '46555.71',
-        //                     '46511.41',
-        //                     '46555.71',
-        //                     '0.25'
+        //                     "46532.83",
+        //                     "46555.71",
+        //                     "46511.41",
+        //                     "46555.71",
+        //                     "0.25"
         //                 ),
-        //                 $symbol => 'BTC_USDT'
+        //                 "symbol" => "BTC_USDT"
         //             }
         //         ),
-        //         $table => 'spot/kline1m'
+        //         "table" => "spot/kline1m"
         //     }
         //
         $table = $this->safe_string($message, 'table');
@@ -427,22 +425,22 @@ class bitmart extends \ccxt\async\bitmart {
     public function handle_order_book_message(Client $client, $message, $orderbook) {
         //
         //     {
-        //         $asks => array(
-        //             array( '46828.38', '0.21847' ),
-        //             array( '46830.68', '0.08232' ),
-        //             array( '46832.08', '0.09285' ),
-        //             array( '46837.82', '0.02028' ),
-        //             array( '46839.43', '0.15068' )
+        //         "asks" => array(
+        //             array( '46828.38', "0.21847" ),
+        //             array( '46830.68', "0.08232" ),
+        //             array( '46832.08', "0.09285" ),
+        //             array( '46837.82', "0.02028" ),
+        //             array( '46839.43', "0.15068" )
         //         ),
-        //         $bids => array(
-        //             array( '46820.78', '0.00444' ),
-        //             array( '46814.33', '0.00234' ),
-        //             array( '46813.50', '0.05021' ),
-        //             array( '46808.14', '0.00217' ),
-        //             array( '46808.04', '0.00013' )
+        //         "bids" => array(
+        //             array( '46820.78', "0.00444" ),
+        //             array( '46814.33', "0.00234" ),
+        //             array( '46813.50', "0.05021" ),
+        //             array( '46808.14', "0.00217" ),
+        //             array( '46808.04', "0.00013" )
         //         ),
-        //         ms_t => 1631044962431,
-        //         $symbol => 'BTC_USDT'
+        //         "ms_t" => 1631044962431,
+        //         "symbol" => "BTC_USDT"
         //     }
         //
         $asks = $this->safe_value($message, 'asks', array());
@@ -461,27 +459,27 @@ class bitmart extends \ccxt\async\bitmart {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         $data => array(
+        //         "data" => array(
         //             {
-        //                 asks => array(
-        //                     array( '46828.38', '0.21847' ),
-        //                     array( '46830.68', '0.08232' ),
-        //                     array( '46832.08', '0.09285' ),
-        //                     array( '46837.82', '0.02028' ),
-        //                     array( '46839.43', '0.15068' )
+        //                 "asks" => array(
+        //                     array( '46828.38', "0.21847" ),
+        //                     array( '46830.68', "0.08232" ),
+        //                     array( '46832.08', "0.09285" ),
+        //                     array( '46837.82', "0.02028" ),
+        //                     array( '46839.43', "0.15068" )
         //                 ),
-        //                 bids => array(
-        //                     array( '46820.78', '0.00444' ),
-        //                     array( '46814.33', '0.00234' ),
-        //                     array( '46813.50', '0.05021' ),
-        //                     array( '46808.14', '0.00217' ),
-        //                     array( '46808.04', '0.00013' )
+        //                 "bids" => array(
+        //                     array( '46820.78', "0.00444" ),
+        //                     array( '46814.33', "0.00234" ),
+        //                     array( '46813.50', "0.05021" ),
+        //                     array( '46808.14', "0.00217" ),
+        //                     array( '46808.04', "0.00013" )
         //                 ),
-        //                 ms_t => 1631044962431,
-        //                 $symbol => 'BTC_USDT'
+        //                 "ms_t" => 1631044962431,
+        //                 "symbol" => "BTC_USDT"
         //             }
         //         ),
-        //         $table => 'spot/depth5'
+        //         "table" => "spot/depth5"
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
@@ -544,7 +542,7 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function handle_authenticate(Client $client, $message) {
         //
-        //     array( event => 'login' )
+        //     array( event => "login" )
         //
         $messageHash = 'authenticated';
         $future = $this->safe_value($client->futures, $messageHash);
@@ -553,7 +551,7 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function handle_error_message(Client $client, $message) {
         //
-        //     array( event => 'error', $message => 'Invalid sign', $errorCode => 30013 )
+        //     array( event => "error", $message => "Invalid sign", $errorCode => 30013 )
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
         //
         $errorCode = $this->safe_string($message, 'errorCode');
@@ -587,26 +585,26 @@ class bitmart extends \ccxt\async\bitmart {
         //     array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)
         //     array("event":"subscribe","channel":"spot/depth:BTC-USDT")
         //     {
-        //         $table => "spot/depth",
-        //         action => "partial",
-        //         data => [
+        //         "table" => "spot/depth",
+        //         "action" => "partial",
+        //         "data" => [
         //             {
-        //                 instrument_id =>   "BTC-USDT",
-        //                 asks => [
+        //                 "instrument_id" =>   "BTC-USDT",
+        //                 "asks" => [
         //                     ["5301.8", "0.03763319", "1"],
         //                     ["5302.4", "0.00305", "2"],
         //                 ],
-        //                 bids => [
+        //                 "bids" => [
         //                     ["5301.7", "0.58911427", "6"],
         //                     ["5301.6", "0.01222922", "4"],
         //                 ],
-        //                 timestamp => "2020-03-16T03:25:00.440Z",
-        //                 checksum => -2088736623
+        //                 "timestamp" => "2020-03-16T03:25:00.440Z",
+        //                 "checksum" => -2088736623
         //             }
         //         ]
         //     }
         //
-        //     array( data => '', $table => 'spot/user/order' )
+        //     array( data => '', $table => "spot/user/order" )
         //
         $table = $this->safe_string($message, 'table');
         if ($table === null) {

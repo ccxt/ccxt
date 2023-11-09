@@ -7,9 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderRequest
-from ccxt.base.types import OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -883,6 +881,7 @@ class binance(Exchange, ImplicitAPI):
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': {'cost': 0.4, 'noSymbol': 16},
+                        'ticker': {'cost': 0.4, 'noSymbol': 16},
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -1629,13 +1628,13 @@ class binance(Exchange, ImplicitAPI):
             },
         })
 
-    def is_inverse(self, type, subType=None):
+    def is_inverse(self, type, subType=None) -> bool:
         if subType is None:
             return type == 'delivery'
         else:
             return subType == 'inverse'
 
-    def is_linear(self, type, subType=None):
+    def is_linear(self, type, subType=None) -> bool:
         if subType is None:
             return(type == 'future') or (type == 'swap')
         else:
@@ -2381,7 +2380,7 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance(self, response, type=None, marginMode=None):
+    def parse_balance(self, response, type=None, marginMode=None) -> Balances:
         result = {
             'info': response,
         }
@@ -2518,16 +2517,16 @@ class binance(Exchange, ImplicitAPI):
         # spot
         #
         #     {
-        #         makerCommission: 10,
-        #         takerCommission: 10,
-        #         buyerCommission: 0,
-        #         sellerCommission: 0,
-        #         canTrade: True,
-        #         canWithdraw: True,
-        #         canDeposit: True,
-        #         updateTime: 1575357359602,
-        #         accountType: "MARGIN",
-        #         balances: [
+        #         "makerCommission": 10,
+        #         "takerCommission": 10,
+        #         "buyerCommission": 0,
+        #         "sellerCommission": 0,
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "canDeposit": True,
+        #         "updateTime": 1575357359602,
+        #         "accountType": "MARGIN",
+        #         "balances": [
         #             {asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
         #         ]
         #     }
@@ -2552,43 +2551,43 @@ class binance(Exchange, ImplicitAPI):
         # margin(isolated)
         #
         #    {
-        #        info: {
-        #            assets: [
+        #        "info": {
+        #            "assets": [
         #                {
-        #                    baseAsset: {
-        #                        asset: '1INCH',
-        #                        borrowEnabled: True,
-        #                        borrowed: '0',
-        #                        free: '0',
-        #                        interest: '0',
-        #                        locked: '0',
-        #                        netAsset: '0',
-        #                        netAssetOfBtc: '0',
-        #                        repayEnabled: True,
-        #                        totalAsset: '0'
+        #                    "baseAsset": {
+        #                        "asset": "1INCH",
+        #                        "borrowEnabled": True,
+        #                        "borrowed": "0",
+        #                        "free": "0",
+        #                        "interest": "0",
+        #                        "locked": "0",
+        #                        "netAsset": "0",
+        #                        "netAssetOfBtc": "0",
+        #                        "repayEnabled": True,
+        #                        "totalAsset": "0"
         #                    },
-        #                    quoteAsset: {
-        #                        asset: 'USDT',
-        #                        borrowEnabled: True,
-        #                        borrowed: '0',
-        #                        free: '11',
-        #                        interest: '0',
-        #                        locked: '0',
-        #                        netAsset: '11',
-        #                        netAssetOfBtc: '0.00054615',
-        #                        repayEnabled: True,
-        #                        totalAsset: '11'
+        #                    "quoteAsset": {
+        #                        "asset": "USDT",
+        #                        "borrowEnabled": True,
+        #                        "borrowed": "0",
+        #                        "free": "11",
+        #                        "interest": "0",
+        #                        "locked": "0",
+        #                        "netAsset": "11",
+        #                        "netAssetOfBtc": "0.00054615",
+        #                        "repayEnabled": True,
+        #                        "totalAsset": "11"
         #                    },
-        #                    symbol: '1INCHUSDT',
-        #                    isolatedCreated: True,
-        #                    marginLevel: '999',
-        #                    marginLevelStatus: 'EXCESSIVE',
-        #                    marginRatio: '5',
-        #                    indexPrice: '0.59184331',
-        #                    liquidatePrice: '0',
-        #                    liquidateRate: '0',
-        #                    tradeEnabled: True,
-        #                    enabled: True
+        #                    "symbol": "1INCHUSDT",
+        #                    "isolatedCreated": True,
+        #                    "marginLevel": "999",
+        #                    "marginLevelStatus": "EXCESSIVE",
+        #                    "marginRatio": "5",
+        #                    "indexPrice": "0.59184331",
+        #                    "liquidatePrice": "0",
+        #                    "liquidateRate": "0",
+        #                    "tradeEnabled": True,
+        #                    "enabled": True
         #                },
         #            ]
         #        }
@@ -2701,7 +2700,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response, type, marginMode)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://binance-docs.github.io/apidocs/spot/en/#order-book      # spot
@@ -2770,52 +2769,52 @@ class binance(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer_2(response, 'lastUpdateId', 'u')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
-        #         symbol: 'ETHBTC',
-        #         priceChange: '0.00068700',
-        #         priceChangePercent: '2.075',
-        #         weightedAvgPrice: '0.03342681',
-        #         prevClosePrice: '0.03310300',
-        #         lastPrice: '0.03378900',
-        #         lastQty: '0.07700000',
-        #         bidPrice: '0.03378900',
-        #         bidQty: '7.16800000',
-        #         askPrice: '0.03379000',
-        #         askQty: '24.00000000',
-        #         openPrice: '0.03310200',
-        #         highPrice: '0.03388900',
-        #         lowPrice: '0.03306900',
-        #         volume: '205478.41000000',
-        #         quoteVolume: '6868.48826294',
-        #         openTime: 1601469986932,
-        #         closeTime: 1601556386932,
-        #         firstId: 196098772,
-        #         lastId: 196186315,
-        #         count: 87544
+        #         "symbol": "ETHBTC",
+        #         "priceChange": "0.00068700",
+        #         "priceChangePercent": "2.075",
+        #         "weightedAvgPrice": "0.03342681",
+        #         "prevClosePrice": "0.03310300",
+        #         "lastPrice": "0.03378900",
+        #         "lastQty": "0.07700000",
+        #         "bidPrice": "0.03378900",
+        #         "bidQty": "7.16800000",
+        #         "askPrice": "0.03379000",
+        #         "askQty": "24.00000000",
+        #         "openPrice": "0.03310200",
+        #         "highPrice": "0.03388900",
+        #         "lowPrice": "0.03306900",
+        #         "volume": "205478.41000000",
+        #         "quoteVolume": "6868.48826294",
+        #         "openTime": 1601469986932,
+        #         "closeTime": 1601556386932,
+        #         "firstId": 196098772,
+        #         "lastId": 196186315,
+        #         "count": 87544
         #     }
         #
         # coinm
         #
         #     {
-        #         baseVolume: '214549.95171161',
-        #         closeTime: '1621965286847',
-        #         count: '1283779',
-        #         firstId: '152560106',
-        #         highPrice: '39938.3',
-        #         lastId: '153843955',
-        #         lastPrice: '37993.4',
-        #         lastQty: '1',
-        #         lowPrice: '36457.2',
-        #         openPrice: '37783.4',
-        #         openTime: '1621878840000',
-        #         pair: 'BTCUSD',
-        #         priceChange: '210.0',
-        #         priceChangePercent: '0.556',
-        #         symbol: 'BTCUSD_PERP',
-        #         volume: '81990451',
-        #         weightedAvgPrice: '38215.08713747'
+        #         "baseVolume": "214549.95171161",
+        #         "closeTime": "1621965286847",
+        #         "count": "1283779",
+        #         "firstId": "152560106",
+        #         "highPrice": "39938.3",
+        #         "lastId": "153843955",
+        #         "lastPrice": "37993.4",
+        #         "lastQty": "1",
+        #         "lowPrice": "36457.2",
+        #         "openPrice": "37783.4",
+        #         "openTime": "1621878840000",
+        #         "pair": "BTCUSD",
+        #         "priceChange": "210.0",
+        #         "priceChangePercent": "0.556",
+        #         "symbol": "BTCUSD_PERP",
+        #         "volume": "81990451",
+        #         "weightedAvgPrice": "38215.08713747"
         #     }
         #
         # eapi: fetchTicker, fetchTickers
@@ -2938,15 +2937,17 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        :see: https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics      # spot
         :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param boolean [params.rolling]:(spot only) default False, if True, uses the rolling 24 hour ticker endpoint /api/v3/ticker
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
@@ -2962,7 +2963,12 @@ class binance(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = self.dapiPublicGetTicker24hr(self.extend(request, params))
         else:
-            response = self.publicGetTicker24hr(self.extend(request, params))
+            rolling = self.safe_value(params, 'rolling', False)
+            params = self.omit(params, 'rolling')
+            if rolling:
+                response = self.publicGetTicker(self.extend(request, params))
+            else:
+                response = self.publicGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
             firstTicker = self.safe_value(response, 0, {})
             return self.parse_ticker(firstTicker, market)
@@ -3130,7 +3136,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(query)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -3192,7 +3198,7 @@ class binance(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, volumeIndex, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
@@ -3296,7 +3302,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         if 'isDustTrade' in trade:
             return self.parse_dust_trade(trade, market)
         #
@@ -3500,7 +3506,7 @@ class binance(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
          * Default fetchTradesMethod
@@ -3571,7 +3577,7 @@ class binance(Exchange, ImplicitAPI):
         #   to the maximum limit may be returned to satisfy other parameters
         # - if both limit and time window is set and time window contains more
         #   trades than the limit then the last trades from the window are returned
-        # - 'tradeId' accepted and returned by self method is "aggregate" trade id
+        # - "tradeId" accepted and returned by self method is "aggregate" trade id
         #   which is different from actual trade id
         # - setting both fromId and time window results in error
         response = getattr(self, method)(self.extend(request, params))
@@ -3904,7 +3910,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # spot
         #
@@ -4495,7 +4501,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4621,7 +4627,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
@@ -4684,7 +4690,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4890,8 +4896,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -5425,7 +5430,7 @@ class binance(Exchange, ImplicitAPI):
         statuses = self.safe_value(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -5488,7 +5493,7 @@ class binance(Exchange, ImplicitAPI):
         #
         # withdraw
         #
-        #    {id: '9a67628b16ba4988ae20d329333f16bc'}
+        #    {id: "9a67628b16ba4988ae20d329333f16bc"}
         #
         id = self.safe_string_2(transaction, 'id', 'orderNo')
         address = self.safe_string(transaction, 'address')
@@ -5519,9 +5524,10 @@ class binance(Exchange, ImplicitAPI):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        internal = self.safe_integer(transaction, 'transferType')
-        if internal is not None:
-            internal = True if internal else False
+        internalInteger = self.safe_integer(transaction, 'transferType')
+        internal = None
+        if internalInteger is not None:
+            internal = True if internalInteger else False
         network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
@@ -5562,12 +5568,12 @@ class binance(Exchange, ImplicitAPI):
         # fetchTransfers
         #
         #     {
-        #         timestamp: 1614640878000,
-        #         asset: 'USDT',
-        #         amount: '25',
-        #         type: 'MAIN_UMFUTURE',
-        #         status: 'CONFIRMED',
-        #         tranId: 43000126248
+        #         "timestamp": 1614640878000,
+        #         "asset": "USDT",
+        #         "amount": "25",
+        #         "type": "MAIN_UMFUTURE",
+        #         "status": "CONFIRMED",
+        #         "tranId": 43000126248
         #     }
         #
         id = self.safe_string(transfer, 'tranId')
@@ -5758,15 +5764,15 @@ class binance(Exchange, ImplicitAPI):
         response = self.sapiGetAssetTransfer(self.extend(request, params))
         #
         #     {
-        #         total: 3,
-        #         rows: [
+        #         "total": 3,
+        #         "rows": [
         #             {
-        #                 timestamp: 1614640878000,
-        #                 asset: 'USDT',
-        #                 amount: '25',
-        #                 type: 'MAIN_UMFUTURE',
-        #                 status: 'CONFIRMED',
-        #                 tranId: 43000126248
+        #                 "timestamp": 1614640878000,
+        #                 "asset": "USDT",
+        #                 "amount": "25",
+        #                 "type": "MAIN_UMFUTURE",
+        #                 "status": "CONFIRMED",
+        #                 "tranId": 43000126248
         #             },
         #         ]
         #     }
@@ -5799,14 +5805,14 @@ class binance(Exchange, ImplicitAPI):
         response = self.sapiGetCapitalDepositAddress(self.extend(request, params))
         #
         #     {
-        #         currency: 'XRP',
-        #         address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        #         tag: '108618262',
-        #         info: {
-        #             coin: 'XRP',
-        #             address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        #             tag: '108618262',
-        #             url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        #         "currency": "XRP",
+        #         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        #         "tag": "108618262",
+        #         "info": {
+        #             "coin": "XRP",
+        #             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        #             "tag": "108618262",
+        #             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         #         }
         #     }
         #
@@ -5855,79 +5861,79 @@ class binance(Exchange, ImplicitAPI):
         #
         #  [
         #     {
-        #       coin: 'BAT',
-        #       depositAllEnable: True,
-        #       withdrawAllEnable: True,
-        #       name: 'Basic Attention Token',
-        #       free: '0',
-        #       locked: '0',
-        #       freeze: '0',
-        #       withdrawing: '0',
-        #       ipoing: '0',
-        #       ipoable: '0',
-        #       storage: '0',
-        #       isLegalMoney: False,
-        #       trading: True,
-        #       networkList: [
+        #       "coin": "BAT",
+        #       "depositAllEnable": True,
+        #       "withdrawAllEnable": True,
+        #       "name": "Basic Attention Token",
+        #       "free": "0",
+        #       "locked": "0",
+        #       "freeze": "0",
+        #       "withdrawing": "0",
+        #       "ipoing": "0",
+        #       "ipoable": "0",
+        #       "storage": "0",
+        #       "isLegalMoney": False,
+        #       "trading": True,
+        #       "networkList": [
         #         {
-        #           network: 'BNB',
-        #           coin: 'BAT',
-        #           withdrawIntegerMultiple: '0.00000001',
-        #           isDefault: False,
-        #           depositEnable: True,
-        #           withdrawEnable: True,
-        #           depositDesc: '',
-        #           withdrawDesc: '',
-        #           specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        #           name: 'BEP2',
-        #           resetAddressStatus: False,
-        #           addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        #           memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        #           withdrawFee: '0.27',
-        #           withdrawMin: '0.54',
-        #           withdrawMax: '10000000000',
-        #           minConfirm: '1',
-        #           unLockConfirm: '0'
+        #           "network": "BNB",
+        #           "coin": "BAT",
+        #           "withdrawIntegerMultiple": "0.00000001",
+        #           "isDefault": False,
+        #           "depositEnable": True,
+        #           "withdrawEnable": True,
+        #           "depositDesc": '',
+        #           "withdrawDesc": '',
+        #           "specialTips": "The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.",
+        #           "name": "BEP2",
+        #           "resetAddressStatus": False,
+        #           "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        #           "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        #           "withdrawFee": "0.27",
+        #           "withdrawMin": "0.54",
+        #           "withdrawMax": "10000000000",
+        #           "minConfirm": "1",
+        #           "unLockConfirm": "0"
         #         },
         #         {
-        #           network: 'BSC',
-        #           coin: 'BAT',
-        #           withdrawIntegerMultiple: '0.00000001',
-        #           isDefault: False,
-        #           depositEnable: True,
-        #           withdrawEnable: True,
-        #           depositDesc: '',
-        #           withdrawDesc: '',
-        #           specialTips: 'The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 9766e.',
-        #           name: 'BEP20(BSC)',
-        #           resetAddressStatus: False,
-        #           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-        #           memoRegex: '',
-        #           withdrawFee: '0.27',
-        #           withdrawMin: '0.54',
-        #           withdrawMax: '10000000000',
-        #           minConfirm: '15',
-        #           unLockConfirm: '0'
+        #           "network": "BSC",
+        #           "coin": "BAT",
+        #           "withdrawIntegerMultiple": "0.00000001",
+        #           "isDefault": False,
+        #           "depositEnable": True,
+        #           "withdrawEnable": True,
+        #           "depositDesc": '',
+        #           "withdrawDesc": '',
+        #           "specialTips": "The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 9766e.",
+        #           "name": "BEP20(BSC)",
+        #           "resetAddressStatus": False,
+        #           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        #           "memoRegex": '',
+        #           "withdrawFee": "0.27",
+        #           "withdrawMin": "0.54",
+        #           "withdrawMax": "10000000000",
+        #           "minConfirm": "15",
+        #           "unLockConfirm": "0"
         #         },
         #         {
-        #           network: 'ETH',
-        #           coin: 'BAT',
-        #           withdrawIntegerMultiple: '0.00000001',
-        #           isDefault: True,
-        #           depositEnable: True,
-        #           withdrawEnable: True,
-        #           depositDesc: '',
-        #           withdrawDesc: '',
-        #           specialTips: 'The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 887ef.',
-        #           name: 'ERC20',
-        #           resetAddressStatus: False,
-        #           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-        #           memoRegex: '',
-        #           withdrawFee: '27',
-        #           withdrawMin: '54',
-        #           withdrawMax: '10000000000',
-        #           minConfirm: '12',
-        #           unLockConfirm: '0'
+        #           "network": "ETH",
+        #           "coin": "BAT",
+        #           "withdrawIntegerMultiple": "0.00000001",
+        #           "isDefault": True,
+        #           "depositEnable": True,
+        #           "withdrawEnable": True,
+        #           "depositDesc": '',
+        #           "withdrawDesc": '',
+        #           "specialTips": "The name of self asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token(BAT) tokens under the contract address ending in 887ef.",
+        #           "name": "ERC20",
+        #           "resetAddressStatus": False,
+        #           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        #           "memoRegex": '',
+        #           "withdrawFee": "27",
+        #           "withdrawMin": "54",
+        #           "withdrawMax": "10000000000",
+        #           "minConfirm": "12",
+        #           "unLockConfirm": "0"
         #         }
         #       ]
         #     }
@@ -5965,39 +5971,39 @@ class binance(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            coin: 'BAT',
-        #            depositAllEnable: True,
-        #            withdrawAllEnable: True,
-        #            name: 'Basic Attention Token',
-        #            free: '0',
-        #            locked: '0',
-        #            freeze: '0',
-        #            withdrawing: '0',
-        #            ipoing: '0',
-        #            ipoable: '0',
-        #            storage: '0',
-        #            isLegalMoney: False,
-        #            trading: True,
-        #            networkList: [
+        #            "coin": "BAT",
+        #            "depositAllEnable": True,
+        #            "withdrawAllEnable": True,
+        #            "name": "Basic Attention Token",
+        #            "free": "0",
+        #            "locked": "0",
+        #            "freeze": "0",
+        #            "withdrawing": "0",
+        #            "ipoing": "0",
+        #            "ipoable": "0",
+        #            "storage": "0",
+        #            "isLegalMoney": False,
+        #            "trading": True,
+        #            "networkList": [
         #                {
-        #                    network: 'BNB',
-        #                    coin: 'BAT',
-        #                    withdrawIntegerMultiple: '0.00000001',
-        #                    isDefault: False,
-        #                    depositEnable: True,
-        #                    withdrawEnable: True,
-        #                    depositDesc: '',
-        #                    withdrawDesc: '',
-        #                    specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        #                    name: 'BEP2',
-        #                    resetAddressStatus: False,
-        #                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        #                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        #                    withdrawFee: '0.27',
-        #                    withdrawMin: '0.54',
-        #                    withdrawMax: '10000000000',
-        #                    minConfirm: '1',
-        #                    unLockConfirm: '0'
+        #                    "network": "BNB",
+        #                    "coin": "BAT",
+        #                    "withdrawIntegerMultiple": "0.00000001",
+        #                    "isDefault": False,
+        #                    "depositEnable": True,
+        #                    "withdrawEnable": True,
+        #                    "depositDesc": '',
+        #                    "withdrawDesc": '',
+        #                    "specialTips": "The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.",
+        #                    "name": "BEP2",
+        #                    "resetAddressStatus": False,
+        #                    "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        #                    "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        #                    "withdrawFee": "0.27",
+        #                    "withdrawMin": "0.54",
+        #                    "withdrawMax": "10000000000",
+        #                    "minConfirm": "1",
+        #                    "unLockConfirm": "0"
         #                },
         #                ...
         #            ]
@@ -6009,39 +6015,39 @@ class binance(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fee(self, fee, currency=None):
         #
         #    {
-        #        coin: 'BAT',
-        #        depositAllEnable: True,
-        #        withdrawAllEnable: True,
-        #        name: 'Basic Attention Token',
-        #        free: '0',
-        #        locked: '0',
-        #        freeze: '0',
-        #        withdrawing: '0',
-        #        ipoing: '0',
-        #        ipoable: '0',
-        #        storage: '0',
-        #        isLegalMoney: False,
-        #        trading: True,
-        #        networkList: [
+        #        "coin": "BAT",
+        #        "depositAllEnable": True,
+        #        "withdrawAllEnable": True,
+        #        "name": "Basic Attention Token",
+        #        "free": "0",
+        #        "locked": "0",
+        #        "freeze": "0",
+        #        "withdrawing": "0",
+        #        "ipoing": "0",
+        #        "ipoable": "0",
+        #        "storage": "0",
+        #        "isLegalMoney": False,
+        #        "trading": True,
+        #        "networkList": [
         #            {
-        #                network: 'BNB',
-        #                coin: 'BAT',
-        #                withdrawIntegerMultiple: '0.00000001',
-        #                isDefault: False,
-        #                depositEnable: True,
-        #                withdrawEnable: True,
-        #                depositDesc: '',
-        #                withdrawDesc: '',
-        #                specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        #                name: 'BEP2',
-        #                resetAddressStatus: False,
-        #                addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        #                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        #                withdrawFee: '0.27',
-        #                withdrawMin: '0.54',
-        #                withdrawMax: '10000000000',
-        #                minConfirm: '1',
-        #                unLockConfirm: '0'
+        #                "network": "BNB",
+        #                "coin": "BAT",
+        #                "withdrawIntegerMultiple": "0.00000001",
+        #                "isDefault": False,
+        #                "depositEnable": True,
+        #                "withdrawEnable": True,
+        #                "depositDesc": '',
+        #                "withdrawDesc": '',
+        #                "specialTips": "The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.",
+        #                "name": "BEP2",
+        #                "resetAddressStatus": False,
+        #                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        #                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        #                "withdrawFee": "0.27",
+        #                "withdrawMin": "0.54",
+        #                "withdrawMax": "10000000000",
+        #                "minConfirm": "1",
+        #                "unLockConfirm": "0"
         #            },
         #            ...
         #        ]
@@ -7404,8 +7410,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
@@ -7435,8 +7440,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
@@ -7902,9 +7906,9 @@ class binance(Exchange, ImplicitAPI):
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(orderidlist)
                     if orderidlistLength > 0:
-                        query = query + '&orderidlist=[' + ','.join(orderidlist) + ']'
+                        query = query + '&' + 'orderidlist=[' + ','.join(orderidlist) + ']'
                     if origclientorderidlistLength > 0:
-                        query = query + '&origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
+                        query = query + '&' + 'origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
                 else:
                     query = self.rawencode(extendedParams)
             else:
@@ -8211,10 +8215,10 @@ class binance(Exchange, ImplicitAPI):
         response = self.sapiPostGiftcardCreateCode(self.extend(request, params))
         #
         #     {
-        #         code: '000000',
-        #         message: 'success',
-        #         data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
-        #         success: True
+        #         "code": "000000",
+        #         "message": "success",
+        #         "data": {referenceNo: "0033002404219823", code: "AP6EXTLKNHM6CEX7"},
+        #         "success": True
         #     }
         #
         data = self.safe_value(response, 'data')
@@ -8242,13 +8246,13 @@ class binance(Exchange, ImplicitAPI):
         response = self.sapiPostGiftcardRedeemCode(self.extend(request, params))
         #
         #     {
-        #         code: '000000',
-        #         message: 'success',
-        #         data: {
-        #             referenceNo: '0033002404219823',
-        #             identityNo: '10316431732801474560'
+        #         "code": "000000",
+        #         "message": "success",
+        #         "data": {
+        #             "referenceNo": "0033002404219823",
+        #             "identityNo": "10316431732801474560"
         #         },
-        #         success: True
+        #         "success": True
         #     }
         #
         return response
@@ -8267,10 +8271,10 @@ class binance(Exchange, ImplicitAPI):
         response = self.sapiGetGiftcardVerify(self.extend(request, params))
         #
         #     {
-        #         code: '000000',
-        #         message: 'success',
-        #         data: {valid: True},
-        #         success: True
+        #         "code": "000000",
+        #         "message": "success",
+        #         "data": {valid: True},
+        #         "success": True
         #     }
         #
         return response
@@ -8427,7 +8431,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [limit]: default 30, max 500
         :param dict [params]: exchange specific parameters
         :param int [params.until]: the time(ms) of the latest record to retrieve unix timestamp
-        :returns dict: an array of `open interest history structure <https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure>`
+        :returns dict: an array of `open interest structure <https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure>`
         """
         if timeframe == '1m':
             raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
@@ -8483,7 +8487,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://binance-docs.github.io/apidocs/voptions/en/#open-interest
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
