@@ -2522,88 +2522,8 @@ export default class bybit extends Exchange {
     }
 
     parseTrade (trade, market = undefined): Trade {
-        const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
-        if (isSpotTrade) {
-            return this.parseSpotTrade (trade, market);
-        } else {
-            return this.parseContractTrade (trade, market);
-        }
-    }
-
-    parseSpotTrade (trade, market = undefined) {
         //
-        //   public:
-        //     {
-        //        "price": "39548.68",
-        //        "time": "1651748717850",
-        //        "qty": "0.166872",
-        //        "isBuyerMaker": 0
-        //     }
-        //
-        //   private:
-        //     {
-        //         "orderPrice": "82.5",
-        //         "creatTime": "1666702226326",
-        //         "orderQty": "0.016",
-        //         "isBuyer": "0",
-        //         "isMaker": "0",
-        //         "symbol": "AAVEUSDT",
-        //         "id": "1274785101965716992",
-        //         "orderId": "1274784252359089664",
-        //         "tradeId": "2270000000031365639",
-        //         "execFee": "0",
-        //         "feeTokenId": "AAVE",
-        //         "matchOrderId": "1274785101865076224",
-        //         "makerRebate": "0",
-        //         "executionTime": "1666702226335"
-        //     }
-        //
-        const timestamp = this.safeIntegerN (trade, [ 'time', 'creatTime' ]);
-        let takerOrMaker = undefined;
-        let side = undefined;
-        const isBuyerMaker = this.safeInteger (trade, 'isBuyerMaker');
-        if (isBuyerMaker !== undefined) {
-            // if public response
-            side = (isBuyerMaker === 1) ? 'buy' : 'sell';
-        } else {
-            // if private response
-            const isBuyer = this.safeInteger (trade, 'isBuyer');
-            const isMaker = this.safeInteger (trade, 'isMaker');
-            takerOrMaker = (isMaker === 0) ? 'maker' : 'taker';
-            side = (isBuyer === 0) ? 'buy' : 'sell';
-        }
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'spot');
-        let fee = undefined;
-        const feeCost = this.safeString (trade, 'execFee');
-        if (feeCost !== undefined) {
-            const feeToken = this.safeString (trade, 'feeTokenId');
-            const feeCurrency = this.safeCurrencyCode (feeToken);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            };
-        }
-        return this.safeTrade ({
-            'id': this.safeString (trade, 'tradeId'),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': this.safeString (trade, 'orderId'),
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': this.safeString2 (trade, 'price', 'orderPrice'),
-            'amount': this.safeString2 (trade, 'qty', 'orderQty'),
-            'cost': undefined,
-            'fee': fee,
-        }, market);
-    }
-
-    parseContractTrade (trade, market = undefined) {
-        //
-        // public contract
+        // public https://bybit-exchange.github.io/docs/v5/market/recent-trade
         //
         //     {
         //         "execId": "666042b4-50c6-58f3-bd9c-89b2088663ff",
@@ -2615,59 +2535,66 @@ export default class bybit extends Exchange {
         //         "isBlockTrade": false
         //     }
         //
-        // public unified margin
+        // private trades classic spot https://bybit-exchange.github.io/docs/v5/position/execution
         //
         //     {
-        //         "execId": "da66abbc-f358-5864-8d34-84ef7274d853",
-        //         "symbol": "BTCUSDT",
-        //         "price": "20802.50",
-        //         "size": "0.200",
-        //         "side": "Sell",
-        //         "time": "1657870316630"
-        //     }
-        //
-        // private contract trades
-        //
-        //     {
-        //         "symbol": "ETHUSD",
-        //         "execFee": "0.00005484",
-        //         "execId": "acf78206-d464-589b-b888-51bd130821c1",
-        //         "execPrice": "1367.80",
-        //         "execQty": "100",
-        //         "execType": "Trade",
-        //         "execValue": "0.0731101",
-        //         "feeRate": "0.00075",
-        //         "lastLiquidityInd": "RemovedLiquidity",
-        //         "leavesQty": "0",
-        //         "orderId": "fdc584c3-be5d-41ff-8f54-5be7649b1d1c",
+        //         "symbol": "QNTUSDT",
+        //         "orderId": "1538686353240339712",
         //         "orderLinkId": "",
-        //         "orderPrice": "1299.50",
-        //         "orderQty": "100",
-        //         "orderType": "Market",
-        //         "stopOrderType": "UNKNOWN",
         //         "side": "Sell",
-        //         "execTime": "1611528105547",
-        //         "closedSize": "100"
+        //         "orderPrice": "",
+        //         "orderQty": "",
+        //         "leavesQty": "",
+        //         "orderType": "Limit",
+        //         "stopOrderType": "",
+        //         "execFee": "0.040919",
+        //         "execId": "2210000000097330907",
+        //         "execPrice": "98.6",
+        //         "execQty": "0.415",
+        //         "execType": "",
+        //         "execValue": "",
+        //         "execTime": "1698161716634",
+        //         "isMaker": true,
+        //         "feeRate": "",
+        //         "tradeIv": "",
+        //         "markIv": "",
+        //         "markPrice": "",
+        //         "indexPrice": "",
+        //         "underlyingPrice": "",
+        //         "blockTradeId": ""
         //     }
         //
-        // private unified margin
+        // private trades unified https://bybit-exchange.github.io/docs/v5/position/execution
         //
         //     {
-        //         "symbol": "AAVEUSDT",
-        //         "id": "1274785101965716991",
-        //         "orderId": "1274784252359089664",
-        //         "tradeId": "2270000000031365639",
-        //         "orderPrice": "82.5",
-        //         "orderQty": "0.016",
-        //         "execFee": "0",
-        //         "feeTokenId": "AAVE",
-        //         "creatTime": "1666702226326",
-        //         "isBuyer": "0",
-        //         "isMaker": "0",
-        //         "matchOrderId": "1274785101865076224",
-        //         "makerRebate": "0",
-        //         "executionTime": "1666702226335"
-        //     }
+        //         "symbol": "QNTUSDT",
+        //         "orderType": "Limit",
+        //         "underlyingPrice": "",
+        //         "orderLinkId": "1549452573428424449",
+        //         "orderId": "1549452573428424448",
+        //         "stopOrderType": "",
+        //         "execTime": "1699445151998",
+        //         "feeRate": "0.00025",
+        //         "tradeIv": "",
+        //         "blockTradeId": "",
+        //         "markPrice": "",
+        //         "execPrice": "102.8",
+        //         "markIv": "",
+        //         "orderQty": "3.652",
+        //         "orderPrice": "102.8",
+        //         "execValue": "1.028",
+        //         "closedSize": "",
+        //         "execType": "Trade",
+        //         "seq": "19157444346",
+        //         "side": "Buy",
+        //         "indexPrice": "",
+        //         "leavesQty": "3.642",
+        //         "isMaker": true,
+        //         "execFee": "0.0000025",
+        //         "execId": "2210000000101610464",
+        //         "execQty": "0.01",
+        //         "nextPageCursor": "267951%3A0%2C38567%3A0"
+        //     },
         //
         // private USDC settled trades
         //
@@ -2737,15 +2664,29 @@ export default class bybit extends Exchange {
         const feeCostString = this.safeString (trade, 'execFee');
         let fee = undefined;
         if (feeCostString !== undefined) {
+            const feeRateString = this.safeString (trade, 'feeRate');
             let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
+                if (Precise.stringGt (feeCostString, '0')) {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['base'];
+                    } else {
+                        feeCurrencyCode = market['quote'];
+                    }
+                } else {
+                    if (side === 'buy') {
+                        feeCurrencyCode = market['quote'];
+                    } else {
+                        feeCurrencyCode = market['base'];
+                    }
+                }
             } else {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
+                'rate': feeRateString,
             };
         }
         return this.safeTrade ({
