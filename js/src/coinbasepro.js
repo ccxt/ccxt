@@ -1236,7 +1236,7 @@ export default class coinbasepro extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
         }
-        const stopPrice = this.safeNumber2(params, 'stopPrice', 'stop_price');
+        const stopPrice = this.safeNumberN(params, ['stopPrice', 'stop_price', 'triggerPrice']);
         if (stopPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision(symbol, stopPrice);
         }
@@ -1248,7 +1248,7 @@ export default class coinbasepro extends Exchange {
         if (postOnly) {
             request['post_only'] = true;
         }
-        params = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only']);
+        params = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
             request['size'] = this.amountToPrecision(symbol, amount);

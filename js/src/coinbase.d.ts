@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook } from './base/types.js';
 /**
  * @class coinbase
  * @extends Exchange
@@ -110,7 +110,7 @@ export default class coinbase extends Exchange {
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

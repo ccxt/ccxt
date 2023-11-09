@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class okx
  * @extends Exchange
@@ -70,7 +70,7 @@ export default class okx extends Exchange {
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;

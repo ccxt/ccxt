@@ -1,5 +1,5 @@
 import Exchange from './abstract/oceanex.js';
-import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 /**
  * @class oceanex
  * @extends Exchange
@@ -7,9 +7,9 @@ import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderTyp
 export default class oceanex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<import("./base/types.js").Ticker>>;
-    parseTicker(data: any, market?: any): import("./base/types.js").Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    parseTicker(data: any, market?: any): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

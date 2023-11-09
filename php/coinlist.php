@@ -509,7 +509,7 @@ class coinlist extends Exchange {
         return $this->parse_tickers($tickers, $symbols, $params);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$market-summary
@@ -600,7 +600,7 @@ class coinlist extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
@@ -638,7 +638,7 @@ class coinlist extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$candles
@@ -722,7 +722,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$auctions
@@ -1181,7 +1181,7 @@ class coinlist extends Exchange {
         return $this->parse_trades($fills, $market, $since, $limit);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all the trades made from a single order
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
@@ -1198,7 +1198,7 @@ class coinlist extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
@@ -1306,7 +1306,7 @@ class coinlist extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1324,7 +1324,7 @@ class coinlist extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1528,7 +1528,7 @@ class coinlist extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrder
         //     {

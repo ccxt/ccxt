@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitmart extends Exchange {
 
@@ -1125,7 +1126,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1247,7 +1248,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -1420,7 +1421,7 @@ class bitmart extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -1469,15 +1470,15 @@ class bitmart extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "last_price":"0.034987",
-        //         "timestamp":1598787420,
-        //         "volume":"1.0198",
-        //         "open":"0.035007",
-        //         "close":"0.034987",
-        //         "high":"0.035007",
-        //         "low":"0.034986"
-        //     }
+        //     array(
+        //         "1699512060", // timestamp
+        //         "36746.49", // open
+        //         "36758.71", // high
+        //         "36736.13", // low
+        //         "36755.99", // close
+        //         "2.83965", // base volume
+        //         "104353.57" // quote volume
+        //     )
         //
         // swap
         //
@@ -1494,7 +1495,7 @@ class bitmart extends Exchange {
         //
         //     array(
         //         1631056350, // timestamp
-        //         "46532.83", // oopen
+        //         "46532.83", // open
         //         "46555.71", // high
         //         "46511.41", // low
         //         "46555.71", // close
@@ -1513,31 +1514,37 @@ class bitmart extends Exchange {
         } else {
             return array(
                 $this->safe_timestamp($ohlcv, 'timestamp'),
-                $this->safe_number_2($ohlcv, 'open', 'open_price'),
-                $this->safe_number_2($ohlcv, 'high', 'high_price'),
-                $this->safe_number_2($ohlcv, 'low', 'low_price'),
-                $this->safe_number_2($ohlcv, 'close', 'close_price'),
+                $this->safe_number($ohlcv, 'open_price'),
+                $this->safe_number($ohlcv, 'high_price'),
+                $this->safe_number($ohlcv, 'low_price'),
+                $this->safe_number($ohlcv, 'close_price'),
                 $this->safe_number($ohlcv, 'volume'),
             );
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://developer-pro.bitmart.com/en/spot/#get-k-line
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://developer-pro.bitmart.com/en/spot/#get-latest-k-line-v3
              * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the bitmart api endpoint
+             * @param {int} [$params->until] timestamp of the latest candle in ms
+             * @param {boolean} [$params->paginate] *spot only* default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 200));
+            }
             $market = $this->market($symbol);
-            $type = $market['type'];
             $duration = $this->parse_timeframe($timeframe);
             $parsedTimeframe = $this->safe_integer($this->timeframes, $timeframe);
             $request = array(
@@ -1548,44 +1555,51 @@ class bitmart extends Exchange {
             } else {
                 $request['step'] = $timeframe;
             }
-            $maxLimit = 500;
-            if ($limit === null) {
-                $limit = $maxLimit;
-            }
-            $limit = min ($maxLimit, $limit);
-            $now = $this->parse_to_int($this->milliseconds() / 1000);
-            $fromRequest = ($type === 'spot') ? 'from' : 'start_time';
-            $toRequest = ($type === 'spot') ? 'to' : 'end_time';
-            if ($since === null) {
-                $start = $now - $limit * $duration;
-                $request[$fromRequest] = $start;
-                $request[$toRequest] = $now;
+            if ($market['spot']) {
+                list($request, $params) = $this->handle_until_option('before', $request, $params, 0.001);
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                if ($since !== null) {
+                    $request['after'] = $this->parse_to_int(($since / 1000)) - 1;
+                }
             } else {
-                $start = $this->parse_to_int(($since / 1000)) - 1;
-                $end = $this->sum($start, $limit * $duration);
-                $request[$fromRequest] = $start;
-                $request[$toRequest] = min ($end, $now);
+                $maxLimit = 1200;
+                if ($limit === null) {
+                    $limit = $maxLimit;
+                }
+                $limit = min ($maxLimit, $limit);
+                $now = $this->parse_to_int($this->milliseconds() / 1000);
+                if ($since === null) {
+                    $start = $now - $limit * $duration;
+                    $request['start_time'] = $start;
+                    $request['end_time'] = $now;
+                } else {
+                    $start = $this->parse_to_int(($since / 1000)) - 1;
+                    $end = $this->sum($start, $limit * $duration);
+                    $request['start_time'] = $start;
+                    $request['end_time'] = min ($end, $now);
+                }
+                list($request, $params) = $this->handle_until_option('end_time', $request, $params, 0.001);
             }
             $response = null;
-            if ($type === 'swap') {
+            if ($market['swap']) {
                 $response = Async\await($this->publicGetContractPublicKline (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetSpotQuotationV3Klines (array_merge($request, $params)));
+                $response = Async\await($this->publicGetSpotQuotationV3LiteKlines (array_merge($request, $params)));
             }
             //
             // spot
             //
             //     {
-            //         "message":"OK",
-            //         "code":1000,
-            //         "trace":"80d86378-ab4e-4c70-819e-b42146cf87ad",
-            //         "data":{
-            //             "klines":array(
-            //                 array("last_price":"0.034987","timestamp":1598787420,"volume":"1.0198","open":"0.035007","close":"0.034987","high":"0.035007","low":"0.034986"),
-            //                 array("last_price":"0.034986","timestamp":1598787480,"volume":"0.3959","open":"0.034982","close":"0.034986","high":"0.034986","low":"0.034980"),
-            //                 array("last_price":"0.034978","timestamp":1598787540,"volume":"0.3259","open":"0.034987","close":"0.034978","high":"0.034987","low":"0.034977"),
-            //             )
-            //         }
+            //         "code" => 1000,
+            //         "message" => "success",
+            //         "data" => [
+            //             ["1699512060","36746.49","36758.71","36736.13","36755.99","2.83965","104353.57"],
+            //             ["1699512120","36756.00","36758.70","36737.14","36737.63","1.96070","72047.10"],
+            //             ["1699512180","36737.63","36740.45","36737.62","36740.44","0.63194","23217.62"]
+            //         ],
+            //         "trace" => "6591fc7b508845359d5fa442e3b3a4fb.72.16995122398750695"
             //     }
             //
             // swap
@@ -1607,8 +1621,7 @@ class bitmart extends Exchange {
             //         "trace" => "96c989db-e0f5-46f5-bba6-60cfcbde699b"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $ohlcv = $this->safe_value($data, 'klines', $data);
+            $ohlcv = $this->safe_value($response, 'data', array());
             return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -2423,7 +2436,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
@@ -2531,7 +2544,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, IndexType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, IndexType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1269,7 +1269,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
         :see: https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
@@ -1338,7 +1338,7 @@ class mexc(Exchange, ImplicitAPI):
             return [price, amount, count]
         return [price, amount]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
@@ -1578,7 +1578,7 @@ class mexc(Exchange, ImplicitAPI):
                 id += '-' + orderType
         return id
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
@@ -1763,7 +1763,7 @@ class mexc(Exchange, ImplicitAPI):
             tickers = [tickers]
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -2330,7 +2330,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2542,7 +2542,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
             return self.parse_orders(data, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -2623,7 +2623,7 @@ class mexc(Exchange, ImplicitAPI):
             # TO_DO: another possible way is through: open_orders/{symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
             return self.fetch_orders_by_state(2, symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

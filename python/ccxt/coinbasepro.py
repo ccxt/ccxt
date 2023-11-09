@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -495,7 +495,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = self.privateGetAccounts(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -654,7 +654,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(first, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -796,7 +796,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
         get the list of most recent trades for a particular symbol
@@ -877,7 +877,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1072,7 +1072,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple orders made by the user
@@ -1088,7 +1088,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetch all unfilled currently open orders
@@ -1121,7 +1121,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple closed orders made by the user
@@ -1174,7 +1174,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
+        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
         if stopPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
@@ -1183,7 +1183,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
         if postOnly:
             request['post_only'] = True
-        params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only'])
+        params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)

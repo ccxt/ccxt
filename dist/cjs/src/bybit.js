@@ -323,6 +323,8 @@ class bybit extends bybit$1 {
                         'v5/spot-cross-margin-trade/orders': 1,
                         'v5/spot-cross-margin-trade/repay-history': 1,
                         // institutional lending
+                        'v5/ins-loan/product-infos': 5,
+                        'v5/ins-loan/ensure-tokens-convert': 5,
                         'v5/ins-loan/loan-order': 5,
                         'v5/ins-loan/repaid-history': 5,
                         'v5/ins-loan/ltv-convert': 5,
@@ -459,6 +461,8 @@ class bybit extends bybit$1 {
                         'v5/spot-cross-margin-trade/loan': 2.5,
                         'v5/spot-cross-margin-trade/repay': 2.5,
                         'v5/spot-cross-margin-trade/switch': 2.5,
+                        // institutional lending
+                        'v5/ins-loan/association-uid': 5,
                         // c2c lending
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,

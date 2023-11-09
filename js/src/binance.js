@@ -862,6 +862,7 @@ export default class binance extends Exchange {
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 },
+                        'ticker': { 'cost': 0.4, 'noSymbol': 16 },
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'exchangeInfo': 4,
@@ -3029,11 +3030,13 @@ export default class binance extends Exchange {
          * @name binance#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics      // spot
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
@@ -3052,7 +3055,14 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetTicker24hr(this.extend(request, params));
         }
         else {
-            response = await this.publicGetTicker24hr(this.extend(request, params));
+            const rolling = this.safeValue(params, 'rolling', false);
+            params = this.omit(params, 'rolling');
+            if (rolling) {
+                response = await this.publicGetTicker(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetTicker24hr(this.extend(request, params));
+            }
         }
         if (Array.isArray(response)) {
             const firstTicker = this.safeValue(response, 0, {});

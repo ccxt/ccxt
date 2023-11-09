@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -205,7 +205,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/index-components': 1,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
-                        'market/block-trades': 1,
+                        'public/block-trades': 1,
                         'public/instruments': 1,
                         'public/delivery-exercise-history': 1 / 2,
                         'public/open-interest': 1,
@@ -247,6 +247,7 @@ class okx(Exchange, ImplicitAPI):
                         'tradingBot/grid/min-investment': 1,
                         'tradingBot/public/rsi-back-testing': 1,
                         'asset/exchange-list': 5 / 3,
+                        'finance/staking-defi/eth/apy-history': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
                         # public broker
@@ -357,6 +358,9 @@ class okx(Exchange, ImplicitAPI):
                         'finance/staking-defi/offers': 10 / 3,
                         'finance/staking-defi/orders-active': 10 / 3,
                         'finance/staking-defi/orders-history': 10 / 3,
+                        # eth staking
+                        'finance/staking-defi/eth/balance': 5 / 3,
+                        'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
                         # copytrading
                         'copytrading/current-subpositions': 4,
                         'copytrading/subpositions-history': 10,
@@ -461,6 +465,9 @@ class okx(Exchange, ImplicitAPI):
                         'finance/staking-defi/purchase': 3,
                         'finance/staking-defi/redeem': 3,
                         'finance/staking-defi/cancel': 3,
+                        # eth staking
+                        'finance/staking-defi/eth/purchase': 5,
+                        'finance/staking-defi/eth/redeem': 5,
                         # copytrading
                         'copytrading/algo-order': 20,
                         'copytrading/close-subposition': 4,
@@ -1627,7 +1634,7 @@ class okx(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
@@ -1726,7 +1733,7 @@ class okx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
@@ -1919,7 +1926,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
@@ -2015,7 +2022,7 @@ class okx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://www.okx.com/docs-v5/en/#rest-api-market-data-get-candlesticks
@@ -3265,7 +3272,7 @@ class okx(Exchange, ImplicitAPI):
         order = self.safe_value(data, 0)
         return self.parse_order(order, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         Fetch orders that are still open
         fetch all unfilled currently open orders
@@ -3579,7 +3586,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days

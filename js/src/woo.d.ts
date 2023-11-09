@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
 /**
  * @class woo
  * @extends Exchange
@@ -21,7 +21,7 @@ export default class woo extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): any;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

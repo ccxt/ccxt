@@ -623,7 +623,7 @@ class cryptocom extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -637,7 +637,7 @@ class cryptocom extends Exchange {
         return $this->safe_value($tickers, $symbol);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
@@ -717,7 +717,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get a list of the most recent $trades for a particular $symbol
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$trades
@@ -775,7 +775,7 @@ class cryptocom extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
@@ -837,7 +837,7 @@ class cryptocom extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
@@ -1408,7 +1408,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result, $market, null, null, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-$orders

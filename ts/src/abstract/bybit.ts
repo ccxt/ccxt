@@ -166,6 +166,8 @@ interface Exchange {
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeOrders (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeRepayHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetV5InsLoanProductInfos (params?: {}): Promise<implicitReturnType>;
+    privateGetV5InsLoanEnsureTokensConvert (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLoanOrder (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanRepaidHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5InsLoanLtvConvert (params?: {}): Promise<implicitReturnType>;
@@ -283,6 +285,7 @@ interface Exchange {
     privatePostV5SpotCrossMarginTradeLoan (params?: {}): Promise<implicitReturnType>;
     privatePostV5SpotCrossMarginTradeRepay (params?: {}): Promise<implicitReturnType>;
     privatePostV5SpotCrossMarginTradeSwitch (params?: {}): Promise<implicitReturnType>;
+    privatePostV5InsLoanAssociationUid (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingPurchase (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeem (params?: {}): Promise<implicitReturnType>;
     privatePostV5LendingRedeemCancel (params?: {}): Promise<implicitReturnType>;

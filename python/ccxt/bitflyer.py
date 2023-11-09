@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -335,7 +335,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://lightning.bitflyer.com/docs?lang=en#order-book
@@ -379,7 +379,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://lightning.bitflyer.com/docs?lang=en#ticker
@@ -454,7 +454,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://lightning.bitflyer.com/docs?lang=en#list-executions
@@ -614,7 +614,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -637,7 +637,7 @@ class bitflyer(Exchange, ImplicitAPI):
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -652,7 +652,7 @@ class bitflyer(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders

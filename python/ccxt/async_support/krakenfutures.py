@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -406,7 +406,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         self.currencies = self.deep_extend(currencies, self.currencies)
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
         Fetches a list of open orders in a market
@@ -567,7 +567,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'info': ticker,
         })
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.futures.kraken.com/#http-api-charts-candles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -646,7 +646,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),      # trading volume, None for mark or index price
         ]
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
          * @descriptions Fetch a history of filled trades that self account has made
@@ -1056,7 +1056,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         response = await self.privatePostCancelallorders(self.extend(request, params))
         return response
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
         Gets all open orders, including trigger orders, for an account from the exchange api

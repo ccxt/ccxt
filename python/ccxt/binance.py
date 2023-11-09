@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -881,6 +881,7 @@ class binance(Exchange, ImplicitAPI):
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': {'cost': 0.4, 'noSymbol': 16},
+                        'ticker': {'cost': 0.4, 'noSymbol': 16},
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -2699,7 +2700,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response, type, marginMode)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://binance-docs.github.io/apidocs/spot/en/#order-book      # spot
@@ -2936,15 +2937,17 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        :see: https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics      # spot
         :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param boolean [params.rolling]:(spot only) default False, if True, uses the rolling 24 hour ticker endpoint /api/v3/ticker
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
@@ -2960,7 +2963,12 @@ class binance(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = self.dapiPublicGetTicker24hr(self.extend(request, params))
         else:
-            response = self.publicGetTicker24hr(self.extend(request, params))
+            rolling = self.safe_value(params, 'rolling', False)
+            params = self.omit(params, 'rolling')
+            if rolling:
+                response = self.publicGetTicker(self.extend(request, params))
+            else:
+                response = self.publicGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
             firstTicker = self.safe_value(response, 0, {})
             return self.parse_ticker(firstTicker, market)
@@ -3190,7 +3198,7 @@ class binance(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, volumeIndex, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
@@ -3498,7 +3506,7 @@ class binance(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
          * Default fetchTradesMethod
@@ -4493,7 +4501,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4619,7 +4627,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
@@ -4682,7 +4690,7 @@ class binance(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data

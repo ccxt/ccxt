@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class bybit
  * @extends Exchange
@@ -96,7 +96,7 @@ export default class bybit extends Exchange {
     parseSpotTrade(trade: any, market?: any): Trade;
     parseContractTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
     parseOrderStatus(status: any): string;

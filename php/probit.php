@@ -545,7 +545,7 @@ class probit extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/order_book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -609,7 +609,7 @@ class probit extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/ticker
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -744,7 +744,7 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/trade-1
          * get the list of most recent trades for a particular $symbol
@@ -914,7 +914,7 @@ class probit extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/candle
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1003,7 +1003,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/open_order-1
          * fetch all unfilled currently open orders
@@ -1026,7 +1026,7 @@ class probit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/order
          * fetches information on multiple closed orders made by the user

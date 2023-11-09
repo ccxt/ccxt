@@ -339,7 +339,7 @@ class bitflyer extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://lightning.bitflyer.com/docs?lang=en#order-book
@@ -385,7 +385,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://lightning.bitflyer.com/docs?lang=en#ticker
@@ -467,7 +467,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://lightning.bitflyer.com/docs?lang=en#list-executions
@@ -635,7 +635,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
@@ -660,7 +660,7 @@ class bitflyer extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -676,7 +676,7 @@ class bitflyer extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders

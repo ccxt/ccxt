@@ -395,7 +395,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-orderbook
          * Fetches a list of open orders in a $market
@@ -561,7 +561,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-charts-$candles
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -646,7 +646,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-trade-$history
          * @descriptions Fetch a $history of filled trades that this account has made
@@ -1089,7 +1089,7 @@ class krakenfutures extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-$orders
          * Gets all open $orders, including trigger $orders, for an account from the exchange api

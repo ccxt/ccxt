@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -295,7 +295,7 @@ class wazirx(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.wazirx.com/#kline-candlestick-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -343,7 +343,7 @@ class wazirx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs.wazirx.com/#order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -376,7 +376,7 @@ class wazirx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://docs.wazirx.com/#24hr-ticker-price-change-statistics
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -442,7 +442,7 @@ class wazirx(Exchange, ImplicitAPI):
             result[symbol] = parsedTicker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.wazirx.com/#recent-trades-list
         get the list of most recent trades for a particular symbol
@@ -629,7 +629,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.wazirx.com/#all-orders-user_data
         fetches information on multiple orders made by the user
@@ -683,7 +683,7 @@ class wazirx(Exchange, ImplicitAPI):
         orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.wazirx.com/#current-open-orders-user_data
         fetch all unfilled currently open orders
