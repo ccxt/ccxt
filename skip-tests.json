@@ -704,7 +704,7 @@
         "skipWs": true,
         "skipPhpAsync": true,
         "skipMethods": {
-            "proxies": "they do not permit our proxy location",
+            "proxies": "probably they do not permit our proxy",
             "loadMarkets": {
                 "limits":"max is below min",
                 "active":"is undefined",
