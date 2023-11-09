@@ -1,7 +1,11 @@
 language: python
 dist: jammy
 python:
-- 3.8.3
+- 3.7
+- 3.8
+- 3.9
+- 3.10
+- 3.11
 git:
   depth: 2
 cache:

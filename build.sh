@@ -61,6 +61,7 @@ build_and_test_all () {
     npm run test-base
     npm run test-base-ws
     run_tests
+    cd python && tox && cd ..
   fi
   exit
 }
