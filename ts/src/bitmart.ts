@@ -1520,7 +1520,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://developer-pro.bitmart.com/en/spot/#get-latest-k-line-v3
+         * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
          * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1579,7 +1579,7 @@ export default class bitmart extends Exchange {
         if (market['swap']) {
             response = await this.publicGetContractPublicKline (this.extend (request, params));
         } else {
-            response = await this.publicGetSpotQuotationV3LiteKlines (this.extend (request, params));
+            response = await this.publicGetSpotQuotationV3Klines (this.extend (request, params));
         }
         //
         // spot
