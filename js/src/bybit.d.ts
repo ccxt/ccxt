@@ -93,8 +93,6 @@ export default class bybit extends Exchange {
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseTrade(trade: any, market?: any): Trade;
-    parseSpotTrade(trade: any, market?: any): Trade;
-    parseContractTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseBalance(response: any): Balances;

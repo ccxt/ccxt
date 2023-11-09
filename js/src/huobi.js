@@ -7047,8 +7047,7 @@ export default class huobi extends Exchange {
             market = this.market(first);
         }
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchPositions', params);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchPositions', params, 'cross');
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params, 'linear');
         let marketType = undefined;

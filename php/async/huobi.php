@@ -6942,8 +6942,7 @@ class huobi extends Exchange {
                 $market = $this->market($first);
             }
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
-            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params, 'cross');
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
             $marketType = null;

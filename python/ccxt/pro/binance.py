@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.types import OrderSide, OrderType, Trade
 from ccxt.async_support.base.ws.client import Client
@@ -29,6 +29,7 @@ class binance(ccxt.async_support.binance):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
+                'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -102,6 +103,10 @@ class binance(ccxt.async_support.binance):
                 'watchBalance': {
                     'fetchBalanceSnapshot': False,  # or True
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
                 'wallet': 'wb',  # wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000,  # 20 mins
@@ -1348,6 +1353,7 @@ class binance(ccxt.async_support.binance):
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
+        self.set_positions_cache(client, type)
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_value(options, 'fetchBalanceSnapshot', False)
         awaitBalanceSnapshot = self.safe_value(options, 'awaitBalanceSnapshot', True)
@@ -1421,6 +1427,8 @@ class binance(ccxt.async_support.binance):
         subscriptions = list(client.subscriptions.keys())
         accountType = subscriptions[0]
         messageHash = accountType + ':balance'
+        if self.balance[accountType] is None:
+            self.balance[accountType] = {}
         self.balance[accountType]['info'] = message
         event = self.safe_string(message, 'e')
         if event == 'balanceUpdate':
@@ -1913,6 +1921,7 @@ class binance(ccxt.async_support.binance):
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
+        self.set_positions_cache(client, type)
         message = None
         orders = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
@@ -2152,6 +2161,174 @@ class binance(ccxt.async_support.binance):
         self.handle_my_trade(client, message)
         self.handle_order(client, message)
 
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate(params)
+        market = None
+        messageHash = ''
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            market = self.get_market_from_symbols(symbols)
+            messageHash = '::' + ','.join(symbols)
+        defaultType = self.safe_string_2(self.options, 'watchPositions', 'defaultType', 'future')
+        type = self.safe_string(params, 'type', defaultType)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('watchPositions', market, params)
+        if self.isLinear(type, subType):
+            type = 'future'
+        elif self.isInverse(type, subType):
+            type = 'delivery'
+        messageHash = type + ':positions' + messageHash
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
+        client = self.client(url)
+        self.set_balance_cache(client, type)
+        self.set_positions_cache(client, type, symbols)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        cache = self.safe_value(self.positions, type)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+            snapshot = await client.future(type + ':fetchPositionsSnapshot')
+            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+        newPositions = await self.watch(url, messageHash, None, type)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, type, symbols: Optional[List[str]] = None):
+        if self.positions is None:
+            self.positions = {}
+        if type in self.positions:
+            return
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if fetchPositionsSnapshot:
+            messageHash = type + ':fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash, type)
+        else:
+            self.positions[type] = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash, type):
+        positions = await self.fetch_positions(None, {'type': type})
+        self.positions[type] = ArrayCacheBySymbolBySide()
+        cache = self.positions[type]
+        for i in range(0, len(positions)):
+            position = positions[i]
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, type + ':position')
+
+    def handle_positions(self, client, message):
+        #
+        #     {
+        #         e: 'ACCOUNT_UPDATE',
+        #         T: 1667881353112,
+        #         E: 1667881353115,
+        #         a: {
+        #             B: [{
+        #                 a: 'USDT',
+        #                 wb: '1127.95750089',
+        #                 cw: '1040.82091149',
+        #                 bc: '0'
+        #             }],
+        #             P: [{
+        #                 s: 'BTCUSDT',
+        #                 pa: '-0.089',
+        #                 ep: '19700.03933',
+        #                 cr: '-1260.24809979',
+        #                 up: '1.53058860',
+        #                 mt: 'isolated',
+        #                 iw: '87.13658940',
+        #                 ps: 'BOTH',
+        #                 ma: 'USDT'
+        #             }],
+        #             m: 'ORDER'
+        #         }
+        #     }
+        #
+        # each account is connected to a different endpoint
+        # and has exactly one subscriptionhash which is the account type
+        subscriptions = list(client.subscriptions.keys())
+        accountType = subscriptions[0]
+        if self.positions is None:
+            self.positions = {}
+        if not (accountType in self.positions):
+            self.positions[accountType] = ArrayCacheBySymbolBySide()
+        cache = self.positions[accountType]
+        data = self.safe_value(message, 'a', {})
+        rawPositions = self.safe_value(data, 'P', [])
+        newPositions = []
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_ws_position(rawPosition)
+            timestamp = self.safe_integer(message, 'E')
+            position['timestamp'] = timestamp
+            position['datetime'] = self.iso8601(timestamp)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, accountType + ':positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, accountType + ':positions')
+
+    def parse_ws_position(self, position, market=None):
+        #
+        #     {
+        #         "s": "BTCUSDT",  # Symbol
+        #         "pa": "0",  # Position Amount
+        #         "ep": "0.00000",  # Entry Price
+        #         "cr": "200",  #(Pre-fee) Accumulated Realized
+        #         "up": "0",  # Unrealized PnL
+        #         "mt": "isolated",  # Margin Type
+        #         "iw": "0.00000000",  # Isolated Wallet(if isolated position)
+        #         "ps": "BOTH"  # Position Side
+        #     }
+        #
+        marketId = self.safe_string(position, 's')
+        positionSide = self.safe_string_lower(position, 'ps')
+        hedged = positionSide != 'both'
+        return self.safe_position({
+            'info': position,
+            'id': None,
+            'symbol': self.safe_symbol(marketId),
+            'notional': None,
+            'marginMode': self.safe_string(position, 'mt'),
+            'liquidationPrice': None,
+            'entryPrice': self.safe_number(position, 'ep'),
+            'unrealizedPnl': self.safe_number(position, 'up'),
+            'percentage': None,
+            'contracts': self.safe_number(position, 'pa'),
+            'contractSize': None,
+            'markPrice': None,
+            'side': positionSide,
+            'hedged': hedged,
+            'timestamp': None,
+            'datetime': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+        })
+
     async def fetch_my_trades_ws(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
@@ -2258,6 +2435,7 @@ class binance(ccxt.async_support.binance):
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
+        self.set_positions_cache(client, type)
         message = None
         trades = await self.watch(url, messageHash, message, type)
         if self.newUpdates:
@@ -2348,6 +2526,10 @@ class binance(ccxt.async_support.binance):
             messageHashSymbol = messageHash + ':' + symbol
             client.resolve(self.orders, messageHashSymbol)
 
+    def handle_acount_update(self, client, message):
+        self.handle_balance(client, message)
+        self.handle_positions(client, message)
+
     def handle_ws_error(self, client: Client, message):
         #
         #    {
@@ -2408,7 +2590,7 @@ class binance(ccxt.async_support.binance):
             'bookTicker': self.handle_ticker,
             'outboundAccountPosition': self.handle_balance,
             'balanceUpdate': self.handle_balance,
-            'ACCOUNT_UPDATE': self.handle_balance,
+            'ACCOUNT_UPDATE': self.handle_acount_update,
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
         }

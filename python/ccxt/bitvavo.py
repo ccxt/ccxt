@@ -327,8 +327,8 @@ class bitvavo(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetMarkets(params)
-        currencies = self.currencies
-        currenciesById = self.index_by(currencies, 'symbol')
+        currencies = self.fetch_currencies()
+        currenciesById = self.index_by(currencies, 'id')
         #
         #     [
         #         {
@@ -353,7 +353,8 @@ class bitvavo(Exchange, ImplicitAPI):
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
             baseCurrency = self.safe_value(currenciesById, baseId)
-            result.append({
+            basePrecision = self.safe_integer(baseCurrency, 'precision')
+            result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -378,7 +379,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(baseCurrency, 'decimals', 8),
+                    'amount': self.safe_integer(baseCurrency, 'decimals', basePrecision),
                     'price': self.safe_integer(market, 'pricePrecision'),
                 },
                 'limits': {
@@ -401,7 +402,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 },
                 'created': None,
                 'info': market,
-            })
+            }))
         return result
 
     def fetch_currencies(self, params={}):

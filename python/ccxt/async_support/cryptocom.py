@@ -2950,7 +2950,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'hedged': None,
             'side': None,
-            'contracts': None,
+            'contracts': self.safe_number(position, 'quantity'),
             'contractSize': market['contractSize'],
             'entryPrice': None,
             'markPrice': None,

@@ -29,6 +29,7 @@ class bitget extends bitget$1 {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -750,6 +751,185 @@ class bitget extends bitget$1 {
             'fee': undefined,
         }, market);
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#watchPositions
+         * @description watch all open positions
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.instType Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl: USDC margin Perpetual Contract Private Channel
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        let messageHash = '';
+        const subscriptionHash = 'positions';
+        let instType = 'umcbl';
+        symbols = this.marketSymbols(symbols);
+        if (!this.isEmpty(symbols)) {
+            instType = 'dmcbl';
+            market = this.getMarketFromSymbols(symbols);
+            messageHash = '::' + symbols.join(',');
+            if (market['settle'] === 'USDT') {
+                instType = 'umcbl';
+            }
+            else if (market['settle'] === 'USDC') {
+                instType = 'cmcbl';
+            }
+        }
+        [instType, params] = this.handleOptionAndParams(params, 'watchPositions', 'instType', instType);
+        messageHash = instType + ':positions' + messageHash;
+        const args = {
+            'instType': instType,
+            'channel': 'positions',
+            'instId': 'default',
+        };
+        const newPositions = await this.watchPrivate(messageHash, subscriptionHash, args, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(newPositions, symbols, since, limit, true);
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        action: 'snapshot',
+        //        arg: {
+        //            instType: 'umcbl',
+        //            channel: 'positions',
+        //            instId: 'default'
+        //        },
+        //        data: [{
+        //                posId: '926036334386778112',
+        //                instId: 'LTCUSDT_UMCBL',
+        //                instName: 'LTCUSDT',
+        //                marginCoin: 'USDT',
+        //                margin: '9.667',
+        //                marginMode: 'crossed',
+        //                holdSide: 'long',
+        //                holdMode: 'double_hold',
+        //                total: '0.3',
+        //                available: '0.3',
+        //                locked: '0',
+        //                averageOpenPrice: '64.44',
+        //                leverage: 2,
+        //                achievedProfits: '0',
+        //                upl: '0.0759',
+        //                uplRate: '0.0078',
+        //                liqPx: '-153.32',
+        //                keepMarginRate: '0.010',
+        //                marginRate: '0.005910309637',
+        //                cTime: '1656510187717',
+        //                uTime: '1694880005480',
+        //                markPrice: '64.7',
+        //                autoMargin: 'off'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const arg = this.safeValue(message, 'arg', {});
+        const instType = this.safeString(arg, 'instType', '');
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (!(instType in this.positions)) {
+            this.positions[instType] = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions[instType];
+        const rawPositions = this.safeValue(message, 'data', []);
+        const dataLength = rawPositions.length;
+        if (dataLength === 0) {
+            return;
+        }
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition(rawPosition);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, instType + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, instType + ':positions');
+    }
+    parseWsPosition(position, market = undefined) {
+        //
+        //    {
+        //        posId: '926036334386778112',
+        //        instId: 'LTCUSDT_UMCBL',
+        //        instName: 'LTCUSDT',
+        //        marginCoin: 'USDT',
+        //        margin: '9.667',
+        //        marginMode: 'crossed',
+        //        holdSide: 'long',
+        //        holdMode: 'double_hold',
+        //        total: '0.3',
+        //        available: '0.3',
+        //        locked: '0',
+        //        averageOpenPrice: '64.44',
+        //        leverage: 2,
+        //        achievedProfits: '0',
+        //        upl: '0.0759',
+        //        uplRate: '0.0078',
+        //        liqPx: '-153.32',
+        //        keepMarginRate: '0.010',
+        //        marginRate: '0.005910309637',
+        //        cTime: '1656510187717',
+        //        uTime: '1694880005480',
+        //        markPrice: '64.7',
+        //        autoMargin: 'off'
+        //    }
+        //
+        const marketId = this.safeString(position, 'instId');
+        const marginModeId = this.safeString(position, 'marginMode');
+        const marginMode = this.getSupportedMapping(marginModeId, {
+            'crossed': 'cross',
+            'fixed': 'isolated',
+        });
+        const hedgedId = this.safeString(position, 'holdMode');
+        const hedged = this.getSupportedMapping(hedgedId, {
+            'double_hold': true,
+            'single_hold': false,
+        });
+        const timestamp = this.safeInteger2(position, 'uTime', 'cTime');
+        return this.safePosition({
+            'info': position,
+            'id': this.safeString(position, 'posId'),
+            'symbol': this.safeSymbol(marketId, market),
+            'notional': undefined,
+            'marginMode': marginMode,
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber(position, 'averageOpenPrice'),
+            'unrealizedPnl': this.safeNumber(position, 'upl'),
+            'percentage': this.safeNumber(position, 'uplRate'),
+            'contracts': this.safeNumber(position, 'total'),
+            'contractSize': undefined,
+            'markPrice': this.safeNumber(position, 'markPrice'),
+            'side': this.safeString(position, 'holdSide'),
+            'hedged': hedged,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': this.safeNumber(position, 'keepMarginRate'),
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber(position, 'leverage'),
+            'marginRatio': this.safeNumber(position, 'marginRate'),
+        });
+    }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -1464,6 +1644,7 @@ class bitget extends bitget$1 {
             'orders': this.handleOrder,
             'ordersAlgo': this.handleOrder,
             'account': this.handleBalance,
+            'positions': this.handlePositions,
         };
         const arg = this.safeValue(message, 'arg', {});
         const topic = this.safeValue(arg, 'channel', '');

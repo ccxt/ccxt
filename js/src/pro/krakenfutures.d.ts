@@ -10,6 +10,9 @@ export default class krakenfutures extends krakenfuturesRest {
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
     watchTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handlePositions(client: any, message: any): void;
+    parseWsPosition(position: any, market?: any): import("../base/types.js").Position;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<any>;

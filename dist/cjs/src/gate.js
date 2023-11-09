@@ -5092,13 +5092,14 @@ class gate extends gate$1 {
         const takerFee = '0.00075';
         const feePaid = Precise["default"].stringMul(takerFee, notional);
         const initialMarginString = Precise["default"].stringAdd(Precise["default"].stringDiv(notional, leverage), feePaid);
+        const timestamp = this.safeInteger(position, 'time_ms');
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(Precise["default"].stringMul(maintenanceRate, notional)),
@@ -5107,6 +5108,7 @@ class gate extends gate$1 {
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
+            'realizedPnl': this.safeNumber(position, 'realised_pnl'),
             'contracts': this.parseNumber(Precise["default"].stringAbs(size)),
             'contractSize': this.safeValue(market, 'contractSize'),
             // 'realisedPnl': position['realised_pnl'],

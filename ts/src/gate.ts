@@ -5117,13 +5117,14 @@ export default class gate extends Exchange {
         const takerFee = '0.00075';
         const feePaid = Precise.stringMul (takerFee, notional);
         const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+        const timestamp = this.safeInteger (position, 'time_ms');
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
@@ -5132,6 +5133,7 @@ export default class gate extends Exchange {
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
             // 'realisedPnl': position['realised_pnl'],

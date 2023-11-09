@@ -6472,8 +6472,7 @@ class huobi(Exchange, ImplicitAPI):
             first = self.safe_string(symbols, 0)
             market = self.market(first)
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
-        marginMode = 'cross' if (marginMode is None) else marginMode
+        marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params, 'cross')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         marketType = None

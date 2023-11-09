@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.45'
+__version__ = '4.1.46'
 
 # -----------------------------------------------------------------------------
 
@@ -1900,7 +1900,7 @@ class Exchange(BaseExchange):
         symbol = self.safe_string(position, 'symbol')
         market = None
         if symbol is not None:
-            market = self.market(symbol)
+            market = self.safe_value(self.markets, symbol)
         if contractSize is None and market is not None:
             contractSize = self.safe_number(market, 'contractSize')
             position['contractSize'] = contractSize
@@ -2095,6 +2095,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def watch_position(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' watchPosition() is not supported yet')
+
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchPositions() is not supported yet')
+
+    async def watch_position_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        return self.watchPositions(symbols, since, limit, params)
 
     async def fetch_positions_by_symbol(self, symbol: str, params={}):
         """
