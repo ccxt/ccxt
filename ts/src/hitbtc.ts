@@ -59,7 +59,7 @@ export default class hitbtc extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -2367,6 +2367,82 @@ export default class hitbtc extends Exchange {
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
         }, market);
+    }
+
+    async fetchMarginMode (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchMarginMode
+         * @description fetches margin mode of the user
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @returns {string} 'cross' or 'isolated'
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarginMode', market, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            throw new BadSymbol (this.id + ' fetchMarginMode() supports swap contracts and margin only');
+        }
+        if (marketType === 'margin') {
+            response = await this.privateGetMarginConfig (params);
+        } else {
+            response = await this.privateGetFuturesConfig (params);
+        }
+        //
+        // margin
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD",
+        //             "margin_call_leverage_mul": "1.50",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "10.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.05",
+        //             "enabled": true,
+        //             "active": true,
+        //             "limit_base": "50000.00",
+        //             "limit_power": "2.2",
+        //             "unlimited_threshold": "10.0"
+        //         }]
+        //     }
+        //
+        // swap
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD_PERP",
+        //             "margin_call_leverage_mul": "1.20",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "100.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.001",
+        //             "enabled": true,
+        //             "active": false,
+        //             "limit_base": "5000000.000000000000",
+        //             "limit_power": "1.25",
+        //             "unlimited_threshold": "2.00"
+        //         }]
+        //     }
+        //
+        const config = this.safeValue (response, 'config', []);
+        const marginModes = [];
+        for (let i = 0; i < config.length; i++) {
+            const data = this.safeValue (config, i);
+            const marketId = this.safeString (data, 'symbol');
+            const marketInner = this.safeMarket (marketId);
+            marginModes.push ({
+                'symbol': this.safeString (marketInner, 'symbol'),
+                'marginMode': this.safeStringLower (data, 'margin_mode'),
+            });
+        }
+        const filteredMargin = this.filterBySymbol (marginModes, symbol);
+        const first = this.safeValue (filteredMargin, 0);
+        return this.safeString (first, 'marginMode');
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
