@@ -760,7 +760,7 @@ export default class bitrue extends Exchange {
             'contract': (type !== 'spot'),
             'linear': (side !== undefined && side === 1),
             'inverse': (side !== undefined && side === 0),
-            'contractSize': undefined,
+            'contractSize': this.safeString (market, 'multiplier'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -1713,6 +1713,7 @@ export default class bitrue extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'PENDING_CREATE': 'open',
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1756,7 +1757,7 @@ export default class bitrue extends Exchange {
         //         "isWorking":false
         //     }
         //
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const filled = this.safeString (order, 'executedQty');
@@ -1842,48 +1843,83 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        let data = undefined;
         const uppercaseType = type.toUpperCase ();
-        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
-        if (!this.inArray (uppercaseType, validOrderTypes)) {
-            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
-        }
         const request = {
-            'symbol': market['id'],
             'side': side.toUpperCase (),
             'type': uppercaseType,
             // 'timeInForce': '',
-            'quantity': this.amountToPrecision (symbol, amount),
             // 'price': this.priceToPrecision (symbol, price),
             // 'newClientOrderId': clientOrderId, // automatically generated if not sent
             // 'stopPrice': this.priceToPrecision (symbol, 'stopPrice'),
             // 'icebergQty': this.amountToPrecision (symbol, icebergQty),
         };
-        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            params = this.omit (params, [ 'newClientOrderId', 'clientOrderId' ]);
-            request['newClientOrderId'] = clientOrderId;
-        }
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a price argument');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        if (stopPrice !== undefined) {
-            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        if (market['future']) {
+            request['contractName'] = market['id'];
+            request['amount'] = this.parseNumber (amount);
+            request['volume'] = this.parseNumber (amount);
+            request['positionType'] = 1;
+            request['open'] = 'OPEN';
+            request['leverage'] = 5;
+            if (this.isLinear (marketType, subType)) {
+                response = await this.fapiV2PrivatePostOrder (this.extend (request, params));
+            } else if (this.isInverse (marketType, subType)) {
+                response = await this.dapiV2PrivatePostOrder (this.extend (request, params));
+            }
+            data = this.safeValue (response, 'data');
+        } else {
+            request['symbol'] = market['id'];
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+            const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+            if (!this.inArray (uppercaseType, validOrderTypes)) {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
+            }
+            const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                params = this.omit (params, [ 'newClientOrderId', 'clientOrderId' ]);
+                request['newClientOrderId'] = clientOrderId;
+            }
+            const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+            if (stopPrice !== undefined) {
+                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+            response = await this.spotV1PrivatePostOrder (this.extend (request, params));
+            data = response;
         }
-        const response = await this.spotV1PrivatePostOrder (this.extend (request, params));
+        //
+        // spot
         //
         //     {
-        //         "symbol":"USDCUSDT",
-        //         "orderId":2878854881,
-        //         "clientOrderId":"",
-        //         "transactTime":1635551031276
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 307650651173648896,
+        //         "orderIdStr": "307650651173648896",
+        //         "clientOrderId": "6gCrw2kRUAF9CvJDGP16IP",
+        //         "transactTime": 1507725176595
         //     }
         //
-        return this.parseOrder (response, market);
+        // future
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "orderId": 1690615676032452985
+        //         }
+        //     }
+        //
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id: string, symbol: string = undefined, params = {}) {
