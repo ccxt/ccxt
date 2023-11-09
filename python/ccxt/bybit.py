@@ -13,7 +13,7 @@ from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
-from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, SameLeverage, TradesNotFound, \
+from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, TradesNotFound, \
     AccountRateLimitExceeded
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -5239,15 +5239,18 @@ class bybit(Exchange):
                 return position
 
     def _change_margin_type(self, symbol, is_cross, leverage):
-        values = self.is_unified_enabled()
-        isUnifiedAccount = self.safe_value(values, 1)
-        if isUnifiedAccount and not self.is_inverse():
-            margin_mode = 'REGULAR_MARGIN' if is_cross else 'ISOLATED_MARGIN'
-            return self.set_margin_mode(margin_mode)
-        else:
-            margin_mode = 'CROSS' if is_cross else 'ISOLATED'
-            params = {'buy_leverage': leverage, 'sell_leverage': leverage}
-            return self.set_derivatives_margin_mode(margin_mode, symbol=symbol, params=params)
+        try:
+            values = self.is_unified_enabled()
+            isUnifiedAccount = self.safe_value(values, 1)
+            if isUnifiedAccount and not self.is_inverse():
+                margin_mode = 'REGULAR_MARGIN' if is_cross else 'ISOLATED_MARGIN'
+                return self.set_margin_mode(margin_mode)
+            else:
+                margin_mode = 'CROSS' if is_cross else 'ISOLATED'
+                params = {'buy_leverage': leverage, 'sell_leverage': leverage}
+                return self.set_derivatives_margin_mode(margin_mode, symbol=symbol, params=params)
+        except NotChanged:
+            pass
 
     @staticmethod
     def get_change_margin_input(positions, leverage, same_direction_is_long, is_long):
