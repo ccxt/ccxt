@@ -1591,7 +1591,7 @@ class Transpiler {
             let promiseReturnTypeMatch = null
             let syncReturnType = null
             if (returnType) {
-                promiseReturnTypeMatch = returnType.match (/Promise<([^>]+)> {$/)
+                promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
                 syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
                 if (syncReturnType.match (phpArrayRegex)) {
                     syncPhpReturnType = ': array'
