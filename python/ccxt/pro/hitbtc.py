@@ -92,18 +92,18 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.watch(url, messageHash, request, messageHash)
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        result: True
+            #        "jsonrpc": "2.0",
+            #        "result": True
             #    }
             #
             #    # Failure to return results
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        error: {
-            #            code: 1002,
-            #            message: 'Authorization is required or has been failed',
-            #            description: 'invalid signature format'
+            #        "jsonrpc": "2.0",
+            #        "error": {
+            #            "code": 1002,
+            #            "message": "Authorization is required or has been failed",
+            #            "description": "invalid signature format"
             #        }
             #    }
             #
@@ -926,7 +926,7 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def handle_notification(self, client: Client, message):
         #
-        #     {jsonrpc: '2.0', result: True, id: null}
+        #     {jsonrpc: "2.0", result: True, id: null}
         #
         return message
 
@@ -960,8 +960,8 @@ class hitbtc(ccxt.async_support.hitbtc):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        jsonrpc: '2.0',
-        #        result: True
+        #        "jsonrpc": "2.0",
+        #        "result": True
         #    }
         #
         success = self.safe_value(message, 'result')

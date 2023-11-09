@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitvavoRest from '../bitvavo.js';
-import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int } from '../base/types.js';
@@ -70,21 +70,21 @@ export default class bitvavo extends bitvavoRest {
     handleTicker (client: Client, message) {
         //
         //     {
-        //         event: 'ticker24h',
-        //         data: [
+        //         "event": "ticker24h",
+        //         "data": [
         //             {
-        //                 market: 'ETH-EUR',
-        //                 open: '193.5',
-        //                 high: '202.72',
-        //                 low: '192.46',
-        //                 last: '199.01',
-        //                 volume: '3587.05020246',
-        //                 volumeQuote: '708030.17',
-        //                 bid: '199.56',
-        //                 bidSize: '4.14730803',
-        //                 ask: '199.57',
-        //                 askSize: '6.13642074',
-        //                 timestamp: 1590770885217
+        //                 "market": "ETH-EUR",
+        //                 "open": "193.5",
+        //                 "high": "202.72",
+        //                 "low": "192.46",
+        //                 "last": "199.01",
+        //                 "volume": "3587.05020246",
+        //                 "volumeQuote": "708030.17",
+        //                 "bid": "199.56",
+        //                 "bidSize": "4.14730803",
+        //                 "ask": "199.57",
+        //                 "askSize": "6.13642074",
+        //                 "timestamp": 1590770885217
         //             }
         //         ]
         //     }
@@ -127,13 +127,13 @@ export default class bitvavo extends bitvavoRest {
     handleTrade (client: Client, message) {
         //
         //     {
-        //         event: 'trade',
-        //         timestamp: 1590779594547,
-        //         market: 'ETH-EUR',
-        //         id: '450c3298-f082-4461-9e2c-a0262cc7cc2e',
-        //         amount: '0.05026233',
-        //         price: '198.46',
-        //         side: 'buy'
+        //         "event": "trade",
+        //         "timestamp": 1590779594547,
+        //         "market": "ETH-EUR",
+        //         "id": "450c3298-f082-4461-9e2c-a0262cc7cc2e",
+        //         "amount": "0.05026233",
+        //         "price": "198.46",
+        //         "side": "buy"
         //     }
         //
         const marketId = this.safeString (message, 'market');
@@ -193,17 +193,17 @@ export default class bitvavo extends bitvavoRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         event: 'candle',
-        //         market: 'BTC-EUR',
-        //         interval: '1m',
-        //         candle: [
+        //         "event": "candle",
+        //         "market": "BTC-EUR",
+        //         "interval": "1m",
+        //         "candle": [
         //             [
         //                 1590797160000,
-        //                 '8480.9',
-        //                 '8480.9',
-        //                 '8480.9',
-        //                 '8480.9',
-        //                 '0.01038628'
+        //                 "8480.9",
+        //                 "8480.9",
+        //                 "8480.9",
+        //                 "8480.9",
+        //                 "0.01038628"
         //             ]
         //         ]
         //     }
@@ -288,14 +288,14 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookMessage (client: Client, message, orderbook) {
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36947383,
-        //         bids: [
-        //             [ '8477.8', '0' ]
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36947383,
+        //         "bids": [
+        //             [ "8477.8", "0" ]
         //         ],
-        //         asks: [
-        //             [ '8550.9', '0' ]
+        //         "asks": [
+        //             [ "8550.9", "0" ]
         //         ]
         //     }
         //
@@ -311,15 +311,15 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36729561,
-        //         bids: [
-        //             [ '8513.3', '0' ],
-        //             [ '8518.8', '0.64236203' ],
-        //             [ '8513.6', '0.32435481' ],
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36729561,
+        //         "bids": [
+        //             [ "8513.3", "0" ],
+        //             [ '8518.8', "0.64236203" ],
+        //             [ '8513.6', "0.32435481" ],
         //         ],
-        //         asks: []
+        //         "asks": []
         //     }
         //
         const event = this.safeString (message, 'event');
@@ -366,19 +366,19 @@ export default class bitvavo extends bitvavoRest {
     handleOrderBookSnapshot (client: Client, message) {
         //
         //     {
-        //         action: 'getBook',
-        //         response: {
-        //             market: 'BTC-EUR',
-        //             nonce: 36946120,
-        //             bids: [
-        //                 [ '8494.9', '0.24399521' ],
-        //                 [ '8494.8', '0.34884085' ],
-        //                 [ '8493.9', '0.14535128' ],
+        //         "action": "getBook",
+        //         "response": {
+        //             "market": "BTC-EUR",
+        //             "nonce": 36946120,
+        //             "bids": [
+        //                 [ '8494.9', "0.24399521" ],
+        //                 [ '8494.8', "0.34884085" ],
+        //                 [ '8493.9', "0.14535128" ],
         //             ],
-        //             asks: [
-        //                 [ '8495', '0.46982463' ],
-        //                 [ '8495.1', '0.12178267' ],
-        //                 [ '8496.2', '0.21924143' ],
+        //             "asks": [
+        //                 [ "8495", "0.46982463" ],
+        //                 [ '8495.1', "0.12178267" ],
+        //                 [ '8496.2', "0.21924143" ],
         //             ]
         //         }
         //     }
@@ -437,13 +437,11 @@ export default class bitvavo extends bitvavoRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchOrders', symbol);
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
@@ -479,9 +477,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ortradeder-structure
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('watchMyTrades', symbol);
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
@@ -509,23 +505,23 @@ export default class bitvavo extends bitvavoRest {
     handleOrder (client: Client, message) {
         //
         //     {
-        //         event: 'order',
-        //         orderId: 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
-        //         market: 'ETH-EUR',
-        //         created: 1590948500319,
-        //         updated: 1590948500319,
-        //         status: 'new',
-        //         side: 'sell',
-        //         orderType: 'limit',
-        //         amount: '0.1',
-        //         amountRemaining: '0.1',
-        //         price: '300',
-        //         onHold: '0.1',
-        //         onHoldCurrency: 'ETH',
-        //         selfTradePrevention: 'decrementAndCancel',
-        //         visible: true,
-        //         timeInForce: 'GTC',
-        //         postOnly: false
+        //         "event": "order",
+        //         "orderId": "f0e5180f-9497-4d05-9dc2-7056e8a2de9b",
+        //         "market": "ETH-EUR",
+        //         "created": 1590948500319,
+        //         "updated": 1590948500319,
+        //         "status": "new",
+        //         "side": "sell",
+        //         "orderType": "limit",
+        //         "amount": "0.1",
+        //         "amountRemaining": "0.1",
+        //         "price": "300",
+        //         "onHold": "0.1",
+        //         "onHoldCurrency": "ETH",
+        //         "selfTradePrevention": "decrementAndCancel",
+        //         "visible": true,
+        //         "timeInForce": "GTC",
+        //         "postOnly": false
         //     }
         //
         const marketId = this.safeString (message, 'market');
@@ -545,17 +541,17 @@ export default class bitvavo extends bitvavoRest {
     handleMyTrade (client: Client, message) {
         //
         //     {
-        //         event: 'fill',
-        //         timestamp: 1590964470132,
-        //         market: 'ETH-EUR',
-        //         orderId: '85d082e1-eda4-4209-9580-248281a29a9a',
-        //         fillId: '861d2da5-aa93-475c-8d9a-dce431bd4211',
-        //         side: 'sell',
-        //         amount: '0.1',
-        //         price: '211.46',
-        //         taker: true,
-        //         fee: '0.056',
-        //         feeCurrency: 'EUR'
+        //         "event": "fill",
+        //         "timestamp": 1590964470132,
+        //         "market": "ETH-EUR",
+        //         "orderId": "85d082e1-eda4-4209-9580-248281a29a9a",
+        //         "fillId": "861d2da5-aa93-475c-8d9a-dce431bd4211",
+        //         "side": "sell",
+        //         "amount": "0.1",
+        //         "price": "211.46",
+        //         "taker": true,
+        //         "fee": "0.056",
+        //         "feeCurrency": "EUR"
         //     }
         //
         const marketId = this.safeString (message, 'market');
@@ -575,9 +571,9 @@ export default class bitvavo extends bitvavoRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         subscriptions: {
-        //             book: [ 'BTC-EUR' ]
+        //         "event": "subscribed",
+        //         "subscriptions": {
+        //             "book": [ "BTC-EUR" ]
         //         }
         //     }
         //
@@ -624,8 +620,8 @@ export default class bitvavo extends bitvavoRest {
     handleAuthenticationMessage (client: Client, message) {
         //
         //     {
-        //         event: 'authenticate',
-        //         authenticated: true
+        //         "event": "authenticate",
+        //         "authenticated": true
         //     }
         //
         const messageHash = 'authenticated';
@@ -646,46 +642,46 @@ export default class bitvavo extends bitvavoRest {
     handleMessage (client: Client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         subscriptions: {
-        //             book: [ 'BTC-EUR' ]
+        //         "event": "subscribed",
+        //         "subscriptions": {
+        //             "book": [ "BTC-EUR" ]
         //         }
         //     }
         //
         //
         //     {
-        //         event: 'book',
-        //         market: 'BTC-EUR',
-        //         nonce: 36729561,
-        //         bids: [
-        //             [ '8513.3', '0' ],
-        //             [ '8518.8', '0.64236203' ],
-        //             [ '8513.6', '0.32435481' ],
+        //         "event": "book",
+        //         "market": "BTC-EUR",
+        //         "nonce": 36729561,
+        //         "bids": [
+        //             [ "8513.3", "0" ],
+        //             [ '8518.8', "0.64236203" ],
+        //             [ '8513.6', "0.32435481" ],
         //         ],
-        //         asks: []
+        //         "asks": []
         //     }
         //
         //     {
-        //         action: 'getBook',
-        //         response: {
-        //             market: 'BTC-EUR',
-        //             nonce: 36946120,
-        //             bids: [
-        //                 [ '8494.9', '0.24399521' ],
-        //                 [ '8494.8', '0.34884085' ],
-        //                 [ '8493.9', '0.14535128' ],
+        //         "action": "getBook",
+        //         "response": {
+        //             "market": "BTC-EUR",
+        //             "nonce": 36946120,
+        //             "bids": [
+        //                 [ '8494.9', "0.24399521" ],
+        //                 [ '8494.8', "0.34884085" ],
+        //                 [ '8493.9', "0.14535128" ],
         //             ],
-        //             asks: [
-        //                 [ '8495', '0.46982463' ],
-        //                 [ '8495.1', '0.12178267' ],
-        //                 [ '8496.2', '0.21924143' ],
+        //             "asks": [
+        //                 [ "8495", "0.46982463" ],
+        //                 [ '8495.1', "0.12178267" ],
+        //                 [ '8496.2', "0.21924143" ],
         //             ]
         //         }
         //     }
         //
         //     {
-        //         event: 'authenticate',
-        //         authenticated: true
+        //         "event": "authenticate",
+        //         "authenticated": true
         //     }
         //
         const methods = {

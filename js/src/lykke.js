@@ -525,15 +525,15 @@ export default class lykke extends Exchange {
         //     {
         //         "payload":[
         //             {
-        //                 assetPairId: 'BTCUSD',
-        //                 timestamp: '1643298038203',
-        //                 bids: [
+        //                 "assetPairId": "BTCUSD",
+        //                 "timestamp": "1643298038203",
+        //                 "bids": [
         //                     {
         //                         "v":0.59034382,
         //                         "p":36665.329
         //                     }
         //                 ],
-        //                 asks: [
+        //                 "asks": [
         //                     {
         //                         "v":-0.003,
         //                         "p":36729.686

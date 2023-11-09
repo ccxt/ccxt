@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -251,15 +251,15 @@ export default class btcalpha extends Exchange {
         //
         //    [
         //        {
-        //            timestamp: '1674658.445272',
-        //            pair: 'BTC_USDT',
-        //            last: '22476.85',
-        //            diff: '458.96',
-        //            vol: '6660.847784',
-        //            high: '23106.08',
-        //            low: '22348.29',
-        //            buy: '22508.46',
-        //            sell: '22521.11'
+        //            "timestamp": "1674658.445272",
+        //            "pair": "BTC_USDT",
+        //            "last": "22476.85",
+        //            "diff": "458.96",
+        //            "vol": "6660.847784",
+        //            "high": "23106.08",
+        //            "low": "22348.29",
+        //            "buy": "22508.46",
+        //            "sell": "22521.11"
         //        },
         //        ...
         //    ]
@@ -267,7 +267,7 @@ export default class btcalpha extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name btcalpha#fetchTicker
@@ -285,32 +285,32 @@ export default class btcalpha extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         return this.parseTicker (response, market);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //    {
-        //        timestamp: '1674658.445272',
-        //        pair: 'BTC_USDT',
-        //        last: '22476.85',
-        //        diff: '458.96',
-        //        vol: '6660.847784',
-        //        high: '23106.08',
-        //        low: '22348.29',
-        //        buy: '22508.46',
-        //        sell: '22521.11'
+        //        "timestamp": "1674658.445272",
+        //        "pair": "BTC_USDT",
+        //        "last": "22476.85",
+        //        "diff": "458.96",
+        //        "vol": "6660.847784",
+        //        "high": "23106.08",
+        //        "low": "22348.29",
+        //        "buy": "22508.46",
+        //        "sell": "22521.11"
         //    }
         //
         const timestampStr = this.safeString (ticker, 'timestamp');
@@ -342,7 +342,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name btcalpha#fetchOrderBook
@@ -377,7 +377,7 @@ export default class btcalpha extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -427,7 +427,7 @@ export default class btcalpha extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name btcalpha#fetchTrades
@@ -515,7 +515,7 @@ export default class btcalpha extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //  deposit
         //      {
@@ -592,7 +592,7 @@ export default class btcalpha extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name btcalpha#fetchOHLCV
@@ -627,7 +627,7 @@ export default class btcalpha extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -808,7 +808,7 @@ export default class btcalpha extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcalpha#fetchOrders
@@ -834,7 +834,7 @@ export default class btcalpha extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcalpha#fetchOpenOrders
@@ -851,7 +851,7 @@ export default class btcalpha extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcalpha#fetchClosedOrders

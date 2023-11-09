@@ -129,25 +129,25 @@ class gate extends gate$1 {
         // spot
         //
         //     {
-        //         time: 1650189272,
-        //         channel: 'spot.order_book_update',
-        //         event: 'update',
-        //         result: {
-        //             t: 1650189272515,
-        //             e: 'depthUpdate',
-        //             E: 1650189272,
-        //             s: 'GMT_USDT',
-        //             U: 140595902,
-        //             u: 140595902,
-        //             b: [
-        //                 [ '2.51518', '228.119' ],
-        //                 [ '2.50587', '1510.11' ],
-        //                 [ '2.49944', '67.6' ],
+        //         "time": 1650189272,
+        //         "channel": "spot.order_book_update",
+        //         "event": "update",
+        //         "result": {
+        //             "t": 1650189272515,
+        //             "e": "depthUpdate",
+        //             "E": 1650189272,
+        //             "s": "GMT_USDT",
+        //             "U": 140595902,
+        //             "u": 140595902,
+        //             "b": [
+        //                 [ '2.51518', "228.119" ],
+        //                 [ '2.50587', "1510.11" ],
+        //                 [ '2.49944', "67.6" ],
         //             ],
-        //             a: [
-        //                 [ '2.5182', '4.199' ],
-        //                 [ '2.51926', '1874' ],
-        //                 [ '2.53528', '96.529' ],
+        //             "a": [
+        //                 [ '2.5182', "4.199" ],
+        //                 [ "2.51926", "1874" ],
+        //                 [ '2.53528', "96.529" ],
         //             ]
         //         }
         //     }
@@ -155,25 +155,25 @@ class gate extends gate$1 {
         // swap
         //
         //     {
-        //         id: null,
-        //         time: 1650188898,
-        //         channel: 'futures.order_book_update',
-        //         event: 'update',
-        //         error: null,
-        //         result: {
-        //             t: 1650188898938,
-        //             s: 'GMT_USDT',
-        //             U: 1577718307,
-        //             u: 1577719254,
-        //             b: [
-        //                 { p: '2.5178', s: 0 },
-        //                 { p: '2.5179', s: 0 },
-        //                 { p: '2.518', s: 0 },
+        //         "id": null,
+        //         "time": 1650188898,
+        //         "channel": "futures.order_book_update",
+        //         "event": "update",
+        //         "error": null,
+        //         "result": {
+        //             "t": 1650188898938,
+        //             "s": "GMT_USDT",
+        //             "U": 1577718307,
+        //             "u": 1577719254,
+        //             "b": [
+        //                 { p: "2.5178", s: 0 },
+        //                 { p: "2.5179", s: 0 },
+        //                 { p: "2.518", s: 0 },
         //             ],
-        //             a: [
-        //                 { p: '2.52', s: 0 },
-        //                 { p: '2.5201', s: 0 },
-        //                 { p: '2.5203', s: 0 },
+        //             "a": [
+        //                 { p: "2.52", s: 0 },
+        //                 { p: "2.5201", s: 0 },
+        //                 { p: "2.5203", s: 0 },
         //             ]
         //         }
         //     }
@@ -318,34 +318,34 @@ class gate extends gate$1 {
     handleTicker(client, message) {
         //
         //    {
-        //        time: 1649326221,
-        //        channel: 'spot.tickers',
-        //        event: 'update',
-        //        result: {
-        //          currency_pair: 'BTC_USDT',
-        //          last: '43444.82',
-        //          lowest_ask: '43444.82',
-        //          highest_bid: '43444.81',
-        //          change_percentage: '-4.0036',
-        //          base_volume: '5182.5412425462',
-        //          quote_volume: '227267634.93123952',
-        //          high_24h: '47698',
-        //          low_24h: '42721.03'
+        //        "time": 1649326221,
+        //        "channel": "spot.tickers",
+        //        "event": "update",
+        //        "result": {
+        //          "currency_pair": "BTC_USDT",
+        //          "last": "43444.82",
+        //          "lowest_ask": "43444.82",
+        //          "highest_bid": "43444.81",
+        //          "change_percentage": "-4.0036",
+        //          "base_volume": "5182.5412425462",
+        //          "quote_volume": "227267634.93123952",
+        //          "high_24h": "47698",
+        //          "low_24h": "42721.03"
         //        }
         //    }
         //    {
-        //        time: 1671363004,
-        //        time_ms: 1671363004235,
-        //        channel: 'spot.book_ticker',
-        //        event: 'update',
-        //        result: {
-        //          t: 1671363004228,
-        //          u: 9793320464,
-        //          s: 'BTC_USDT',
-        //          b: '16716.8',
-        //          B: '0.0134',
-        //          a: '16716.9',
-        //          A: '0.0353'
+        //        "time": 1671363004,
+        //        "time_ms": 1671363004235,
+        //        "channel": "spot.book_ticker",
+        //        "event": "update",
+        //        "result": {
+        //          "t": 1671363004228,
+        //          "u": 9793320464,
+        //          "s": "BTC_USDT",
+        //          "b": "16716.8",
+        //          "B": "0.0134",
+        //          "a": "16716.9",
+        //          "A": "0.0353"
         //        }
         //    }
         //
@@ -425,17 +425,17 @@ class gate extends gate$1 {
     handleTrades(client, message) {
         //
         // {
-        //     time: 1648725035,
-        //     channel: 'spot.trades',
-        //     event: 'update',
-        //     result: [{
-        //       id: 3130257995,
-        //       create_time: 1648725035,
-        //       create_time_ms: '1648725035923.0',
-        //       side: 'sell',
-        //       currency_pair: 'LTC_USDT',
-        //       amount: '0.0116',
-        //       price: '130.11'
+        //     "time": 1648725035,
+        //     "channel": "spot.trades",
+        //     "event": "update",
+        //     "result": [{
+        //       "id": 3130257995,
+        //       "create_time": 1648725035,
+        //       "create_time_ms": "1648725035923.0",
+        //       "side": "sell",
+        //       "currency_pair": "LTC_USDT",
+        //       "amount": "0.0116",
+        //       "price": "130.11"
         //     }]
         // }
         //
@@ -667,18 +667,18 @@ class gate extends gate$1 {
         //
         // spot order fill
         //   {
-        //       time: 1653664351,
-        //       channel: 'spot.balances',
-        //       event: 'update',
-        //       result: [
+        //       "time": 1653664351,
+        //       "channel": "spot.balances",
+        //       "event": "update",
+        //       "result": [
         //         {
-        //           timestamp: '1653664351',
-        //           timestamp_ms: '1653664351017',
-        //           user: '10406147',
-        //           currency: 'LTC',
-        //           change: '-0.0002000000000000',
-        //           total: '0.09986000000000000000',
-        //           available: '0.09986000000000000000'
+        //           "timestamp": "1653664351",
+        //           "timestamp_ms": "1653664351017",
+        //           "user": "10406147",
+        //           "currency": "LTC",
+        //           "change": "-0.0002000000000000",
+        //           "total": "0.09986000000000000000",
+        //           "available": "0.09986000000000000000"
         //         }
         //       ]
         //   }
@@ -686,40 +686,40 @@ class gate extends gate$1 {
         // account transfer
         //
         //    {
-        //        id: null,
-        //        time: 1653665088,
-        //        channel: 'futures.balances',
-        //        event: 'update',
-        //        error: null,
-        //        result: [
+        //        "id": null,
+        //        "time": 1653665088,
+        //        "channel": "futures.balances",
+        //        "event": "update",
+        //        "error": null,
+        //        "result": [
         //          {
-        //            balance: 25.035008537,
-        //            change: 25,
-        //            text: '-',
-        //            time: 1653665088,
-        //            time_ms: 1653665088286,
-        //            type: 'dnw',
-        //            user: '10406147'
+        //            "balance": 25.035008537,
+        //            "change": 25,
+        //            "text": "-",
+        //            "time": 1653665088,
+        //            "time_ms": 1653665088286,
+        //            "type": "dnw",
+        //            "user": "10406147"
         //          }
         //        ]
         //   }
         //
         // swap order fill
         //   {
-        //       id: null,
-        //       time: 1653665311,
-        //       channel: 'futures.balances',
-        //       event: 'update',
-        //       error: null,
-        //       result: [
+        //       "id": null,
+        //       "time": 1653665311,
+        //       "channel": "futures.balances",
+        //       "event": "update",
+        //       "error": null,
+        //       "result": [
         //         {
-        //           balance: 20.031873037,
-        //           change: -0.0031355,
-        //           text: 'LTC_USDT:165551103273',
-        //           time: 1653665311,
-        //           time_ms: 1653665311437,
-        //           type: 'fee',
-        //           user: '10406147'
+        //           "balance": 20.031873037,
+        //           "change": -0.0031355,
+        //           "text": "LTC_USDT:165551103273",
+        //           "time": 1653665311,
+        //           "time_ms": 1653665311437,
+        //           "type": "fee",
+        //           "user": "10406147"
         //         }
         //       ]
         //   }
@@ -871,20 +871,20 @@ class gate extends gate$1 {
     }
     handleErrorMessage(client, message) {
         // {
-        //     time: 1647274664,
-        //     channel: 'futures.orders',
-        //     event: 'subscribe',
-        //     error: { code: 2, message: 'unknown contract BTC_USDT_20220318' },
+        //     "time": 1647274664,
+        //     "channel": "futures.orders",
+        //     "event": "subscribe",
+        //     "error": { code: 2, message: "unknown contract BTC_USDT_20220318" },
         // }
         // {
-        //     time: 1647276473,
-        //     channel: 'futures.orders',
-        //     event: 'subscribe',
-        //     error: {
-        //       code: 4,
-        //       message: '{"label":"INVALID_KEY","message":"Invalid key provided"}\n'
+        //     "time": 1647276473,
+        //     "channel": "futures.orders",
+        //     "event": "subscribe",
+        //     "error": {
+        //       "code": 4,
+        //       "message": "{"label":"INVALID_KEY","message":"Invalid key provided"}\n"
         //     },
-        //     result: null
+        //     "result": null
         //   }
         const error = this.safeValue(message, 'error');
         const code = this.safeInteger(error, 'code');
@@ -935,27 +935,27 @@ class gate extends gate$1 {
         //
         // subscribe
         //    {
-        //        time: 1649062304,
-        //        id: 1649062303,
-        //        channel: 'spot.candlesticks',
-        //        event: 'subscribe',
-        //        result: { status: 'success' }
+        //        "time": 1649062304,
+        //        "id": 1649062303,
+        //        "channel": "spot.candlesticks",
+        //        "event": "subscribe",
+        //        "result": { status: "success" }
         //    }
         //
         // candlestick
         //    {
-        //        time: 1649063328,
-        //        channel: 'spot.candlesticks',
-        //        event: 'update',
-        //        result: {
-        //          t: '1649063280',
-        //          v: '58932.23174896',
-        //          c: '45966.47',
-        //          h: '45997.24',
-        //          l: '45966.47',
-        //          o: '45975.18',
-        //          n: '1m_BTC_USDT',
-        //          a: '1.281699'
+        //        "time": 1649063328,
+        //        "channel": "spot.candlesticks",
+        //        "event": "update",
+        //        "result": {
+        //          "t": "1649063280",
+        //          "v": "58932.23174896",
+        //          "c": "45966.47",
+        //          "h": "45997.24",
+        //          "l": "45966.47",
+        //          "o": "45975.18",
+        //          "n": "1m_BTC_USDT",
+        //          "a": "1.281699"
         //        }
         //     }
         //
@@ -973,17 +973,17 @@ class gate extends gate$1 {
         //   }
         // orderbook
         //   {
-        //       time: 1649770525,
-        //       channel: 'spot.order_book_update',
-        //       event: 'update',
-        //       result: {
-        //         t: 1649770525653,
-        //         e: 'depthUpdate',
-        //         E: 1649770525,
-        //         s: 'LTC_USDT',
-        //         U: 2622525645,
-        //         u: 2622525665,
-        //         b: [
+        //       "time": 1649770525,
+        //       "channel": "spot.order_book_update",
+        //       "event": "update",
+        //       "result": {
+        //         "t": 1649770525653,
+        //         "e": "depthUpdate",
+        //         "E": 1649770525,
+        //         "s": "LTC_USDT",
+        //         "U": 2622525645,
+        //         "u": 2622525665,
+        //         "b": [
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
@@ -991,7 +991,7 @@ class gate extends gate$1 {
         //           [Array], [Array],
         //           [Array]
         //         ],
-        //         a: [
+        //         "a": [
         //           [Array], [Array],
         //           [Array], [Array],
         //           [Array], [Array],
@@ -1005,18 +1005,18 @@ class gate extends gate$1 {
         // balance update
         //
         //    {
-        //        time: 1653664351,
-        //        channel: 'spot.balances',
-        //        event: 'update',
-        //        result: [
+        //        "time": 1653664351,
+        //        "channel": "spot.balances",
+        //        "event": "update",
+        //        "result": [
         //          {
-        //            timestamp: '1653664351',
-        //            timestamp_ms: '1653664351017',
-        //            user: '10406147',
-        //            currency: 'LTC',
-        //            change: '-0.0002000000000000',
-        //            total: '0.09986000000000000000',
-        //            available: '0.09986000000000000000'
+        //            "timestamp": "1653664351",
+        //            "timestamp_ms": "1653664351017",
+        //            "user": "10406147",
+        //            "currency": "LTC",
+        //            "change": "-0.0002000000000000",
+        //            "total": "0.09986000000000000000",
+        //            "available": "0.09986000000000000000"
         //          }
         //        ]
         //    }

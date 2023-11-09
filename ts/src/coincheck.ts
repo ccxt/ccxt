@@ -5,7 +5,7 @@ import Exchange from './abstract/coincheck.js';
 import { BadSymbol, ExchangeError, AuthenticationError } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ export default class coincheck extends Exchange {
         });
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -197,7 +197,7 @@ export default class coincheck extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coincheck#fetchOpenOrders
@@ -229,13 +229,13 @@ export default class coincheck extends Exchange {
         // fetchOpenOrders
         //
         //     {                        id:  202835,
-        //                      order_type: "buy",
-        //                            rate:  26890,
-        //                            pair: "btc_jpy",
-        //                  pending_amount: "0.5527",
-        //       pending_market_buy_amount:  null,
-        //                  stop_loss_rate:  null,
-        //                      created_at: "2015-01-10T05:55:38.000Z" }
+        //                      "order_type": "buy",
+        //                            "rate":  26890,
+        //                            "pair": "btc_jpy",
+        //                  "pending_amount": "0.5527",
+        //       "pending_market_buy_amount":  null,
+        //                  "stop_loss_rate":  null,
+        //                      "created_at": "2015-01-10T05:55:38.000Z" }
         //
         // todo: add formats for fetchOrder, fetchClosedOrders here
         //
@@ -274,7 +274,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coincheck#fetchOrderBook
@@ -293,7 +293,7 @@ export default class coincheck extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "last":4192632.0,
@@ -332,7 +332,7 @@ export default class coincheck extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coincheck#fetchTicker
@@ -364,7 +364,7 @@ export default class coincheck extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -489,7 +489,7 @@ export default class coincheck extends Exchange {
         return this.parseTrades (transactions, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coincheck#fetchTrades
@@ -535,20 +535,20 @@ export default class coincheck extends Exchange {
         const response = await this.privateGetAccounts (params);
         //
         //     {
-        //         success: true,
-        //         id: '7487995',
-        //         email: 'some@email.com',
-        //         identity_status: 'identity_pending',
-        //         bitcoin_address: null,
-        //         lending_leverage: '4',
-        //         taker_fee: '0.0',
-        //         maker_fee: '0.0',
-        //         exchange_fees: {
-        //           btc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           etc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           fct_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           mona_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           plt_jpy: { taker_fee: '0.0', maker_fee: '0.0' }
+        //         "success": true,
+        //         "id": "7487995",
+        //         "email": "some@email.com",
+        //         "identity_status": "identity_pending",
+        //         "bitcoin_address": null,
+        //         "lending_leverage": "4",
+        //         "taker_fee": "0.0",
+        //         "maker_fee": "0.0",
+        //         "exchange_fees": {
+        //           "btc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "etc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "fct_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "mona_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "plt_jpy": { taker_fee: '0.0', maker_fee: "0.0" }
         //         }
         //     }
         //
@@ -731,7 +731,7 @@ export default class coincheck extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //

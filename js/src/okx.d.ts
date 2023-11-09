@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class okx
  * @extends Exchange
@@ -70,11 +70,11 @@ export default class okx extends Exchange {
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
@@ -140,101 +140,13 @@ export default class okx extends Exchange {
     };
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        addressFrom: string;
-        addressTo: string;
-        address: string;
-        tagFrom: any;
-        tagTo: string;
-        tag: string;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: {
-            currency: any;
-            cost: any;
-        };
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        addressFrom: string;
-        addressTo: string;
-        address: string;
-        tagFrom: any;
-        tagTo: string;
-        tag: string;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: {
-            currency: any;
-            cost: any;
-        };
-    }>;
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        addressFrom: string;
-        addressTo: string;
-        address: string;
-        tagFrom: any;
-        tagTo: string;
-        tag: string;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: {
-            currency: any;
-            cost: any;
-        };
-    }>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        addressFrom: string;
-        addressTo: string;
-        address: string;
-        tagFrom: any;
-        tagTo: string;
-        tag: string;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: {
-            currency: any;
-            cost: any;
-        };
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;

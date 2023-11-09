@@ -83,18 +83,18 @@ class phemex extends \ccxt\async\phemex {
     public function parse_swap_ticker($ticker, $market = null) {
         //
         //     {
-        //         close => 442800,
-        //         fundingRate => 10000,
-        //         high => 445400,
-        //         indexPrice => 442621,
-        //         low => 428400,
-        //         markPrice => 442659,
-        //         $open => 432200,
-        //         openInterest => 744183,
-        //         predFundingRate => 10000,
-        //         $symbol => 'LTCUSD',
-        //         turnover => 8133238294,
-        //         volume => 934292
+        //         "close" => 442800,
+        //         "fundingRate" => 10000,
+        //         "high" => 445400,
+        //         "indexPrice" => 442621,
+        //         "low" => 428400,
+        //         "markPrice" => 442659,
+        //         "open" => 432200,
+        //         "openInterest" => 744183,
+        //         "predFundingRate" => 10000,
+        //         "symbol" => "LTCUSD",
+        //         "turnover" => 8133238294,
+        //         "volume" => 934292
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -202,44 +202,44 @@ class phemex extends \ccxt\async\phemex {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         spot_market24h => array(
-        //             askEp => 958148000000,
-        //             bidEp => 957884000000,
-        //             highEp => 962000000000,
-        //             lastEp => 958220000000,
-        //             lowEp => 928049000000,
-        //             openEp => 935597000000,
-        //             $symbol => 'sBTCUSDT',
-        //             turnoverEv => 146074214388978,
-        //             volumeEv => 15492228900
+        //         "spot_market24h" => array(
+        //             "askEp" => 958148000000,
+        //             "bidEp" => 957884000000,
+        //             "highEp" => 962000000000,
+        //             "lastEp" => 958220000000,
+        //             "lowEp" => 928049000000,
+        //             "openEp" => 935597000000,
+        //             "symbol" => "sBTCUSDT",
+        //             "turnoverEv" => 146074214388978,
+        //             "volumeEv" => 15492228900
         //         ),
-        //         $timestamp => 1592847265888272100
+        //         "timestamp" => 1592847265888272100
         //     }
         //
         // swap
         //
         //     {
-        //         market24h => array(
-        //             close => 442800,
-        //             fundingRate => 10000,
-        //             high => 445400,
-        //             indexPrice => 442621,
-        //             low => 428400,
-        //             markPrice => 442659,
-        //             open => 432200,
-        //             openInterest => 744183,
-        //             predFundingRate => 10000,
-        //             $symbol => 'LTCUSD',
-        //             turnover => 8133238294,
-        //             volume => 934292
+        //         "market24h" => array(
+        //             "close" => 442800,
+        //             "fundingRate" => 10000,
+        //             "high" => 445400,
+        //             "indexPrice" => 442621,
+        //             "low" => 428400,
+        //             "markPrice" => 442659,
+        //             "open" => 432200,
+        //             "openInterest" => 744183,
+        //             "predFundingRate" => 10000,
+        //             "symbol" => "LTCUSD",
+        //             "turnover" => 8133238294,
+        //             "volume" => 934292
         //         ),
-        //         $timestamp => 1592845585373374500
+        //         "timestamp" => 1592845585373374500
         //     }
         //
         // perpetual
         //
         //    {
-        //        $data => array(
+        //        "data" => array(
         //            array(
         //                "STXUSDT",
         //                "0.64649",
@@ -256,7 +256,7 @@ class phemex extends \ccxt\async\phemex {
         //            ),
         //            ...
         //        ),
-        //        fields => array(
+        //        "fields" => array(
         //            "symbol",
         //            "openRp",
         //            "highRp",
@@ -270,9 +270,9 @@ class phemex extends \ccxt\async\phemex {
         //            "fundingRateRr",
         //            "predFundingRateRr",
         //        ),
-        //        method => "perp_market24h_pack_p.update",
-        //        $timestamp => "1677094918686806209",
-        //        type => "snapshot",
+        //        "method" => "perp_market24h_pack_p.update",
+        //        "timestamp" => "1677094918686806209",
+        //        "type" => "snapshot",
         //    }
         //
         $tickers = array();
@@ -325,31 +325,31 @@ class phemex extends \ccxt\async\phemex {
         // spot
         //    array(
         //       array(
-        //           balanceEv => 0,
-        //           $currency => 'BTC',
-        //           lastUpdateTimeNs => '1650442638722099092',
-        //           $lockedTradingBalanceEv => 0,
-        //           $lockedWithdrawEv => 0,
-        //           userID => 2647224
+        //           "balanceEv" => 0,
+        //           "currency" => "BTC",
+        //           "lastUpdateTimeNs" => "1650442638722099092",
+        //           "lockedTradingBalanceEv" => 0,
+        //           "lockedWithdrawEv" => 0,
+        //           "userID" => 2647224
         //         ),
         //         {
-        //           balanceEv => 1154232337,
-        //           $currency => 'USDT',
-        //           lastUpdateTimeNs => '1650442617610017597',
-        //           $lockedTradingBalanceEv => 0,
-        //           $lockedWithdrawEv => 0,
-        //           userID => 2647224
+        //           "balanceEv" => 1154232337,
+        //           "currency" => "USDT",
+        //           "lastUpdateTimeNs" => "1650442617610017597",
+        //           "lockedTradingBalanceEv" => 0,
+        //           "lockedWithdrawEv" => 0,
+        //           "userID" => 2647224
         //         }
         //    )
         // swap
         //    array(
         //        {
-        //            accountBalanceEv => 0,
-        //            accountID => 26472240001,
-        //            bonusBalanceEv => 0,
-        //            $currency => 'BTC',
-        //            totalUsedBalanceEv => 0,
-        //            userID => 2647224
+        //            "accountBalanceEv" => 0,
+        //            "accountID" => 26472240001,
+        //            "bonusBalanceEv" => 0,
+        //            "currency" => "BTC",
+        //            "totalUsedBalanceEv" => 0,
+        //            "userID" => 2647224
         //        }
         //    )
         // perpetual
@@ -399,20 +399,20 @@ class phemex extends \ccxt\async\phemex {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         sequence => 1795484727,
-        //         $symbol => 'sBTCUSDT',
-        //         $trades => array(
-        //             array( 1592891002064516600, 'Buy', 964020000000, 1431000 ),
-        //             array( 1592890978987934500, 'Sell', 963704000000, 1401800 ),
-        //             array( 1592890972918701800, 'Buy', 963938000000, 2018600 ),
+        //         "sequence" => 1795484727,
+        //         "symbol" => "sBTCUSDT",
+        //         "trades" => array(
+        //             array( 1592891002064516600, "Buy", 964020000000, 1431000 ),
+        //             array( 1592890978987934500, "Sell", 963704000000, 1401800 ),
+        //             array( 1592890972918701800, "Buy", 963938000000, 2018600 ),
         //         ),
-        //         type => 'snapshot'
+        //         "type" => "snapshot"
         //     }
         //  perpetual
         //     {
-        //         sequence => 1230197759,
-        //         $symbol => "BTCUSDT",
-        //         trades_p => array(
+        //         "sequence" => 1230197759,
+        //         "symbol" => "BTCUSDT",
+        //         "trades_p" => array(
         //             array(
         //                 1677094244729433000,
         //                 "Buy",
@@ -420,7 +420,7 @@ class phemex extends \ccxt\async\phemex {
         //                 "2.455",
         //             ),
         //         ),
-        //         type => "snapshot",
+        //         "type" => "snapshot",
         //     }
         //
         $name = 'trade';
@@ -445,18 +445,18 @@ class phemex extends \ccxt\async\phemex {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         kline => array(
+        //         "kline" => array(
         //             array( 1592905200, 60, 960688000000, 960709000000, 960709000000, 960400000000, 960400000000, 848100, 8146756046 ),
         //             array( 1592905140, 60, 960718000000, 960716000000, 960717000000, 960560000000, 960688000000, 4284900, 41163743512 ),
         //             array( 1592905080, 60, 960513000000, 960684000000, 960718000000, 960684000000, 960718000000, 4880500, 46887494349 ),
         //         ),
-        //         sequence => 1804401474,
-        //         $symbol => 'sBTCUSDT',
-        //         type => 'snapshot'
+        //         "sequence" => 1804401474,
+        //         "symbol" => "sBTCUSDT",
+        //         "type" => "snapshot"
         //     }
         // perpetual
         //     {
-        //         kline_p => array(
+        //         "kline_p" => array(
         //             array(
         //                 1677094560,
         //                 60,
@@ -469,9 +469,9 @@ class phemex extends \ccxt\async\phemex {
         //                 "813910.208",
         //             ),
         //         ),
-        //         sequence => 1230786017,
-        //         $symbol => "BTCUSDT",
-        //         type => "incremental",
+        //         "sequence" => 1230786017,
+        //         "symbol" => "BTCUSDT",
+        //         "type" => "incremental",
         //     }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -662,45 +662,45 @@ class phemex extends \ccxt\async\phemex {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         $book => array(
-        //             $asks => array(
+        //         "book" => array(
+        //             "asks" => array(
         //                 array( 960316000000, 6993800 ),
         //                 array( 960318000000, 13183000 ),
         //                 array( 960319000000, 9170200 ),
         //             ),
-        //             $bids => array(
+        //             "bids" => array(
         //                 array( 959941000000, 8385300 ),
         //                 array( 959939000000, 10296600 ),
         //                 array( 959930000000, 3672400 ),
         //             )
         //         ),
-        //         $depth => 30,
-        //         sequence => 1805784701,
-        //         $symbol => 'sBTCUSDT',
-        //         $timestamp => 1592908460404461600,
-        //         $type => 'snapshot'
+        //         "depth" => 30,
+        //         "sequence" => 1805784701,
+        //         "symbol" => "sBTCUSDT",
+        //         "timestamp" => 1592908460404461600,
+        //         "type" => "snapshot"
         //     }
         //  perpetual
         //    {
-        //        $depth => 30,
-        //        orderbook_p => array(
-        //            $asks => array(
+        //        "depth" => 30,
+        //        "orderbook_p" => array(
+        //            "asks" => array(
         //                array(
         //                    "23788.5",
         //                    "0.13",
         //                ),
         //            ),
-        //            $bids => array(
+        //            "bids" => array(
         //                array(
         //                    "23787.8",
         //                    "1.836",
         //                ),
         //            ),
         //        ),
-        //        sequence => 1230347368,
-        //        $symbol => "BTCUSDT",
-        //        $timestamp => "1677093457306978852",
-        //        $type => "snapshot",
+        //        "sequence" => 1230347368,
+        //        "symbol" => "BTCUSDT",
+        //        "timestamp" => "1677093457306978852",
+        //        "type" => "snapshot",
         //    }
         //
         $marketId = $this->safe_string($message, 'symbol');
@@ -1031,67 +1031,67 @@ class phemex extends \ccxt\async\phemex {
         // perpetual
         //    array(
         //        array(
-        //          accountID => 40183400003,
-        //          $action => 'New',
-        //          actionBy => 'ByUser',
-        //          actionTimeNs => '1674110665380190869',
-        //          addedSeq => 678760103,
-        //          apRp => '0',
-        //          bonusChangedAmountRv => '0',
-        //          bpRp => '0',
-        //          clOrdID => '',
-        //          cl_req_code => 0,
-        //          closedPnlRv => '0',
-        //          closedSize => '0',
-        //          code => 0,
-        //          cumFeeRv => '0',
-        //          cumQty => '0.001',
-        //          cumValueRv => '20.849',
-        //          curAccBalanceRv => '19.9874906',
-        //          curAssignedPosBalanceRv => '0',
-        //          curBonusBalanceRv => '0',
-        //          curLeverageRr => '-10',
-        //          curPosSide => 'Buy',
-        //          curPosSize => '0.001',
-        //          curPosTerm => 1,
-        //          curPosValueRv => '20.849',
-        //          curRiskLimitRv => '1000000',
-        //          currency => 'USDT',
-        //          cxlRejReason => 0,
-        //          displayQty => '0.001',
-        //          execFeeRv => '0.0125094',
-        //          execID => 'b88d2950-04a2-52d8-8927-346059900242',
-        //          execPriceRp => '20849',
-        //          execQty => '0.001',
-        //          execSeq => 678760103,
-        //          execStatus => 'TakerFill',
-        //          execValueRv => '20.849',
-        //          feeRateRr => '0.0006',
-        //          lastLiquidityInd => 'RemovedLiquidity',
-        //          leavesQty => '0',
-        //          leavesValueRv => '0',
-        //          $message => 'No error',
-        //          ordStatus => 'Filled',
-        //          ordType => 'Market',
-        //          orderID => '79620ed2-54c6-4645-a35c-7057e687c576',
-        //          orderQty => '0.001',
-        //          pegOffsetProportionRr => '0',
-        //          pegOffsetValueRp => '0',
-        //          posSide => 'Long',
-        //          priceRp => '21476.3',
-        //          relatedPosTerm => 1,
-        //          relatedReqNum => 4,
-        //          side => 'Buy',
-        //          slTrigger => 'ByMarkPrice',
-        //          stopLossRp => '0',
-        //          stopPxRp => '0',
-        //          $symbol => 'BTCUSDT',
-        //          takeProfitRp => '0',
-        //          timeInForce => 'ImmediateOrCancel',
-        //          tpTrigger => 'ByLastPrice',
-        //          tradeType => 'Trade',
-        //          transactTimeNs => '1674110665387882268',
-        //          userID => 4018340
+        //          "accountID" => 40183400003,
+        //          "action" => "New",
+        //          "actionBy" => "ByUser",
+        //          "actionTimeNs" => "1674110665380190869",
+        //          "addedSeq" => 678760103,
+        //          "apRp" => "0",
+        //          "bonusChangedAmountRv" => "0",
+        //          "bpRp" => "0",
+        //          "clOrdID" => '',
+        //          "cl_req_code" => 0,
+        //          "closedPnlRv" => "0",
+        //          "closedSize" => "0",
+        //          "code" => 0,
+        //          "cumFeeRv" => "0",
+        //          "cumQty" => "0.001",
+        //          "cumValueRv" => "20.849",
+        //          "curAccBalanceRv" => "19.9874906",
+        //          "curAssignedPosBalanceRv" => "0",
+        //          "curBonusBalanceRv" => "0",
+        //          "curLeverageRr" => "-10",
+        //          "curPosSide" => "Buy",
+        //          "curPosSize" => "0.001",
+        //          "curPosTerm" => 1,
+        //          "curPosValueRv" => "20.849",
+        //          "curRiskLimitRv" => "1000000",
+        //          "currency" => "USDT",
+        //          "cxlRejReason" => 0,
+        //          "displayQty" => "0.001",
+        //          "execFeeRv" => "0.0125094",
+        //          "execID" => "b88d2950-04a2-52d8-8927-346059900242",
+        //          "execPriceRp" => "20849",
+        //          "execQty" => "0.001",
+        //          "execSeq" => 678760103,
+        //          "execStatus" => "TakerFill",
+        //          "execValueRv" => "20.849",
+        //          "feeRateRr" => "0.0006",
+        //          "lastLiquidityInd" => "RemovedLiquidity",
+        //          "leavesQty" => "0",
+        //          "leavesValueRv" => "0",
+        //          "message" => "No error",
+        //          "ordStatus" => "Filled",
+        //          "ordType" => "Market",
+        //          "orderID" => "79620ed2-54c6-4645-a35c-7057e687c576",
+        //          "orderQty" => "0.001",
+        //          "pegOffsetProportionRr" => "0",
+        //          "pegOffsetValueRp" => "0",
+        //          "posSide" => "Long",
+        //          "priceRp" => "21476.3",
+        //          "relatedPosTerm" => 1,
+        //          "relatedReqNum" => 4,
+        //          "side" => "Buy",
+        //          "slTrigger" => "ByMarkPrice",
+        //          "stopLossRp" => "0",
+        //          "stopPxRp" => "0",
+        //          "symbol" => "BTCUSDT",
+        //          "takeProfitRp" => "0",
+        //          "timeInForce" => "ImmediateOrCancel",
+        //          "tpTrigger" => "ByLastPrice",
+        //          "tradeType" => "Trade",
+        //          "transactTimeNs" => "1674110665387882268",
+        //          "userID" => 4018340
         //        ),
         //        ...
         //    )
@@ -1213,67 +1213,67 @@ class phemex extends \ccxt\async\phemex {
         //    }
         // perpetual
         //    {
-        //        accountID => 40183400003,
-        //        action => 'New',
-        //        actionBy => 'ByUser',
-        //        actionTimeNs => '1674110665380190869',
-        //        addedSeq => 678760103,
-        //        apRp => '0',
-        //        bonusChangedAmountRv => '0',
-        //        bpRp => '0',
-        //        clOrdID => '',
-        //        cl_req_code => 0,
-        //        closedPnlRv => '0',
-        //        closedSize => '0',
-        //        code => 0,
-        //        cumFeeRv => '0',
-        //        cumQty => '0.001',
-        //        cumValueRv => '20.849',
-        //        curAccBalanceRv => '19.9874906',
-        //        curAssignedPosBalanceRv => '0',
-        //        curBonusBalanceRv => '0',
-        //        curLeverageRr => '-10',
-        //        curPosSide => 'Buy',
-        //        curPosSize => '0.001',
-        //        curPosTerm => 1,
-        //        curPosValueRv => '20.849',
-        //        curRiskLimitRv => '1000000',
-        //        currency => 'USDT',
-        //        cxlRejReason => 0,
-        //        displayQty => '0.001',
-        //        execFeeRv => '0.0125094',
-        //        execID => 'b88d2950-04a2-52d8-8927-346059900242',
-        //        execPriceRp => '20849',
-        //        execQty => '0.001',
-        //        execSeq => 678760103,
-        //        execStatus => 'TakerFill',
-        //        execValueRv => '20.849',
-        //        feeRateRr => '0.0006',
-        //        lastLiquidityInd => 'RemovedLiquidity',
-        //        leavesQty => '0',
-        //        leavesValueRv => '0',
-        //        message => 'No error',
-        //        ordStatus => 'Filled',
-        //        ordType => 'Market',
-        //        orderID => '79620ed2-54c6-4645-a35c-7057e687c576',
-        //        orderQty => '0.001',
-        //        pegOffsetProportionRr => '0',
-        //        pegOffsetValueRp => '0',
-        //        posSide => 'Long',
-        //        priceRp => '21476.3',
-        //        relatedPosTerm => 1,
-        //        relatedReqNum => 4,
-        //        $side => 'Buy',
-        //        slTrigger => 'ByMarkPrice',
-        //        stopLossRp => '0',
-        //        stopPxRp => '0',
-        //        $symbol => 'BTCUSDT',
-        //        takeProfitRp => '0',
-        //        $timeInForce => 'ImmediateOrCancel',
-        //        tpTrigger => 'ByLastPrice',
-        //        tradeType => 'Trade',
-        //        transactTimeNs => '1674110665387882268',
-        //        userID => 4018340
+        //        "accountID" => 40183400003,
+        //        "action" => "New",
+        //        "actionBy" => "ByUser",
+        //        "actionTimeNs" => "1674110665380190869",
+        //        "addedSeq" => 678760103,
+        //        "apRp" => "0",
+        //        "bonusChangedAmountRv" => "0",
+        //        "bpRp" => "0",
+        //        "clOrdID" => '',
+        //        "cl_req_code" => 0,
+        //        "closedPnlRv" => "0",
+        //        "closedSize" => "0",
+        //        "code" => 0,
+        //        "cumFeeRv" => "0",
+        //        "cumQty" => "0.001",
+        //        "cumValueRv" => "20.849",
+        //        "curAccBalanceRv" => "19.9874906",
+        //        "curAssignedPosBalanceRv" => "0",
+        //        "curBonusBalanceRv" => "0",
+        //        "curLeverageRr" => "-10",
+        //        "curPosSide" => "Buy",
+        //        "curPosSize" => "0.001",
+        //        "curPosTerm" => 1,
+        //        "curPosValueRv" => "20.849",
+        //        "curRiskLimitRv" => "1000000",
+        //        "currency" => "USDT",
+        //        "cxlRejReason" => 0,
+        //        "displayQty" => "0.001",
+        //        "execFeeRv" => "0.0125094",
+        //        "execID" => "b88d2950-04a2-52d8-8927-346059900242",
+        //        "execPriceRp" => "20849",
+        //        "execQty" => "0.001",
+        //        "execSeq" => 678760103,
+        //        "execStatus" => "TakerFill",
+        //        "execValueRv" => "20.849",
+        //        "feeRateRr" => "0.0006",
+        //        "lastLiquidityInd" => "RemovedLiquidity",
+        //        "leavesQty" => "0",
+        //        "leavesValueRv" => "0",
+        //        "message" => "No error",
+        //        "ordStatus" => "Filled",
+        //        "ordType" => "Market",
+        //        "orderID" => "79620ed2-54c6-4645-a35c-7057e687c576",
+        //        "orderQty" => "0.001",
+        //        "pegOffsetProportionRr" => "0",
+        //        "pegOffsetValueRp" => "0",
+        //        "posSide" => "Long",
+        //        "priceRp" => "21476.3",
+        //        "relatedPosTerm" => 1,
+        //        "relatedReqNum" => 4,
+        //        "side" => "Buy",
+        //        "slTrigger" => "ByMarkPrice",
+        //        "stopLossRp" => "0",
+        //        "stopPxRp" => "0",
+        //        "symbol" => "BTCUSDT",
+        //        "takeProfitRp" => "0",
+        //        "timeInForce" => "ImmediateOrCancel",
+        //        "tpTrigger" => "ByLastPrice",
+        //        "tradeType" => "Trade",
+        //        "transactTimeNs" => "1674110665387882268",
+        //        "userID" => 4018340
         //    }
         //
         $id = $this->safe_string($order, 'orderID');
@@ -1329,96 +1329,96 @@ class phemex extends \ccxt\async\phemex {
     public function handle_message(Client $client, $message) {
         // private spot update
         // {
-        //     $orders => array( closed => [ ], fills => [ ], open => array() ),
-        //     sequence => 40435835,
-        //     timestamp => '1650443245600839241',
-        //     $type => 'snapshot',
-        //     wallets => array(
+        //     "orders" => array( closed => [ ], fills => [ ], open => array() ),
+        //     "sequence" => 40435835,
+        //     "timestamp" => "1650443245600839241",
+        //     "type" => "snapshot",
+        //     "wallets" => array(
         //       array(
-        //         balanceEv => 0,
-        //         currency => 'BTC',
-        //         lastUpdateTimeNs => '1650442638722099092',
-        //         lockedTradingBalanceEv => 0,
-        //         lockedWithdrawEv => 0,
-        //         userID => 2647224
+        //         "balanceEv" => 0,
+        //         "currency" => "BTC",
+        //         "lastUpdateTimeNs" => "1650442638722099092",
+        //         "lockedTradingBalanceEv" => 0,
+        //         "lockedWithdrawEv" => 0,
+        //         "userID" => 2647224
         //       ),
         //       {
-        //         balanceEv => 1154232337,
-        //         currency => 'USDT',
-        //         lastUpdateTimeNs => '1650442617610017597',
-        //         lockedTradingBalanceEv => 0,
-        //         lockedWithdrawEv => 0,
-        //         userID => 2647224
+        //         "balanceEv" => 1154232337,
+        //         "currency" => "USDT",
+        //         "lastUpdateTimeNs" => "1650442617610017597",
+        //         "lockedTradingBalanceEv" => 0,
+        //         "lockedWithdrawEv" => 0,
+        //         "userID" => 2647224
         //       }
         //     )
         // }
         // private swap update
         // {
-        //     sequence => 83839628,
-        //     timestamp => '1650382581827447829',
-        //     $type => 'snapshot',
-        //     $accounts => array(
+        //     "sequence" => 83839628,
+        //     "timestamp" => "1650382581827447829",
+        //     "type" => "snapshot",
+        //     "accounts" => array(
         //       {
-        //         accountBalanceEv => 0,
-        //         accountID => 26472240001,
-        //         bonusBalanceEv => 0,
-        //         currency => 'BTC',
-        //         totalUsedBalanceEv => 0,
-        //         userID => 2647224
+        //         "accountBalanceEv" => 0,
+        //         "accountID" => 26472240001,
+        //         "bonusBalanceEv" => 0,
+        //         "currency" => "BTC",
+        //         "totalUsedBalanceEv" => 0,
+        //         "userID" => 2647224
         //       }
         //     ),
-        //     $orders => array(),
-        //     positions => array(
+        //     "orders" => array(),
+        //     "positions" => array(
         //       {
-        //         accountID => 26472240001,
-        //         assignedPosBalanceEv => 0,
-        //         avgEntryPriceEp => 0,
-        //         bankruptCommEv => 0,
-        //         bankruptPriceEp => 0,
-        //         buyLeavesQty => 0,
-        //         buyLeavesValueEv => 0,
-        //         buyValueToCostEr => 1150750,
-        //         createdAtNs => 0,
-        //         crossSharedBalanceEv => 0,
-        //         cumClosedPnlEv => 0,
-        //         cumFundingFeeEv => 0,
-        //         cumTransactFeeEv => 0,
-        //         curTermRealisedPnlEv => 0,
-        //         currency => 'BTC',
-        //         dataVer => 2,
-        //         deleveragePercentileEr => 0,
-        //         displayLeverageEr => 10000000000,
-        //         estimatedOrdLossEv => 0,
-        //         execSeq => 0,
-        //         freeCostEv => 0,
-        //         freeQty => 0,
-        //         initMarginReqEr => 1000000,
-        //         lastFundingTime => '1640601827712091793',
-        //         lastTermEndTime => 0,
-        //         leverageEr => 0,
-        //         liquidationPriceEp => 0,
-        //         maintMarginReqEr => 500000,
-        //         makerFeeRateEr => 0,
-        //         markPriceEp => 507806777,
-        //         orderCostEv => 0,
-        //         posCostEv => 0,
-        //         positionMarginEv => 0,
-        //         positionStatus => 'Normal',
-        //         riskLimitEv => 10000000000,
-        //         sellLeavesQty => 0,
-        //         sellLeavesValueEv => 0,
-        //         sellValueToCostEr => 1149250,
-        //         side => 'None',
-        //         size => 0,
-        //         symbol => 'BTCUSD',
-        //         takerFeeRateEr => 0,
-        //         term => 1,
-        //         transactTimeNs => 0,
-        //         unrealisedPnlEv => 0,
-        //         updatedAtNs => 0,
-        //         usedBalanceEv => 0,
-        //         userID => 2647224,
-        //         valueEv => 0
+        //         "accountID" => 26472240001,
+        //         "assignedPosBalanceEv" => 0,
+        //         "avgEntryPriceEp" => 0,
+        //         "bankruptCommEv" => 0,
+        //         "bankruptPriceEp" => 0,
+        //         "buyLeavesQty" => 0,
+        //         "buyLeavesValueEv" => 0,
+        //         "buyValueToCostEr" => 1150750,
+        //         "createdAtNs" => 0,
+        //         "crossSharedBalanceEv" => 0,
+        //         "cumClosedPnlEv" => 0,
+        //         "cumFundingFeeEv" => 0,
+        //         "cumTransactFeeEv" => 0,
+        //         "curTermRealisedPnlEv" => 0,
+        //         "currency" => "BTC",
+        //         "dataVer" => 2,
+        //         "deleveragePercentileEr" => 0,
+        //         "displayLeverageEr" => 10000000000,
+        //         "estimatedOrdLossEv" => 0,
+        //         "execSeq" => 0,
+        //         "freeCostEv" => 0,
+        //         "freeQty" => 0,
+        //         "initMarginReqEr" => 1000000,
+        //         "lastFundingTime" => "1640601827712091793",
+        //         "lastTermEndTime" => 0,
+        //         "leverageEr" => 0,
+        //         "liquidationPriceEp" => 0,
+        //         "maintMarginReqEr" => 500000,
+        //         "makerFeeRateEr" => 0,
+        //         "markPriceEp" => 507806777,
+        //         "orderCostEv" => 0,
+        //         "posCostEv" => 0,
+        //         "positionMarginEv" => 0,
+        //         "positionStatus" => "Normal",
+        //         "riskLimitEv" => 10000000000,
+        //         "sellLeavesQty" => 0,
+        //         "sellLeavesValueEv" => 0,
+        //         "sellValueToCostEr" => 1149250,
+        //         "side" => "None",
+        //         "size" => 0,
+        //         "symbol" => "BTCUSD",
+        //         "takerFeeRateEr" => 0,
+        //         "term" => 1,
+        //         "transactTimeNs" => 0,
+        //         "unrealisedPnlEv" => 0,
+        //         "updatedAtNs" => 0,
+        //         "usedBalanceEv" => 0,
+        //         "userID" => 2647224,
+        //         "valueEv" => 0
         //       }
         //     )
         // }

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -156,40 +156,7 @@ class bybit(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        # inverse swap
-                        'v2/public/orderBook/L2': 1,
-                        'v2/public/kline/list': 3,
-                        'v2/public/tickers': 1,
-                        'v2/public/trading-records': 1,
-                        'v2/public/symbols': 1,
-                        'v2/public/mark-price-kline': 3,
-                        'v2/public/index-price-kline': 3,
-                        'v2/public/premium-index-kline': 2,
-                        'v2/public/open-interest': 1,
-                        'v2/public/big-deal': 1,
-                        'v2/public/account-ratio': 1,
-                        'v2/public/funding-rate': 1,
-                        'v2/public/elite-ratio': 1,
-                        'v2/public/funding/prev-funding-rate': 1,
-                        'v2/public/risk-limit/list': 1,
-                        # linear swap USDT
-                        'public/linear/kline': 3,
-                        'public/linear/recent-trading-records': 1,
-                        'public/linear/risk-limit': 1,
-                        'public/linear/funding/prev-funding-rate': 1,
-                        'public/linear/mark-price-kline': 1,
-                        'public/linear/index-price-kline': 1,
-                        'public/linear/premium-index-kline': 1,
                         # spot
-                        'spot/v1/time': 1,
-                        'spot/v1/symbols': 1,
-                        'spot/quote/v1/depth': 1,
-                        'spot/quote/v1/depth/merged': 1,
-                        'spot/quote/v1/trades': 1,
-                        'spot/quote/v1/kline': 1,
-                        'spot/quote/v1/ticker/24hr': 1,
-                        'spot/quote/v1/ticker/price': 1,
-                        'spot/quote/v1/ticker/book_ticker': 1,
                         'spot/v3/public/symbols': 1,
                         'spot/v3/public/quote/depth': 1,
                         'spot/v3/public/quote/depth/merged': 1,
@@ -203,33 +170,7 @@ class bybit(Exchange, ImplicitAPI):
                         'spot/v3/public/margin-product-infos': 1,
                         'spot/v3/public/margin-ensure-tokens': 1,
                         # data
-                        'v2/public/time': 1,
                         'v3/public/time': 1,
-                        'v2/public/announcement': 1,
-                        # USDC endpoints
-                        # option USDC
-                        'option/usdc/openapi/public/v1/order-book': 1,
-                        'option/usdc/openapi/public/v1/symbols': 1,
-                        'option/usdc/openapi/public/v1/tick': 1,
-                        'option/usdc/openapi/public/v1/delivery-price': 1,
-                        'option/usdc/openapi/public/v1/query-trade-latest': 1,
-                        'option/usdc/openapi/public/v1/query-historical-volatility': 1,
-                        'option/usdc/openapi/public/v1/all-tickers': 1,
-                        # perpetual swap USDC
-                        'perpetual/usdc/openapi/public/v1/order-book': 1,
-                        'perpetual/usdc/openapi/public/v1/symbols': 1,
-                        'perpetual/usdc/openapi/public/v1/tick': 1,
-                        'perpetual/usdc/openapi/public/v1/kline/list': 1,
-                        'perpetual/usdc/openapi/public/v1/mark-price-kline': 1,
-                        'perpetual/usdc/openapi/public/v1/index-price-kline': 1,
-                        'perpetual/usdc/openapi/public/v1/premium-index-kline': 1,
-                        'perpetual/usdc/openapi/public/v1/open-interest': 1,
-                        'perpetual/usdc/openapi/public/v1/big-deal': 1,
-                        'perpetual/usdc/openapi/public/v1/account-ratio': 1,
-                        'perpetual/usdc/openapi/public/v1/prev-funding-rate': 1,
-                        'perpetual/usdc/openapi/public/v1/risk-limit/list': 1,
-                        # account
-                        'asset/v1/public/deposit/allowed-deposit-list': 1,
                         'contract/v3/public/copytrading/symbol/list': 1,
                         # derivative
                         'derivatives/v3/public/order-book/L2': 1,
@@ -278,54 +219,9 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
-                        # inverse swap
-                        'v2/private/order/list': 5,
-                        'v2/private/order': 5,
-                        'v2/private/stop-order/list': 5,
-                        'v2/private/stop-order': 1,
-                        'v2/private/position/list': 25,
-                        'v2/private/position/fee-rate': 40,
-                        'v2/private/execution/list': 25,
-                        'v2/private/trade/closed-pnl/list': 1,
-                        'v2/public/risk-limit/list': 1,  # TODO check
-                        'v2/public/funding/prev-funding-rate': 25,  # TODO check
-                        'v2/private/funding/prev-funding': 25,
-                        'v2/private/funding/predicted-funding': 25,
-                        'v2/private/account/api-key': 5,
-                        'v2/private/account/lcp': 1,
-                        'v2/private/wallet/balance': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
-                        'v2/private/wallet/fund/records': 25,
-                        'v2/private/wallet/withdraw/list': 25,
-                        'v2/private/exchange-order/list': 1,
-                        # linear swap USDT
-                        'private/linear/order/list': 5,  # 600 per minute = 10 per second => cost = 50 / 10 =  5
-                        'private/linear/order/search': 5,
-                        'private/linear/stop-order/list': 5,
-                        'private/linear/stop-order/search': 5,
-                        'private/linear/position/list': 25,
-                        'private/linear/trade/execution/list': 25,
-                        'private/linear/trade/closed-pnl/list': 25,
-                        'public/linear/risk-limit': 1,
-                        'private/linear/funding/predicted-funding': 25,
-                        'private/linear/funding/prev-funding': 25,
-                        # inverse futures
-                        'futures/private/order/list': 5,
-                        'futures/private/order': 5,
-                        'futures/private/stop-order/list': 5,
-                        'futures/private/stop-order': 5,
-                        'futures/private/position/list': 25,
-                        'futures/private/execution/list': 25,
-                        'futures/private/trade/closed-pnl/list': 1,
+                        # Legacy inverse swap
+                        'v2/private/wallet/fund/records': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
                         # spot
-                        'spot/v1/account': 2.5,
-                        'spot/v1/order': 2.5,
-                        'spot/v1/open-orders': 2.5,
-                        'spot/v1/history-orders': 2.5,
-                        'spot/v1/myTrades': 2.5,
-                        'spot/v1/cross-margin/order': 10,
-                        'spot/v1/cross-margin/accounts/balance': 10,
-                        'spot/v1/cross-margin/loan-info': 10,
-                        'spot/v1/cross-margin/repay/history': 10,
                         'spot/v3/private/order': 2.5,
                         'spot/v3/private/open-orders': 2.5,
                         'spot/v3/private/history-orders': 2.5,
@@ -341,21 +237,12 @@ class bybit(Exchange, ImplicitAPI):
                         'spot/v3/private/margin-repaid-infos': 10,
                         'spot/v3/private/margin-ltv': 10,
                         # account
-                        'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
-                        'asset/v3/private/transfer/inter-transfer/list/query': 50,
-                        'asset/v1/private/sub-member/transfer/list': 50,
+                        'asset/v3/private/transfer/inter-transfer/list/query': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/sub-member/list/query': 50,
                         'asset/v3/private/transfer/sub-member-transfer/list/query': 50,
                         'asset/v3/private/transfer/universal-transfer/list/query': 25,
-                        'asset/v1/private/sub-member/member-ids': 50,
-                        'asset/v1/private/deposit/record/query': 50,
-                        'asset/v1/private/withdraw/record/query': 25,
-                        'asset/v1/private/coin-info/query': 25,
                         'asset/v3/private/coin-info/query': 25,  # 2/s
-                        'asset/v1/private/asset-info/query': 50,
-                        'asset/v1/private/deposit/address': 100,
                         'asset/v3/private/deposit/address/query': 10,
-                        'asset/v1/private/universal/transfer/list': 50,
                         'contract/v3/private/copytrading/order/list': 30,  # 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
                         'contract/v3/private/copytrading/position/list': 40,  # 75 req/min = 1000 / (20 * 40) = 1.25/s
                         'contract/v3/private/copytrading/wallet/balance': 25,  # 120 req/min = 1000 / (20 * 25) = 2/s
@@ -377,7 +264,6 @@ class bybit(Exchange, ImplicitAPI):
                         'unified/v3/private/settlement-record': 1,
                         'unified/v3/private/account/wallet/balance': 1,
                         'unified/v3/private/account/transaction-log': 1,
-                        'asset/v2/private/exchange/exchange-order-all': 1,
                         'unified/v3/private/account/borrow-history': 1,
                         'unified/v3/private/account/borrow-rate': 1,
                         'unified/v3/private/account/info': 1,
@@ -453,6 +339,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
                         # institutional lending
+                        'v5/ins-loan/product-infos': 5,
+                        'v5/ins-loan/ensure-tokens-convert': 5,
                         'v5/ins-loan/loan-order': 5,
                         'v5/ins-loan/repaid-history': 5,
                         'v5/ins-loan/ltv-convert': 5,
@@ -464,59 +352,22 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/earning-record': 5,
                     },
                     'post': {
-                        # inverse swap
-                        'v2/private/order/create': 30,
-                        'v2/private/order/cancel': 30,
-                        'v2/private/order/cancelAll': 300,  # 100 per minute + 'consumes 10 requests'
-                        'v2/private/order/replace': 30,
-                        'v2/private/stop-order/create': 30,
-                        'v2/private/stop-order/cancel': 30,
-                        'v2/private/stop-order/cancelAll': 300,
-                        'v2/private/stop-order/replace': 30,
-                        'v2/private/position/change-position-margin': 40,
-                        'v2/private/position/trading-stop': 40,
-                        'v2/private/position/leverage/save': 40,
-                        'v2/private/tpsl/switch-mode': 40,
-                        'v2/private/position/switch-isolated': 2.5,
-                        'v2/private/position/risk-limit': 2.5,
-                        'v2/private/position/switch-mode': 2.5,
-                        # linear swap USDT
-                        'private/linear/order/create': 30,  # 100 per minute = 1.666 per second => cost = 50 / 1.6666 = 30
-                        'private/linear/order/cancel': 30,
-                        'private/linear/order/cancel-all': 300,  # 100 per minute + 'consumes 10 requests'
-                        'private/linear/order/replace': 30,
-                        'private/linear/stop-order/create': 30,
-                        'private/linear/stop-order/cancel': 30,
-                        'private/linear/stop-order/cancel-all': 300,
-                        'private/linear/stop-order/replace': 30,
-                        'private/linear/position/set-auto-add-margin': 40,
-                        'private/linear/position/switch-isolated': 40,
-                        'private/linear/position/switch-mode': 40,
-                        'private/linear/tpsl/switch-mode': 2.5,
-                        'private/linear/position/add-margin': 40,
-                        'private/linear/position/set-leverage': 40,  # 75 per minute = 1.25 per second => cost = 50 / 1.25 = 40
-                        'private/linear/position/trading-stop': 40,
-                        'private/linear/position/set-risk': 2.5,
-                        # inverse futures
-                        'futures/private/order/create': 30,
-                        'futures/private/order/cancel': 30,
-                        'futures/private/order/cancelAll': 30,
-                        'futures/private/order/replace': 30,
-                        'futures/private/stop-order/create': 30,
-                        'futures/private/stop-order/cancel': 30,
-                        'futures/private/stop-order/cancelAll': 30,
-                        'futures/private/stop-order/replace': 30,
-                        'futures/private/position/change-position-margin': 40,
-                        'futures/private/position/trading-stop': 40,
-                        'futures/private/position/leverage/save': 40,
-                        'futures/private/position/switch-mode': 40,
-                        'futures/private/tpsl/switch-mode': 40,
-                        'futures/private/position/switch-isolated': 40,
-                        'futures/private/position/risk-limit': 2.5,
+                        # Legacy option USDC
+                        'option/usdc/openapi/private/v1/place-order': 2.5,
+                        'option/usdc/openapi/private/v1/replace-order': 2.5,
+                        'option/usdc/openapi/private/v1/cancel-order': 2.5,
+                        'option/usdc/openapi/private/v1/cancel-all': 2.5,
+                        'option/usdc/openapi/private/v1/query-active-orders': 2.5,
+                        'option/usdc/openapi/private/v1/query-order-history': 2.5,
+                        'option/usdc/openapi/private/v1/execution-list': 2.5,
+                        'option/usdc/openapi/private/v1/query-position': 2.5,
+                        # Legacy perpetual swap USDC
+                        'perpetual/usdc/openapi/private/v1/place-order': 2.5,
+                        'perpetual/usdc/openapi/private/v1/replace-order': 2.5,
+                        'perpetual/usdc/openapi/private/v1/cancel-order': 2.5,
+                        'perpetual/usdc/openapi/private/v1/cancel-all': 2.5,
+                        'perpetual/usdc/openapi/private/v1/position/leverage/save': 2.5,
                         # spot
-                        'spot/v1/order': 2.5,
-                        'spot/v1/cross-margin/loan': 10,
-                        'spot/v1/cross-margin/repay': 10,
                         'spot/v3/private/order': 2.5,
                         'spot/v3/private/cancel-order': 2.5,
                         'spot/v3/private/cancel-orders': 2.5,
@@ -526,15 +377,9 @@ class bybit(Exchange, ImplicitAPI):
                         'spot/v3/private/cross-margin-loan': 10,
                         'spot/v3/private/cross-margin-repay': 10,
                         # account
-                        'asset/v1/private/transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
-                        'asset/v3/private/transfer/inter-transfer': 150,
-                        'asset/v1/private/sub-member/transfer': 150,
-                        'asset/v1/private/withdraw': 50,
+                        'asset/v3/private/transfer/inter-transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v3/private/withdraw/create': 300,
-                        'asset/v1/private/withdraw/cancel': 50,
                         'asset/v3/private/withdraw/cancel': 50,
-                        'asset/v1/private/transferable-subs/save': 3000,
-                        'asset/v1/private/universal/transfer': 1500,
                         'asset/v3/private/transfer/sub-member-transfer': 150,
                         'asset/v3/private/transfer/transfer-sub-member-save': 150,
                         'asset/v3/private/transfer/universal-transfer': 10,  # 5/s
@@ -544,38 +389,7 @@ class bybit(Exchange, ImplicitAPI):
                         'user/v3/private/delete-api': 10,  # 5/s
                         'user/v3/private/update-sub-api': 10,  # 5/s
                         'user/v3/private/delete-sub-api': 10,  # 5/s
-                        # USDC endpoints
-                        # option USDC
-                        'option/usdc/openapi/private/v1/place-order': 2.5,
-                        'option/usdc/openapi/private/v1/batch-place-order': 2.5,
-                        'option/usdc/openapi/private/v1/replace-order': 2.5,
-                        'option/usdc/openapi/private/v1/batch-replace-orders': 2.5,
-                        'option/usdc/openapi/private/v1/cancel-order': 2.5,
-                        'option/usdc/openapi/private/v1/batch-cancel-orders': 2.5,
-                        'option/usdc/openapi/private/v1/cancel-all': 2.5,
-                        'option/usdc/openapi/private/v1/query-active-orders': 2.5,
-                        'option/usdc/openapi/private/v1/query-order-history': 2.5,
-                        'option/usdc/openapi/private/v1/execution-list': 2.5,
-                        'option/usdc/openapi/private/v1/query-transaction-log': 2.5,
-                        'option/usdc/openapi/private/v1/query-wallet-balance': 2.5,
-                        'option/usdc/openapi/private/v1/query-asset-info': 2.5,
-                        'option/usdc/openapi/private/v1/query-margin-info': 2.5,
-                        'option/usdc/openapi/private/v1/query-position': 2.5,
-                        'option/usdc/openapi/private/v1/query-delivery-list': 2.5,
-                        'option/usdc/openapi/private/v1/query-position-exp-date': 2.5,
-                        'option/usdc/openapi/private/v1/mmp-modify': 2.5,
-                        'option/usdc/openapi/private/v1/mmp-reset': 2.5,
-                        # perpetual swap USDC
-                        'perpetual/usdc/openapi/private/v1/place-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/replace-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-all': 2.5,
-                        'perpetual/usdc/openapi/private/v1/position/leverage/save': 2.5,
-                        'option/usdc/openapi/private/v1/session-settlement': 2.5,
-                        'option/usdc/private/asset/account/setMarginMode': 2.5,
-                        'perpetual/usdc/openapi/public/v1/risk-limit/list': 2.5,
-                        'perpetual/usdc/openapi/private/v1/position/set-risk-limit': 2.5,
-                        'perpetual/usdc/openapi/private/v1/predicted-funding': 2.5,
+                        # contract
                         'contract/v3/private/copytrading/order/create': 30,  # 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
                         'contract/v3/private/copytrading/order/cancel': 30,
                         'contract/v3/private/copytrading/order/close': 30,
@@ -663,18 +477,12 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        # institutional lending
+                        'v5/ins-loan/association-uid': 5,
                         # c2c lending
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
                         'v5/lending/redeem-cancel': 5,
-                    },
-                    'delete': {
-                        # spot
-                        'spot/v1/order': 2.5,
-                        'spot/v1/order/fast': 2.5,
-                        'spot/order/batch-cancel': 2.5,
-                        'spot/order/batch-fast-cancel': 2.5,
-                        'spot/order/batch-cancel-by-ids': 2.5,
                     },
                 },
             },
@@ -2023,7 +1831,7 @@ class bybit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot
         #
@@ -2140,7 +1948,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://bybit-exchange.github.io/docs/v5/market/tickers
@@ -2317,7 +2125,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bybit-exchange.github.io/docs/v5/market/kline
@@ -2624,7 +2432,7 @@ class bybit(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         isSpotTrade = ('isBuyerMaker' in trade) or ('feeTokenId' in trade)
         if isSpotTrade:
             return self.parse_spot_trade(trade, market)
@@ -2850,7 +2658,7 @@ class bybit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://bybit-exchange.github.io/docs/v5/market/recent-trade
@@ -2904,7 +2712,7 @@ class bybit(Exchange, ImplicitAPI):
         trades = self.safe_value(result, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bybit-exchange.github.io/docs/v5/market/orderbook
@@ -2965,7 +2773,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'ts')
         return self.parse_order_book(result, symbol, timestamp, 'b', 'a')
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         # cross
         #     {
@@ -3381,13 +3189,13 @@ class bybit(Exchange, ImplicitAPI):
         #     }
         # createOrders failed order
         #    {
-        #        category: 'linear',
-        #        symbol: 'LTCUSDT',
-        #        orderId: '',
-        #        orderLinkId: '',
-        #        createAt: '',
-        #        code: '10001',
-        #        msg: 'The number of contracts exceeds maximum limit allowed: too large'
+        #        "category": "linear",
+        #        "symbol": "LTCUSDT",
+        #        "orderId": '',
+        #        "orderLinkId": '',
+        #        "createAt": '',
+        #        "code": "10001",
+        #        "msg": "The number of contracts exceeds maximum limit allowed: too large"
         #    }
         #
         code = self.safe_string(order, 'code')
@@ -4323,7 +4131,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'dataList', [])
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -4431,7 +4239,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bybit-exchange.github.io/docs/v5/order/order-list
@@ -4507,7 +4315,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://bybit-exchange.github.io/docs/v5/order/open-order
@@ -4770,10 +4578,10 @@ class bybit(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         chainType: 'ERC20',
-        #         addressDeposit: '0xf56297c6717c1d1c42c30324468ed50a9b7402ee',
-        #         tagDeposit: '',
-        #         chain: 'ETH'
+        #         "chainType": "ERC20",
+        #         "addressDeposit": "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        #         "tagDeposit": '',
+        #         "chain": "ETH"
         #     }
         #
         address = self.safe_string(depositAddress, 'addressDeposit')
@@ -5018,11 +4826,6 @@ class bybit(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, status):
         statuses = {
-            # v1/v2
-            'ToBeConfirmed': 'pending',
-            'UnderReview': 'pending',
-            'Success': 'ok',
-            'Expire': 'expired',
             # v3 deposit status
             '0': 'unknown',
             '1': 'pending',
@@ -5040,7 +4843,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals
         #
@@ -6073,7 +5876,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :param str [params.interval]: 5m, 15m, 30m, 1h, 4h, 1d
         :param str [params.category]: "linear" or "inverse"
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -6317,7 +6120,7 @@ class bybit(Exchange, ImplicitAPI):
         #     "retCode": 0,
         #     "retMsg": "success",
         #     "result": {
-        #         "transferId": "4244af44-f3b0-4cf6-a743-b56560e987bc"  # transfer_id in v1
+        #         "transferId": "4244af44-f3b0-4cf6-a743-b56560e987bc"
         #     },
         #     "retExtInfo": {},
         #     "time": 1666875857205
@@ -6342,7 +6145,7 @@ class bybit(Exchange, ImplicitAPI):
         :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
-        :param int [limit]: the maximum number of  transfers structures to retrieve
+        :param int [limit]: the maximum number of transfer structures to retrieve
         :param dict [params]: extra parameters specific to the bybit api endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -6502,31 +6305,31 @@ class bybit(Exchange, ImplicitAPI):
         # transfer
         #
         #     {
-        #         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"  # transfer_id in v1
+        #         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
         #     }
         #
         # fetchTransfers
         #
         #     {
-        #         "transferId": "e9c421c4-b010-4b16-abd6-106179f27702",  # transfer_id in v1
+        #         "transferId": "e9c421c4-b010-4b16-abd6-106179f27702",
         #         "coin": "USDT",
         #         "amount": "8",
-        #         "fromAccountType": "FUND",  # from_account_type in v1
-        #         "toAccountType": "SPOT",  # to_account_type in v1
+        #         "fromAccountType": "FUND",
+        #         "toAccountType": "SPOT",
         #         "timestamp": "1666879426000",
         #         "status": "SUCCESS"
         #      }
         #
         currencyId = self.safe_string(transfer, 'coin')
         timestamp = self.safe_integer(transfer, 'timestamp')
-        fromAccountId = self.safe_string_2(transfer, 'fromAccountType', 'from_account_type')
-        toAccountId = self.safe_string_2(transfer, 'toAccountType', 'to_account_type')
+        fromAccountId = self.safe_string(transfer, 'fromAccountType')
+        toAccountId = self.safe_string(transfer, 'toAccountType')
         accountIds = self.safe_value(self.options, 'accountsById', {})
         fromAccount = self.safe_string(accountIds, fromAccountId, fromAccountId)
         toAccount = self.safe_string(accountIds, toAccountId, toAccountId)
         return {
             'info': transfer,
-            'id': self.safe_string_2(transfer, 'transferId', 'transfer_id'),
+            'id': self.safe_string(transfer, 'transferId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(currencyId, currency),
@@ -7129,14 +6932,14 @@ class bybit(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         #
         #     {
-        #         ret_code: 10001,
-        #         ret_msg: 'ReadMapCB: expect {or n, but found \u0000, error ' +
-        #         'found in  #0 byte of ...||..., bigger context ' +
-        #         '...||...',
-        #         ext_code: '',
-        #         ext_info: '',
-        #         result: null,
-        #         time_now: '1583934106.590436'
+        #         "ret_code": 10001,
+        #         "ret_msg": "ReadMapCB: expect {or n, but found \u0000, error " +
+        #         "found in  #0 byte of ...||..., bigger context " +
+        #         "...||...",
+        #         "ext_code": '',
+        #         "ext_info": '',
+        #         "result": null,
+        #         "time_now": "1583934106.590436"
         #     }
         #
         #     {

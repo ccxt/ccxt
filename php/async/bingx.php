@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
+use React\Promise\PromiseInterface;
 
 class bingx extends Exchange {
 
@@ -396,32 +397,32 @@ class bingx extends Exchange {
             $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));
             //
             //    {
-            //        'code' => 0,
-            //        'timestamp' => 1688045966616,
-            //        'data' => array(
+            //        "code" => 0,
+            //        "timestamp" => 1688045966616,
+            //        "data" => array(
             //            {
-            //              coin => 'BTC',
-            //              $name => 'BTC',
-            //              $networkList => array(
+            //              "coin" => "BTC",
+            //              "name" => "BTC",
+            //              "networkList" => array(
             //                array(
-            //                  $name => 'BTC',
-            //                  $network => 'BTC',
-            //                  $isDefault => true,
-            //                  minConfirm => '2',
-            //                  withdrawEnable => true,
-            //                  withdrawFee => '0.00035',
-            //                  withdrawMax => '1.62842',
-            //                  withdrawMin => '0.0005'
+            //                  "name" => "BTC",
+            //                  "network" => "BTC",
+            //                  "isDefault" => true,
+            //                  "minConfirm" => "2",
+            //                  "withdrawEnable" => true,
+            //                  "withdrawFee" => "0.00035",
+            //                  "withdrawMax" => "1.62842",
+            //                  "withdrawMin" => "0.0005"
             //                ),
             //                array(
-            //                  $name => 'BTC',
-            //                  $network => 'BEP20',
-            //                  $isDefault => false,
-            //                  minConfirm => '15',
-            //                  withdrawEnable => true,
-            //                  withdrawFee => '0.00001',
-            //                  withdrawMax => '1.62734',
-            //                  withdrawMin => '0.0001'
+            //                  "name" => "BTC",
+            //                  "network" => "BEP20",
+            //                  "isDefault" => false,
+            //                  "minConfirm" => "15",
+            //                  "withdrawEnable" => true,
+            //                  "withdrawFee" => "0.00001",
+            //                  "withdrawMax" => "1.62734",
+            //                  "withdrawMin" => "0.0001"
             //                }
             //              )
             //          ),
@@ -657,7 +658,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -768,7 +769,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -834,7 +835,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // spot
         // fetchTrades
@@ -862,15 +863,15 @@ class bingx extends Exchange {
         // fetchMyTrades
         //
         //    {
-        //        volume => '0.1',
-        //        price => '106.75',
-        //        amount => '10.6750',
-        //        commission => '-0.0053',
-        //        currency => 'USDT',
-        //        orderId => '1676213270274379776',
-        //        liquidatedPrice => '0.00',
-        //        liquidatedMarginRatio => '0.00',
-        //        filledTime => '2023-07-04T20:56:01.000+0800'
+        //        "volume" => "0.1",
+        //        "price" => "106.75",
+        //        "amount" => "10.6750",
+        //        "commission" => "-0.0053",
+        //        "currency" => "USDT",
+        //        "orderId" => "1676213270274379776",
+        //        "liquidatedPrice" => "0.00",
+        //        "liquidatedMarginRatio" => "0.00",
+        //        "filledTime" => "2023-07-04T20:56:01.000+0800"
         //    }
         //
         //
@@ -879,24 +880,24 @@ class bingx extends Exchange {
         // spot
         //
         //    {
-        //        E => 1690214529432,
-        //        T => 1690214529386,
-        //        e => 'trade',
-        //        $m => true,
-        //        p => '29110.19',
-        //        q => '0.1868',
-        //        s => 'BTC-USDT',
-        //        t => '57903921'
+        //        "E" => 1690214529432,
+        //        "T" => 1690214529386,
+        //        "e" => "trade",
+        //        "m" => true,
+        //        "p" => "29110.19",
+        //        "q" => "0.1868",
+        //        "s" => "BTC-USDT",
+        //        "t" => "57903921"
         //    }
         //
         // swap
         //
         //    {
-        //        q => '0.0421',
-        //        p => '29023.5',
-        //        T => 1690221401344,
-        //        $m => false,
-        //        s => 'BTC-USDT'
+        //        "q" => "0.0421",
+        //        "p" => "29023.5",
+        //        "T" => 1690221401344,
+        //        "m" => false,
+        //        "s" => "BTC-USDT"
         //    }
         //
         $time = $this->safe_integer_n($trade, array( 'time', 'filledTm', 'T' ));
@@ -941,7 +942,7 @@ class bingx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1177,7 +1178,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1225,7 +1226,7 @@ class bingx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1323,19 +1324,19 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot
         //    {
-        //        $symbol => 'BTC-USDT',
-        //        openPrice => '26032.08',
-        //        highPrice => '26178.86',
-        //        lowPrice => '25968.18',
-        //        lastPrice => '26113.60',
-        //        volume => '1161.79',
-        //        $quoteVolume => '30288466.44',
-        //        openTime => '1693081020762',
-        //        closeTime => '1693167420762'
+        //        "symbol" => "BTC-USDT",
+        //        "openPrice" => "26032.08",
+        //        "highPrice" => "26178.86",
+        //        "lowPrice" => "25968.18",
+        //        "lastPrice" => "26113.60",
+        //        "volume" => "1161.79",
+        //        "quoteVolume" => "30288466.44",
+        //        "openTime" => "1693081020762",
+        //        "closeTime" => "1693167420762"
         //    }
         // swap
         //
@@ -1482,7 +1483,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data');
         $balances = $this->safe_value_2($data, 'balance', 'balances', $data);
         $result = array( 'info' => $response );
@@ -1926,20 +1927,20 @@ class bingx extends Exchange {
         // fetchOrder
         //
         //    {
-        //        $symbol => 'ETH-USDT',
-        //        $orderId => '1660602123001266176',
-        //        $price => '1700',
-        //        origQty => '0.003',
-        //        executedQty => '0',
-        //        cummulativeQuoteQty => '0',
-        //        status => 'PENDING',
-        //        $type => 'LIMIT',
-        //        $side => 'BUY',
-        //        time => '1684753373276',
-        //        updateTime => '1684753373276',
-        //        origQuoteOrderQty => '0',
-        //        $fee => '0',
-        //        feeAsset => 'ETH'
+        //        "symbol" => "ETH-USDT",
+        //        "orderId" => "1660602123001266176",
+        //        "price" => "1700",
+        //        "origQty" => "0.003",
+        //        "executedQty" => "0",
+        //        "cummulativeQuoteQty" => "0",
+        //        "status" => "PENDING",
+        //        "type" => "LIMIT",
+        //        "side" => "BUY",
+        //        "time" => "1684753373276",
+        //        "updateTime" => "1684753373276",
+        //        "origQuoteOrderQty" => "0",
+        //        "fee" => "0",
+        //        "feeAsset" => "ETH"
         //    }
         //
         // fetchOpenOrders, fetchClosedOrders
@@ -2337,7 +2338,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
@@ -2423,7 +2424,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -2594,8 +2595,8 @@ class bingx extends Exchange {
             $response = Async\await($this->spotV3PrivateGetAssetTransfer (array_merge($request, $params)));
             //
             //     {
-            //         total => 3,
-            //         $rows => array(
+            //         "total" => 3,
+            //         "rows" => array(
             //             array(
             //                 "asset":"USDT",
             //                 "amount":"-100.00000000000000000000",
@@ -2659,19 +2660,19 @@ class bingx extends Exchange {
             $response = Async\await($this->walletsV1PrivateGetCapitalDepositAddress (array_merge($request, $params)));
             //
             //     {
-            //         $code => '0',
-            //         timestamp => '1695200226859',
-            //         $data => {
-            //           $data => array(
+            //         "code" => "0",
+            //         "timestamp" => "1695200226859",
+            //         "data" => {
+            //           "data" => array(
             //             {
-            //               coinId => '799',
-            //               coin => 'USDT',
-            //               network => 'BEP20',
-            //               address => '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-            //               tag => ''
+            //               "coinId" => "799",
+            //               "coin" => "USDT",
+            //               "network" => "BEP20",
+            //               "address" => "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+            //               "tag" => ''
             //             }
             //           ),
-            //           total => '1'
+            //           "total" => "1"
             //         }
             //     }
             //
@@ -2684,11 +2685,11 @@ class bingx extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         coinId => '799',
-        //         coin => 'USDT',
-        //         $network => 'BEP20',
-        //         $address => '6a7eda2817462dabb6493277a2cfe0f5c3f2550b',
-        //         $tag => ''
+        //         "coinId" => "799",
+        //         "coin" => "USDT",
+        //         "network" => "BEP20",
+        //         "address" => "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
+        //         "tag" => ''
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -2803,7 +2804,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -3064,19 +3065,19 @@ class bingx extends Exchange {
             $response = Async\await($this->swapV2PrivateGetTradeAllFillOrders (array_merge($request, $query)));
             //
             //    {
-            //       code => '0',
-            //       msg => '',
-            //       $data => { fill_orders => array(
+            //       "code" => "0",
+            //       "msg" => '',
+            //       "data" => { fill_orders => array(
             //          {
-            //              volume => '0.1',
-            //              price => '106.75',
-            //              amount => '10.6750',
-            //              commission => '-0.0053',
-            //              currency => 'USDT',
-            //              orderId => '1676213270274379776',
-            //              liquidatedPrice => '0.00',
-            //              liquidatedMarginRatio => '0.00',
-            //              filledTime => '2023-07-04T20:56:01.000+0800'
+            //              "volume" => "0.1",
+            //              "price" => "106.75",
+            //              "amount" => "10.6750",
+            //              "commission" => "-0.0053",
+            //              "currency" => "USDT",
+            //              "orderId" => "1676213270274379776",
+            //              "liquidatedPrice" => "0.00",
+            //              "liquidatedMarginRatio" => "0.00",
+            //              "filledTime" => "2023-07-04T20:56:01.000+0800"
             //          }
             //        )
             //      }
@@ -3091,28 +3092,28 @@ class bingx extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         //    {
-        //        coin => 'BTC',
-        //        name => 'BTC',
-        //        $networkList => array(
+        //        "coin" => "BTC",
+        //        "name" => "BTC",
+        //        "networkList" => array(
         //          array(
-        //            name => 'BTC',
-        //            $network => 'BTC',
-        //            $isDefault => true,
-        //            minConfirm => '2',
-        //            withdrawEnable => true,
-        //            withdrawFee => '0.00035',
-        //            withdrawMax => '1.62842',
-        //            withdrawMin => '0.0005'
+        //            "name" => "BTC",
+        //            "network" => "BTC",
+        //            "isDefault" => true,
+        //            "minConfirm" => "2",
+        //            "withdrawEnable" => true,
+        //            "withdrawFee" => "0.00035",
+        //            "withdrawMax" => "1.62842",
+        //            "withdrawMin" => "0.0005"
         //          ),
         //          {
-        //            name => 'BTC',
-        //            $network => 'BEP20',
-        //            $isDefault => false,
-        //            minConfirm => '15',
-        //            withdrawEnable => true,
-        //            withdrawFee => '0.00001',
-        //            withdrawMax => '1.62734',
-        //            withdrawMin => '0.0001'
+        //            "name" => "BTC",
+        //            "network" => "BEP20",
+        //            "isDefault" => false,
+        //            "minConfirm" => "15",
+        //            "withdrawEnable" => true,
+        //            "withdrawFee" => "0.00001",
+        //            "withdrawMax" => "1.62734",
+        //            "withdrawMin" => "0.0001"
         //          }
         //        )
         //    }
@@ -3393,7 +3394,7 @@ class bingx extends Exchange {
         //
         //    {
         //        "code" => 80014,
-        //        "msg" => "Invalid parameters, err:Key => 'GetTickerRequest.Symbol' Error:Field validation for 'Symbol' failed on the 'len=0|endswith=-USDT' tag",
+        //        "msg" => "Invalid parameters, err:Key => 'GetTickerRequest.Symbol' Error:Field validation for "Symbol" failed on the "len=0|endswith=-USDT" tag",
         //        "data" => {
         //        }
         //    }

@@ -503,7 +503,7 @@ class probit extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -533,7 +533,7 @@ class probit extends Exchange {
         $response = $this->privateGetBalance ($params);
         //
         //     {
-        //         data => array(
+        //         "data" => array(
         //             {
         //                 "currency_id":"XRP",
         //                 "total":"100",
@@ -545,7 +545,7 @@ class probit extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/order_book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -609,7 +609,7 @@ class probit extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/ticker
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -647,7 +647,7 @@ class probit extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "last":"0.022902",
@@ -723,7 +723,7 @@ class probit extends Exchange {
         $response = $this->privateGetTradeHistory (array_merge($request, $params));
         //
         //     {
-        //         $data => array(
+        //         "data" => array(
         //             {
         //                 "id":"BTC-USDT:183566",
         //                 "order_id":"17209376",
@@ -744,7 +744,7 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/trade-1
          * get the list of most recent trades for a particular $symbol
@@ -795,7 +795,7 @@ class probit extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -914,7 +914,7 @@ class probit extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/candle
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1003,7 +1003,7 @@ class probit extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/open_order-1
          * fetch all unfilled currently open orders
@@ -1026,7 +1026,7 @@ class probit extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/order
          * fetches information on multiple closed orders made by the user
@@ -1066,9 +1066,7 @@ class probit extends Exchange {
          * @param {array} [$params] extra parameters specific to the probit api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1102,17 +1100,17 @@ class probit extends Exchange {
         //         $id,
         //         user_id,
         //         market_id,
-        //         $type => 'orderType',
-        //         $side => 'side',
+        //         "type" => "orderType",
+        //         "side" => "side",
         //         quantity,
         //         limit_price,
-        //         time_in_force => 'timeInForce',
+        //         "time_in_force" => "timeInForce",
         //         filled_cost,
         //         filled_quantity,
         //         open_quantity,
         //         cancelled_quantity,
-        //         $status => 'orderStatus',
-        //         time => 'date',
+        //         "status" => "orderStatus",
+        //         "time" => "date",
         //         client_order_id,
         //     }
         //
@@ -1225,21 +1223,21 @@ class probit extends Exchange {
         $response = $this->privatePostNewOrder (array_merge($request, $query));
         //
         //     {
-        //         $data => {
+        //         "data" => {
         //             id,
         //             user_id,
         //             market_id,
-        //             $type => 'orderType',
-        //             $side => 'side',
+        //             "type" => "orderType",
+        //             "side" => "side",
         //             quantity,
         //             limit_price,
-        //             time_in_force => 'timeInForce',
+        //             "time_in_force" => "timeInForce",
         //             filled_cost,
         //             filled_quantity,
         //             open_quantity,
         //             cancelled_quantity,
-        //             status => 'orderStatus',
-        //             time => 'date',
+        //             "status" => "orderStatus",
+        //             "time" => "date",
         //             client_order_id,
         //         }
         //     }
@@ -1265,9 +1263,7 @@ class probit extends Exchange {
          * @param {array} [$params] extra parameters specific to the probit api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1515,7 +1511,7 @@ class probit extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id" => "01211d4b-0e68-41d6-97cb-298bfe2cab67",
@@ -1664,36 +1660,36 @@ class probit extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         // {
-        //     id => 'USDT',
-        //     display_name => array( 'ko-kr' => '테더', 'en-us' => 'Tether' ),
-        //     show_in_ui => true,
-        //     platform => [
+        //     "id" => "USDT",
+        //     "display_name" => array( "ko-kr" => '테더', "en-us" => "Tether" ),
+        //     "show_in_ui" => true,
+        //     "platform" => [
         //       array(
-        //         id => 'ETH',
-        //         priority => '1',
-        //         deposit => true,
-        //         withdrawal => true,
-        //         currency_id => 'USDT',
-        //         precision => '6',
-        //         min_confirmation_count => '15',
-        //         require_destination_tag => false,
-        //         allow_withdrawal_destination_tag => false,
-        //         display_name => [Object],
-        //         min_deposit_amount => '0',
-        //         min_withdrawal_amount => '1',
-        //         withdrawal_fee => [Array],
-        //         deposit_fee => array(),
-        //         suspended_reason => '',
-        //         deposit_suspended => false,
-        //         withdrawal_suspended => false,
-        //         platform_currency_display_name => [Object]
+        //         "id" => "ETH",
+        //         "priority" => "1",
+        //         "deposit" => true,
+        //         "withdrawal" => true,
+        //         "currency_id" => "USDT",
+        //         "precision" => "6",
+        //         "min_confirmation_count" => "15",
+        //         "require_destination_tag" => false,
+        //         "allow_withdrawal_destination_tag" => false,
+        //         "display_name" => [Object],
+        //         "min_deposit_amount" => "0",
+        //         "min_withdrawal_amount" => "1",
+        //         "withdrawal_fee" => [Array],
+        //         "deposit_fee" => array(),
+        //         "suspended_reason" => '',
+        //         "deposit_suspended" => false,
+        //         "withdrawal_suspended" => false,
+        //         "platform_currency_display_name" => [Object]
         //       ),
         //     ],
-        //     internal_transfer => array( suspended_reason => null, suspended => false ),
-        //     stakeable => false,
-        //     unstakeable => false,
-        //     auto_stake => false,
-        //     auto_stake_amount => '0'
+        //     "internal_transfer" => array( suspended_reason => null, suspended => false ),
+        //     "stakeable" => false,
+        //     "unstakeable" => false,
+        //     "auto_stake" => false,
+        //     "auto_stake_amount" => "0"
         //   }
         //
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
@@ -1791,9 +1787,9 @@ class probit extends Exchange {
         $response = $this->accountsPostToken (array_merge($request, $params));
         //
         //     {
-        //         access_token => '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-        //         token_type => 'bearer',
-        //         expires_in => 900
+        //         "access_token" => "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+        //         "token_type" => "bearer",
+        //         "expires_in" => 900
         //     }
         //
         $expiresIn = $this->safe_integer($response, 'expires_in');

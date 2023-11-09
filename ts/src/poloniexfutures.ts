@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { FundingHistory, Int, Order, OrderBook, OrderSide, OrderType } from './base/types.js';
+import { Balances, FundingHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -217,59 +217,59 @@ export default class poloniexfutures extends Exchange {
         //  "code": "200000",
         //  "data": [
         //     {
-        //       symbol: 'APTUSDTPERP',
-        //       takerFixFee: '0E-10',
-        //       nextFundingRateTime: '20145603',
-        //       makerFixFee: '0E-10',
-        //       type: 'FFWCSX',
-        //       predictedFundingFeeRate: '0.000000',
-        //       turnoverOf24h: '386037.46704292',
-        //       initialMargin: '0.05',
-        //       isDeleverage: true,
-        //       createdAt: '1666681959000',
-        //       fundingBaseSymbol: '.APTINT8H',
-        //       lowPriceOf24h: '4.34499979019165',
-        //       lastTradePrice: '4.4090000000',
-        //       indexPriceTickSize: '0.001',
-        //       fairMethod: 'FundingRate',
-        //       takerFeeRate: '0.00040',
-        //       order: '102',
-        //       updatedAt: '1671076377000',
-        //       displaySettleCurrency: 'USDT',
-        //       indexPrice: '4.418',
-        //       multiplier: '1.0',
-        //       maxLeverage: '20',
-        //       fundingQuoteSymbol: '.USDTINT8H',
-        //       quoteCurrency: 'USDT',
-        //       maxOrderQty: '1000000',
-        //       maxPrice: '1000000.0000000000',
-        //       maintainMargin: '0.025',
-        //       status: 'Open',
-        //       displayNameMap: [Object],
-        //       openInterest: '2367',
-        //       highPriceOf24h: '4.763999938964844',
-        //       fundingFeeRate: '0.000000',
-        //       volumeOf24h: '83540.00000000',
-        //       riskStep: '500000',
-        //       isQuanto: true,
-        //       maxRiskLimit: '20000',
-        //       rootSymbol: 'USDT',
-        //       baseCurrency: 'APT',
-        //       firstOpenDate: '1666701000000',
-        //       tickSize: '0.001',
-        //       markMethod: 'FairPrice',
-        //       indexSymbol: '.PAPTUSDT',
-        //       markPrice: '4.418',
-        //       minRiskLimit: '1000000',
-        //       settlementFixFee: '0E-10',
-        //       settlementSymbol: '',
-        //       priceChgPctOf24h: '-0.0704',
-        //       fundingRateSymbol: '.APTUSDTPERPFPI8H',
-        //       makerFeeRate: '0.00010',
-        //       isInverse: false,
-        //       lotSize: '1',
-        //       settleCurrency: 'USDT',
-        //       settlementFeeRate: '0.0'
+        //       "symbol": "APTUSDTPERP",
+        //       "takerFixFee": "0E-10",
+        //       "nextFundingRateTime": "20145603",
+        //       "makerFixFee": "0E-10",
+        //       "type": "FFWCSX",
+        //       "predictedFundingFeeRate": "0.000000",
+        //       "turnoverOf24h": "386037.46704292",
+        //       "initialMargin": "0.05",
+        //       "isDeleverage": true,
+        //       "createdAt": "1666681959000",
+        //       "fundingBaseSymbol": ".APTINT8H",
+        //       "lowPriceOf24h": "4.34499979019165",
+        //       "lastTradePrice": "4.4090000000",
+        //       "indexPriceTickSize": "0.001",
+        //       "fairMethod": "FundingRate",
+        //       "takerFeeRate": "0.00040",
+        //       "order": "102",
+        //       "updatedAt": "1671076377000",
+        //       "displaySettleCurrency": "USDT",
+        //       "indexPrice": "4.418",
+        //       "multiplier": "1.0",
+        //       "maxLeverage": "20",
+        //       "fundingQuoteSymbol": ".USDTINT8H",
+        //       "quoteCurrency": "USDT",
+        //       "maxOrderQty": "1000000",
+        //       "maxPrice": "1000000.0000000000",
+        //       "maintainMargin": "0.025",
+        //       "status": "Open",
+        //       "displayNameMap": [Object],
+        //       "openInterest": "2367",
+        //       "highPriceOf24h": "4.763999938964844",
+        //       "fundingFeeRate": "0.000000",
+        //       "volumeOf24h": "83540.00000000",
+        //       "riskStep": "500000",
+        //       "isQuanto": true,
+        //       "maxRiskLimit": "20000",
+        //       "rootSymbol": "USDT",
+        //       "baseCurrency": "APT",
+        //       "firstOpenDate": "1666701000000",
+        //       "tickSize": "0.001",
+        //       "markMethod": "FairPrice",
+        //       "indexSymbol": ".PAPTUSDT",
+        //       "markPrice": "4.418",
+        //       "minRiskLimit": "1000000",
+        //       "settlementFixFee": "0E-10",
+        //       "settlementSymbol": '',
+        //       "priceChgPctOf24h": "-0.0704",
+        //       "fundingRateSymbol": ".APTUSDTPERPFPI8H",
+        //       "makerFeeRate": "0.00010",
+        //       "isInverse": false,
+        //       "lotSize": "1",
+        //       "settleCurrency": "USDT",
+        //       "settlementFeeRate": "0.0"
         //     },
         //   ]
         // }
@@ -349,7 +349,7 @@ export default class poloniexfutures extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //    {
         //        "symbol": "BTCUSDTPERP",                   // Market of the symbol
@@ -402,7 +402,7 @@ export default class poloniexfutures extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name poloniexfutures#fetchTicker
@@ -420,19 +420,19 @@ export default class poloniexfutures extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         //
         // {
-        //     code: '200000',
-        //     data: {
-        //       sequence: '11574719',
-        //       symbol: 'BTCUSDTPERP',
-        //       side: 'sell',
-        //       size: '1',
-        //       price: '16990.1',
-        //       bestBidSize: '3',
-        //       bestBidPrice: '16990.1',
-        //       bestAskPrice: '16991.0',
-        //       tradeId: '639c8a529fd7cf0001af4157',
-        //       bestAskSize: '505',
-        //       ts: '1671203410721232337'
+        //     "code": "200000",
+        //     "data": {
+        //       "sequence": "11574719",
+        //       "symbol": "BTCUSDTPERP",
+        //       "side": "sell",
+        //       "size": "1",
+        //       "price": "16990.1",
+        //       "bestBidSize": "3",
+        //       "bestBidPrice": "16990.1",
+        //       "bestAskPrice": "16991.0",
+        //       "tradeId": "639c8a529fd7cf0001af4157",
+        //       "bestAskSize": "505",
+        //       "ts": "1671203410721232337"
         //     }
         // }
         //
@@ -454,7 +454,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseTickers (this.safeValue (response, 'data', []), symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniexfuturesfutures#fetchOrderBook
@@ -556,7 +556,7 @@ export default class poloniexfutures extends Exchange {
         return this.fetchOrderBook (market['id'], undefined, { 'level': 3 });
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -648,7 +648,7 @@ export default class poloniexfutures extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniexfutures#fetchTrades
@@ -706,7 +706,7 @@ export default class poloniexfutures extends Exchange {
         return this.safeInteger (response, 'data');
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name poloniexfutures#fetchOHLCV
@@ -759,7 +759,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -796,16 +796,16 @@ export default class poloniexfutures extends Exchange {
         const response = await this.privateGetAccountOverview (this.extend (request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
-        //             accountEquity: 0.00005,
-        //             unrealisedPNL: 0,
-        //             marginBalance: 0.00005,
-        //             positionMargin: 0,
-        //             orderMargin: 0,
-        //             frozenFunds: 0,
-        //             availableBalance: 0.00005,
-        //             currency: 'XBT'
+        //         "code": "200000",
+        //         "data": {
+        //             "accountEquity": 0.00005,
+        //             "unrealisedPNL": 0,
+        //             "marginBalance": 0.00005,
+        //             "positionMargin": 0,
+        //             "orderMargin": 0,
+        //             "frozenFunds": 0,
+        //             "availableBalance": 0.00005,
+        //             "currency": "XBT"
         //         }
         //     }
         //
@@ -888,9 +888,9 @@ export default class poloniexfutures extends Exchange {
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            orderId: "619717484f1d010001510cde",
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
         //        },
         //    }
         //
@@ -938,15 +938,15 @@ export default class poloniexfutures extends Exchange {
         const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            cancelledOrderIds: [
+        //        "code": "200000",
+        //        "data": {
+        //            "cancelledOrderIds": [
         //                "619714b8b6353000014c505a",
         //            ],
-        //            cancelFailedOrders: [
+        //            "cancelFailedOrders": [
         //                {
-        //                    orderId: "63a9c5c2b9e7d70007eb0cd5",
-        //                    orderState: "2"
+        //                    "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        //                    "orderState": "2"
         //                }
         //            ],
         //        },
@@ -1128,9 +1128,7 @@ export default class poloniexfutures extends Exchange {
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchFundingHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1210,9 +1208,9 @@ export default class poloniexfutures extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         //   {
-        //       code: "200000",
-        //       data: {
-        //           cancelledOrderIds: [
+        //       "code": "200000",
+        //       "data": {
+        //           "cancelledOrderIds": [
         //                "619714b8b6353000014c505a",
         //           ],
         //       },
@@ -1356,7 +1354,7 @@ export default class poloniexfutures extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#fetchOpenOrders
@@ -1375,7 +1373,7 @@ export default class poloniexfutures extends Exchange {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniexfutures#fetchClosedOrders
@@ -1475,9 +1473,9 @@ export default class poloniexfutures extends Exchange {
         // createOrder
         //
         //    {
-        //        code: "200000",
-        //        data: {
-        //            orderId: "619717484f1d010001510cde",
+        //        "code": "200000",
+        //        "data": {
+        //            "orderId": "619717484f1d010001510cde",
         //        },
         //    }
         //
@@ -1527,13 +1525,13 @@ export default class poloniexfutures extends Exchange {
         // cancelOrder
         //
         //    {
-        //        cancelledOrderIds: [
+        //        "cancelledOrderIds": [
         //            "619714b8b6353000014c505a",
         //        ],
-        //        cancelFailedOrders: [
+        //        "cancelFailedOrders": [
         //            {
-        //                orderId: "63a9c5c2b9e7d70007eb0cd5",
-        //                orderState: "2"
+        //                "orderId": "63a9c5c2b9e7d70007eb0cd5",
+        //                "orderState": "2"
         //            }
         //        ],
         //    },
@@ -1720,9 +1718,7 @@ export default class poloniexfutures extends Exchange {
          * @param {object} [params] extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         if ((marginMode !== 0) && (marginMode !== 1)) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be 0 (isolated) or 1 (cross)');
         }
@@ -1790,7 +1786,7 @@ export default class poloniexfutures extends Exchange {
         // bad
         //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
         // good
-        //     { code: '200000', data: { ... }}
+        //     { code: "200000", data: { ... }}
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg', '');

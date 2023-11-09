@@ -405,9 +405,7 @@ class coinfalcon extends coinfalcon$1 {
          * @param {object} [params] extra parameters specific to the coinfalcon api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -489,10 +487,10 @@ class coinfalcon extends coinfalcon$1 {
         const response = await this.privateGetUserFees(params);
         //
         //    {
-        //        data: {
-        //            maker_fee: '0.0',
-        //            taker_fee: '0.2',
-        //            btc_volume_30d: '0.0'
+        //        "data": {
+        //            "maker_fee": "0.0",
+        //            "taker_fee": "0.2",
+        //            "btc_volume_30d": "0.0"
         //        }
         //    }
         //
@@ -577,9 +575,9 @@ class coinfalcon extends coinfalcon$1 {
         const response = await this.privateGetAccountDepositAddress(this.extend(request, params));
         //
         //     {
-        //         data: {
-        //             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-        //             tag:null
+        //         "data": {
+        //             "address": "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+        //             "tag":null
         //         }
         //     }
         //
@@ -775,16 +773,16 @@ class coinfalcon extends coinfalcon$1 {
         }
         const response = await this.privateGetAccountDeposits(this.extend(request, params));
         //
-        //     data: [
+        //     "data": [
         //         {
-        //             id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        //             amount: '0.1',
-        //             status: 'completed',
-        //             currency_code: 'eth',
-        //             txid: '0xxxx',
-        //             address: '0xxxx',
-        //             tag: null,
-        //             type: 'deposit'
+        //             "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        //             "amount": "0.1",
+        //             "status": "completed",
+        //             "currency_code": "eth",
+        //             "txid": "0xxxx",
+        //             "address": "0xxxx",
+        //             "tag": null,
+        //             "type": "deposit"
         //         },
         //     ]
         //
@@ -821,17 +819,17 @@ class coinfalcon extends coinfalcon$1 {
         }
         const response = await this.privateGetAccountWithdrawals(this.extend(request, params));
         //
-        //     data: [
+        //     "data": [
         //         {
-        //             id: '25f6f144-3666-xxx-xxx-xxx',
-        //             amount: '0.01',
-        //             status: 'completed',
-        //             fee: '0.0005',
-        //             currency_code: 'btc',
-        //             txid: '4xxx',
-        //             address: 'bc1xxx',
-        //             tag: null,
-        //             type: 'withdraw'
+        //             "id": "25f6f144-3666-xxx-xxx-xxx",
+        //             "amount": "0.01",
+        //             "status": "completed",
+        //             "fee": "0.0005",
+        //             "currency_code": "btc",
+        //             "txid": "4xxx",
+        //             "address": "bc1xxx",
+        //             "tag": null,
+        //             "type": "withdraw"
         //         },
         //     ]
         //
@@ -866,17 +864,17 @@ class coinfalcon extends coinfalcon$1 {
         }
         const response = await this.privatePostAccountWithdraw(this.extend(request, params));
         //
-        //     data: [
+        //     "data": [
         //         {
-        //             id: '25f6f144-3666-xxx-xxx-xxx',
-        //             amount: '0.01',
-        //             status: 'approval_pending',
-        //             fee: '0.0005',
-        //             currency_code: 'btc',
-        //             txid: null,
-        //             address: 'bc1xxx',
-        //             tag: null,
-        //             type: 'withdraw'
+        //             "id": "25f6f144-3666-xxx-xxx-xxx",
+        //             "amount": "0.01",
+        //             "status": "approval_pending",
+        //             "fee": "0.0005",
+        //             "currency_code": "btc",
+        //             "txid": null,
+        //             "address": "bc1xxx",
+        //             "tag": null,
+        //             "type": "withdraw"
         //         },
         //     ]
         //
@@ -896,28 +894,28 @@ class coinfalcon extends coinfalcon$1 {
         // fetchWithdrawals, withdraw
         //
         //     {
-        //         id: '25f6f144-3666-xxx-xxx-xxx',
-        //         amount: '0.01',
-        //         status: 'completed',
-        //         fee: '0.0005',
-        //         currency_code: 'btc',
-        //         txid: '4xxx',
-        //         address: 'bc1xxx',
-        //         tag: null,
-        //         type: 'withdraw'
+        //         "id": "25f6f144-3666-xxx-xxx-xxx",
+        //         "amount": "0.01",
+        //         "status": "completed",
+        //         "fee": "0.0005",
+        //         "currency_code": "btc",
+        //         "txid": "4xxx",
+        //         "address": "bc1xxx",
+        //         "tag": null,
+        //         "type": "withdraw"
         //     },
         //
         // fetchDeposits
         //
         //     {
-        //         id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        //         amount: '0.1',
-        //         status: 'completed',
-        //         currency_code: 'eth',
-        //         txid: '0xxxx',
-        //         address: '0xxxx',
-        //         tag: null,
-        //         type: 'deposit'
+        //         "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        //         "amount": "0.1",
+        //         "status": "completed",
+        //         "currency_code": "eth",
+        //         "txid": "0xxxx",
+        //         "address": "0xxxx",
+        //         "tag": null,
+        //         "type": "deposit"
         //     },
         //
         const id = this.safeString(transaction, 'id');

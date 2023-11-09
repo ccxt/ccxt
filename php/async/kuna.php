@@ -13,6 +13,7 @@ use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class kuna extends Exchange {
 
@@ -604,6 +605,7 @@ class kuna extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $item,
                 );
             }
@@ -611,7 +613,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -661,7 +663,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //    {
         //        "pair" => "BTC_USDT",                                   // Traded pair
@@ -744,7 +746,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -799,7 +801,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -837,7 +839,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -854,17 +856,17 @@ class kuna extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //    {
-        //        id => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a $trade
-        //        orderId => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the $trade
-        //        pair => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-        //        quantity => "1.5862",                                // Traded quantity of base asset
-        //        price => "19087",                                    // Price of the $trade
-        //        $isTaker => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-        //        fee => "0.0039655",                                  // Exchange commission fee
-        //        feeCurrency => "BTC",                                // Currency of the commission
-        //        $isBuyer => true,                                     // Buy or sell the base asset
-        //        quoteQuantity => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-        //        createdAt => "2022-09-29T13:43:53.824Z",             // Date-time of $trade execution, UTC
+        //        "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a $trade
+        //        "orderId" => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the $trade
+        //        "pair" => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+        //        "quantity" => "1.5862",                                // Traded quantity of base asset
+        //        "price" => "19087",                                    // Price of the $trade
+        //        "isTaker" => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+        //        "fee" => "0.0039655",                                  // Exchange commission fee
+        //        "feeCurrency" => "BTC",                                // Currency of the commission
+        //        "isBuyer" => true,                                     // Buy or sell the base asset
+        //        "quoteQuantity" => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+        //        "createdAt" => "2022-09-29T13:43:53.824Z",             // Date-time of $trade execution, UTC
         //    }
         //
         $datetime = $this->safe_string($trade, 'createdAt');
@@ -896,7 +898,7 @@ class kuna extends Exchange {
         ), $market);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //    array(
         //        {
@@ -1215,7 +1217,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1276,7 +1278,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1389,17 +1391,17 @@ class kuna extends Exchange {
             //    {
             //        "data" => array(
             //            array(
-            //                id => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
-            //                orderId => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
-            //                pair => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
-            //                quantity => "1.5862",                                // Traded quantity of base asset
-            //                price => "19087",                                    // Price of the trade
-            //                isTaker => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
-            //                fee => "0.0039655",                                  // Exchange commission fee
-            //                feeCurrency => "BTC",                                // Currency of the commission
-            //                isBuyer => true,                                     // Buy or sell the base asset
-            //                quoteQuantity => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
-            //                createdAt => "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
+            //                "id" => "edb17459-c9bf-4148-9ae6-7367d7f55d71",        // Unique identifier of a trade
+            //                "orderId" => "a80bec3f-4ffa-45c1-9d78-f6301e9748fe",   // Unique identifier of an order associated with the trade
+            //                "pair" => "BTC_USDT",                                  // Traded pair, base asset first, followed by quoted asset
+            //                "quantity" => "1.5862",                                // Traded quantity of base asset
+            //                "price" => "19087",                                    // Price of the trade
+            //                "isTaker" => true,                                     // Various fees for Makers and Takers; "Market" orders are always `true`
+            //                "fee" => "0.0039655",                                  // Exchange commission fee
+            //                "feeCurrency" => "BTC",                                // Currency of the commission
+            //                "isBuyer" => true,                                     // Buy or sell the base asset
+            //                "quoteQuantity" => "30275.7994",                       // Quote asset quantity spent to fulfill the base amount
+            //                "createdAt" => "2022-09-29T13:43:53.824Z",             // Date-time of trade execution, UTC
             //            ),
             //        )
             //    }
@@ -1776,7 +1778,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //    {
         //        "id" => "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               // Unique ID of deposit
@@ -1823,7 +1825,7 @@ class kuna extends Exchange {
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'memo'),
             'fee' => array(
-                'cost' => $this->safe_string($transaction, 'fee'),
+                'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,
             ),
         );

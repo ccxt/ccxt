@@ -772,7 +772,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchMyBuys, fetchMySells
         //
@@ -1248,7 +1248,7 @@ class coinbase extends Exchange {
         $response = $this->v3PrivateGetBrokerageProducts ($params);
         //
         //     {
-        //         'products' => array(
+        //         "products" => array(
         //             array(
         //                 "product_id" => "TONE-USD",
         //                 "price" => "0.01523",
@@ -1295,7 +1295,7 @@ class coinbase extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
@@ -1371,7 +1371,7 @@ class coinbase extends Exchange {
         return $ticker;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTickerV2
         //
@@ -1625,242 +1625,242 @@ class coinbase extends Exchange {
         // crypto deposit transaction
         //
         //     {
-        //         $id => '34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        //         $type => 'send',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '28.31976528', $currency => 'BCH' ),
-        //         native_amount => array( $amount => '2799.65', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2019-02-28T12:35:20Z',
-        //         updated_at => '2019-02-28T12:43:24Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        //         instant_exchange => false,
-        //         network => array(
-        //             $status => 'confirmed',
-        //             hash => '56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701',
-        //             transaction_url => 'https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701'
+        //         "id" => "34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        //         "type" => "send",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "28.31976528", $currency => "BCH" ),
+        //         "native_amount" => array( $amount => "2799.65", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2019-02-28T12:35:20Z",
+        //         "updated_at" => "2019-02-28T12:43:24Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        //         "instant_exchange" => false,
+        //         "network" => array(
+        //             "status" => "confirmed",
+        //             "hash" => "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
+        //             "transaction_url" => "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
         //         ),
-        //         from => array( resource => 'bitcoin_cash_network', $currency => 'BCH' ),
-        //         details => array( title => 'Received Bitcoin Cash', subtitle => 'From Bitcoin Cash address' )
+        //         "from" => array( resource => "bitcoin_cash_network", $currency => "BCH" ),
+        //         "details" => array( title => 'Received Bitcoin Cash', subtitle => "From Bitcoin Cash $address" )
         //     }
         //
         // crypto withdrawal transaction
         //
         //     {
-        //         $id => '459aad99-2c41-5698-ac71-b6b81a05196c',
-        //         $type => 'send',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '-0.36775642', $currency => 'BTC' ),
-        //         native_amount => array( $amount => '-1111.65', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2019-03-20T08:37:07Z',
-        //         updated_at => '2019-03-20T08:49:33Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c',
-        //         instant_exchange => false,
-        //         network => array(
-        //             $status => 'confirmed',
-        //             hash => '2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        //             transaction_url => 'https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        //             transaction_fee => array( $amount => '0.00000000', $currency => 'BTC' ),
-        //             transaction_amount => array( $amount => '0.36775642', $currency => 'BTC' ),
-        //             confirmations => 15682
+        //         "id" => "459aad99-2c41-5698-ac71-b6b81a05196c",
+        //         "type" => "send",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "-0.36775642", $currency => "BTC" ),
+        //         "native_amount" => array( $amount => "-1111.65", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2019-03-20T08:37:07Z",
+        //         "updated_at" => "2019-03-20T08:49:33Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
+        //         "instant_exchange" => false,
+        //         "network" => array(
+        //             "status" => "confirmed",
+        //             "hash" => "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        //             "transaction_url" => "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        //             "transaction_fee" => array( $amount => "0.00000000", $currency => "BTC" ),
+        //             "transaction_amount" => array( $amount => "0.36775642", $currency => "BTC" ),
+        //             "confirmations" => 15682
         //         ),
-        //         to => array(
-        //             resource => 'bitcoin_address',
-        //             $address => '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //             $currency => 'BTC',
-        //             address_info => array( $address => '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX' )
+        //         "to" => array(
+        //             "resource" => "bitcoin_address",
+        //             "address" => "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
+        //             "currency" => "BTC",
+        //             "address_info" => array( $address => "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX" )
         //         ),
-        //         idem => 'da0a2f14-a2af-4c5a-a37e-d4484caf582bsend',
-        //         application => array(
-        //             $id => '5756ab6e-836b-553b-8950-5e389451225d',
-        //             resource => 'application',
-        //             resource_path => '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        //         "idem" => "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
+        //         "application" => array(
+        //             "id" => "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource" => "application",
+        //             "resource_path" => "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         //         ),
-        //         details => array( title => 'Sent Bitcoin', subtitle => 'To Bitcoin address' )
+        //         "details" => array( title => 'Sent Bitcoin', subtitle => "To Bitcoin $address" )
         //     }
         //
         // withdrawal transaction from coinbase to coinbasepro
         //
         //     {
-        //         $id => '5b1b9fb8-5007-5393-b923-02903b973fdc',
-        //         $type => 'pro_deposit',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '-0.00001111', $currency => 'BCH' ),
-        //         native_amount => array( $amount => '0.00', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2019-02-28T13:31:58Z',
-        //         updated_at => '2019-02-28T13:31:58Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc',
-        //         instant_exchange => false,
-        //         application => array(
-        //             $id => '5756ab6e-836b-553b-8950-5e389451225d',
-        //             resource => 'application',
-        //             resource_path => '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        //         "id" => "5b1b9fb8-5007-5393-b923-02903b973fdc",
+        //         "type" => "pro_deposit",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "-0.00001111", $currency => "BCH" ),
+        //         "native_amount" => array( $amount => "0.00", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2019-02-28T13:31:58Z",
+        //         "updated_at" => "2019-02-28T13:31:58Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
+        //         "instant_exchange" => false,
+        //         "application" => array(
+        //             "id" => "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource" => "application",
+        //             "resource_path" => "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         //         ),
-        //         details => array( title => 'Transferred Bitcoin Cash', subtitle => 'To Coinbase Pro' )
+        //         "details" => array( title => 'Transferred Bitcoin Cash', subtitle => "To Coinbase Pro" )
         //     }
         //
         // withdrawal transaction from coinbase to gdax
         //
         //     {
-        //         $id => 'badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        //         $type => 'exchange_deposit',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '-0.43704149', $currency => 'BCH' ),
-        //         native_amount => array( $amount => '-51.90', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2019-03-19T10:30:40Z',
-        //         updated_at => '2019-03-19T10:30:40Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        //         instant_exchange => false,
-        //         details => array( title => 'Transferred Bitcoin Cash', subtitle => 'To GDAX' )
+        //         "id" => "badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        //         "type" => "exchange_deposit",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "-0.43704149", $currency => "BCH" ),
+        //         "native_amount" => array( $amount => "-51.90", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2019-03-19T10:30:40Z",
+        //         "updated_at" => "2019-03-19T10:30:40Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        //         "instant_exchange" => false,
+        //         "details" => array( title => 'Transferred Bitcoin Cash', subtitle => "To GDAX" )
         //     }
         //
         // deposit transaction from gdax to coinbase
         //
         //     {
-        //         $id => '9c4b642c-8688-58bf-8962-13cef64097de',
-        //         $type => 'exchange_withdrawal',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '0.57729420', $currency => 'BTC' ),
-        //         native_amount => array( $amount => '4418.72', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2018-02-17T11:33:33Z',
-        //         updated_at => '2018-02-17T11:33:33Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de',
-        //         instant_exchange => false,
-        //         details => array( title => 'Transferred Bitcoin', subtitle => 'From GDAX' )
+        //         "id" => "9c4b642c-8688-58bf-8962-13cef64097de",
+        //         "type" => "exchange_withdrawal",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "0.57729420", $currency => "BTC" ),
+        //         "native_amount" => array( $amount => "4418.72", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2018-02-17T11:33:33Z",
+        //         "updated_at" => "2018-02-17T11:33:33Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
+        //         "instant_exchange" => false,
+        //         "details" => array( title => 'Transferred Bitcoin', subtitle => "From GDAX" )
         //     }
         //
         // deposit transaction from coinbasepro to coinbase
         //
         //     {
-        //         $id => '8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        //         $type => 'pro_withdrawal',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '0.40555386', $currency => 'BTC' ),
-        //         native_amount => array( $amount => '1140.27', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2019-03-04T19:41:58Z',
-        //         updated_at => '2019-03-04T19:41:58Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        //         instant_exchange => false,
-        //         application => array(
-        //             $id => '5756ab6e-836b-553b-8950-5e389451225d',
-        //             resource => 'application',
-        //             resource_path => '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        //         "id" => "8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        //         "type" => "pro_withdrawal",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "0.40555386", $currency => "BTC" ),
+        //         "native_amount" => array( $amount => "1140.27", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2019-03-04T19:41:58Z",
+        //         "updated_at" => "2019-03-04T19:41:58Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        //         "instant_exchange" => false,
+        //         "application" => array(
+        //             "id" => "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource" => "application",
+        //             "resource_path" => "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         //         ),
-        //         details => array( title => 'Transferred Bitcoin', subtitle => 'From Coinbase Pro' )
+        //         "details" => array( title => 'Transferred Bitcoin', subtitle => "From Coinbase Pro" )
         //     }
         //
         // sell trade
         //
         //     {
-        //         $id => 'a9409207-df64-585b-97ab-a50780d2149e',
-        //         $type => 'sell',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '-9.09922880', $currency => 'BTC' ),
-        //         native_amount => array( $amount => '-7285.73', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2017-03-27T15:38:34Z',
-        //         updated_at => '2017-03-27T15:38:34Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e',
-        //         instant_exchange => false,
-        //         sell => array(
-        //             $id => 'e3550b4d-8ae6-5de3-95fe-1fb01ba83051',
-        //             resource => 'sell',
-        //             resource_path => '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051'
+        //         "id" => "a9409207-df64-585b-97ab-a50780d2149e",
+        //         "type" => "sell",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "-9.09922880", $currency => "BTC" ),
+        //         "native_amount" => array( $amount => "-7285.73", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2017-03-27T15:38:34Z",
+        //         "updated_at" => "2017-03-27T15:38:34Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
+        //         "instant_exchange" => false,
+        //         "sell" => array(
+        //             "id" => "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
+        //             "resource" => "sell",
+        //             "resource_path" => "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051"
         //         ),
-        //         details => {
-        //             title => 'Sold Bitcoin',
-        //             subtitle => 'Using EUR Wallet',
-        //             payment_method_name => 'EUR Wallet'
+        //         "details" => {
+        //             "title" => "Sold Bitcoin",
+        //             "subtitle" => "Using EUR Wallet",
+        //             "payment_method_name" => "EUR Wallet"
         //         }
         //     }
         //
         // buy trade
         //
         //     {
-        //         $id => '63eeed67-9396-5912-86e9-73c4f10fe147',
-        //         $type => 'buy',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '2.39605772', $currency => 'ETH' ),
-        //         native_amount => array( $amount => '98.31', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2017-03-27T09:07:56Z',
-        //         updated_at => '2017-03-27T09:07:57Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147',
-        //         instant_exchange => false,
-        //         buy => array(
-        //             $id => '20b25b36-76c6-5353-aa57-b06a29a39d82',
-        //             resource => 'buy',
-        //             resource_path => '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82'
+        //         "id" => "63eeed67-9396-5912-86e9-73c4f10fe147",
+        //         "type" => "buy",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "2.39605772", $currency => "ETH" ),
+        //         "native_amount" => array( $amount => "98.31", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2017-03-27T09:07:56Z",
+        //         "updated_at" => "2017-03-27T09:07:57Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
+        //         "instant_exchange" => false,
+        //         "buy" => array(
+        //             "id" => "20b25b36-76c6-5353-aa57-b06a29a39d82",
+        //             "resource" => "buy",
+        //             "resource_path" => "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82"
         //         ),
-        //         details => {
-        //             title => 'Bought Ethereum',
-        //             subtitle => 'Using EUR Wallet',
-        //             payment_method_name => 'EUR Wallet'
+        //         "details" => {
+        //             "title" => "Bought Ethereum",
+        //             "subtitle" => "Using EUR Wallet",
+        //             "payment_method_name" => "EUR Wallet"
         //         }
         //     }
         //
         // fiat deposit transaction
         //
         //     {
-        //         $id => '04ed4113-3732-5b0c-af86-b1d2146977d0',
-        //         $type => 'fiat_deposit',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '114.02', $currency => 'EUR' ),
-        //         native_amount => array( $amount => '97.23', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2017-02-09T07:01:21Z',
-        //         updated_at => '2017-02-09T07:01:22Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0',
-        //         instant_exchange => false,
-        //         fiat_deposit => array(
-        //             $id => 'f34c19f3-b730-5e3d-9f72-96520448677a',
-        //             resource => 'fiat_deposit',
-        //             resource_path => '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a'
+        //         "id" => "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //         "type" => "fiat_deposit",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "114.02", $currency => "EUR" ),
+        //         "native_amount" => array( $amount => "97.23", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2017-02-09T07:01:21Z",
+        //         "updated_at" => "2017-02-09T07:01:22Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //         "instant_exchange" => false,
+        //         "fiat_deposit" => array(
+        //             "id" => "f34c19f3-b730-5e3d-9f72-96520448677a",
+        //             "resource" => "fiat_deposit",
+        //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a"
         //         ),
-        //         details => {
-        //             title => 'Deposited funds',
-        //             subtitle => 'From SEPA Transfer (GB47 BARC 20..., reference CBADVI)',
-        //             payment_method_name => 'SEPA Transfer (GB47 BARC 20..., reference CBADVI)'
+        //         "details" => {
+        //             "title" => "Deposited funds",
+        //             "subtitle" => "From SEPA Transfer (GB47 BARC 20..., reference CBADVI)",
+        //             "payment_method_name" => "SEPA Transfer (GB47 BARC 20..., reference CBADVI)"
         //         }
         //     }
         //
         // fiat withdrawal transaction
         //
         //     {
-        //         $id => '957d98e2-f80e-5e2f-a28e-02945aa93079',
-        //         $type => 'fiat_withdrawal',
-        //         $status => 'completed',
-        //         $amount => array( $amount => '-11000.00', $currency => 'EUR' ),
-        //         native_amount => array( $amount => '-9698.22', $currency => 'GBP' ),
-        //         description => null,
-        //         created_at => '2017-12-06T13:19:19Z',
-        //         updated_at => '2017-12-06T13:19:19Z',
-        //         resource => 'transaction',
-        //         resource_path => '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079',
-        //         instant_exchange => false,
-        //         fiat_withdrawal => array(
-        //             $id => 'f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7',
-        //             resource => 'fiat_withdrawal',
-        //             resource_path => '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7'
+        //         "id" => "957d98e2-f80e-5e2f-a28e-02945aa93079",
+        //         "type" => "fiat_withdrawal",
+        //         "status" => "completed",
+        //         "amount" => array( $amount => "-11000.00", $currency => "EUR" ),
+        //         "native_amount" => array( $amount => "-9698.22", $currency => "GBP" ),
+        //         "description" => null,
+        //         "created_at" => "2017-12-06T13:19:19Z",
+        //         "updated_at" => "2017-12-06T13:19:19Z",
+        //         "resource" => "transaction",
+        //         "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
+        //         "instant_exchange" => false,
+        //         "fiat_withdrawal" => array(
+        //             "id" => "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
+        //             "resource" => "fiat_withdrawal",
+        //             "resource_path" => "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7"
         //         ),
-        //         details => {
-        //             title => 'Withdrew funds',
-        //             subtitle => 'To HSBC BANK PLC (GB74 MIDL...)',
-        //             payment_method_name => 'HSBC BANK PLC (GB74 MIDL...)'
+        //         "details" => {
+        //             "title" => "Withdrew funds",
+        //             "subtitle" => "To HSBC BANK PLC (GB74 MIDL...)",
+        //             "payment_method_name" => "HSBC BANK PLC (GB74 MIDL...)"
         //         }
         //     }
         //
@@ -2408,7 +2408,7 @@ class coinbase extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2575,7 +2575,7 @@ class coinbase extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on all currently open orders
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2596,7 +2596,7 @@ class coinbase extends Exchange {
         return $this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2630,7 +2630,7 @@ class coinbase extends Exchange {
         return $this->fetch_orders_by_status('CANCELLED', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
@@ -2714,7 +2714,7 @@ class coinbase extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
@@ -2824,7 +2824,7 @@ class coinbase extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook
