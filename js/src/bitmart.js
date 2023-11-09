@@ -1454,15 +1454,15 @@ export default class bitmart extends Exchange {
         //
         // spot
         //
-        //     {
-        //         "last_price":"0.034987",
-        //         "timestamp":1598787420,
-        //         "volume":"1.0198",
-        //         "open":"0.035007",
-        //         "close":"0.034987",
-        //         "high":"0.035007",
-        //         "low":"0.034986"
-        //     }
+        //     [
+        //         "1699512060", // timestamp
+        //         "36746.49", // open
+        //         "36758.71", // high
+        //         "36736.13", // low
+        //         "36755.99", // close
+        //         "2.83965", // base volume
+        //         "104353.57" // quote volume
+        //     ]
         //
         // swap
         //
@@ -1479,7 +1479,7 @@ export default class bitmart extends Exchange {
         //
         //     [
         //         1631056350, // timestamp
-        //         "46532.83", // oopen
+        //         "46532.83", // open
         //         "46555.71", // high
         //         "46511.41", // low
         //         "46555.71", // close
@@ -1499,10 +1499,10 @@ export default class bitmart extends Exchange {
         else {
             return [
                 this.safeTimestamp(ohlcv, 'timestamp'),
-                this.safeNumber2(ohlcv, 'open', 'open_price'),
-                this.safeNumber2(ohlcv, 'high', 'high_price'),
-                this.safeNumber2(ohlcv, 'low', 'low_price'),
-                this.safeNumber2(ohlcv, 'close', 'close_price'),
+                this.safeNumber(ohlcv, 'open_price'),
+                this.safeNumber(ohlcv, 'high_price'),
+                this.safeNumber(ohlcv, 'low_price'),
+                this.safeNumber(ohlcv, 'close_price'),
                 this.safeNumber(ohlcv, 'volume'),
             ];
         }
@@ -1512,21 +1512,27 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://developer-pro.bitmart.com/en/spot/#get-k-line
+         * @see https://developer-pro.bitmart.com/en/spot/#get-latest-k-line-v3
          * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {int} [params.until] timestamp of the latest candle in ms
+         * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
+        }
         const market = this.market(symbol);
-        const type = market['type'];
         const duration = this.parseTimeframe(timeframe);
         const parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (parsedTimeframe !== undefined) {
@@ -1535,46 +1541,54 @@ export default class bitmart extends Exchange {
         else {
             request['step'] = timeframe;
         }
-        const maxLimit = 500;
-        if (limit === undefined) {
-            limit = maxLimit;
-        }
-        limit = Math.min(maxLimit, limit);
-        const now = this.parseToInt(this.milliseconds() / 1000);
-        const fromRequest = (type === 'spot') ? 'from' : 'start_time';
-        const toRequest = (type === 'spot') ? 'to' : 'end_time';
-        if (since === undefined) {
-            const start = now - limit * duration;
-            request[fromRequest] = start;
-            request[toRequest] = now;
+        if (market['spot']) {
+            [request, params] = this.handleUntilOption('before', request, params, 0.001);
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            if (since !== undefined) {
+                request['after'] = this.parseToInt((since / 1000)) - 1;
+            }
         }
         else {
-            const start = this.parseToInt((since / 1000)) - 1;
-            const end = this.sum(start, limit * duration);
-            request[fromRequest] = start;
-            request[toRequest] = Math.min(end, now);
+            const maxLimit = 1200;
+            if (limit === undefined) {
+                limit = maxLimit;
+            }
+            limit = Math.min(maxLimit, limit);
+            const now = this.parseToInt(this.milliseconds() / 1000);
+            if (since === undefined) {
+                const start = now - limit * duration;
+                request['start_time'] = start;
+                request['end_time'] = now;
+            }
+            else {
+                const start = this.parseToInt((since / 1000)) - 1;
+                const end = this.sum(start, limit * duration);
+                request['start_time'] = start;
+                request['end_time'] = Math.min(end, now);
+            }
+            [request, params] = this.handleUntilOption('end_time', request, params, 0.001);
         }
         let response = undefined;
-        if (type === 'swap') {
+        if (market['swap']) {
             response = await this.publicGetContractPublicKline(this.extend(request, params));
         }
         else {
-            response = await this.publicGetSpotQuotationV3Klines(this.extend(request, params));
+            response = await this.publicGetSpotQuotationV3LiteKlines(this.extend(request, params));
         }
         //
         // spot
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"80d86378-ab4e-4c70-819e-b42146cf87ad",
-        //         "data":{
-        //             "klines":[
-        //                 {"last_price":"0.034987","timestamp":1598787420,"volume":"1.0198","open":"0.035007","close":"0.034987","high":"0.035007","low":"0.034986"},
-        //                 {"last_price":"0.034986","timestamp":1598787480,"volume":"0.3959","open":"0.034982","close":"0.034986","high":"0.034986","low":"0.034980"},
-        //                 {"last_price":"0.034978","timestamp":1598787540,"volume":"0.3259","open":"0.034987","close":"0.034978","high":"0.034987","low":"0.034977"},
-        //             ]
-        //         }
+        //         "code": 1000,
+        //         "message": "success",
+        //         "data": [
+        //             ["1699512060","36746.49","36758.71","36736.13","36755.99","2.83965","104353.57"],
+        //             ["1699512120","36756.00","36758.70","36737.14","36737.63","1.96070","72047.10"],
+        //             ["1699512180","36737.63","36740.45","36737.62","36740.44","0.63194","23217.62"]
+        //         ],
+        //         "trace": "6591fc7b508845359d5fa442e3b3a4fb.72.16995122398750695"
         //     }
         //
         // swap
@@ -1596,8 +1610,7 @@ export default class bitmart extends Exchange {
         //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const ohlcv = this.safeValue(data, 'klines', data);
+        const ohlcv = this.safeValue(response, 'data', []);
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

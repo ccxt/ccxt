@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.huobi import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1984,7 +1984,7 @@ class huobi(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -2198,7 +2198,7 @@ class huobi(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -2587,7 +2587,7 @@ class huobi(Exchange, ImplicitAPI):
             trades = self.safe_value(trades, 'trades')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}) -> List[Trade]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
         :see: https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
@@ -2680,7 +2680,7 @@ class huobi(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
@@ -3803,7 +3803,7 @@ class huobi(Exchange, ImplicitAPI):
         }
         return self.fetch_contract_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
@@ -3835,7 +3835,7 @@ class huobi(Exchange, ImplicitAPI):
         else:
             return self.fetch_spot_orders(symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
@@ -3867,7 +3867,7 @@ class huobi(Exchange, ImplicitAPI):
         else:
             return self.fetch_closed_contract_orders(symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition

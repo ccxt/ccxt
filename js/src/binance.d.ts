@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class binance
  * @extends Exchange
@@ -119,7 +119,7 @@ export default class binance extends Exchange {
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     parseBalance(response: any, type?: any, marginMode?: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchStatus(params?: {}): Promise<{
         status: string;

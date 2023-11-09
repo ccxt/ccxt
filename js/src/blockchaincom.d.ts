@@ -1,5 +1,5 @@
 import Exchange from './abstract/blockchaincom.js';
-import { Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class blockchaincom
  * @extends Exchange
@@ -7,9 +7,9 @@ import { Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './
 export default class blockchaincom extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -780,7 +780,7 @@ class okcoin(Exchange, ImplicitAPI):
                 }
             return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -879,7 +879,7 @@ class okcoin(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1012,7 +1012,7 @@ class okcoin(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
@@ -1063,7 +1063,7 @@ class okcoin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
@@ -1828,7 +1828,7 @@ class okcoin(Exchange, ImplicitAPI):
         order = self.safe_value(data, 0)
         return self.parse_order(order)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
@@ -1869,7 +1869,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months

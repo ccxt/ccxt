@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class kraken
  * @extends Exchange
@@ -28,7 +28,7 @@ export default class kraken extends Exchange {
         tierBased: boolean;
     };
     parseBidAsk(bidask: any, priceKey?: number, amountKey?: number): number[];
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

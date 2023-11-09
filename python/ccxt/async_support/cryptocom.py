@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -633,7 +633,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -646,7 +646,7 @@ class cryptocom(Exchange, ImplicitAPI):
         tickers = await self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
@@ -720,7 +720,7 @@ class cryptocom(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get a list of the most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
@@ -773,7 +773,7 @@ class cryptocom(Exchange, ImplicitAPI):
         trades = self.safe_value(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
@@ -830,7 +830,7 @@ class cryptocom(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
@@ -1350,7 +1350,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, None, None, params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders

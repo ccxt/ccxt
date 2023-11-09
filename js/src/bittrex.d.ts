@@ -1,5 +1,5 @@
 import Exchange from './abstract/bittrex.js';
-import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
 /**
  * @class bittrex
  * @extends Exchange
@@ -10,7 +10,7 @@ export default class bittrex extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchCurrencies(params?: {}): Promise<{}>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;

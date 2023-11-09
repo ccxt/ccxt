@@ -279,7 +279,7 @@ class zaif extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -339,7 +339,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -405,7 +405,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
          * get the list of most recent trades for a particular $symbol
@@ -533,7 +533,7 @@ class zaif extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
          * fetch all unfilled currently open orders
@@ -557,7 +557,7 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
          * fetches information on multiple closed orders made by the user

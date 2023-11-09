@@ -1,5 +1,5 @@
 import Exchange from './abstract/tokocrypto.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class tokocrypto
  * @extends Exchange
@@ -9,7 +9,7 @@ export default class tokocrypto extends Exchange {
     nonce(): number;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTicker(ticker: any, market?: any): Ticker;

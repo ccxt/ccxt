@@ -495,7 +495,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1ticker}124h/get
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -608,7 +608,7 @@ class bitvavo extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1trades/get
          * get the list of most recent trades for a particular $symbol
@@ -789,7 +789,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1book/get
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -849,7 +849,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1candles/get
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1223,7 +1223,7 @@ class bitvavo extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
          * fetches information on multiple orders made by the user
@@ -1298,7 +1298,7 @@ class bitvavo extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol

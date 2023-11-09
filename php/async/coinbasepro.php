@@ -14,6 +14,7 @@ use ccxt\NotSupported;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinbasepro extends Exchange {
 
@@ -504,7 +505,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
@@ -672,7 +673,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
@@ -828,7 +829,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
@@ -918,7 +919,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
@@ -1137,7 +1138,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1156,7 +1157,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1197,7 +1198,7 @@ class coinbasepro extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
@@ -1255,7 +1256,7 @@ class coinbasepro extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_oid'] = $clientOrderId;
             }
-            $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
+            $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
             if ($stopPrice !== null) {
                 $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
             }
@@ -1267,7 +1268,7 @@ class coinbasepro extends Exchange {
             if ($postOnly) {
                 $request['post_only'] = true;
             }
-            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
+            $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['size'] = $this->amount_to_precision($symbol, $amount);

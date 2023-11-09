@@ -2122,7 +2122,7 @@ class hitbtc extends hitbtc$1 {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2196,7 +2196,11 @@ class hitbtc extends hitbtc$1 {
             throw new errors.ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly']);
-        if ((marketType === 'swap') && (marginMode !== undefined)) {
+        if (marketType === 'swap') {
+            // set default margin mode to cross
+            if (marginMode === undefined) {
+                marginMode = 'cross';
+            }
             request['margin_mode'] = marginMode;
         }
         let response = undefined;
