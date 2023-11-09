@@ -371,10 +371,8 @@ class Exchange(object):
         'watchOHLCVForSymbols': None,
         'watchBalance': None,
         'watchLiquidations': None,
-        'watchAllLiquidations': None,
         'watchLiquidationsForSymbols': None,
         'watchMyLiquidations': None,
-        'watchAllMyLiquidations': None,
         'watchMyLiquidationsForSymbols': None,
         'watchOHLCV': None,
     }

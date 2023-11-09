@@ -22,8 +22,6 @@ export default class binance extends binanceRest {
                 'watchBalance': true,
                 'watchLiquidations': true,
                 'watchLiquidationsForSymbols': true,
-                'watchAllLiquidations': true,
-                'watchAllMyLiquidations': true,
                 'watchMyLiquidations': true,
                 'watchMyLiquidationsForSymbols': true,
                 'watchMyTrades': true,
@@ -196,10 +194,10 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    async watchAllLiquidations (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name binance#watchLiquidations
+         * @name binance#watchLiquidationsForSymbols
          * @description watch the public liquidations of a trading pair
          * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
          * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
@@ -220,9 +218,9 @@ export default class binance extends binanceRest {
         }
         const firstMarket = this.getMarketFromSymbols (symbols);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchAllLiquidations', firstMarket, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchAllLiquidations', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
@@ -407,13 +405,13 @@ export default class binance extends binanceRest {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
-        return this.watchAllLiquidations ([ symbol ], since, limit, params);
+        return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
-    async watchAllMyLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
-         * @name binance#watchAllMyLiquidations
+         * @name binance#watchMyLiquidationsForSymbols
          * @description watch the private liquidations of a trading pair
          * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
          * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
@@ -433,9 +431,9 @@ export default class binance extends binanceRest {
             messageHash += '::' + symbols.join (',');
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchAllMyLiquidations', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchAllMyLiquidations', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {

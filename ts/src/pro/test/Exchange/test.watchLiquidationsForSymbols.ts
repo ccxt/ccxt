@@ -2,16 +2,15 @@
 
 // ----------------------------------------------------------------------------
 
-import testTicker from '../../../test/Exchange/base/test.ticker.js';
+import assert from 'assert';
 import errors from '../../../base/errors.js';
+import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 
 /*  ------------------------------------------------------------------------ */
 
 export default async (exchange, symbol) => {
 
-    // log (symbol.green, 'watching ticker...')
-
-    const method = 'watchAllLiquidations';
+    const method = 'watchLiquidationsForSymbols';
     const skippedProperties = {};
 
     // we have to skip some exchanges here due to the frequency of trading
@@ -38,9 +37,17 @@ export default async (exchange, symbol) => {
 
             response = await exchange[method] (symbol);
 
-            testTicker (exchange, skippedProperties, method, response, symbol);
-
             now = Date.now ();
+
+            assert (response instanceof Array);
+
+            console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
+
+            // log.noLocate (asTable (response))
+
+            for (let i = 0; i < response.length; i++) {
+                testLiquidation (exchange, skippedProperties, method, response[i], symbol);
+            }
 
         } catch (e) {
 

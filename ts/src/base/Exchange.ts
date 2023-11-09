@@ -560,10 +560,8 @@ export default class Exchange {
                 'watchOHLCVForSymbols': undefined,
                 'watchBalance': undefined,
                 'watchLiquidations': undefined,
-                'watchAllLiquidations': undefined,
                 'watchLiquidationsForSymbols': undefined,
                 'watchMyLiquidations': undefined,
-                'watchAllMyLiquidations': undefined,
                 'watchMyLiquidationsForSymbols': undefined,
                 'watchOHLCV': undefined,
             },
@@ -1618,14 +1616,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
     }
 
-    async watchAllLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        throw new NotSupported (this.id + ' watchAllLiquidations() is not supported yet');
-    }
-
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        if (this.has['watchAllLiquidations']) {
-            return this.watchAllLiquidations (symbols, since, limit, params);
-        }
         throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
     }
 
@@ -1636,14 +1627,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMyLiquidations() is not supported yet');
     }
 
-    async watchAllMyLiquidations (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        throw new NotSupported (this.id + ' watchAllMyLiquidations() is not supported yet');
-    }
-
     async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        if (this.has['watchAllMyLiquidations']) {
-            return this.watchAllMyLiquidations (symbols, since, limit, params);
-        }
         throw new NotSupported (this.id + ' watchMyLiquidationsForSymbols() is not supported yet');
     }
 
