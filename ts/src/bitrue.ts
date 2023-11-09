@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bitrue.js';
-import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1678,41 +1678,21 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'limit': 100, // default 100, max = 1000
-        };
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'spotV1PublicGetAggTrades');
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000
+        let response = undefined;
+        if (market['spot']) {
+            const request = {
+                'symbol': market['id'],
+                // 'limit': 100, // default 100, max = 1000
+            };
+            if (limit !== undefined) {
+                request['limit'] = limit; // default 100, max 1000
+            }
+            response = await this.spotV1PublicGetTrades (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + 'fetchTrades only support spot markets');
         }
         //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, params));
-        //
-        // aggregate trades
-        //
-        //     [
-        //         {
-        //             "a": 26129,         // Aggregate tradeId
-        //             "p": "0.01633102",  // Price
-        //             "q": "4.70443515",  // Quantity
-        //             "f": 27781,         // First tradeId
-        //             "l": 27781,         // Last tradeId
-        //             "T": 1498793709153, // Timestamp
-        //             "m": true,          // Was the buyer the maker?
-        //             "M": true           // Was the trade the best price match?
-        //         }
-        //     ]
-        //
-        // recent public trades and historical public trades
+        // spot
         //
         //     [
         //         {
