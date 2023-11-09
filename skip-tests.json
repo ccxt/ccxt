@@ -1080,6 +1080,11 @@
         "skipMethods": {
             "loadMarkets": {
                 "active":"is undefined"
+            },
+            "fetchCurrencies": {
+                "deposit":"is undefined",
+                "withdraw":"is undefined",
+                "active":"is undefined"
             }
         }
     },
