@@ -2557,6 +2557,19 @@ export default class okx extends Exchange {
             const tradeMode = margin ? marginMode : 'cash';
             request['tdMode'] = tradeMode;
         } else if (contract) {
+            if (market['swap'] || market['future']) {
+                let positionSide = this.safeString2 (params, 'posSide', 'positionSide');
+                params = this.omit (params, 'positionSide');
+                if (positionSide === undefined) {
+                    const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+                    if (reduceOnly) {
+                        positionSide = (side === 'buy') ? 'short' : 'long';
+                    } else {
+                        positionSide = (side === 'buy') ? 'long' : 'short';
+                    }
+                    request['posSide'] = positionSide;
+                }
+            }
             request['tdMode'] = marginMode;
         }
         const isMarketOrder = type === 'market';
@@ -2735,7 +2748,7 @@ export default class okx extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the okx api endpoint
-         * @param {bool} [params.reduceOnly] MARGIN orders only, or swap/future orders in net mode
+         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [params.postOnly] true to place a post only order
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -2745,6 +2758,7 @@ export default class okx extends Exchange {
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {float} [params.stopLoss.price] used for stop loss limit orders, not used for stop loss market price orders
          * @param {string} [params.stopLoss.type] 'market' or 'limit' used to specify the stop loss price type
+         * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
