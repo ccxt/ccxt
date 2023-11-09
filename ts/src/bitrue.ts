@@ -72,7 +72,7 @@ export default class bitrue extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -2561,6 +2561,61 @@ export default class bitrue extends Exchange {
         const response = await this.spotV1PublicGetExchangeInfo (params);
         const coins = this.safeValue (response, 'coins');
         return this.parseDepositWithdrawFees (coins, codes, 'coin');
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         'code': '0',
+        //         'msg': 'Success',
+        //         'data': None
+        //     }
+        //
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeString (currency, 'code'),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': 'ok',
+        };
+    }
+
+    async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bitrue#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
+         * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coinSymbol': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        request['transferType'] = this.safeString2 (params, 'type', 'transferType');
+        params = this.omit (params, [ 'type', 'transferType' ]);
+        const response = await this.fapiV2PrivatePostFuturesTransfer (this.extend (request, params));
+        //
+        //     {
+        //         'code': '0',
+        //         'msg': 'Success',
+        //         'data': None
+        //     }
+        //
+        return this.parseTransfer (response, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
