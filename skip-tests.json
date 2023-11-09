@@ -417,7 +417,9 @@
                 "networks": "missing"
             },
             "loadMarkets": {
-                "currencyIdAndCode": "broken currencies"
+                "currencyIdAndCode": "broken currencies",
+                "taker": "is undefined",
+                "maker": "is undefined"
             },
             "fetchTickers": {
                 "bid":"broken bid-ask",
