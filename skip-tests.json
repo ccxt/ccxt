@@ -418,7 +418,8 @@
             },
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
-                "taker": "is undefined"
+                "taker": "is undefined",
+                "maker": "is undefined"
             },
             "fetchTickers": {
                 "bid":"broken bid-ask",
