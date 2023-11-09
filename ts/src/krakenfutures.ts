@@ -1570,7 +1570,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTrades (response['fills'], market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name krakenfutures#fetchBalance
