@@ -809,7 +809,7 @@ class bybit(Exchange):
                     '170224': PermissionDenied,  # You're not a user of the Innovation Zone.
                     '170226': InsufficientFunds,  # Your Spot Account for Margin Trading is being liquidated.
                     '170227': ExchangeError,  # This feature is not supported.
-                    '170228': InvalidOrder,
+                    '170228': InsufficientFunds,
                     # The purchase amount of each order exceeds the estimated maximum purchase amount.
                     '170229': InsufficientFunds,  # The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234': ExchangeError,  # System Error
