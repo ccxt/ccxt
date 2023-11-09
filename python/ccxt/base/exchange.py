@@ -422,7 +422,6 @@ class Exchange(object):
         self.tickers = dict() if self.tickers is None else self.tickers
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
-        self.positions = dict() if self.positions is None else self.positions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
@@ -3277,6 +3276,15 @@ class Exchange(object):
     def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 
+    def watch_position(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' watchPosition() is not supported yet')
+
+    def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchPositions() is not supported yet')
+
+    def watch_position_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        return self.watchPositions(symbols, since, limit, params)
+
     def fetch_positions_by_symbol(self, symbol: str, params={}):
         """
         specifically fetches positions for specific symbol, unlike fetchPositions(which can work with multiple symbols, but because of that, it might be slower & more rate-limit consuming)
@@ -3285,9 +3293,6 @@ class Exchange(object):
         :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>` with maximum 3 items - one position for "one-way" mode, and two positions(long & short) for "two-way"(a.k.a. hedge) mode
         """
         raise NotSupported(self.id + ' fetchPositionsBySymbol() is not supported yet')
-
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
-        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
 
     def fetch_positions_risk(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
@@ -3920,6 +3925,10 @@ class Exchange(object):
 
     def filter_by_symbol_since_limit(self, array, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit, 'timestamp', tail)
+
+    def filter_by_symbols_since_limit(self, array, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
+        result = self.filter_by_array(array, 'symbol', symbols)
+        return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
     def filter_by_currency_since_limit(self, array, code=None, since: Optional[int] = None, limit: Optional[int] = None, tail=False):
         return self.filter_by_value_since_limit(array, 'currency', code, since, limit, 'timestamp', tail)
