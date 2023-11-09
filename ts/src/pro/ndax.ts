@@ -233,10 +233,10 @@ export default class ndax extends ndaxRest {
     handleOHLCV (client: Client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeTicker',
-        //         o: [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeTicker",
+        //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
         const payload = this.safeValue (message, 'o', []);
@@ -371,10 +371,10 @@ export default class ndax extends ndaxRest {
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
         const payload = this.safeValue (message, 'o', []);
@@ -447,10 +447,10 @@ export default class ndax extends ndaxRest {
     handleOrderBookSubscription (client: Client, message, subscription) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
         const payload = this.safeValue (message, 'o', []);
@@ -482,10 +482,10 @@ export default class ndax extends ndaxRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
@@ -511,17 +511,17 @@ export default class ndax extends ndaxRest {
         //     }
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: '[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]'
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
         const payload = this.safeString (message, 'o');

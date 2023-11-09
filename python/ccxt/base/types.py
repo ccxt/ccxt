@@ -1,14 +1,14 @@
 import sys
 import types
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Any
 from decimal import Decimal
 
 if sys.version_info.minor > 7:
     from typing import TypedDict, Literal, Dict
 else:
-    TypedDict = dict
-    Dict = dict
+    from typing import Dict
     from typing_extensions import Literal
+    TypedDict = Dict
 
 
 OrderSide = Literal['buy', 'sell']
@@ -42,17 +42,18 @@ class Entry:
 IndexType = Union[str, int]
 Numeric = Union[None, str, float, int, Decimal]
 
-
 class Balance(TypedDict):
     free: Numeric
     used: Numeric
     total: Numeric
+
 
 class Fee(TypedDict):
     type: Optional[str]
     currency: Optional[str]
     rate: Optional[Numeric]
     cost: Numeric
+
 
 class Trade(TypedDict):
     amount: Numeric
@@ -97,7 +98,7 @@ class Position(TypedDict):
     percentage: Numeric
     stopLossPrice: Numeric
     takeProfitPrice: Numeric
-    info: Dict[str, any]
+    info: Dict[str, Any]
 
 
 class OrderRequest(TypedDict):
@@ -106,7 +107,7 @@ class OrderRequest(TypedDict):
     side: str
     amount: Union[None, float]
     price: Union[None, float]
-    params: Dict[str, any]
+    params: Dict[str, Any]
 
 
 class Order(TypedDict):
@@ -132,11 +133,11 @@ class Order(TypedDict):
     cost: Numeric
     trades: List[Trade]
     fee: Fee
-    info: Dict[str, any]
+    info: Dict[str, Any]
 
 
 class FundingHistory(TypedDict):
-    info: Dict[str, any]
+    info: Dict[str, Any]
     symbol: str
     code: str
     timestamp: Optional[int]
@@ -145,8 +146,60 @@ class FundingHistory(TypedDict):
     amount: Numeric
 
 
-
 class Balances(Dict[str, Balance]):
     datetime: Optional[str]
     timestamp: Optional[int]
 
+
+class OrderBook(TypedDict):
+    asks: List[Numeric]
+    bids: List[Numeric]
+    datetime: str
+    timestamp: int
+    nonce: int
+
+
+class Transaction(TypedDict):
+    info: Dict[str, any]
+    id: str
+    txid: Optional[str]
+    timestamp: int
+    datetime: str
+    address: str
+    addressFrom: str
+    addressTo: str
+    tag: str
+    tagFrom: str
+    tagTo: str
+    type: str
+    amount: Numeric
+    currency: str
+    status: str
+    updated: int
+    fee: Fee
+    network: str
+    comment: str
+    internal: bool
+
+
+class Ticker(TypedDict):
+    symbol: str
+    info: Dict[str, Any]
+    timestamp: int
+    datetime: str
+    high: Numeric
+    low: Numeric
+    bid: Numeric
+    bidVolume: Numeric
+    ask: Numeric
+    askVolume: Numeric
+    vwap: Numeric
+    open: Numeric
+    close: Numeric
+    last: Numeric
+    previousClose: Numeric
+    change: Numeric
+    percentage: Numeric
+    average: Numeric
+    quoteVolume: Numeric
+    baseVolume: Numeric

@@ -107,14 +107,14 @@ class cryptocom extends cryptocom$1 {
         //     "depth":150,
         //     "data": [
         //          {
-        //              'bids': [
+        //              "bids": [
         //                  [122.21, 0.74041, 4]
         //              ],
-        //              'asks': [
+        //              "asks": [
         //                  [122.29, 0.00002, 1]
         //              ]
-        //              't': 1648123943803,
-        //              's':754560122
+        //              "t": 1648123943803,
+        //              "s":754560122
         //          }
         //      ]
         // }
@@ -193,13 +193,13 @@ class cryptocom extends cryptocom$1 {
     handleTrades(client, message) {
         //
         // {
-        //     code: 0,
-        //     method: 'subscribe',
-        //     result: {
-        //       instrument_name: 'BTC_USDT',
-        //       subscription: 'trade.BTC_USDT',
-        //       channel: 'trade',
-        //       data: [
+        //     "code": 0,
+        //     "method": "subscribe",
+        //     "result": {
+        //       "instrument_name": "BTC_USDT",
+        //       "subscription": "trade.BTC_USDT",
+        //       "channel": "trade",
+        //       "data": [
         //             {
         //                 "dataTime":1648122434405,
         //                 "d":"2358394540212355488",
@@ -341,12 +341,12 @@ class cryptocom extends cryptocom$1 {
     handleOHLCV(client, message) {
         //
         //  {
-        //       instrument_name: 'BTC_USDT',
-        //       subscription: 'candlestick.1m.BTC_USDT',
-        //       channel: 'candlestick',
-        //       depth: 300,
-        //       interval: '1m',
-        //       data: [ [Object] ]
+        //       "instrument_name": "BTC_USDT",
+        //       "subscription": "candlestick.1m.BTC_USDT",
+        //       "channel": "candlestick",
+        //       "depth": 300,
+        //       "interval": "1m",
+        //       "data": [ [Object] ]
         //   }
         //
         const messageHash = this.safeString(message, 'subscription');
@@ -672,10 +672,10 @@ class cryptocom extends cryptocom$1 {
     handleErrorMessage(client, message) {
         //
         //    {
-        //        id: 0,
-        //        code: 10004,
-        //        method: 'subscribe',
-        //        message: 'invalid channel {"channels":["trade.BTCUSD-PERP"]}'
+        //        "id": 0,
+        //        "code": 10004,
+        //        "method": "subscribe",
+        //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
         const errorCode = this.safeString(message, 'code');
@@ -738,18 +738,18 @@ class cryptocom extends cryptocom$1 {
         //        "code": 0
         //    }
         // auth
-        //     { id: 1648132625434, method: 'public/auth', code: 0 }
+        //     { id: 1648132625434, method: "public/auth", code: 0 }
         // ohlcv
         //    {
-        //        code: 0,
-        //        method: 'subscribe',
-        //        result: {
-        //          instrument_name: 'BTC_USDT',
-        //          subscription: 'candlestick.1m.BTC_USDT',
-        //          channel: 'candlestick',
-        //          depth: 300,
-        //          interval: '1m',
-        //          data: [ [Object] ]
+        //        "code": 0,
+        //        "method": "subscribe",
+        //        "result": {
+        //          "instrument_name": "BTC_USDT",
+        //          "subscription": "candlestick.1m.BTC_USDT",
+        //          "channel": "candlestick",
+        //          "depth": 300,
+        //          "interval": "1m",
+        //          "data": [ [Object] ]
         //        }
         //      }
         // ticker
@@ -808,7 +808,7 @@ class cryptocom extends cryptocom$1 {
     }
     handleAuthenticate(client, message) {
         //
-        //  { id: 1648132625434, method: 'public/auth', code: 0 }
+        //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
         const future = this.safeValue(client.futures, 'authenticated');
         future.resolve(true);

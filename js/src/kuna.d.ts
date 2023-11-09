@@ -1,5 +1,5 @@
 import Exchange from './abstract/kuna.js';
-import { Int, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class kuna
  * @extends Exchange
@@ -35,15 +35,15 @@ export default class kuna extends Exchange {
         networks: {};
     };
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchL3OrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     cancelOrders(ids: string[], symbol?: string, params?: {}): Promise<Order[]>;
@@ -53,56 +53,10 @@ export default class kuna extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        currency: any;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        status: string;
-        updated: number;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: string;
-        fee: {
-            cost: string;
-            currency: any;
-        };
-    }>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        currency: any;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        status: string;
-        updated: number;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: string;
-        fee: {
-            cost: string;
-            currency: any;
-        };
-    }>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
     createDepositAddress(code: string, params?: {}): Promise<{
         info: string;
         currency: any;
@@ -126,54 +80,8 @@ export default class kuna extends Exchange {
     };
     parseTransactionStatus(status: any): string;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        currency: any;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        status: string;
-        updated: number;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: string;
-        fee: {
-            cost: string;
-            currency: any;
-        };
-    }>;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        currency: any;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        status: string;
-        updated: number;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: string;
-        fee: {
-            cost: string;
-            currency: any;
-        };
-    };
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
     nonce(): number;
     encodeParams(params: any): string;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {

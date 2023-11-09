@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.tidex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -346,7 +346,7 @@ class tidex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'return')
         timestamp = self.safe_timestamp(balances, 'server_time')
         result = {
@@ -402,7 +402,7 @@ class tidex(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -457,18 +457,18 @@ class tidex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[id], symbol)
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
-        #         high: 0.03497582,
-        #         low: 0.03248474,
-        #         avg: 0.03373028,
-        #         vol: 120.11485715062999,
-        #         vol_cur: 3572.24914074,
-        #         last: 0.0337611,
-        #         buy: 0.0337442,
-        #         sell: 0.03377798,
-        #         updated: 1537522009
+        #         "high": 0.03497582,
+        #         "low": 0.03248474,
+        #         "avg": 0.03373028,
+        #         "vol": 120.11485715062999,
+        #         "vol_cur": 3572.24914074,
+        #         "last": 0.0337611,
+        #         "buy": 0.0337442,
+        #         "sell": 0.03377798,
+        #         "updated": 1537522009
         #     }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
@@ -530,7 +530,7 @@ class tidex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -540,7 +540,7 @@ class tidex(Exchange, ImplicitAPI):
         tickers = await self.fetch_tickers([symbol], params)
         return tickers[symbol]
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'timestamp')
         side = self.safe_string(trade, 'type')
         if side == 'ask':
@@ -590,7 +590,7 @@ class tidex(Exchange, ImplicitAPI):
             'info': trade,
         }
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -752,7 +752,7 @@ class tidex(Exchange, ImplicitAPI):
         order = self.safe_value(result, id)
         return self.parse_order(self.extend({'id': id}, order))
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -876,7 +876,7 @@ class tidex(Exchange, ImplicitAPI):
         withdrawInfo = self.safe_value(result, 'withdraw_info', {})
         return self.parse_transaction(withdrawInfo, currency)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #     {
         #         "id":1111,

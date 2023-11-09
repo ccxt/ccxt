@@ -1280,32 +1280,32 @@ export default class bybit extends bybitRest {
     parseWsSpotOrder (order, market = undefined) {
         //
         //    {
-        //        e: 'executionReport',
-        //        E: '1653297251061', // timestamp
-        //        s: 'LTCUSDT', // symbol
-        //        c: '1653297250740', // user id
-        //        S: 'SELL', // side
-        //        o: 'MARKET_OF_BASE', // order type
-        //        f: 'GTC', // time in force
-        //        q: '0.16233', // quantity
-        //        p: '0', // price
-        //        X: 'NEW', // status
-        //        i: '1162336018974750208', // order id
-        //        M: '0',
-        //        l: '0', // last filled
-        //        z: '0', // total filled
-        //        L: '0', // last traded price
-        //        n: '0', // trading fee
-        //        N: '', // fee asset
-        //        u: true,
-        //        w: true,
-        //        m: false, // is limit_maker
-        //        O: '1653297251042', // order creation
-        //        Z: '0', // total filled
-        //        A: '0', // account id
-        //        C: false, // is close
-        //        v: '0', // leverage
-        //        d: 'NO_LIQ'
+        //        "e": "executionReport",
+        //        "E": "1653297251061", // timestamp
+        //        "s": "LTCUSDT", // symbol
+        //        "c": "1653297250740", // user id
+        //        "S": "SELL", // side
+        //        "o": "MARKET_OF_BASE", // order type
+        //        "f": "GTC", // time in force
+        //        "q": "0.16233", // quantity
+        //        "p": "0", // price
+        //        "X": "NEW", // status
+        //        "i": "1162336018974750208", // order id
+        //        "M": "0",
+        //        "l": "0", // last filled
+        //        "z": "0", // total filled
+        //        "L": "0", // last traded price
+        //        "n": "0", // trading fee
+        //        "N": '', // fee asset
+        //        "u": true,
+        //        "w": true,
+        //        "m": false, // is limit_maker
+        //        "O": "1653297251042", // order creation
+        //        "Z": "0", // total filled
+        //        "A": "0", // account id
+        //        "C": false, // is close
+        //        "v": "0", // leverage
+        //        "d": "NO_LIQ"
         //    }
         // v5
         //    {
@@ -1743,28 +1743,28 @@ export default class bybit extends bybitRest {
     handleErrorMessage (client: Client, message) {
         //
         //   {
-        //       success: false,
-        //       ret_msg: 'error:invalid op',
-        //       conn_id: '5e079fdd-9c7f-404d-9dbf-969d650838b5',
-        //       request: { op: '', args: null }
+        //       "success": false,
+        //       "ret_msg": "error:invalid op",
+        //       "conn_id": "5e079fdd-9c7f-404d-9dbf-969d650838b5",
+        //       "request": { op: '', args: null }
         //   }
         //
         // auth error
         //
         //   {
-        //       success: false,
-        //       ret_msg: 'error:USVC1111',
-        //       conn_id: 'e73770fb-a0dc-45bd-8028-140e20958090',
-        //       request: {
-        //         op: 'auth',
-        //         args: [
-        //           '9rFT6uR4uz9Imkw4Wx',
-        //           '1653405853543',
-        //           '542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889'
+        //       "success": false,
+        //       "ret_msg": "error:USVC1111",
+        //       "conn_id": "e73770fb-a0dc-45bd-8028-140e20958090",
+        //       "request": {
+        //         "op": "auth",
+        //         "args": [
+        //           "9rFT6uR4uz9Imkw4Wx",
+        //           "1653405853543",
+        //           "542e71bd85597b4db0290f0ce2d13ed1fd4bb5df3188716c1e9cc69a879f7889"
         //         ]
         //   }
         //
-        //   { code: '-10009', desc: 'Invalid period!' }
+        //   { code: '-10009', desc: "Invalid period!" }
         //
         const code = this.safeString2 (message, 'code', 'ret_code');
         try {
@@ -1873,10 +1873,10 @@ export default class bybit extends bybitRest {
     handlePong (client: Client, message) {
         //
         //   {
-        //       success: true,
-        //       ret_msg: 'pong',
-        //       conn_id: 'db3158a0-8960-44b9-a9de-ac350ee13158',
-        //       request: { op: 'ping', args: null }
+        //       "success": true,
+        //       "ret_msg": "pong",
+        //       "conn_id": "db3158a0-8960-44b9-a9de-ac350ee13158",
+        //       "request": { op: "ping", args: null }
         //   }
         //
         //   { pong: 1653296711335 }
@@ -1888,10 +1888,10 @@ export default class bybit extends bybitRest {
     handleAuthenticate (client: Client, message) {
         //
         //    {
-        //        success: true,
-        //        ret_msg: '',
-        //        op: 'auth',
-        //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        //        "success": true,
+        //        "ret_msg": '',
+        //        "op": "auth",
+        //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
         const success = this.safeValue (message, 'success');
@@ -1912,16 +1912,16 @@ export default class bybit extends bybitRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //    {
-        //        topic: 'kline',
-        //        event: 'sub',
-        //        params: {
-        //          symbol: 'LTCUSDT',
-        //          binary: 'false',
-        //          klineType: '1m',
-        //          symbolName: 'LTCUSDT'
+        //        "topic": "kline",
+        //        "event": "sub",
+        //        "params": {
+        //          "symbol": "LTCUSDT",
+        //          "binary": "false",
+        //          "klineType": "1m",
+        //          "symbolName": "LTCUSDT"
         //        },
-        //        code: '0',
-        //        msg: 'Success'
+        //        "code": "0",
+        //        "msg": "Success"
         //    }
         //
         return message;

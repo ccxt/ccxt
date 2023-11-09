@@ -2264,6 +2264,7 @@ class ndax extends ndax$1 {
             'status': this.parseTransactionStatusByType(transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'network': undefined,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -2303,10 +2304,10 @@ class ndax extends ndax$1 {
         const withdrawTemplateTypesResponse = await this.privateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest);
         //
         //     {
-        //         result: true,
-        //         errormsg: null,
-        //         statuscode: "0",
-        //         TemplateTypes: [
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "TemplateTypes": [
         //             { AccountProviderId: "14", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "BitgoRPC-BTC" },
         //             { AccountProviderId: "20", TemplateName: "ToExternalBitcoinAddress", AccountProviderName: "TrezorBTC" },
         //             { AccountProviderId: "31", TemplateName: "BTC", AccountProviderName: "BTC Fireblocks 1" }
@@ -2329,10 +2330,10 @@ class ndax extends ndax$1 {
         const withdrawTemplateResponse = await this.privateGetGetWithdrawTemplate(withdrawTemplateRequest);
         //
         //     {
-        //         result: true,
-        //         errormsg: null,
-        //         statuscode: "0",
-        //         Template: "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
+        //         "result": true,
+        //         "errormsg": null,
+        //         "statuscode": "0",
+        //         "Template": "{\"TemplateType\":\"ToExternalBitcoinAddress\",\"Comment\":\"\",\"ExternalAddress\":\"\"}"
         //     }
         //
         const template = this.safeString(withdrawTemplateResponse, 'Template');

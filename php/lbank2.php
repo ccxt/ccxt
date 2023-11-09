@@ -519,7 +519,7 @@ class lbank2 extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -580,7 +580,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://www.lbank.info/en-US/docs/index.html#query-current-$market-$data-new
@@ -702,7 +702,7 @@ class lbank2 extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://www.lbank.info/en-US/docs/index.html#query-$market-depth
@@ -786,7 +786,7 @@ class lbank2 extends Exchange {
         return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (old) spotPublicGetTrades
         //
@@ -889,7 +889,7 @@ class lbank2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
@@ -961,7 +961,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
@@ -1014,7 +1014,7 @@ class lbank2 extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         // spotPrivatePostUserInfo
         //
@@ -1629,7 +1629,7 @@ class lbank2 extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://www.lbank.info/en-US/docs/index.html#query-all-$orders
@@ -1686,7 +1686,7 @@ class lbank2 extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @see https://www.lbank.info/en-US/docs/index.html#current-pending-order
@@ -2003,7 +2003,7 @@ class lbank2 extends Exchange {
         return $this->safe_string($this->safe_value($statuses, $type, array()), $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits (private)
         //
@@ -2297,23 +2297,23 @@ class lbank2 extends Exchange {
         $response = $this->spotPublicGetWithdrawConfigs (array_merge($request, $params));
         //
         //    {
-        //        $result => 'true',
-        //        data => array(
+        //        "result" => "true",
+        //        "data" => array(
         //          array(
-        //            amountScale => '4',
-        //            $chain => 'heco',
-        //            assetCode => 'lbk',
-        //            min => '200',
-        //            transferAmtScale => '4',
-        //            canWithDraw => true,
-        //            $fee => '100',
-        //            minTransfer => '0.0001',
-        //            type => '1'
+        //            "amountScale" => "4",
+        //            "chain" => "heco",
+        //            "assetCode" => "lbk",
+        //            "min" => "200",
+        //            "transferAmtScale" => "4",
+        //            "canWithDraw" => true,
+        //            "fee" => "100",
+        //            "minTransfer" => "0.0001",
+        //            "type" => "1"
         //          ),
         //          ...
         //        ),
-        //        error_code => '0',
-        //        ts => '1663364435973'
+        //        "error_code" => "0",
+        //        "ts" => "1663364435973"
         //    }
         //
         $result = $this->safe_value($response, 'data', array());
@@ -2415,23 +2415,23 @@ class lbank2 extends Exchange {
         $response = $this->spotPublicGetWithdrawConfigs (array_merge($request, $params));
         //
         //    {
-        //        result => 'true',
-        //        $data => array(
+        //        "result" => "true",
+        //        "data" => array(
         //            array(
-        //                amountScale => '4',
-        //                chain => 'heco',
-        //                assetCode => 'lbk',
-        //                min => '200',
-        //                transferAmtScale => '4',
-        //                canWithDraw => true,
-        //                fee => '100',
-        //                minTransfer => '0.0001',
-        //                type => '1'
+        //                "amountScale" => "4",
+        //                "chain" => "heco",
+        //                "assetCode" => "lbk",
+        //                "min" => "200",
+        //                "transferAmtScale" => "4",
+        //                "canWithDraw" => true,
+        //                "fee" => "100",
+        //                "minTransfer" => "0.0001",
+        //                "type" => "1"
         //            ),
         //            ...
         //        ),
-        //        error_code => '0',
-        //        ts => '1663364435973'
+        //        "error_code" => "0",
+        //        "ts" => "1663364435973"
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -2442,15 +2442,15 @@ class lbank2 extends Exchange {
         //
         //    array(
         //        array(
-        //            amountScale => '4',
-        //            $chain => 'heco',
-        //            assetCode => 'lbk',
-        //            min => '200',
-        //            transferAmtScale => '4',
-        //            canWithDraw => true,
-        //            $fee => '100',
-        //            minTransfer => '0.0001',
-        //            type => '1'
+        //            "amountScale" => "4",
+        //            "chain" => "heco",
+        //            "assetCode" => "lbk",
+        //            "min" => "200",
+        //            "transferAmtScale" => "4",
+        //            "canWithDraw" => true,
+        //            "fee" => "100",
+        //            "minTransfer" => "0.0001",
+        //            "type" => "1"
         //        ),
         //        ...
         //    )

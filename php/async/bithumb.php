@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bithumb extends Exchange {
 
@@ -272,7 +273,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
@@ -305,7 +306,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -350,7 +351,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -457,7 +458,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -500,11 +501,11 @@ class bithumb extends Exchange {
         //
         //     array(
         //         1576823400000, // 기준 시간
-        //         '8284000', // 시가
-        //         '8286000', // 종가
-        //         '8289000', // 고가
-        //         '8276000', // 저가
-        //         '15.41503692' // 거래량
+        //         "8284000", // 시가
+        //         "8286000", // 종가
+        //         "8289000", // 고가
+        //         "8276000", // 저가
+        //         "15.41503692" // 거래량
         //     )
         //
         return array(
@@ -517,7 +518,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -538,23 +539,23 @@ class bithumb extends Exchange {
             $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval (array_merge($request, $params)));
             //
             //     {
-            //         'status' => '0000',
-            //         'data' => {
+            //         "status" => "0000",
+            //         "data" => {
             //             array(
             //                 1576823400000, // 기준 시간
-            //                 '8284000', // 시가
-            //                 '8286000', // 종가
-            //                 '8289000', // 고가
-            //                 '8276000', // 저가
-            //                 '15.41503692' // 거래량
+            //                 "8284000", // 시가
+            //                 "8286000", // 종가
+            //                 "8289000", // 고가
+            //                 "8276000", // 저가
+            //                 "15.41503692" // 거래량
             //             ),
             //             array(
             //                 1576824000000, // 기준 시간
-            //                 '8284000', // 시가
-            //                 '8281000', // 종가
-            //                 '8289000', // 고가
-            //                 '8275000', // 저가
-            //                 '6.19584467' // 거래량
+            //                 "8284000", // 시가
+            //                 "8281000", // 종가
+            //                 "8289000", // 고가
+            //                 "8275000", // 저가
+            //                 "6.19584467" // 거래량
             //             ),
             //         }
             //     }
@@ -564,7 +565,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -642,7 +643,7 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -730,9 +731,7 @@ class bithumb extends Exchange {
              * @param {array} [$params] extra parameters specific to the bithumb api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -746,24 +745,24 @@ class bithumb extends Exchange {
             //     {
             //         "status" => "0000",
             //         "data" => {
-            //             order_date => '1603161798539254',
-            //             type => 'ask',
-            //             order_status => 'Cancel',
-            //             order_currency => 'BTC',
-            //             payment_currency => 'KRW',
-            //             watch_price => '0',
-            //             order_price => '13344000',
-            //             order_qty => '0.0125',
-            //             cancel_date => '1603161803809993',
-            //             cancel_type => '사용자취소',
-            //             contract => array(
+            //             "order_date" => "1603161798539254",
+            //             "type" => "ask",
+            //             "order_status" => "Cancel",
+            //             "order_currency" => "BTC",
+            //             "payment_currency" => "KRW",
+            //             "watch_price" => "0",
+            //             "order_price" => "13344000",
+            //             "order_qty" => "0.0125",
+            //             "cancel_date" => "1603161803809993",
+            //             "cancel_type" => "사용자취소",
+            //             "contract" => array(
             //                 {
-            //                     transaction_date => '1603161799976383',
-            //                     price => '13344000',
-            //                     units => '0.0015',
-            //                     fee_currency => 'KRW',
-            //                     fee => '0',
-            //                     total => '20016'
+            //                     "transaction_date" => "1603161799976383",
+            //                     "price" => "13344000",
+            //                     "units" => "0.0015",
+            //                     "fee_currency" => "KRW",
+            //                     "fee" => "0",
+            //                     "total" => "20016"
             //                 }
             //             ),
             //         }
@@ -794,7 +793,7 @@ class bithumb extends Exchange {
         //         "order_status" => "Completed", // Completed, Cancel ...
         //         "order_currency" => "BTC",
         //         "payment_currency" => "KRW",
-        //         "watch_price" => '0', // present in Cancel $order
+        //         "watch_price" => "0", // present in Cancel $order
         //         "order_price" => "8601000",
         //         "order_qty" => "0.007",
         //         "cancel_date" => "", // filled in Cancel $order
@@ -882,19 +881,17 @@ class bithumb extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the bithumb api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if ($limit === null) {
@@ -940,12 +937,10 @@ class bithumb extends Exchange {
              * @param {array} [$params] extra parameters specific to the bithumb api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
+            $this->check_required_symbol('cancelOrder', $symbol);
             $side_in_params = (is_array($params) && array_key_exists('side', $params));
             if (!$side_in_params) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
             }
             $market = $this->market($symbol);
             $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
@@ -1004,7 +999,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //

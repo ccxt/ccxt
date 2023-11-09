@@ -98,7 +98,7 @@ export default class bitget extends bitgetRest {
 
     getMarketIdFromArg (arg) {
         //
-        // { arg: { instType: 'sp', channel: 'ticker', instId: 'BTCUSDT' }
+        // { arg: { instType: 'sp', channel: "ticker", instId: "BTCUSDT" }
         //
         const instType = this.safeString (arg, 'instType');
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
@@ -181,21 +181,21 @@ export default class bitget extends bitgetRest {
     handleTicker (client: Client, message) {
         //
         //   {
-        //       action: 'snapshot',
-        //       arg: { instType: 'sp', channel: 'ticker', instId: 'BTCUSDT' },
-        //       data: [
+        //       "action": "snapshot",
+        //       "arg": { instType: 'sp', channel: "ticker", instId: "BTCUSDT" },
+        //       "data": [
         //         {
-        //           instId: 'BTCUSDT',
-        //           last: '21150.53',
-        //           open24h: '20759.65',
-        //           high24h: '21202.29',
-        //           low24h: '20518.82',
-        //           bestBid: '21150.500000',
-        //           bestAsk: '21150.600000',
-        //           baseVolume: '25402.1961',
-        //           quoteVolume: '530452554.2156',
-        //           ts: 1656408934044,
-        //           labeId: 0
+        //           "instId": "BTCUSDT",
+        //           "last": "21150.53",
+        //           "open24h": "20759.65",
+        //           "high24h": "21202.29",
+        //           "low24h": "20518.82",
+        //           "bestBid": "21150.500000",
+        //           "bestAsk": "21150.600000",
+        //           "baseVolume": "25402.1961",
+        //           "quoteVolume": "530452554.2156",
+        //           "ts": 1656408934044,
+        //           "labeId": 0
         //         }
         //       ]
         //   }
@@ -223,21 +223,21 @@ export default class bitget extends bitgetRest {
         //
         // spot
         //     {
-        //         action: 'snapshot',
-        //         arg: { instType: 'sp', channel: 'ticker', instId: 'BTCUSDT' },
-        //         data: [
+        //         "action": "snapshot",
+        //         "arg": { instType: 'sp', channel: "ticker", instId: "BTCUSDT" },
+        //         "data": [
         //           {
-        //             instId: 'BTCUSDT',
-        //             last: '21150.53',
-        //             open24h: '20759.65',
-        //             high24h: '21202.29',
-        //             low24h: '20518.82',
-        //             bestBid: '21150.500000',
-        //             bestAsk: '21150.600000',
-        //             baseVolume: '25402.1961',
-        //             quoteVolume: '530452554.2156',
-        //             ts: 1656408934044,
-        //             labeId: 0
+        //             "instId": "BTCUSDT",
+        //             "last": "21150.53",
+        //             "open24h": "20759.65",
+        //             "high24h": "21202.29",
+        //             "low24h": "20518.82",
+        //             "bestBid": "21150.500000",
+        //             "bestAsk": "21150.600000",
+        //             "baseVolume": "25402.1961",
+        //             "quoteVolume": "530452554.2156",
+        //             "ts": 1656408934044,
+        //             "labeId": 0
         //           }
         //         ]
         //     }
@@ -698,17 +698,17 @@ export default class bitget extends bitgetRest {
     handleTrades (client: Client, message) {
         //
         //    {
-        //        action: 'snapshot',
-        //        arg: { instType: 'sp', channel: 'trade', instId: 'BTCUSDT' },
-        //        data: [
-        //          [ '1656411148032', '21047.78', '2.2294', 'buy' ],
-        //          [ '1656411142030', '21047.85', '2.1225', 'buy' ],
-        //          [ '1656411133064', '21045.88', '1.7704', 'sell' ],
-        //          [ '1656411126037', '21052.39', '2.6905', 'buy' ],
-        //          [ '1656411118029', '21056.87', '1.2308', 'sell' ],
-        //          [ '1656411108028', '21060.01', '1.7186', 'sell' ],
-        //          [ '1656411100027', '21060.4', '1.3641', 'buy' ],
-        //          [ '1656411093030', '21058.76', '1.5049', 'sell' ]
+        //        "action": "snapshot",
+        //        "arg": { instType: 'sp', channel: "trade", instId: "BTCUSDT" },
+        //        "data": [
+        //          [ '1656411148032', '21047.78', "2.2294", "buy" ],
+        //          [ '1656411142030', '21047.85', "2.1225", "buy" ],
+        //          [ '1656411133064', '21045.88', "1.7704", "sell" ],
+        //          [ '1656411126037', '21052.39', "2.6905", "buy" ],
+        //          [ '1656411118029', '21056.87', "1.2308", "sell" ],
+        //          [ '1656411108028', '21060.01', "1.7186", "sell" ],
+        //          [ '1656411100027', '21060.4', "1.3641", "buy" ],
+        //          [ '1656411093030', '21058.76', "1.5049", "sell" ]
         //        ]
         //    }
         //
@@ -738,10 +738,10 @@ export default class bitget extends bitgetRest {
         // public trade
         //
         //   [
-        //       '1656411148032', // timestamp
-        //       '21047.78', // price
-        //       '2.2294', // size
-        //       'buy', // side
+        //       "1656411148032", // timestamp
+        //       "21047.78", // price
+        //       "2.2294", // size
+        //       "buy", // side
         //   ]
         //
         market = this.safeMarket (undefined, market);
@@ -1016,61 +1016,61 @@ export default class bitget extends bitgetRest {
         //
         // spot order
         //    {
-        //        action: 'snapshot',
-        //        arg: { instType: 'spbl', channel: 'orders', instId: 'LTCUSDT_SPBL' // instId='default' for contracts },
-        //        data: [
+        //        "action": "snapshot",
+        //        "arg": { instType: 'spbl', channel: 'orders', instId: "LTCUSDT_SPBL" // instId="default" for contracts },
+        //        "data": [
         //          {
-        //            instId: 'LTCUSDT_SPBL',
-        //            ordId: '925999649898545152',
-        //            clOrdId: '8b2aa69a-6a09-46c0-a50d-7ed50277394c',
-        //            px: '20.00',
-        //            sz: '0.3000',
-        //            notional: '6.000000',
-        //            ordType: 'limit',
-        //            force: 'normal',
-        //            side: 'buy',
-        //            accFillSz: '0.0000',
-        //            avgPx: '0.00',
-        //            status: 'new',
-        //            cTime: 1656501441454,
-        //            uTime: 1656501441454,
-        //            orderFee: []
+        //            "instId": "LTCUSDT_SPBL",
+        //            "ordId": "925999649898545152",
+        //            "clOrdId": "8b2aa69a-6a09-46c0-a50d-7ed50277394c",
+        //            "px": "20.00",
+        //            "sz": "0.3000",
+        //            "notional": "6.000000",
+        //            "ordType": "limit",
+        //            "force": "normal",
+        //            "side": "buy",
+        //            "accFillSz": "0.0000",
+        //            "avgPx": "0.00",
+        //            "status": "new",
+        //            "cTime": 1656501441454,
+        //            "uTime": 1656501441454,
+        //            "orderFee": []
         //          }
         //        ]
         //    }
         //
         //    {
-        //        action: 'snapshot',
-        //        arg: { instType: 'umcbl', channel: 'ordersAlgo', instId: 'default' },
-        //        data: [
+        //        "action": "snapshot",
+        //        "arg": { instType: 'umcbl', channel: "ordersAlgo", instId: "default" },
+        //        "data": [
         //          {
-        //            actualPx: '55.000000000',
-        //            actualSz: '0.000000000',
-        //            cOid: '1104372235724890112',
-        //            cTime: '1699028779917',
-        //            eps: 'web',
-        //            hM: 'double_hold',
-        //            id: '1104372235724890113',
-        //            instId: 'BTCUSDT_UMCBL',
-        //            key: '1104372235724890113',
-        //            ordPx: '55.000000000',
-        //            ordType: 'limit',
-        //            planType: 'pl',
-        //            posSide: 'long',
-        //            side: 'buy',
-        //            state: 'not_trigger',
-        //            sz: '3.557000000',
-        //            tS: 'open_long',
-        //            tgtCcy: 'USDT',
-        //            triggerPx: '55.000000000',
-        //            triggerPxType: 'last',
-        //            triggerTime: '1699028779917',
-        //            uTime: '1699028779917',
-        //            userId: '3704614084',
-        //            version: 1104372235586478100
+        //            "actualPx": "55.000000000",
+        //            "actualSz": "0.000000000",
+        //            "cOid": "1104372235724890112",
+        //            "cTime": "1699028779917",
+        //            "eps": "web",
+        //            "hM": "double_hold",
+        //            "id": "1104372235724890113",
+        //            "instId": "BTCUSDT_UMCBL",
+        //            "key": "1104372235724890113",
+        //            "ordPx": "55.000000000",
+        //            "ordType": "limit",
+        //            "planType": "pl",
+        //            "posSide": "long",
+        //            "side": "buy",
+        //            "state": "not_trigger",
+        //            "sz": "3.557000000",
+        //            "tS": "open_long",
+        //            "tgtCcy": "USDT",
+        //            "triggerPx": "55.000000000",
+        //            "triggerPxType": "last",
+        //            "triggerTime": "1699028779917",
+        //            "uTime": "1699028779917",
+        //            "userId": "3704614084",
+        //            "version": 1104372235586478100
         //          }
         //        ],
-        //        ts: 1699028780327
+        //        "ts": 1699028780327
         //    }
         //
         const arg = this.safeValue (message, 'arg', {});
@@ -1112,69 +1112,69 @@ export default class bitget extends bitgetRest {
         //
         // spot order
         //     {
-        //         instId: 'LTCUSDT_SPBL',
-        //         ordId: '925999649898545152',
-        //         clOrdId: '8b2aa69a-6a09-46c0-a50d-7ed50277394c',
-        //         px: '20.00',
-        //         sz: '0.3000',
-        //         notional: '6.000000',
-        //         ordType: 'limit',
-        //         force: 'normal',
-        //         side: 'buy',
-        //         accFillSz: '0.0000',
-        //         avgPx: '0.00',
-        //         status: 'new',
-        //         cTime: 1656501441454,
-        //         uTime: 1656501441454,
-        //         orderFee: []
+        //         "instId": "LTCUSDT_SPBL",
+        //         "ordId": "925999649898545152",
+        //         "clOrdId": "8b2aa69a-6a09-46c0-a50d-7ed50277394c",
+        //         "px": "20.00",
+        //         "sz": "0.3000",
+        //         "notional": "6.000000",
+        //         "ordType": "limit",
+        //         "force": "normal",
+        //         "side": "buy",
+        //         "accFillSz": "0.0000",
+        //         "avgPx": "0.00",
+        //         "status": "new",
+        //         "cTime": 1656501441454,
+        //         "uTime": 1656501441454,
+        //         "orderFee": []
         //     }
         // partial fill
         //
         //    {
-        //        instId: 'LTCUSDT_SPBL',
-        //        ordId: '926006174213914625',
-        //        clOrdId: '7ce28714-0016-46d0-a971-9a713a9923c5',
-        //        notional: '5.000000',
-        //        ordType: 'market',
-        //        force: 'normal',
-        //        side: 'buy',
-        //        fillPx: '52.11',
-        //        tradeId: '926006174514073601',
-        //        fillSz: '0.0959',
-        //        fillTime: '1656502997043',
-        //        fillFee: '-0.0000959',
-        //        fillFeeCcy: 'LTC',
-        //        execType: 'T',
-        //        accFillSz: '0.0959',
-        //        avgPx: '52.11',
-        //        status: 'partial-fill',
-        //        cTime: 1656502996972,
-        //        uTime: 1656502997119,
-        //        orderFee: [Array]
+        //        "instId": "LTCUSDT_SPBL",
+        //        "ordId": "926006174213914625",
+        //        "clOrdId": "7ce28714-0016-46d0-a971-9a713a9923c5",
+        //        "notional": "5.000000",
+        //        "ordType": "market",
+        //        "force": "normal",
+        //        "side": "buy",
+        //        "fillPx": "52.11",
+        //        "tradeId": "926006174514073601",
+        //        "fillSz": "0.0959",
+        //        "fillTime": "1656502997043",
+        //        "fillFee": "-0.0000959",
+        //        "fillFeeCcy": "LTC",
+        //        "execType": "T",
+        //        "accFillSz": "0.0959",
+        //        "avgPx": "52.11",
+        //        "status": "partial-fill",
+        //        "cTime": 1656502996972,
+        //        "uTime": 1656502997119,
+        //        "orderFee": [Array]
         //    }
         //
         // contract order
         //    {
-        //        accFillSz: '0',
-        //        cTime: 1656510642518,
-        //        clOrdId: '926038241960431617',
-        //        force: 'normal',
-        //        instId: 'LTCUSDT_UMCBL',
-        //        lever: '20',
-        //        notionalUsd: '7.5',
-        //        ordId: '926038241859768320',
-        //        ordType: 'limit',
-        //        orderFee: [
-        //             {feeCcy: 'USDT', fee: '0'}
+        //        "accFillSz": "0",
+        //        "cTime": 1656510642518,
+        //        "clOrdId": "926038241960431617",
+        //        "force": "normal",
+        //        "instId": "LTCUSDT_UMCBL",
+        //        "lever": "20",
+        //        "notionalUsd": "7.5",
+        //        "ordId": "926038241859768320",
+        //        "ordType": "limit",
+        //        "orderFee": [
+        //             {feeCcy: "USDT", fee: "0"}
         //        ]
-        //        posSide: 'long',
-        //        px: '25',
-        //        side: 'buy',
-        //        status: 'new',
-        //        sz: '0.3',
-        //        tdMode: 'cross',
-        //        tgtCcy: 'USDT',
-        //        uTime: 1656510642518
+        //        "posSide": "long",
+        //        "px": "25",
+        //        "side": "buy",
+        //        "status": "new",
+        //        "sz": "0.3",
+        //        "tdMode": "cross",
+        //        "tgtCcy": "USDT",
+        //        "uTime": 1656510642518
         //    }
         // algo order
         //    {
@@ -1319,34 +1319,34 @@ export default class bitget extends bitgetRest {
         // order and trade mixin (contract)
         //
         //   {
-        //       accFillSz: '0.1',
-        //       avgPx: '52.81',
-        //       cTime: 1656511777208,
-        //       clOrdId: '926043001195237376',
-        //       execType: 'T',
-        //       fillFee: '-0.0031686',
-        //       fillFeeCcy: 'USDT',
-        //       fillNotionalUsd: '5.281',
-        //       fillPx: '52.81',
-        //       fillSz: '0.1',
-        //       fillTime: '1656511777266',
-        //       force: 'normal',
-        //       instId: 'LTCUSDT_UMCBL',
-        //       lever: '1',
-        //       notionalUsd: '5.281',
-        //       ordId: '926043001132322816',
-        //       ordType: 'market',
-        //       orderFee: [Array],
-        //       pnl: '0.004',
-        //       posSide: 'long',
-        //       px: '0',
-        //       side: 'sell',
-        //       status: 'full-fill',
-        //       sz: '0.1',
-        //       tdMode: 'cross',
-        //       tgtCcy: 'USDT',
-        //       tradeId: '926043001438552105',
-        //       uTime: 1656511777266
+        //       "accFillSz": "0.1",
+        //       "avgPx": "52.81",
+        //       "cTime": 1656511777208,
+        //       "clOrdId": "926043001195237376",
+        //       "execType": "T",
+        //       "fillFee": "-0.0031686",
+        //       "fillFeeCcy": "USDT",
+        //       "fillNotionalUsd": "5.281",
+        //       "fillPx": "52.81",
+        //       "fillSz": "0.1",
+        //       "fillTime": "1656511777266",
+        //       "force": "normal",
+        //       "instId": "LTCUSDT_UMCBL",
+        //       "lever": "1",
+        //       "notionalUsd": "5.281",
+        //       "ordId": "926043001132322816",
+        //       "ordType": "market",
+        //       "orderFee": [Array],
+        //       "pnl": "0.004",
+        //       "posSide": "long",
+        //       "px": "0",
+        //       "side": "sell",
+        //       "status": "full-fill",
+        //       "sz": "0.1",
+        //       "tdMode": "cross",
+        //       "tgtCcy": "USDT",
+        //       "tradeId": "926043001438552105",
+        //       "uTime": 1656511777266
         //   }
         //
         if (this.myTrades === undefined) {
@@ -1368,34 +1368,34 @@ export default class bitget extends bitgetRest {
         // order and trade mixin (contract)
         //
         //   {
-        //       accFillSz: '0.1',
-        //       avgPx: '52.81',
-        //       cTime: 1656511777208,
-        //       clOrdId: '926043001195237376',
-        //       execType: 'T',
-        //       fillFee: '-0.0031686',
-        //       fillFeeCcy: 'USDT',
-        //       fillNotionalUsd: '5.281',
-        //       fillPx: '52.81',
-        //       fillSz: '0.1',
-        //       fillTime: '1656511777266',
-        //       force: 'normal',
-        //       instId: 'LTCUSDT_UMCBL',
-        //       lever: '1',
-        //       notionalUsd: '5.281',
-        //       ordId: '926043001132322816',
-        //       ordType: 'market',
-        //       orderFee: [Array],
-        //       pnl: '0.004',
-        //       posSide: 'long',
-        //       px: '0',
-        //       side: 'sell',
-        //       status: 'full-fill',
-        //       sz: '0.1',
-        //       tdMode: 'cross',
-        //       tgtCcy: 'USDT',
-        //       tradeId: '926043001438552105',
-        //       uTime: 1656511777266
+        //       "accFillSz": "0.1",
+        //       "avgPx": "52.81",
+        //       "cTime": 1656511777208,
+        //       "clOrdId": "926043001195237376",
+        //       "execType": "T",
+        //       "fillFee": "-0.0031686",
+        //       "fillFeeCcy": "USDT",
+        //       "fillNotionalUsd": "5.281",
+        //       "fillPx": "52.81",
+        //       "fillSz": "0.1",
+        //       "fillTime": "1656511777266",
+        //       "force": "normal",
+        //       "instId": "LTCUSDT_UMCBL",
+        //       "lever": "1",
+        //       "notionalUsd": "5.281",
+        //       "ordId": "926043001132322816",
+        //       "ordType": "market",
+        //       "orderFee": [Array],
+        //       "pnl": "0.004",
+        //       "posSide": "long",
+        //       "px": "0",
+        //       "side": "sell",
+        //       "status": "full-fill",
+        //       "sz": "0.1",
+        //       "tdMode": "cross",
+        //       "tgtCcy": "USDT",
+        //       "tradeId": "926043001438552105",
+        //       "uTime": 1656511777266
         //   }
         //
         const id = this.safeString (trade, 'tradeId');
@@ -1463,11 +1463,11 @@ export default class bitget extends bitgetRest {
         // spot
         //
         //    {
-        //        action: 'snapshot',
-        //        arg: { instType: 'spbl', channel: 'account', instId: 'default' },
-        //        data: [
-        //          { coinId: '5', coinName: 'LTC', available: '0.1060938000000000' },
-        //          { coinId: '2', coinName: 'USDT', available: '13.4498240000000000' }
+        //        "action": "snapshot",
+        //        "arg": { instType: 'spbl', channel: "account", instId: "default" },
+        //        "data": [
+        //          { coinId: '5', coinName: "LTC", available: "0.1060938000000000" },
+        //          { coinId: '2', coinName: "USDT", available: "13.4498240000000000" }
         //        ]
         //    }
         //
@@ -1572,7 +1572,7 @@ export default class bitget extends bitgetRest {
 
     handleAuthenticate (client: Client, message) {
         //
-        //  { event: 'login', code: 0 }
+        //  { event: "login", code: 0 }
         //
         const messageHash = 'authenticated';
         const future = this.safeValue (client.futures, messageHash);
@@ -1581,7 +1581,7 @@ export default class bitget extends bitgetRest {
 
     handleErrorMessage (client: Client, message) {
         //
-        //    { event: 'error', code: 30015, msg: 'Invalid sign' }
+        //    { event: "error", code: 30015, msg: "Invalid sign" }
         //
         const event = this.safeString (message, 'event');
         try {
@@ -1612,36 +1612,36 @@ export default class bitget extends bitgetRest {
     handleMessage (client: Client, message) {
         //
         //   {
-        //       action: 'snapshot',
-        //       arg: { instType: 'sp', channel: 'ticker', instId: 'BTCUSDT' },
-        //       data: [
+        //       "action": "snapshot",
+        //       "arg": { instType: 'sp', channel: "ticker", instId: "BTCUSDT" },
+        //       "data": [
         //         {
-        //           instId: 'BTCUSDT',
-        //           last: '21150.53',
-        //           open24h: '20759.65',
-        //           high24h: '21202.29',
-        //           low24h: '20518.82',
-        //           bestBid: '21150.500000',
-        //           bestAsk: '21150.600000',
-        //           baseVolume: '25402.1961',
-        //           quoteVolume: '530452554.2156',
-        //           ts: 1656408934044,
-        //           labeId: 0
+        //           "instId": "BTCUSDT",
+        //           "last": "21150.53",
+        //           "open24h": "20759.65",
+        //           "high24h": "21202.29",
+        //           "low24h": "20518.82",
+        //           "bestBid": "21150.500000",
+        //           "bestAsk": "21150.600000",
+        //           "baseVolume": "25402.1961",
+        //           "quoteVolume": "530452554.2156",
+        //           "ts": 1656408934044,
+        //           "labeId": 0
         //         }
         //       ]
         //   }
         // pong message
-        //    'pong'
+        //    "pong"
         //
         // login
         //
-        //     { event: 'login', code: 0 }
+        //     { event: "login", code: 0 }
         //
         // subscribe
         //
         //    {
-        //        event: 'subscribe',
-        //        arg: { instType: 'spbl', channel: 'account', instId: 'default' }
+        //        "event": "subscribe",
+        //        "arg": { instType: 'spbl', channel: "account", instId: "default" }
         //    }
         //
         if (this.handleErrorMessage (client, message)) {
@@ -1699,8 +1699,8 @@ export default class bitget extends bitgetRest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //    {
-        //        event: 'subscribe',
-        //        arg: { instType: 'spbl', channel: 'account', instId: 'default' }
+        //        "event": "subscribe",
+        //        "arg": { instType: 'spbl', channel: "account", instId: "default" }
         //    }
         //
         return message;

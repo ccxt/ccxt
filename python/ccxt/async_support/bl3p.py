@@ -6,8 +6,9 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bl3p import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide, OrderType
+from ccxt.base.types import Balances, OrderBook, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
+from typing import List
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -114,7 +115,7 @@ class bl3p(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', {})
         wallets = self.safe_value(data, 'wallets', {})
         result = {'info': data}
@@ -150,7 +151,7 @@ class bl3p(Exchange, ImplicitAPI):
             self.parse_number(Precise.string_div(size, '100000000.0')),
         ]
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -166,7 +167,7 @@ class bl3p(Exchange, ImplicitAPI):
         orderbook = self.safe_value(response, 'data')
         return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price_int', 'amount_int')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # {
         #     "currency":"BTC",
@@ -209,7 +210,7 @@ class bl3p(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -238,7 +239,7 @@ class bl3p(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #
@@ -270,7 +271,7 @@ class bl3p(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -310,29 +311,29 @@ class bl3p(Exchange, ImplicitAPI):
         response = await self.privatePostGENMKTMoneyInfo(params)
         #
         #     {
-        #         result: 'success',
-        #         data: {
-        #             user_id: '13396',
-        #             wallets: {
-        #                 BTC: {
-        #                     balance: {
-        #                         value_int: '0',
-        #                         display: '0.00000000 BTC',
-        #                         currency: 'BTC',
-        #                         value: '0.00000000',
-        #                         display_short: '0.00 BTC'
+        #         "result": "success",
+        #         "data": {
+        #             "user_id": "13396",
+        #             "wallets": {
+        #                 "BTC": {
+        #                     "balance": {
+        #                         "value_int": "0",
+        #                         "display": "0.00000000 BTC",
+        #                         "currency": "BTC",
+        #                         "value": "0.00000000",
+        #                         "display_short": "0.00 BTC"
         #                     },
-        #                     available: {
-        #                         value_int: '0',
-        #                         display: '0.00000000 BTC',
-        #                         currency: 'BTC',
-        #                         value: '0.00000000',
-        #                         display_short: '0.00 BTC'
+        #                     "available": {
+        #                         "value_int": "0",
+        #                         "display": "0.00000000 BTC",
+        #                         "currency": "BTC",
+        #                         "value": "0.00000000",
+        #                         "display_short": "0.00 BTC"
         #                     }
         #                 },
         #                 ...
         #             },
-        #             trade_fee: '0.25'
+        #             "trade_fee": "0.25"
         #         }
         #     }
         #

@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\bitbank as Exchange;
 use ccxt\ExchangeError;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitbank extends Exchange {
 
@@ -254,7 +255,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
@@ -282,7 +283,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -302,7 +303,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -324,7 +325,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -370,7 +371,7 @@ class bitbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -405,26 +406,26 @@ class bitbank extends Exchange {
             $response = Async\await($this->marketsGetSpotPairs ($params));
             //
             //     {
-            //         success => '1',
-            //         $data => {
-            //           $pairs => array(
+            //         "success" => "1",
+            //         "data" => {
+            //           "pairs" => array(
             //             array(
-            //               name => 'btc_jpy',
-            //               base_asset => 'btc',
-            //               quote_asset => 'jpy',
-            //               maker_fee_rate_base => '0',
-            //               taker_fee_rate_base => '0',
-            //               maker_fee_rate_quote => '-0.0002',
-            //               taker_fee_rate_quote => '0.0012',
-            //               unit_amount => '0.0001',
-            //               limit_max_amount => '1000',
-            //               market_max_amount => '10',
-            //               market_allowance_rate => '0.2',
-            //               price_digits => '0',
-            //               amount_digits => '4',
-            //               is_enabled => true,
-            //               stop_order => false,
-            //               stop_order_and_cancel => false
+            //               "name" => "btc_jpy",
+            //               "base_asset" => "btc",
+            //               "quote_asset" => "jpy",
+            //               "maker_fee_rate_base" => "0",
+            //               "taker_fee_rate_base" => "0",
+            //               "maker_fee_rate_quote" => "-0.0002",
+            //               "taker_fee_rate_quote" => "0.0012",
+            //               "unit_amount" => "0.0001",
+            //               "limit_max_amount" => "1000",
+            //               "market_max_amount" => "10",
+            //               "market_allowance_rate" => "0.2",
+            //               "price_digits" => "0",
+            //               "amount_digits" => "4",
+            //               "is_enabled" => true,
+            //               "stop_order" => false,
+            //               "stop_order_and_cancel" => false
             //             ),
             //             ...
             //           )
@@ -473,7 +474,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -526,7 +527,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -717,7 +718,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -852,7 +853,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //

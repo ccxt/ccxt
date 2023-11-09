@@ -1524,38 +1524,38 @@ class huobi extends Exchange {
         $response = $this->spotPublicGetV1CommonExchange (array_merge($request, $params));
         //
         //     { status =>   "ok",
-        //         data => {                                  symbol => "aidocbtc",
-        //                              'buy-limit-must-less-than' =>  1.1,
-        //                          'sell-limit-must-greater-than' =>  0.9,
-        //                         'limit-order-must-greater-than' =>  1,
-        //                            'limit-order-must-less-than' =>  5000000,
-        //                    'market-buy-order-must-greater-than' =>  0.0001,
-        //                       'market-buy-order-must-less-than' =>  100,
-        //                   'market-sell-order-must-greater-than' =>  1,
-        //                      'market-sell-order-must-less-than' =>  500000,
-        //                       'circuit-break-when-greater-than' =>  10000,
-        //                          'circuit-break-when-less-than' =>  10,
-        //                 'market-sell-order-rate-must-less-than' =>  0.1,
-        //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
+        //         "data" => {                                  symbol => "aidocbtc",
+        //                              "buy-limit-must-less-than" =>  1.1,
+        //                          "sell-limit-must-greater-than" =>  0.9,
+        //                         "limit-order-must-greater-than" =>  1,
+        //                            "limit-order-must-less-than" =>  5000000,
+        //                    "market-buy-order-must-greater-than" =>  0.0001,
+        //                       "market-buy-order-must-less-than" =>  100,
+        //                   "market-sell-order-must-greater-than" =>  1,
+        //                      "market-sell-order-must-less-than" =>  500000,
+        //                       "circuit-break-when-greater-than" =>  10000,
+        //                          "circuit-break-when-less-than" =>  10,
+        //                 "market-sell-order-rate-must-less-than" =>  0.1,
+        //                  "market-buy-order-rate-must-less-than" =>  0.1        } }
         //
         return $this->parse_trading_limits($this->safe_value($response, 'data', array()));
     }
 
     public function parse_trading_limits($limits, ?string $symbol = null, $params = array ()) {
         //
-        //   {                                  $symbol => "aidocbtc",
-        //                  'buy-limit-must-less-than' =>  1.1,
-        //              'sell-limit-must-greater-than' =>  0.9,
-        //             'limit-order-must-greater-than' =>  1,
-        //                'limit-order-must-less-than' =>  5000000,
-        //        'market-buy-order-must-greater-than' =>  0.0001,
-        //           'market-buy-order-must-less-than' =>  100,
-        //       'market-sell-order-must-greater-than' =>  1,
-        //          'market-sell-order-must-less-than' =>  500000,
-        //           'circuit-break-when-greater-than' =>  10000,
-        //              'circuit-break-when-less-than' =>  10,
-        //     'market-sell-order-rate-must-less-than' =>  0.1,
-        //      'market-buy-order-rate-must-less-than' =>  0.1        }
+        //   {                                "symbol" => "aidocbtc",
+        //                  "buy-limit-must-less-than" =>  1.1,
+        //              "sell-limit-must-greater-than" =>  0.9,
+        //             "limit-order-must-greater-than" =>  1,
+        //                "limit-order-must-less-than" =>  5000000,
+        //        "market-buy-order-must-greater-than" =>  0.0001,
+        //           "market-buy-order-must-less-than" =>  100,
+        //       "market-sell-order-must-greater-than" =>  1,
+        //          "market-sell-order-must-less-than" =>  500000,
+        //           "circuit-break-when-greater-than" =>  10000,
+        //              "circuit-break-when-less-than" =>  10,
+        //     "market-sell-order-rate-must-less-than" =>  0.1,
+        //      "market-buy-order-rate-must-less-than" =>  0.1        }
         //
         return array(
             'info' => $limits,
@@ -1910,7 +1910,7 @@ class huobi extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -1931,29 +1931,29 @@ class huobi extends Exchange {
         // fetchTickers
         //
         //     {
-        //         $symbol => "bhdht",
-        //         $open =>  2.3938,
-        //         high =>  2.4151,
-        //         low =>  2.3323,
-        //         $close =>  2.3909,
-        //         amount =>  628.992,
-        //         vol =>  1493.71841095,
-        //         count =>  2088,
-        //         $bid =>  2.3643,
-        //         bidSize =>  0.7136,
-        //         $ask =>  2.4061,
-        //         askSize =>  0.4156
+        //         "symbol" => "bhdht",
+        //         "open" =>  2.3938,
+        //         "high" =>  2.4151,
+        //         "low" =>  2.3323,
+        //         "close" =>  2.3909,
+        //         "amount" =>  628.992,
+        //         "vol" =>  1493.71841095,
+        //         "count" =>  2088,
+        //         "bid" =>  2.3643,
+        //         "bidSize" =>  0.7136,
+        //         "ask" =>  2.4061,
+        //         "askSize" =>  0.4156
         //     }
         //
         // watchTikcer - bbo
         //     {
-        //         seqId => 161499562790,
-        //         $ask => 16829.51,
-        //         askSize => 0.707776,
-        //         $bid => 16829.5,
-        //         bidSize => 1.685945,
-        //         quoteTime => 1671941599612,
-        //         $symbol => 'btcusdt'
+        //         "seqId" => 161499562790,
+        //         "ask" => 16829.51,
+        //         "askSize" => 0.707776,
+        //         "bid" => 16829.5,
+        //         "bidSize" => 1.685945,
+        //         "quoteTime" => 1671941599612,
+        //         "symbol" => "btcusdt"
         //     }
         //
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_code');
@@ -2009,7 +2009,7 @@ class huobi extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -2236,7 +2236,7 @@ class huobi extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -2324,7 +2324,7 @@ class huobi extends Exchange {
         throw new ExchangeError($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json($response));
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // spot fetchTrades (public)
         //
@@ -2340,21 +2340,21 @@ class huobi extends Exchange {
         // spot fetchMyTrades (private)
         //
         //     {
-        //          'symbol' => 'swftcbtc',
-        //          'fee-currency' => 'swftc',
-        //          'filled-fees' => '0',
-        //          'source' => 'spot-api',
-        //          'id' => 83789509854000,
-        //          'type' => 'buy-limit',
-        //          'order-id' => 83711103204909,
-        //          'filled-points' => '0.005826843283532154',
-        //          'fee-deduct-currency' => 'ht',
-        //          'filled-amount' => '45941.53',
-        //          'price' => '0.0000001401',
-        //          'created-at' => 1597933260729,
-        //          'match-id' => 100087455560,
-        //          'role' => 'maker',
-        //          'trade-id' => 100050305348
+        //          "symbol" => "swftcbtc",
+        //          "fee-currency" => "swftc",
+        //          "filled-fees" => "0",
+        //          "source" => "spot-api",
+        //          "id" => 83789509854000,
+        //          "type" => "buy-limit",
+        //          "order-$id" => 83711103204909,
+        //          'filled-points' => "0.005826843283532154",
+        //          "fee-deduct-currency" => "ht",
+        //          'filled-amount' => "45941.53",
+        //          "price" => "0.0000001401",
+        //          "created-at" => 1597933260729,
+        //          "match-$id" => 100087455560,
+        //          "role" => "maker",
+        //          "trade-$id" => 100050305348
         //     }
         //
         // linear swap isolated margin fetchOrder details
@@ -2656,7 +2656,7 @@ class huobi extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, $limit = 1000, $params = array ()): array {
         /**
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-$trades
          * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-$trade-records-of-a-contract
@@ -2757,7 +2757,7 @@ class huobi extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
@@ -3702,24 +3702,24 @@ class huobi extends Exchange {
         // spot_private_get_v1_order_orders GET /v1/order/orders
         //
         //     {
-        //         status => "ok",
-        //         $data => array(
+        //         "status" => "ok",
+        //         "data" => array(
         //             {
-        //                 id => 13997833014,
-        //                 $symbol => "ethbtc",
-        //                 'account-id' => 3398321,
-        //                 'client-order-id' => "23456",
-        //                 amount => "0.045000000000000000",
-        //                 price => "0.034014000000000000",
-        //                 'created-at' => 1545836976871,
-        //                 type => "sell-$limit",
-        //                 'field-amount' => "0.045000000000000000",
-        //                 'field-cash-amount' => "0.001530630000000000",
-        //                 'field-fees' => "0.000003061260000000",
-        //                 'finished-at' => 1545837948214,
-        //                 source => "spot-api",
-        //                 state => "filled",
-        //                 'canceled-at' => 0
+        //                 "id" => 13997833014,
+        //                 "symbol" => "ethbtc",
+        //                 "account-id" => 3398321,
+        //                 "client-order-id" => "23456",
+        //                 "amount" => "0.045000000000000000",
+        //                 "price" => "0.034014000000000000",
+        //                 "created-at" => 1545836976871,
+        //                 "type" => "sell-$limit",
+        //                 "field-amount" => "0.045000000000000000",
+        //                 "field-cash-amount" => "0.001530630000000000",
+        //                 "field-fees" => "0.000003061260000000",
+        //                 "finished-at" => 1545837948214,
+        //                 "source" => "spot-api",
+        //                 "state" => "filled",
+        //                 "canceled-at" => 0
         //             }
         //         )
         //     }
@@ -3966,7 +3966,7 @@ class huobi extends Exchange {
         return $this->fetch_contract_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
@@ -4002,7 +4002,7 @@ class huobi extends Exchange {
         }
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
          * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
@@ -4038,7 +4038,7 @@ class huobi extends Exchange {
         }
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-$orders
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
@@ -4316,37 +4316,37 @@ class huobi extends Exchange {
         // spot
         //
         //     {
-        //         $id =>  13997833014,
-        //         symbol => "ethbtc",
-        //         'account-id' =>  3398321,
-        //         $amount => "0.045000000000000000",
-        //         $price => "0.034014000000000000",
-        //         'created-at' =>  1545836976871,
-        //         $type => "sell-limit",
-        //         'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
-        //         'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
-        //         'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
-        //         'finished-at' =>  1545837948214,
-        //         source => "spot-api",
-        //         state => "filled",
-        //         'canceled-at' =>  0
+        //         "id" =>  13997833014,
+        //         "symbol" => "ethbtc",
+        //         "account-$id" =>  3398321,
+        //         "amount" => "0.045000000000000000",
+        //         "price" => "0.034014000000000000",
+        //         "created-at" =>  1545836976871,
+        //         "type" => "sell-limit",
+        //         "field-$amount" => "0.045000000000000000", // they have fixed it for $filled-$amount
+        //         "field-cash-$amount" => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
+        //         "field-fees" => "0.000003061260000000", // they have fixed it for $filled-fees
+        //         "finished-at" =>  1545837948214,
+        //         "source" => "spot-api",
+        //         "state" => "filled",
+        //         "canceled-at" =>  0
         //     }
         //
         //     {
-        //         $id =>  20395337822,
-        //         symbol => "ethbtc",
-        //         'account-id' =>  5685075,
-        //         $amount => "0.001000000000000000",
-        //         $price => "0.0",
-        //         'created-at' =>  1545831584023,
-        //         $type => "buy-$market",
-        //         'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
-        //         'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
-        //         'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
-        //         'finished-at' =>  1545831584181,
-        //         source => "spot-api",
-        //         state => "filled",
-        //         'canceled-at' =>  0
+        //         "id" =>  20395337822,
+        //         "symbol" => "ethbtc",
+        //         "account-$id" =>  5685075,
+        //         "amount" => "0.001000000000000000",
+        //         "price" => "0.0",
+        //         "created-at" =>  1545831584023,
+        //         "type" => "buy-$market",
+        //         "field-$amount" => "0.029100000000000000", // they have fixed it for $filled-$amount
+        //         "field-cash-$amount" => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
+        //         "field-fees" => "0.000058200000000000", // they have fixed it for $filled-fees
+        //         "finished-at" =>  1545831584181,
+        //         "source" => "spot-api",
+        //         "state" => "filled",
+        //         "canceled-at" =>  0
         //     }
         //
         // linear swap cross margin createOrder
@@ -5406,8 +5406,8 @@ class huobi extends Exchange {
         // spot
         //
         //     {
-        //         code => 200,
-        //         data => {
+        //         "code" => 200,
+        //         "data" => {
         //             "success-count" => 2,
         //             "failed-count" => 0,
         //             "next-id" => 5454600
@@ -5417,12 +5417,12 @@ class huobi extends Exchange {
         // future and swap
         //
         //     {
-        //         status => "ok",
-        //         data => array(
-        //             errors => array(),
-        //             successes => "1104754904426696704"
+        //         "status" => "ok",
+        //         "data" => array(
+        //             "errors" => array(),
+        //             "successes" => "1104754904426696704"
         //         ),
-        //         ts => "1683435723755"
+        //         "ts" => "1683435723755"
         //     }
         //
         return $response;
@@ -5431,10 +5431,10 @@ class huobi extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         $currency => "usdt",
-        //         $address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //         addressTag => "",
-        //         chain => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
+        //         "currency" => "usdt",
+        //         "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //         "addressTag" => "",
+        //         "chain" => "usdterc20", // trc20usdt, hrc20usdt, usdt, algousdt
         //     }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -5470,13 +5470,13 @@ class huobi extends Exchange {
         $response = $this->spotPrivateGetV2AccountDepositAddress (array_merge($request, $params));
         //
         //     {
-        //         $code => 200,
-        //         $data => array(
+        //         "code" => 200,
+        //         "data" => array(
         //             {
-        //                 $currency => "eth",
-        //                 address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        //                 addressTag => "",
-        //                 chain => "eth"
+        //                 "currency" => "eth",
+        //                 "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 "addressTag" => "",
+        //                 "chain" => "eth"
         //             }
         //         )
         //     }
@@ -5510,14 +5510,14 @@ class huobi extends Exchange {
         $response = $this->spotPrivateGetV2AccountWithdrawAddress (array_merge($request, $params));
         //
         //     {
-        //         $code => 200,
-        //         $data => array(
+        //         "code" => 200,
+        //         "data" => array(
         //             {
-        //                 $currency => "eth",
-        //                 chain => "eth"
-        //                 $note => "Binance - TRC20",
-        //                 addressTag => "",
-        //                 $address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        //                 "currency" => "eth",
+        //                 "chain" => "eth"
+        //                 "note" => "Binance - TRC20",
+        //                 "addressTag" => "",
+        //                 "address" => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
         //             }
         //         )
         //     }
@@ -5650,7 +5650,7 @@ class huobi extends Exchange {
         return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -5928,11 +5928,11 @@ class huobi extends Exchange {
         $response = $this->$method (array_merge($request, $params));
         //
         //    {
-        //        $code => '200',
-        //        data => '660150061',
-        //        message => 'Succeed',
-        //        success => true,
-        //        'print-log' => true
+        //        "code" => "200",
+        //        "data" => "660150061",
+        //        "message" => "Succeed",
+        //        "success" => true,
+        //        "print-log" => true
         //    }
         //
         return $this->parse_transfer($response, $currency);
@@ -6570,24 +6570,24 @@ class huobi extends Exchange {
                 $method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
                 //
                 //    {
-                //        status => 'ok',
-                //        $data => array(
-                //           financial_record => array(
+                //        "status" => "ok",
+                //        "data" => array(
+                //           "financial_record" => array(
                 //               array(
-                //                   id => '1320088022',
-                //                   type => '30',
-                //                   amount => '0.004732510000000000',
-                //                   ts => '1641168019321',
-                //                   contract_code => 'BTC-USDT',
-                //                   asset => 'USDT',
-                //                   margin_account => 'BTC-USDT',
-                //                   face_margin_account => ''
+                //                   "id" => "1320088022",
+                //                   "type" => "30",
+                //                   "amount" => "0.004732510000000000",
+                //                   "ts" => "1641168019321",
+                //                   "contract_code" => "BTC-USDT",
+                //                   "asset" => "USDT",
+                //                   "margin_account" => "BTC-USDT",
+                //                   "face_margin_account" => ''
                 //               ),
                 //           ),
-                //           remain_size => '0',
-                //           next_id => null
+                //           "remain_size" => "0",
+                //           "next_id" => null
                 //        ),
-                //        ts => '1641189898425'
+                //        "ts" => "1641189898425"
                 //    }
                 //
                 $marginMode = null;
@@ -6653,13 +6653,13 @@ class huobi extends Exchange {
             ));
             //
             //     {
-            //       status => 'ok',
-            //       data => array(
-            //         contract_code => 'BTC-USDT',
-            //         lever_rate => '100',
-            //         margin_mode => 'isolated'
+            //       "status" => "ok",
+            //       "data" => array(
+            //         "contract_code" => "BTC-USDT",
+            //         "lever_rate" => "100",
+            //         "margin_mode" => "isolated"
             //       ),
-            //       ts => '1641184710649'
+            //       "ts" => "1641184710649"
             //     }
             //
         } else {
@@ -6670,17 +6670,17 @@ class huobi extends Exchange {
             //
             // future
             //     {
-            //       status => 'ok',
-            //       data => array( $symbol => 'BTC', lever_rate => 5 ),
-            //       ts => 1641184578678
+            //       "status" => "ok",
+            //       "data" => array( $symbol => "BTC", lever_rate => 5 ),
+            //       "ts" => 1641184578678
             //     }
             //
             // swap
             //
             //     {
-            //       status => 'ok',
-            //       data => array( contract_code => 'BTC-USD', lever_rate => '5' ),
-            //       ts => '1641184652979'
+            //       "status" => "ok",
+            //       "data" => array( contract_code => "BTC-USD", lever_rate => "5" ),
+            //       "ts" => "1641184652979"
             //     }
             //
         }
@@ -6699,12 +6699,12 @@ class huobi extends Exchange {
     public function parse_income($income, $market = null) {
         //
         //     {
-        //       $id => '1667161118',
-        //       $symbol => 'BTC',
-        //       type => '31',
-        //       $amount => '-2.11306593188E-7',
-        //       ts => '1641139308983',
-        //       contract_code => 'BTC-USD'
+        //       "id" => "1667161118",
+        //       "symbol" => "BTC",
+        //       "type" => "31",
+        //       "amount" => "-2.11306593188E-7",
+        //       "ts" => "1641139308983",
+        //       "contract_code" => "BTC-USD"
         //     }
         //
         $marketId = $this->safe_string($income, 'contract_code');
@@ -6728,33 +6728,33 @@ class huobi extends Exchange {
     public function parse_position($position, $market = null) {
         //
         //    {
-        //        $symbol => 'BTC',
-        //        contract_code => 'BTC-USDT',
-        //        volume => '1.000000000000000000',
-        //        available => '1.000000000000000000',
-        //        frozen => '0E-18',
-        //        cost_open => '47162.000000000000000000',
-        //        cost_hold => '47151.300000000000000000',
-        //        profit_unreal => '0.007300000000000000',
-        //        profit_rate => '-0.000144183876850008',
-        //        lever_rate => '2',
-        //        position_margin => '23.579300000000000000',
-        //        direction => 'buy',
-        //        profit => '-0.003400000000000000',
-        //        last_price => '47158.6',
-        //        margin_asset => 'USDT',
-        //        margin_mode => 'isolated',
-        //        margin_account => 'BTC-USDT',
-        //        margin_balance => '24.973020070000000000',
-        //        margin_position => '23.579300000000000000',
-        //        margin_frozen => '0',
-        //        margin_available => '1.393720070000000000',
-        //        profit_real => '0E-18',
-        //        risk_rate => '1.044107779705080303',
-        //        withdraw_available => '1.386420070000000000000000000000000000',
-        //        liquidation_price => '22353.229148614609571788',
-        //        adjust_factor => '0.015000000000000000',
-        //        margin_static => '24.965720070000000000'
+        //        "symbol" => "BTC",
+        //        "contract_code" => "BTC-USDT",
+        //        "volume" => "1.000000000000000000",
+        //        "available" => "1.000000000000000000",
+        //        "frozen" => "0E-18",
+        //        "cost_open" => "47162.000000000000000000",
+        //        "cost_hold" => "47151.300000000000000000",
+        //        "profit_unreal" => "0.007300000000000000",
+        //        "profit_rate" => "-0.000144183876850008",
+        //        "lever_rate" => "2",
+        //        "position_margin" => "23.579300000000000000",
+        //        "direction" => "buy",
+        //        "profit" => "-0.003400000000000000",
+        //        "last_price" => "47158.6",
+        //        "margin_asset" => "USDT",
+        //        "margin_mode" => "isolated",
+        //        "margin_account" => "BTC-USDT",
+        //        "margin_balance" => "24.973020070000000000",
+        //        "margin_position" => "23.579300000000000000",
+        //        "margin_frozen" => "0",
+        //        "margin_available" => "1.393720070000000000",
+        //        "profit_real" => "0E-18",
+        //        "risk_rate" => "1.044107779705080303",
+        //        "withdraw_available" => "1.386420070000000000000000000000000000",
+        //        "liquidation_price" => "22353.229148614609571788",
+        //        "adjust_factor" => "0.015000000000000000",
+        //        "margin_static" => "24.965720070000000000"
         //    }
         //
         $market = $this->safe_market($this->safe_string($position, 'contract_code'));
@@ -6849,29 +6849,29 @@ class huobi extends Exchange {
             ));
             //
             //     {
-            //       status => 'ok',
-            //       $data => array(
+            //       "status" => "ok",
+            //       "data" => array(
             //         {
-            //           symbol => 'BTC',
-            //           contract_code => 'BTC-USDT',
-            //           volume => '1.000000000000000000',
-            //           available => '1.000000000000000000',
-            //           frozen => '0E-18',
-            //           cost_open => '47162.000000000000000000',
-            //           cost_hold => '47162.000000000000000000',
-            //           profit_unreal => '0.047300000000000000',
-            //           profit_rate => '0.002005852169119206',
-            //           lever_rate => '2',
-            //           position_margin => '23.604650000000000000',
-            //           direction => 'buy',
-            //           profit => '0.047300000000000000',
-            //           last_price => '47209.3',
-            //           margin_asset => 'USDT',
-            //           margin_mode => 'isolated',
-            //           margin_account => 'BTC-USDT'
+            //           "symbol" => "BTC",
+            //           "contract_code" => "BTC-USDT",
+            //           "volume" => "1.000000000000000000",
+            //           "available" => "1.000000000000000000",
+            //           "frozen" => "0E-18",
+            //           "cost_open" => "47162.000000000000000000",
+            //           "cost_hold" => "47162.000000000000000000",
+            //           "profit_unreal" => "0.047300000000000000",
+            //           "profit_rate" => "0.002005852169119206",
+            //           "lever_rate" => "2",
+            //           "position_margin" => "23.604650000000000000",
+            //           "direction" => "buy",
+            //           "profit" => "0.047300000000000000",
+            //           "last_price" => "47209.3",
+            //           "margin_asset" => "USDT",
+            //           "margin_mode" => "isolated",
+            //           "margin_account" => "BTC-USDT"
             //         }
             //       ),
-            //       ts => '1641108676768'
+            //       "ts" => "1641108676768"
             //     }
             //
         } else {
@@ -6882,51 +6882,51 @@ class huobi extends Exchange {
             //
             // future
             //     {
-            //       status => 'ok',
-            //       $data => array(
+            //       "status" => "ok",
+            //       "data" => array(
             //         {
-            //           symbol => 'BTC',
-            //           contract_code => 'BTC220624',
-            //           contract_type => 'next_quarter',
-            //           volume => '1.000000000000000000',
-            //           available => '1.000000000000000000',
-            //           frozen => '0E-18',
-            //           cost_open => '49018.880000000009853343',
-            //           cost_hold => '49018.880000000009853343',
-            //           profit_unreal => '-8.62360608500000000000000000000000000000000000000E-7',
-            //           profit_rate => '-0.000845439023678622',
-            //           lever_rate => '2',
-            //           position_margin => '0.001019583964880634',
-            //           direction => 'sell',
-            //           profit => '-8.62360608500000000000000000000000000000000000000E-7',
-            //           last_price => '49039.61'
+            //           "symbol" => "BTC",
+            //           "contract_code" => "BTC220624",
+            //           "contract_type" => "next_quarter",
+            //           "volume" => "1.000000000000000000",
+            //           "available" => "1.000000000000000000",
+            //           "frozen" => "0E-18",
+            //           "cost_open" => "49018.880000000009853343",
+            //           "cost_hold" => "49018.880000000009853343",
+            //           "profit_unreal" => "-8.62360608500000000000000000000000000000000000000E-7",
+            //           "profit_rate" => "-0.000845439023678622",
+            //           "lever_rate" => "2",
+            //           "position_margin" => "0.001019583964880634",
+            //           "direction" => "sell",
+            //           "profit" => "-8.62360608500000000000000000000000000000000000000E-7",
+            //           "last_price" => "49039.61"
             //         }
             //       ),
-            //       ts => '1641109895199'
+            //       "ts" => "1641109895199"
             //     }
             //
             // swap
             //     {
-            //       status => 'ok',
-            //       $data => array(
+            //       "status" => "ok",
+            //       "data" => array(
             //         {
-            //           symbol => 'BTC',
-            //           contract_code => 'BTC-USD',
-            //           volume => '1.000000000000000000',
-            //           available => '1.000000000000000000',
-            //           frozen => '0E-18',
-            //           cost_open => '47150.000000000012353300',
-            //           cost_hold => '47150.000000000012353300',
-            //           profit_unreal => '0E-54',
-            //           profit_rate => '-7.86E-16',
-            //           lever_rate => '3',
-            //           position_margin => '0.000706963591375044',
-            //           direction => 'buy',
-            //           profit => '0E-54',
-            //           last_price => '47150'
+            //           "symbol" => "BTC",
+            //           "contract_code" => "BTC-USD",
+            //           "volume" => "1.000000000000000000",
+            //           "available" => "1.000000000000000000",
+            //           "frozen" => "0E-18",
+            //           "cost_open" => "47150.000000000012353300",
+            //           "cost_hold" => "47150.000000000012353300",
+            //           "profit_unreal" => "0E-54",
+            //           "profit_rate" => "-7.86E-16",
+            //           "lever_rate" => "3",
+            //           "position_margin" => "0.000706963591375044",
+            //           "direction" => "buy",
+            //           "profit" => "0E-54",
+            //           "last_price" => "47150"
             //         }
             //       ),
-            //       ts => '1641109636572'
+            //       "ts" => "1641109636572"
             //     }
             //
         }
@@ -7514,25 +7514,25 @@ class huobi extends Exchange {
         //
         //  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
         //    {
-        //        status => 'ok',
-        //        $data => array(
-        //            $symbol => 'BTC',
-        //            $tick => array(
+        //        "status" => "ok",
+        //        "data" => array(
+        //            "symbol" => "BTC",
+        //            "tick" => array(
         //                array(
-        //                    volume => '4385.4350000000000000',
-        //                    amount_type => '2',
-        //                    ts => '1648220400000',
-        //                    value => '194059884.1850000000000000'
+        //                    "volume" => "4385.4350000000000000",
+        //                    "amount_type" => "2",
+        //                    "ts" => "1648220400000",
+        //                    "value" => "194059884.1850000000000000"
         //                ),
         //                ...
         //            ),
-        //            contract_code => 'BTC-USDT',
-        //            business_type => 'swap',
-        //            pair => 'BTC-USDT',
-        //            contract_type => 'swap',
-        //            trade_partition => 'USDT'
+        //            "contract_code" => "BTC-USDT",
+        //            "business_type" => "swap",
+        //            "pair" => "BTC-USDT",
+        //            "contract_type" => "swap",
+        //            "trade_partition" => "USDT"
         //        ),
-        //        ts => '1648223733007'
+        //        "ts" => "1648223733007"
         //    }
         //
         //  contractPublicGetSwapApiV1SwapHisOpenInterest
@@ -7584,7 +7584,7 @@ class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -7683,10 +7683,10 @@ class huobi extends Exchange {
         // fetchOpenInterestHistory
         //
         //    {
-        //        volume => '4385.4350000000000000',
-        //        amount_type => '2',
-        //        ts => '1648220400000',
-        //        $value => '194059884.1850000000000000'
+        //        "volume" => "4385.4350000000000000",
+        //        "amount_type" => "2",
+        //        "ts" => "1648220400000",
+        //        "value" => "194059884.1850000000000000"
         //    }
         //
         // fetchOpenInterest => USDT-M
@@ -7884,21 +7884,13 @@ class huobi extends Exchange {
          * @param {array} [$params] exchange specific $params
          * @param {int} [$params->until] timestamp in ms, value range = start_time -> current time，default = current time
          * @param {int} [$params->page_index] page index, default page 1 if not filled
-         * @param {int} [$params->code] unified currency $code, can be used when $symbol is null
+         * @param {int} [$params->code] unified currency code, can be used when $symbol is null
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#settlement-history-structure settlement history objects}
          */
-        $code = $this->safe_string($params, 'code');
+        $this->check_required_symbol('fetchSettlementHistory', $symbol);
         $until = $this->safe_integer_2($params, 'until', 'till');
         $params = $this->omit($params, array( 'until', 'till' ));
-        $market = ($symbol === null) ? null : $this->market($symbol);
-        list($type, $query) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
-        if ($type === 'future') {
-            if ($symbol === null && $code === null) {
-                throw new ArgumentsRequired($this->id . ' requires a $symbol argument or $params["code"] for fetchSettlementHistory future');
-            }
-        } elseif ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $symbol argument for fetchSettlementHistory swap');
-        }
+        $market = $this->market($symbol);
         $request = array();
         if ($market['future']) {
             $request['symbol'] = $market['baseId'];
@@ -7922,7 +7914,7 @@ class huobi extends Exchange {
                 $method = 'contractPublicGetSwapApiV1SwapSettlementRecords';
             }
         }
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$method (array_merge($request, $params));
         //
         // linear swap, coin-m swap
         //

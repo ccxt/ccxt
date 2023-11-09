@@ -6,10 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinmate import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -299,7 +299,7 @@ class coinmate(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -324,7 +324,7 @@ class coinmate(Exchange, ImplicitAPI):
         response = await self.privatePostBalances(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -343,7 +343,7 @@ class coinmate(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -418,39 +418,39 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # deposits
         #
         #     {
-        #         transactionId: 1862815,
-        #         timestamp: 1516803982388,
-        #         amountCurrency: 'LTC',
-        #         amount: 1,
-        #         fee: 0,
-        #         walletType: 'LTC',
-        #         transferType: 'DEPOSIT',
-        #         transferStatus: 'COMPLETED',
-        #         txid:
-        #         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
-        #         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
-        #         destinationTag: null
+        #         "transactionId": 1862815,
+        #         "timestamp": 1516803982388,
+        #         "amountCurrency": "LTC",
+        #         "amount": 1,
+        #         "fee": 0,
+        #         "walletType": "LTC",
+        #         "transferType": "DEPOSIT",
+        #         "transferStatus": "COMPLETED",
+        #         "txid":
+        #         "ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245",
+        #         "destination": "LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn",
+        #         "destinationTag": null
         #     }
         #
         # withdrawals
         #
         #     {
-        #         transactionId: 2140966,
-        #         timestamp: 1519314282976,
-        #         amountCurrency: 'EUR',
-        #         amount: 8421.7228,
-        #         fee: 16.8772,
-        #         walletType: 'BANK_WIRE',
-        #         transferType: 'WITHDRAWAL',
-        #         transferStatus: 'COMPLETED',
-        #         txid: null,
-        #         destination: null,
-        #         destinationTag: null
+        #         "transactionId": 2140966,
+        #         "timestamp": 1519314282976,
+        #         "amountCurrency": "EUR",
+        #         "amount": 8421.7228,
+        #         "fee": 16.8772,
+        #         "walletType": "BANK_WIRE",
+        #         "transferType": "WITHDRAWAL",
+        #         "transferStatus": "COMPLETED",
+        #         "txid": null,
+        #         "destination": null,
+        #         "destinationTag": null
         #     }
         #
         # withdraw
@@ -560,21 +560,21 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, None, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchMyTrades(private)
         #
         #     {
-        #         transactionId: 2671819,
-        #         createdTimestamp: 1529649127605,
-        #         currencyPair: 'LTC_BTC',
-        #         type: 'BUY',
-        #         orderType: 'LIMIT',
-        #         orderId: 101810227,
-        #         amount: 0.01,
-        #         price: 0.01406,
-        #         fee: 0,
-        #         feeType: 'MAKER'
+        #         "transactionId": 2671819,
+        #         "createdTimestamp": 1529649127605,
+        #         "currencyPair": "LTC_BTC",
+        #         "type": "BUY",
+        #         "orderType": "LIMIT",
+        #         "orderId": 101810227,
+        #         "amount": 0.01,
+        #         "price": 0.01406,
+        #         "fee": 0,
+        #         "feeType": "MAKER"
         #     }
         #
         # fetchTrades(public)
@@ -622,7 +622,7 @@ class coinmate(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -672,9 +672,9 @@ class coinmate(Exchange, ImplicitAPI):
         response = await self.privatePostTraderFees(self.extend(request, params))
         #
         #     {
-        #         error: False,
-        #         errorMessage: null,
-        #         data: {maker: '0.3', taker: '0.35', timestamp: '1646253217815'}
+        #         "error": False,
+        #         "errorMessage": null,
+        #         "data": {maker: '0.3', taker: "0.35", timestamp: "1646253217815"}
         #     }
         #
         data = self.safe_value(response, 'data', {})
@@ -691,7 +691,7 @@ class coinmate(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -704,17 +704,16 @@ class coinmate(Exchange, ImplicitAPI):
         extension = {'status': 'open'}
         return self.parse_orders(response['data'], None, since, limit, extension)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the coinmate api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOrders', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -747,42 +746,42 @@ class coinmate(Exchange, ImplicitAPI):
         # limit sell
         #
         #     {
-        #         id: 781246605,
-        #         timestamp: 1584480015133,
-        #         trailingUpdatedTimestamp: null,
-        #         type: 'SELL',
-        #         currencyPair: 'ETH_BTC',
-        #         price: 0.0345,
-        #         amount: 0.01,
-        #         stopPrice: null,
-        #         originalStopPrice: null,
-        #         marketPriceAtLastUpdate: null,
-        #         marketPriceAtOrderCreation: null,
-        #         orderTradeType: 'LIMIT',
-        #         hidden: False,
-        #         trailing: False,
-        #         clientOrderId: null
+        #         "id": 781246605,
+        #         "timestamp": 1584480015133,
+        #         "trailingUpdatedTimestamp": null,
+        #         "type": "SELL",
+        #         "currencyPair": "ETH_BTC",
+        #         "price": 0.0345,
+        #         "amount": 0.01,
+        #         "stopPrice": null,
+        #         "originalStopPrice": null,
+        #         "marketPriceAtLastUpdate": null,
+        #         "marketPriceAtOrderCreation": null,
+        #         "orderTradeType": "LIMIT",
+        #         "hidden": False,
+        #         "trailing": False,
+        #         "clientOrderId": null
         #     }
         #
         # limit buy
         #
         #     {
-        #         id: 67527001,
-        #         timestamp: 1517931722613,
-        #         trailingUpdatedTimestamp: null,
-        #         type: 'BUY',
-        #         price: 5897.24,
-        #         remainingAmount: 0.002367,
-        #         originalAmount: 0.1,
-        #         stopPrice: null,
-        #         originalStopPrice: null,
-        #         marketPriceAtLastUpdate: null,
-        #         marketPriceAtOrderCreation: null,
-        #         status: 'CANCELLED',
-        #         orderTradeType: 'LIMIT',
-        #         hidden: False,
-        #         avgPrice: null,
-        #         trailing: False,
+        #         "id": 67527001,
+        #         "timestamp": 1517931722613,
+        #         "trailingUpdatedTimestamp": null,
+        #         "type": "BUY",
+        #         "price": 5897.24,
+        #         "remainingAmount": 0.002367,
+        #         "originalAmount": 0.1,
+        #         "stopPrice": null,
+        #         "originalStopPrice": null,
+        #         "marketPriceAtLastUpdate": null,
+        #         "marketPriceAtOrderCreation": null,
+        #         "status": "CANCELLED",
+        #         "orderTradeType": "LIMIT",
+        #         "hidden": False,
+        #         "avgPrice": null,
+        #         "trailing": False,
         #     }
         #
         id = self.safe_string(order, 'id')

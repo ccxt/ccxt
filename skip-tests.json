@@ -1368,6 +1368,7 @@
         }
     },
     "tidex": {
+        "skip": "exchange unavailable, probably api upgrade needed"
     },
     "kraken": {
         "skipWs": true,
@@ -1565,6 +1566,17 @@
                 "lastPrice": "undefined",
                 "percentage": "undefined",
                 "liquidationPrice": "undefined"
+            }
+        }
+    },
+    "coinlist": {
+        "skipMethods": {
+            "fetchTicker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing"
+            },
+            "fetchTickers": {
+                "quoteVolume": "quoteVolume >= baseVolume * low  is failing",
+                "ask": "invalid"
             }
         }
     }

@@ -481,22 +481,22 @@ class latoken extends Exchange {
         //
         //     array(
         //         array(
-        //             id => "e5852e02-8711-431c-9749-a6f5503c6dbe",
-        //             status => "ACCOUNT_STATUS_ACTIVE",
-        //             $type => "ACCOUNT_TYPE_WALLET",
-        //             $timestamp => "1635920106506",
-        //             currency => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             available => "100.000000",
-        //             blocked => "0.000000"
+        //             "id" => "e5852e02-8711-431c-9749-a6f5503c6dbe",
+        //             "status" => "ACCOUNT_STATUS_ACTIVE",
+        //             "type" => "ACCOUNT_TYPE_WALLET",
+        //             "timestamp" => "1635920106506",
+        //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "available" => "100.000000",
+        //             "blocked" => "0.000000"
         //         ),
         //         {
-        //             id => "369df204-acbc-467e-a25e-b16e3cc09cf6",
-        //             status => "ACCOUNT_STATUS_ACTIVE",
-        //             $type => "ACCOUNT_TYPE_SPOT",
-        //             $timestamp => "1635920106504",
-        //             currency => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
-        //             available => "100.000000",
-        //             blocked => "0.000000"
+        //             "id" => "369df204-acbc-467e-a25e-b16e3cc09cf6",
+        //             "status" => "ACCOUNT_STATUS_ACTIVE",
+        //             "type" => "ACCOUNT_TYPE_SPOT",
+        //             "timestamp" => "1635920106504",
+        //             "currency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "available" => "100.000000",
+        //             "blocked" => "0.000000"
         //         }
         //     )
         //
@@ -534,7 +534,7 @@ class latoken extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -571,25 +571,25 @@ class latoken extends Exchange {
         return $this->parse_order_book($response, $symbol, null, 'bid', 'ask', 'price', 'quantity');
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //    {
-        //        symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
-        //        baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
-        //        quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
-        //        volume24h => '165723597.189022176000000000',
-        //        volume7d => '934505768.625109571000000000',
-        //        change24h => '0.0200',
-        //        change7d => '-6.4200',
-        //        amount24h => '6438.457663100000000000',
-        //        amount7d => '35657.785013800000000000',
-        //        lastPrice => '25779.16',
-        //        lastQuantity => '0.248403300000000000',
-        //        bestBid => '25778.74',
-        //        bestBidQuantity => '0.6520232',
-        //        bestAsk => '25779.17',
-        //        bestAskQuantity => '0.4956043',
-        //        updateTimestamp => '1693965231406'
+        //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //        "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "volume24h" => "165723597.189022176000000000",
+        //        "volume7d" => "934505768.625109571000000000",
+        //        "change24h" => "0.0200",
+        //        "change7d" => "-6.4200",
+        //        "amount24h" => "6438.457663100000000000",
+        //        "amount7d" => "35657.785013800000000000",
+        //        "lastPrice" => "25779.16",
+        //        "lastQuantity" => "0.248403300000000000",
+        //        "bestBid" => "25778.74",
+        //        "bestBidQuantity" => "0.6520232",
+        //        "bestAsk" => "25779.17",
+        //        "bestAskQuantity" => "0.4956043",
+        //        "updateTimestamp" => "1693965231406"
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -619,7 +619,7 @@ class latoken extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -635,22 +635,22 @@ class latoken extends Exchange {
         $response = $this->publicGetTickerBaseQuote (array_merge($request, $params));
         //
         //    {
-        //        $symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
-        //        baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
-        //        quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
-        //        volume24h => '165723597.189022176000000000',
-        //        volume7d => '934505768.625109571000000000',
-        //        change24h => '0.0200',
-        //        change7d => '-6.4200',
-        //        amount24h => '6438.457663100000000000',
-        //        amount7d => '35657.785013800000000000',
-        //        lastPrice => '25779.16',
-        //        lastQuantity => '0.248403300000000000',
-        //        bestBid => '25778.74',
-        //        bestBidQuantity => '0.6520232',
-        //        bestAsk => '25779.17',
-        //        bestAskQuantity => '0.4956043',
-        //        updateTimestamp => '1693965231406'
+        //        "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //        "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //        "volume24h" => "165723597.189022176000000000",
+        //        "volume7d" => "934505768.625109571000000000",
+        //        "change24h" => "0.0200",
+        //        "change7d" => "-6.4200",
+        //        "amount24h" => "6438.457663100000000000",
+        //        "amount7d" => "35657.785013800000000000",
+        //        "lastPrice" => "25779.16",
+        //        "lastQuantity" => "0.248403300000000000",
+        //        "bestBid" => "25778.74",
+        //        "bestBidQuantity" => "0.6520232",
+        //        "bestAsk" => "25779.17",
+        //        "bestAskQuantity" => "0.4956043",
+        //        "updateTimestamp" => "1693965231406"
         //    }
         //
         return $this->parse_ticker($response, $market);
@@ -668,29 +668,29 @@ class latoken extends Exchange {
         //
         //    array(
         //        {
-        //            symbol => '92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5',
-        //            baseCurrency => '92151d82-df98-4d88-9a4d-284fa9eca49f',
-        //            quoteCurrency => '0c3a106d-bde3-4c13-a26e-3fd2394529e5',
-        //            volume24h => '165723597.189022176000000000',
-        //            volume7d => '934505768.625109571000000000',
-        //            change24h => '0.0200',
-        //            change7d => '-6.4200',
-        //            amount24h => '6438.457663100000000000',
-        //            amount7d => '35657.785013800000000000',
-        //            lastPrice => '25779.16',
-        //            lastQuantity => '0.248403300000000000',
-        //            bestBid => '25778.74',
-        //            bestBidQuantity => '0.6520232',
-        //            bestAsk => '25779.17',
-        //            bestAskQuantity => '0.4956043',
-        //            updateTimestamp => '1693965231406'
+        //            "symbol" => "92151d82-df98-4d88-9a4d-284fa9eca49f/0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "baseCurrency" => "92151d82-df98-4d88-9a4d-284fa9eca49f",
+        //            "quoteCurrency" => "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //            "volume24h" => "165723597.189022176000000000",
+        //            "volume7d" => "934505768.625109571000000000",
+        //            "change24h" => "0.0200",
+        //            "change7d" => "-6.4200",
+        //            "amount24h" => "6438.457663100000000000",
+        //            "amount7d" => "35657.785013800000000000",
+        //            "lastPrice" => "25779.16",
+        //            "lastQuantity" => "0.248403300000000000",
+        //            "bestBid" => "25778.74",
+        //            "bestBidQuantity" => "0.6520232",
+        //            "bestAsk" => "25779.17",
+        //            "bestAskQuantity" => "0.4956043",
+        //            "updateTimestamp" => "1693965231406"
         //        }
         //    )
         //
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -776,7 +776,7 @@ class latoken extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -833,10 +833,10 @@ class latoken extends Exchange {
         $response = $this->publicGetTradeFeeCurrencyQuote (array_merge($request, $params));
         //
         //     {
-        //         makerFee => '0.004900000000000000',
-        //         takerFee => '0.004900000000000000',
-        //         type => 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
-        //         take => 'FEE_SCHEME_TAKE_PROPORTION'
+        //         "makerFee" => "0.004900000000000000",
+        //         "takerFee" => "0.004900000000000000",
+        //         "type" => "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+        //         "take" => "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
         return array(
@@ -857,10 +857,10 @@ class latoken extends Exchange {
         $response = $this->privateGetAuthTradeFeeCurrencyQuote (array_merge($request, $params));
         //
         //     {
-        //         makerFee => '0.004900000000000000',
-        //         takerFee => '0.004900000000000000',
-        //         type => 'FEE_SCHEME_TYPE_PERCENT_QUOTE',
-        //         take => 'FEE_SCHEME_TAKE_PROPORTION'
+        //         "makerFee" => "0.004900000000000000",
+        //         "takerFee" => "0.004900000000000000",
+        //         "type" => "FEE_SCHEME_TYPE_PERCENT_QUOTE",
+        //         "take" => "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
         return array(
@@ -1053,7 +1053,7 @@ class latoken extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrdersByPair
@@ -1107,7 +1107,7 @@ class latoken extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getMyOrders
@@ -1410,7 +1410,7 @@ class latoken extends Exchange {
         return $this->parse_transactions($content, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",

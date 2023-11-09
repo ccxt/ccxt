@@ -548,6 +548,7 @@ class ImplicitAPI:
     public_get_klines = publicGetKlines = Entry('klines', 'public', 'GET', {'cost': 0.4})
     public_get_uiklines = publicGetUiKlines = Entry('uiKlines', 'public', 'GET', {'cost': 0.4})
     public_get_ticker_24hr = publicGetTicker24hr = Entry('ticker/24hr', 'public', 'GET', {'cost': 0.4, 'noSymbol': 16})
+    public_get_ticker = publicGetTicker = Entry('ticker', 'public', 'GET', {'cost': 0.4, 'noSymbol': 16})
     public_get_ticker_price = publicGetTickerPrice = Entry('ticker/price', 'public', 'GET', {'cost': 0.4, 'noSymbol': 0.8})
     public_get_ticker_bookticker = publicGetTickerBookTicker = Entry('ticker/bookTicker', 'public', 'GET', {'cost': 0.4, 'noSymbol': 0.8})
     public_get_exchangeinfo = publicGetExchangeInfo = Entry('exchangeInfo', 'public', 'GET', {'cost': 4})
