@@ -27,7 +27,7 @@
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
     "tsBuild": "tsc || true",
-    "tsBuildExamples": "tsc -p ./examples/tsconfig.json || true",
+    "tsBuildExamples": "tsc -p ./examples/tsconfig.json",
     "emitAPI": "node build/generateImplicitAPI.js",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges && npm run build-docs",
     "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
