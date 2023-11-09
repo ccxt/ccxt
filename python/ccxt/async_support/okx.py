@@ -2472,6 +2472,11 @@ class okx(Exchange, ImplicitAPI):
             tradeMode = marginMode if margin else 'cash'
             request['tdMode'] = tradeMode
         elif contract:
+            if market['swap'] or market['future']:
+                positionSide = None
+                positionSide, params = self.handle_option_and_params(params, 'createOrder', 'positionSide')
+                if positionSide is not None:
+                    request['posSide'] = positionSide
             request['tdMode'] = marginMode
         isMarketOrder = type == 'market'
         postOnly = False
@@ -2617,7 +2622,7 @@ class okx(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the okx api endpoint
-        :param bool [params.reduceOnly]: MARGIN orders only, or swap/future orders in net mode
+        :param bool [params.reduceOnly]: a mark to reduce the position size for margin, swap and future orders
         :param bool [params.postOnly]: True to place a post only order
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
@@ -2627,6 +2632,7 @@ class okx(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: used for stop loss limit orders, not used for stop loss market price orders
         :param str [params.stopLoss.type]: 'market' or 'limit' used to specify the stop loss price type
+        :param str [params.positionSide]: if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
@@ -2643,7 +2649,13 @@ class okx(Exchange, ImplicitAPI):
             # submit a single order in an array to the batch order endpoint
             # because it has a lower ratelimit
             request = [request]
-        response = await getattr(self, method)(request)
+        response = None
+        if method == 'privatePostTradeOrder':
+            response = await self.privatePostTradeOrder(request)
+        elif method == 'privatePostTradeOrderAlgo':
+            response = await self.privatePostTradeOrderAlgo(request)
+        else:
+            response = await self.privatePostTradeBatchOrders(request)
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0)
         order = self.parse_order(first, market)
