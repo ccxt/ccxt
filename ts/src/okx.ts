@@ -2778,8 +2778,17 @@ export default class okx extends Exchange {
             // submit a single order in an array to the batch order endpoint
             // because it has a lower ratelimit
             request = [ request ];
+        } else {
+            request = this.extend (request, params);
         }
-        const response = await this[method] (request);
+        let response = undefined;
+        if (method === 'privatePostTradeOrder') {
+            response = await this.privatePostTradeOrder (request);
+        } else if (method === 'privatePostTradeOrderAlgo') {
+            response = await this.privatePostTradeOrderAlgo (request);
+        } else {
+            response = await this.privatePostTradeBatchOrders (request);
+        }
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0);
         const order = this.parseOrder (first, market);
