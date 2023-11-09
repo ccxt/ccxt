@@ -318,8 +318,8 @@ class bitvavo extends Exchange {
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetMarkets ($params));
-            $currencies = $this->currencies;
-            $currenciesById = $this->index_by($currencies, 'symbol');
+            $currencies = Async\await($this->fetch_currencies());
+            $currenciesById = $this->index_by($currencies, 'id');
             //
             //     array(
             //         {
@@ -344,7 +344,8 @@ class bitvavo extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $status = $this->safe_string($market, 'status');
                 $baseCurrency = $this->safe_value($currenciesById, $baseId);
-                $result[] = array(
+                $basePrecision = $this->safe_integer($baseCurrency, 'precision');
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
                     'base' => $base,
@@ -369,7 +370,7 @@ class bitvavo extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_integer($baseCurrency, 'decimals', 8),
+                        'amount' => $this->safe_integer($baseCurrency, 'decimals', $basePrecision),
                         'price' => $this->safe_integer($market, 'pricePrecision'),
                     ),
                     'limits' => array(
@@ -392,7 +393,7 @@ class bitvavo extends Exchange {
                     ),
                     'created' => null,
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         }) ();
