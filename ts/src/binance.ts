@@ -987,9 +987,11 @@ export default class binance extends Exchange {
                         'um/order': 1, // 1
                         'um/conditional/order': 1,
                         'um/allOpenOrders': 1, // 1
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1, // 1
                         'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1, // 1
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5, // 5
                         'margin/orderList': 2, // 2
