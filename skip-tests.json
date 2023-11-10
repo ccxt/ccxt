@@ -1355,6 +1355,13 @@
             }
         }
     },
+    "protondex": {
+        "skipMethods": {
+            "fetchTrades": "ide key is expected to be one from: [buy,sell]",
+            "fetchOrderBook": "bid should be less than next bid",
+            "fetchOHLCV": "unexpected issue, works for regular calls from example"
+        }
+    },
     "okx": {
         "skipMethods": {
             "loadMarkets": "linear & inverse must not be same",

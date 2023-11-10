@@ -83,6 +83,7 @@ const {
     , urlencodeWithArrayRepeat
     , microseconds
     , binaryToBase64
+    , binaryToBase58
     , strip
     , toArray
     , safeFloatN
@@ -417,6 +418,7 @@ export default class Exchange {
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat
     microseconds = microseconds
     binaryToBase64 = binaryToBase64
+    binaryToBase58 = binaryToBase58
     strip = strip
     toArray = toArray
     safeFloatN = safeFloatN
