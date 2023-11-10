@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Trade, Balances, Transaction } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Trade, Balances, Transaction, MarginMode } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -2369,14 +2369,16 @@ export default class hitbtc extends Exchange {
         }, market);
     }
 
-    async fetchMarginMode (symbol: string = undefined, params = {}) {
+    async fetchMarginMode (symbol: string = undefined, params = {}): Promise<MarginMode> {
         /**
          * @method
          * @name hitbtc#fetchMarginMode
          * @description fetches margin mode of the user
+         * @see https://api.hitbtc.com/#get-margin-position-parameters
+         * @see https://api.hitbtc.com/#get-futures-position-parameters
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @returns {string} 'cross' or 'isolated'
+         * @returns {object} Struct of MarginMode
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -2386,13 +2388,12 @@ export default class hitbtc extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarginMode', market, params);
         let response = undefined;
-        if (marketType === 'spot') {
-            throw new BadSymbol (this.id + ' fetchMarginMode() supports swap contracts and margin only');
-        }
         if (marketType === 'margin') {
             response = await this.privateGetMarginConfig (params);
-        } else {
+        } else if (marketType === 'swap') {
             response = await this.privateGetFuturesConfig (params);
+        } else {
+            throw new BadSymbol (this.id + ' fetchMarginMode() supports swap contracts and margin only');
         }
         //
         // margin
@@ -2441,8 +2442,7 @@ export default class hitbtc extends Exchange {
             });
         }
         const filteredMargin = this.filterBySymbol (marginModes, symbol);
-        const first = this.safeValue (filteredMargin, 0);
-        return this.safeString (first, 'marginMode');
+        return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {

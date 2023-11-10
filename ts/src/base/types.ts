@@ -279,6 +279,11 @@ export interface FundingHistory {
     amount: number;
 }
 
+export interface MarginMode {
+    symbol: string;
+    marginMode: 'isolated' | 'cross' | string;
+}
+
 /** [ timestamp, open, high, low, close, volume ] */
 export type OHLCV = [number, number, number, number, number, number];
 
