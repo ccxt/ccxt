@@ -462,9 +462,9 @@ export default class cryptocom extends cryptocomRest {
          * @name cryptocom#watchPositions
          * @description watch all open positions
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets();
         await this.authenticate();

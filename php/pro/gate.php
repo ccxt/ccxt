@@ -780,9 +780,9 @@ class gate extends \ccxt\async\gate {
              * @see https://www.gate.io/docs/developers/delivery/ws/en/#$positions-subscription
              * @see https://www.gate.io/docs/developers/options/ws/en/#$positions-$channel
              * watch all open $positions
-             * @param {[string]|null} $symbols list of unified $market $symbols
+             * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
             $market = null;

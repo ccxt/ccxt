@@ -807,9 +807,9 @@ class okx(ccxt.async_support.okx):
         """
         :see: https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
         watch all open positions
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         if self.is_empty(symbols):
             raise ArgumentsRequired(self.id + ' watchPositions requires a list of symbols')

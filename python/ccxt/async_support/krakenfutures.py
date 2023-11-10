@@ -1475,7 +1475,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response['fills'], market, since, limit)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response

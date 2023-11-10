@@ -511,7 +511,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coinfalcon api endpoint
@@ -711,7 +711,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'], False)
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -753,7 +753,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         transactions.reverse()  # no timestamp but in reversed order
         return self.parse_transactions(transactions, currency, None, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code

@@ -1301,7 +1301,7 @@ class tokocrypto extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://www.tokocrypto.com/apidocs/#account-information-signed
          * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2022,7 +2022,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.tokocrypto.com/apidocs/#deposit-history-signed
          * fetch all $deposits made to an account
@@ -2082,7 +2082,7 @@ class tokocrypto extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.tokocrypto.com/apidocs/#withdraw-signed
          * fetch all $withdrawals made from an account

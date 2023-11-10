@@ -976,9 +976,9 @@ class bybit extends bybit$1 {
          * @name bybit#watchPositions
          * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
          * @description watch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets();
         const method = 'watchPositions';

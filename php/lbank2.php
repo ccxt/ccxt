@@ -1146,7 +1146,7 @@ class lbank2 extends Exchange {
         return null;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://www.lbank.info/en-US/docs/index.html#asset-information
@@ -2089,7 +2089,7 @@ class lbank2 extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all $deposits made to an account
          * @see https://www.lbank.info/en-US/docs/index.html#get-recharge-history
@@ -2141,7 +2141,7 @@ class lbank2 extends Exchange {
         return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
