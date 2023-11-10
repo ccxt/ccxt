@@ -962,7 +962,9 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'um/order': 1, // 0
+                        'um/conditional/order': 1,
                         'cm/order': 1, // 0
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133, // Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
                         'marginLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
                         'repayLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
@@ -983,8 +985,10 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'um/order': 1, // 1
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1, // 1
                         'cm/order': 1, // 1
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1, // 1
                         'margin/order': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5, // 5
