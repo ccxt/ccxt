@@ -1002,7 +1002,11 @@ export default class oceanex extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const errorCode = this.safeString (response, 'code');
+        let errorCode = this.safeString (response, 'code');
+        if (errorCode === undefined) {
+            const errorBlock = this.safeValue (response, 'error');
+            errorCode = this.safeString (errorBlock, 'errorCode');
+        }
         const message = this.safeString (response, 'message');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
             const feedback = this.id + ' ' + body;
