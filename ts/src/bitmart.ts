@@ -2276,6 +2276,7 @@ export default class bitmart extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         const leverage = this.safeInteger (params, 'leverage', 1);
+        params = this.omit (params, 'leverage');
         request['leverage'] = this.numberToString (leverage);
         return this.extend (request, params);
     }
