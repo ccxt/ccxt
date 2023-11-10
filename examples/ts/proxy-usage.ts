@@ -24,6 +24,7 @@ async function example_socksProxy () {
 async function example_webSockets () {
     const myEx = new ccxt.pro.kucoin ();
     myEx.httpProxy = 'http://5.75.153.75:8002'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
+    myEx.wsProxy = 'http://5.75.153.75:8002'; // "wsProxy" or "wssProxy" (depending on your proxy protocol)
     await myEx.loadMarkets ();
     myEx.handleMessage = ws_helper_callback; // todo for PHP: specifically this custom example does not work in PHP to retrieve the target message, however proxies do work in PHP for websockets independently from this example
     const fakeExchangeWsUrl = 'ws://5.75.153.75:9876';

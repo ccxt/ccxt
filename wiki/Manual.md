@@ -5814,13 +5814,20 @@ So requests will be made to i.e. `https://cors-anywhere.herokuapp.com/https://ex
 This approach works **only for REST** requests, but not for websocket connections. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
 
 #### httpProxy and httpsProxy
-To set a real http(s) proxy for your scripts, you need to have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), so calls are made directly to target server, tunneled through a proxy server:
+To set a real http(s) proxy for your scripts, you need to have an access to a remote [http or https proxy](https://stackoverflow.com/q/10440690/2377343), so calls will be made directly to the target exchange, tunneled through your proxy server:
 ```
 ex.httpProxy = 'http://1.2.3.4:8080/';
 // or
 ex.httpsProxy = 'http://1.2.3.4:8080/';
 ```
-This approach works for websocket connections too. ((_How to test if your proxy works_)[#test-if-your-proxy-works])
+This approach only affects **non-websocket** requests of ccxt. To route CCXT's WebSockets connections through proxy, you need to specifically set `wsProxy` (or `wssProxy`) property, in addition to the `httpProxy` (or `httpsProxy`), so your script should be like:
+```
+ex.httpProxy = 'http://1.2.3.4:8080/';
+ex.wsProxy   = 'http://1.2.3.4:8080/';
+```
+So, both connections (HTTP & WS) would go through proxies.
+((_How to test if your proxy works_)[#test-if-your-proxy-works])
+
 
 #### socksProxy
 You can also use [socks proxy](https://www.google.com/search?q=what+is+socks+proxy) with the following format:
