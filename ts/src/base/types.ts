@@ -156,7 +156,6 @@ export interface Transaction {
 }
 
 export interface Tickers extends Dictionary<Ticker> {
-    info: any;
 }
 
 export interface Currency {
