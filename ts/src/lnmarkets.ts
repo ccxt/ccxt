@@ -2,7 +2,7 @@ import Exchange from './abstract/lnmarkets.js';
 import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, OrderType, Order, Ticker, Position } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Ticker } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 export default class lnmarkets extends Exchange {
@@ -791,7 +791,7 @@ export default class lnmarkets extends Exchange {
         return this.sortBy (orders, 'timestamp');
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}): Promise<Position[]> {
+    async fetchPositions (symbols: string[] = undefined, params = {}) {
         /**
          * @method
          * @name lnmarkets#fetchPositions
@@ -806,7 +806,7 @@ export default class lnmarkets extends Exchange {
         if (symbols === undefined) {
             symbols = [ 'BTC/USD:BTC' ];
         }
-        const positions = [];
+        const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             if (symbol === 'BTC/USD:BTC') {
@@ -817,17 +817,17 @@ export default class lnmarkets extends Exchange {
                 const response = await this.privateGetFutures (params);
                 for (let j = 0; j < response.length; j++) {
                     const position = response[j];
-                    positions.push (this.parsePosition (position, 'BTC/USD:BTC'));
+                    result.push (this.parsePosition (position, 'BTC/USD:BTC'));
                 }
             } else {
                 const response = await this.privateGetOptions (params);
                 for (let j = 0; j < response.length; j++) {
                     const position = response[j];
-                    positions.push (this.parsePosition (position, symbol));
+                    result.push (this.parsePosition (position, symbol));
                 }
             }
         }
-        return positions;
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
     async fetchStatus (params = {}) {
@@ -1122,7 +1122,6 @@ export default class lnmarkets extends Exchange {
             'symbol': safeSymbol,
             'timestamp': timestamp,
             'datetime': datetime,
-            'isolated': true,
             'hedged': false,
             'side': this.parsePositionSide (this.safeString (info, 'side'), this.safeString (info, 'type')),
             'contracts': this.safeNumber (info, 'quantity'),
@@ -1136,9 +1135,9 @@ export default class lnmarkets extends Exchange {
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': this.costToPrecision (safeSymbol, this.satoshiToBitcoin (this.safeString (info, 'pl'))),
-            'liquidationPrice': this.priceToPrecision (symbol, this.safeNumber (info, 'liquidation')),
+            'liquidationPrice': this.safeNumber (info, 'liquidation'),
             'marginMode': 'isolated',
-            'percentage': Precise.stringMul (Precise.stringDiv (this.safeString (info, 'pnl'), this.safeString (info, 'margin')), '100'),
+            'percentage': undefined,
         };
     }
 

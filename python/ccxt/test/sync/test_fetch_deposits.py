@@ -23,5 +23,5 @@ def test_fetch_deposits(exchange, skipped_properties, code):
     assert isinstance(transactions, list), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json(transactions)
     now = exchange.milliseconds()
     for i in range(0, len(transactions)):
-        test_transaction(exchange, transactions[i], code, now)
+        test_transaction(exchange, skipped_properties, method, transactions[i], code, now)
     test_shared_methods.assert_timestamp_order(exchange, method, code, transactions)
