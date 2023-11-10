@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btcturk extends Exchange {
 
@@ -93,6 +94,7 @@ class btcturk extends Exchange {
                         'orderbook' => 1,
                         'ticker' => 0.1,
                         'trades' => 1,   // ?last=COUNT (max 50)
+                        'ohlc' => 1,
                         'server/exchangeinfo' => 1,
                     ),
                 ),
@@ -104,6 +106,8 @@ class btcturk extends Exchange {
                         'users/transactions/trade' => 1,
                     ),
                     'post' => array(
+                        'users/transactions/crypto' => 1,
+                        'users/transactions/fiat' => 1,
                         'order' => 1,
                         'cancelOrder' => 1,
                     ),
@@ -260,6 +264,7 @@ class btcturk extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $entry,
                 );
             }
@@ -267,7 +272,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -287,7 +292,7 @@ class btcturk extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -316,7 +321,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -348,7 +353,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //   {
         //     "pair" => "BTCTRY",
@@ -413,7 +418,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -427,7 +432,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //     {
@@ -490,7 +495,7 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -532,15 +537,15 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
-        //        'timestamp' => 1661990400,
-        //        'high' => 368388.0,
-        //        'open' => 368388.0,
-        //        'low' => 368388.0,
-        //        'close' => 368388.0,
-        //        'volume' => 0.00035208,
+        //        "timestamp" => 1661990400,
+        //        "high" => 368388.0,
+        //        "open" => 368388.0,
+        //        "low" => 368388.0,
+        //        "close" => 368388.0,
+        //        "volume" => 0.00035208,
         //    }
         //
         return array(
@@ -553,7 +558,7 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -705,7 +710,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -730,7 +735,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -788,7 +793,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrders / fetchOpenOrders
         //     {

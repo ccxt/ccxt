@@ -1,5 +1,5 @@
 import Exchange from './abstract/upbit.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class upbit
  * @extends Exchange
@@ -137,15 +137,15 @@ export default class upbit extends Exchange {
         };
     }>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: string;
@@ -154,43 +154,21 @@ export default class upbit extends Exchange {
         percentage: boolean;
         tierBased: boolean;
     }>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        currency: any;
-        amount: number;
-        network: any;
-        address: any;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        status: string;
-        type: string;
-        updated: number;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: {
-            currency: any;
-            cost: number;
-        };
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchOrdersByState(state: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    parseOrder(order: any, market?: any): Order;
+    fetchOrdersByState(state: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchDepositAddresses(codes?: any, params?: {}): Promise<{}>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
@@ -213,29 +191,7 @@ export default class upbit extends Exchange {
         network: any;
         info: any;
     }>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        currency: any;
-        amount: number;
-        network: any;
-        address: any;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        status: string;
-        type: string;
-        updated: number;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: {
-            currency: any;
-            cost: number;
-        };
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

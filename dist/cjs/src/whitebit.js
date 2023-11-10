@@ -57,6 +57,7 @@ class whitebit extends whitebit$1 {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -282,13 +283,14 @@ class whitebit extends whitebit$1 {
         //          "stockPrec": "3",          // Stock currency precision
         //          "moneyPrec": "2",          // Precision of money currency
         //          "feePrec": "4",            // Fee precision
-        //          "makerFee": "0.001",       // Default maker fee ratio
-        //          "takerFee": "0.001",       // Default taker fee ratio
+        //          "makerFee": "0.1",         // Default maker fee ratio
+        //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
-        //          "type": "spot"             // Market type. Possible values: "spot", "futures"
+        //          "type": "spot",            // Market type. Possible values: "spot", "futures"
+        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
         //        },
         //        {
         //          ...
@@ -330,6 +332,10 @@ class whitebit extends whitebit$1 {
             else {
                 type = 'spot';
             }
+            const takerFeeRate = this.safeString(market, 'takerFee');
+            const taker = Precise["default"].stringDiv(takerFeeRate, '100');
+            const makerFeeRate = this.safeString(market, 'makerFee');
+            const maker = Precise["default"].stringDiv(makerFeeRate, '100');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -349,8 +355,8 @@ class whitebit extends whitebit$1 {
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': this.safeNumber(market, 'makerFee'),
-                'maker': this.safeNumber(market, 'takerFee'),
+                'taker': this.parseNumber(taker),
+                'maker': this.parseNumber(maker),
                 'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -375,9 +381,10 @@ class whitebit extends whitebit$1 {
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minTotal'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'maxTotal'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -529,23 +536,23 @@ class whitebit extends whitebit$1 {
         //                "flex": null
         //            }
         //        },
-        //        'WBT (ERC20)': {
-        //            is_depositable: true,
-        //            is_withdrawal: true,
-        //            ticker: 'WBT',
-        //            name: 'WhiteBIT Token',
-        //            providers: [],
-        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
-        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        "WBT (ERC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: '0.7', fixed: "0.253", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.35", fixed: null, flex: null }
         //        },
-        //        'WBT (TRC20)': {
-        //            is_depositable: true,
-        //            is_withdrawal: true,
-        //            ticker: 'WBT',
-        //            name: 'WhiteBIT Token',
-        //            providers: [],
-        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
-        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        "WBT (TRC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: "1.5", fixed: "0.075", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.75", fixed: null, flex: null }
         //        },
         //        ...
         //    }
@@ -574,23 +581,23 @@ class whitebit extends whitebit$1 {
         //                "flex": null
         //            }
         //        },
-        //        'WBT (ERC20)': {
-        //            is_depositable: true,
-        //            is_withdrawal: true,
-        //            ticker: 'WBT',
-        //            name: 'WhiteBIT Token',
-        //            providers: [],
-        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
-        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        "WBT (ERC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: "0.7", fixed: "0.253", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.35", fixed: null, flex: null }
         //        },
-        //        'WBT (TRC20)': {
-        //            is_depositable: true,
-        //            is_withdrawal: true,
-        //            ticker: 'WBT',
-        //            name: 'WhiteBIT Token',
-        //            providers: [],
-        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
-        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        "WBT (TRC20)": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "WBT",
+        //            "name": "WhiteBIT Token",
+        //            "providers": [],
+        //            "withdraw": { max_amount: "0", min_amount: "1.5", fixed: "0.075", flex: null },
+        //            "deposit": { max_amount: "0", min_amount: "0.75", fixed: null, flex: null }
         //        },
         //        ...
         //    }
@@ -658,17 +665,17 @@ class whitebit extends whitebit$1 {
         const response = await this.v4PublicGetAssets(params);
         //
         //      {
-        //          '1INCH': {
-        //              name: '1inch',
-        //              unified_cryptoasset_id: '8104',
-        //              can_withdraw: true,
-        //              can_deposit: true,
-        //              min_withdraw: '33',
-        //              max_withdraw: '0',
-        //              maker_fee: '0.1',
-        //              taker_fee: '0.1',
-        //              min_deposit: '30',
-        //              max_deposit: '0'
+        //          "1INCH": {
+        //              "name": "1inch",
+        //              "unified_cryptoasset_id": "8104",
+        //              "can_withdraw": true,
+        //              "can_deposit": true,
+        //              "min_withdraw": "33",
+        //              "max_withdraw": "0",
+        //              "maker_fee": "0.1",
+        //              "taker_fee": "0.1",
+        //              "min_deposit": "30",
+        //              "max_deposit": "0"
         //            },
         //            ...
         //      }
@@ -813,12 +820,13 @@ class whitebit extends whitebit$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOrderBook
+         * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -831,7 +839,7 @@ class whitebit extends whitebit$1 {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit; // default = 50, maximum = 100
+            request['limit'] = limit; // default = 100, maximum = 100
         }
         const response = await this.v4PublicGetOrderbookMarket(this.extend(request, params));
         //
@@ -853,7 +861,7 @@ class whitebit extends whitebit$1 {
         //          ]
         //      }
         //
-        const timestamp = this.parseNumber(Precise["default"].stringMul(this.safeString(response, 'timestamp'), '1000'));
+        const timestamp = this.safeTimestamp(response, 'timestamp');
         return this.parseOrderBook(response, symbol, timestamp);
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
@@ -930,16 +938,16 @@ class whitebit extends whitebit$1 {
         //
         //     [
         //         {
-        //             'id': 1343815269,
-        //             'clientOrderId': '',
-        //             'time': 1641051917.532965,
-        //             'side': 'sell',
-        //             'role': 2,
-        //             'amount': '9.986',
-        //             'price': '0.9995',
-        //             'deal': '9.981007',
-        //             'fee': '0.009981007',
-        //             'orderId': 58166729555,
+        //             "id": 1343815269,
+        //             "clientOrderId": '',
+        //             "time": 1641051917.532965,
+        //             "side": "sell",
+        //             "role": 2,
+        //             "amount": "9.986",
+        //             "price": "0.9995",
+        //             "deal": "9.981007",
+        //             "fee": "0.009981007",
+        //             "orderId": 58166729555,
         //         },
         //     ]
         //
@@ -990,16 +998,16 @@ class whitebit extends whitebit$1 {
         // fetchMyTrades
         //
         //      {
-        //          'id': 1343815269,
-        //          'clientOrderId': '',
-        //          'time': 1641051917.532965,
-        //          'side': 'sell',
-        //          'role': 2,
-        //          'amount': '9.986',
-        //          'price': '0.9995',
-        //          'deal': '9.981007',
-        //          'fee': '0.009981007',
-        //          'orderId': 58166729555,
+        //          "id": 1343815269,
+        //          "clientOrderId": '',
+        //          "time": 1641051917.532965,
+        //          "side": "sell",
+        //          "role": 2,
+        //          "amount": "9.986",
+        //          "price": "0.9995",
+        //          "deal": "9.981007",
+        //          "fee": "0.009981007",
+        //          "orderId": 58166729555,
         //      }
         //
         market = this.safeMarket(undefined, market);
@@ -1065,10 +1073,7 @@ class whitebit extends whitebit$1 {
             }
             limit = Math.min(limit, maxLimit);
             const start = this.parseToInt(since / 1000);
-            const duration = this.parseTimeframe(timeframe);
-            const end = this.sum(start, duration * limit);
             request['start'] = start;
-            request['end'] = end;
         }
         if (limit !== undefined) {
             request['limit'] = Math.min(limit, 1440);
@@ -1240,9 +1245,7 @@ class whitebit extends whitebit$1 {
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1331,13 +1334,11 @@ class whitebit extends whitebit$1 {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

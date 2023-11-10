@@ -43,6 +43,8 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
   **↑ This is the most important rule of all!!!**
 
+- **BEFORE ANY PUSH MAKE SURE YOU RUN THIS COMMAND LOCALLY: `git config core.hooksPath .git-templates/hooks`**
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/build/*` (these are generated automatically)
@@ -140,6 +142,7 @@ This way you can keep the build tools and processes isolated, not having to work
 - [Python](https://www.python.org/downloads/) 3.5.3+
   - requests (`pip install requests`)
   - [aiohttp](https://docs.aiohttp.org/) (`pip install aiohttp`)
+  - [ruff](https://docs.astral.sh/ruff/) (`pip install ruff`)
   - [tox](https://tox.readthedocs.io)
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
@@ -1011,12 +1014,10 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Follow this steps to add a test:
 
-- Create a file in [js/tests/Exchange](js/test/Exchange/) following syntax that can be transpiled.
-- Add file location to [transpile.js](build/transpile.js#L1600)
-- run `npm run transpile` to generate the test file in python and php.
-- Call test in [tests.js](js/test/test.js)
-- Call test in [test_async.py](python/ccxt/test/test_async.py)
-- Call test in [test_asnyc.php](php/test/test_async.php)
+- Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/test.ts](ts/src/test/test.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/test.ts](ts/src/pro/test/test.ts#L121)
+- run `npm run transpile` to generate the test file in javascript, python and php.
+- Call tests `node run-tests`
 
 ## Committing Changes To The Repository
 

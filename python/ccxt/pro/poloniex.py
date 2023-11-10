@@ -75,7 +75,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
          * @ignore
         authenticates the user to access private web socket channels
-        see https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-authentication
         :returns dict: response from exchange
         """
         self.check_required_credentials()
@@ -156,7 +156,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://docs.poloniex.com/#public-channels-market-data-candlesticks
+        :see: https://docs.poloniex.com/#public-channels-market-data-candlesticks
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -177,7 +177,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.poloniex.com/#public-channels-market-data-ticker
+        :see: https://docs.poloniex.com/#public-channels-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -190,7 +190,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_tickers(self, symbols=None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://docs.poloniex.com/#public-channels-market-data-ticker
+        :see: https://docs.poloniex.com/#public-channels-market-data-ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -206,7 +206,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://docs.poloniex.com/#public-channels-market-data-trades
+        :see: https://docs.poloniex.com/#public-channels-market-data-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -224,7 +224,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://docs.poloniex.com/#public-channels-market-data-book-level-2
+        :see: https://docs.poloniex.com/#public-channels-market-data-book-level-2
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the poloniex api endpoint
@@ -240,7 +240,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchOrders
         :param int [limit]: not used by poloniex watchOrders
@@ -261,7 +261,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user using orders stream
-        see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: not used by poloniex watchMyTrades
         :param int [limit]: not used by poloniex watchMyTrades
@@ -283,7 +283,7 @@ class poloniex(ccxt.async_support.poloniex):
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        see https://docs.poloniex.com/#authenticated-channels-market-data-balances
+        :see: https://docs.poloniex.com/#authenticated-channels-market-data-balances
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -292,20 +292,20 @@ class poloniex(ccxt.async_support.poloniex):
         await self.authenticate()
         return await self.subscribe(name, name, True, None, params)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
-        #        symbol: 'BTC_USDT',
-        #        amount: '840.7240416',
-        #        high: '24832.35',
-        #        quantity: '0.033856',
-        #        tradeCount: 1,
-        #        low: '24832.35',
-        #        closeTime: 1676942519999,
-        #        startTime: 1676942460000,
-        #        close: '24832.35',
-        #        open: '24832.35',
-        #        ts: 1676942492072
+        #        "symbol": "BTC_USDT",
+        #        "amount": "840.7240416",
+        #        "high": "24832.35",
+        #        "quantity": "0.033856",
+        #        "tradeCount": 1,
+        #        "low": "24832.35",
+        #        "closeTime": 1676942519999,
+        #        "startTime": 1676942460000,
+        #        "close": "24832.35",
+        #        "open": "24832.35",
+        #        "ts": 1676942492072
         #    }
         #
         return [
@@ -320,20 +320,20 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_ohlcv(self, client: Client, message):
         #
         #    {
-        #        channel: 'candles_minute_1',
-        #        data: [
+        #        "channel": "candles_minute_1",
+        #        "data": [
         #            {
-        #                symbol: 'BTC_USDT',
-        #                amount: '840.7240416',
-        #                high: '24832.35',
-        #                quantity: '0.033856',
-        #                tradeCount: 1,
-        #                low: '24832.35',
-        #                closeTime: 1676942519999,
-        #                startTime: 1676942460000,
-        #                close: '24832.35',
-        #                open: '24832.35',
-        #                ts: 1676942492072
+        #                "symbol": "BTC_USDT",
+        #                "amount": "840.7240416",
+        #                "high": "24832.35",
+        #                "quantity": "0.033856",
+        #                "tradeCount": 1,
+        #                "low": "24832.35",
+        #                "closeTime": 1676942519999,
+        #                "startTime": 1676942460000,
+        #                "close": "24832.35",
+        #                "open": "24832.35",
+        #                "ts": 1676942492072
         #            }
         #        ]
         #    }
@@ -361,17 +361,17 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_trade(self, client: Client, message):
         #
         #    {
-        #        channel: 'trades',
-        #        data: [
+        #        "channel": "trades",
+        #        "data": [
         #            {
-        #                symbol: 'BTC_USDT',
-        #                amount: '13.41634893',
-        #                quantity: '0.000537',
-        #                takerSide: 'buy',
-        #                createTime: 1676950548834,
-        #                price: '24983.89',
-        #                id: '62486976',
-        #                ts: 1676950548839
+        #                "symbol": "BTC_USDT",
+        #                "amount": "13.41634893",
+        #                "quantity": "0.000537",
+        #                "takerSide": "buy",
+        #                "createTime": 1676950548834,
+        #                "price": "24983.89",
+        #                "id": "62486976",
+        #                "ts": 1676950548839
         #            }
         #        ]
         #    }
@@ -399,14 +399,14 @@ class poloniex(ccxt.async_support.poloniex):
         # handleTrade
         #
         #    {
-        #        symbol: 'BTC_USDT',
-        #        amount: '13.41634893',
-        #        quantity: '0.000537',
-        #        takerSide: 'buy',
-        #        createTime: 1676950548834,
-        #        price: '24983.89',
-        #        id: '62486976',
-        #        ts: 1676950548839
+        #        "symbol": "BTC_USDT",
+        #        "amount": "13.41634893",
+        #        "quantity": "0.000537",
+        #        "takerSide": "buy",
+        #        "createTime": 1676950548834,
+        #        "price": "24983.89",
+        #        "id": "62486976",
+        #        "ts": 1676950548839
         #    }
         #
         # private trade
@@ -529,8 +529,8 @@ class poloniex(ccxt.async_support.poloniex):
         # Order is created
         #
         #    {
-        #        channel: 'orders',
-        #        data: [
+        #        "channel": "orders",
+        #        "data": [
         #            {
         #                "symbol": "BTC_USDT",
         #                "type": "LIMIT",
@@ -704,22 +704,22 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_ticker(self, client: Client, message):
         #
         #    {
-        #        channel: 'ticker',
-        #        data: [
+        #        "channel": "ticker",
+        #        "data": [
         #            {
-        #                symbol: 'BTC_USDT',
-        #                startTime: 1677280800000,
-        #                open: '23154.32',
-        #                high: '23212.21',
-        #                low: '22761.01',
-        #                close: '23148.86',
-        #                quantity: '105.179566',
-        #                amount: '2423161.17436702',
-        #                tradeCount: 17582,
-        #                dailyChange: '-0.0002',
-        #                markPrice: '23151.09',
-        #                closeTime: 1677367197924,
-        #                ts: 1677367251090
+        #                "symbol": "BTC_USDT",
+        #                "startTime": 1677280800000,
+        #                "open": "23154.32",
+        #                "high": "23212.21",
+        #                "low": "22761.01",
+        #                "close": "23148.86",
+        #                "quantity": "105.179566",
+        #                "amount": "2423161.17436702",
+        #                "tradeCount": 17582,
+        #                "dailyChange": "-0.0002",
+        #                "markPrice": "23151.09",
+        #                "closeTime": 1677367197924,
+        #                "ts": 1677367251090
         #            }
         #        ]
         #    }
@@ -751,11 +751,11 @@ class poloniex(ccxt.async_support.poloniex):
         # snapshot
         #
         #    {
-        #        channel: 'book_lv2',
-        #        data: [
+        #        "channel": "book_lv2",
+        #        "data": [
         #            {
-        #                symbol: 'BTC_USDT',
-        #                createTime: 1677368876253,
+        #                "symbol": "BTC_USDT",
+        #                "createTime": 1677368876253,
         #                "asks": [
         #                    ["5.65", "0.02"],
         #                    ...
@@ -764,34 +764,34 @@ class poloniex(ccxt.async_support.poloniex):
         #                    ["6.16", "0.6"],
         #                    ...
         #                ],
-        #                lastId: 164148724,
-        #                id: 164148725,
-        #                ts: 1677368876316
+        #                "lastId": 164148724,
+        #                "id": 164148725,
+        #                "ts": 1677368876316
         #            }
         #        ],
-        #        action: 'snapshot'
+        #        "action": "snapshot"
         #    }
         #
         # update
         #
         #    {
-        #        channel: 'book_lv2',
-        #        data: [
+        #        "channel": "book_lv2",
+        #        "data": [
         #            {
-        #                symbol: 'BTC_USDT',
-        #                createTime: 1677368876882,
+        #                "symbol": "BTC_USDT",
+        #                "createTime": 1677368876882,
         #                "asks": [
         #                    ["6.35", "3"]
         #                ],
         #                "bids": [
         #                    ["5.65", "0.02"]
         #                ],
-        #                lastId: 164148725,
-        #                id: 164148726,
-        #                ts: 1677368876890
+        #                "lastId": 164148725,
+        #                "id": 164148726,
+        #                "ts": 1677368876890
         #            }
         #        ],
-        #        action: 'update'
+        #        "action": "update"
         #    }
         #
         data = self.safe_value(message, 'data', [])
@@ -953,10 +953,10 @@ class poloniex(ccxt.async_support.poloniex):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        success: True,
-        #        ret_msg: '',
-        #        op: 'auth',
-        #        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
+        #        "success": True,
+        #        "ret_msg": '',
+        #        "op": "auth",
+        #        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         #    }
         #
         data = self.safe_value(message, 'data')

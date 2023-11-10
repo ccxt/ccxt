@@ -79,6 +79,7 @@ class gate extends gate$1 {
                 'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createOrders': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -105,10 +106,12 @@ class gate extends gate$1 {
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchLiquidations': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchNetworkDepositAddress': true,
@@ -282,8 +285,6 @@ class gate extends gate$1 {
                     },
                     'portfolio': {
                         'get': {
-                            'spot/currency_pairs': 20 / 15,
-                            'spot/currency_pairs/{currency_pair}': 20 / 15,
                             'accounts': 20 / 15,
                             'account_mode': 20 / 15,
                             'borrowable': 20 / 15,
@@ -291,19 +292,10 @@ class gate extends gate$1 {
                             'loans': 20 / 15,
                             'loan_records': 20 / 15,
                             'interest_records': 20 / 15,
-                            'spot/orders': 20 / 15,
-                            'spot/orders/{order_id}': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
-                            'loans': 200 / 15,
-                            'spot/orders': 20 / 15,
-                        },
-                        'delete': {
-                            'spot/orders/{order_id}': 20 / 15,
-                        },
-                        'patch': {
-                            'spot/orders/{order_id}': 20 / 15,
+                            'loans': 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
                         },
                     },
                     'spot': {
@@ -326,6 +318,7 @@ class gate extends gate$1 {
                             'orders': 0.4,
                             'cancel_batch_orders': 20 / 75,
                             'countdown_cancel_all': 20 / 75,
+                            'amend_batch_orders': 0.4,
                             'price_orders': 0.4,
                         },
                         'delete': {
@@ -495,6 +488,9 @@ class gate extends gate$1 {
                         },
                         'post': {
                             'uni/lends': 20 / 15,
+                        },
+                        'put': {
+                            'uni/interest_reinvest': 20 / 15,
                         },
                         'patch': {
                             'uni/lends': 20 / 15,
@@ -1093,6 +1089,7 @@ class gate extends gate$1 {
                         'max': margin ? this.safeNumber(market, 'max_quote_amount') : undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1290,6 +1287,7 @@ class gate extends gate$1 {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': market,
         };
     }
@@ -1410,6 +1408,7 @@ class gate extends gate$1 {
                             'max': undefined,
                         },
                     },
+                    'created': this.safeTimestamp(market, 'create_time'),
                     'info': market,
                 });
             }
@@ -1565,6 +1564,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1675,6 +1675,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
@@ -1737,6 +1738,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingRates
          * @description fetch the funding rate for multiple markets
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [funding rates structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rates-structure}, indexe by market symbols
@@ -2203,6 +2205,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2472,13 +2476,13 @@ class gate extends gate$1 {
         //
         // bookTicker
         //    {
-        //        t: 1671363004228,
-        //        u: 9793320464,
-        //        s: 'BTC_USDT',
-        //        b: '16716.8', // best bid price
-        //        B: '0.0134', // best bid size
-        //        a: '16716.9', // best ask price
-        //        A: '0.0353' // best ask size
+        //        "t": 1671363004228,
+        //        "u": 9793320464,
+        //        "s": "BTC_USDT",
+        //        "b": "16716.8", // best bid price
+        //        "B": "0.0134", // best bid size
+        //        "a": "16716.9", // best ask price
+        //        "A": "0.0353" // best ask size
         //     }
         //
         // option
@@ -2688,52 +2692,52 @@ class gate extends gate$1 {
         //  Perpetual Swap
         //
         //    {
-        //        order_margin: "0",
-        //        point: "0",
-        //        bonus: "0",
-        //        history: {
-        //            dnw: "2.1321",
-        //            pnl: "11.5351",
-        //            refr: "0",
-        //            point_fee: "0",
-        //            fund: "-0.32340576684",
-        //            bonus_dnw: "0",
-        //            point_refr: "0",
-        //            bonus_offset: "0",
-        //            fee: "-0.20132775",
-        //            point_dnw: "0",
+        //        "order_margin": "0",
+        //        "point": "0",
+        //        "bonus": "0",
+        //        "history": {
+        //            "dnw": "2.1321",
+        //            "pnl": "11.5351",
+        //            "refr": "0",
+        //            "point_fee": "0",
+        //            "fund": "-0.32340576684",
+        //            "bonus_dnw": "0",
+        //            "point_refr": "0",
+        //            "bonus_offset": "0",
+        //            "fee": "-0.20132775",
+        //            "point_dnw": "0",
         //        },
-        //        unrealised_pnl: "13.315100000006",
-        //        total: "12.51345151332",
-        //        available: "0",
-        //        in_dual_mode: false,
-        //        currency: "USDT",
-        //        position_margin: "12.51345151332",
-        //        user: "6333333",
+        //        "unrealised_pnl": "13.315100000006",
+        //        "total": "12.51345151332",
+        //        "available": "0",
+        //        "in_dual_mode": false,
+        //        "currency": "USDT",
+        //        "position_margin": "12.51345151332",
+        //        "user": "6333333",
         //    }
         //
         // Delivery Future
         //
         //    {
-        //        order_margin: "0",
-        //        point: "0",
-        //        history: {
-        //            dnw: "1",
-        //            pnl: "0",
-        //            refr: "0",
-        //            point_fee: "0",
-        //            point_dnw: "0",
-        //            settle: "0",
-        //            settle_fee: "0",
-        //            point_refr: "0",
-        //            fee: "0",
+        //        "order_margin": "0",
+        //        "point": "0",
+        //        "history": {
+        //            "dnw": "1",
+        //            "pnl": "0",
+        //            "refr": "0",
+        //            "point_fee": "0",
+        //            "point_dnw": "0",
+        //            "settle": "0",
+        //            "settle_fee": "0",
+        //            "point_refr": "0",
+        //            "fee": "0",
         //        },
-        //        unrealised_pnl: "0",
-        //        total: "1",
-        //        available: "1",
-        //        currency: "USDT",
-        //        position_margin: "0",
-        //        user: "6333333",
+        //        "unrealised_pnl": "0",
+        //        "total": "1",
+        //        "available": "1",
+        //        "currency": "USDT",
+        //        "position_margin": "0",
+        //        "user": "6333333",
         //    }
         //
         // option
@@ -2806,7 +2810,8 @@ class gate extends gate$1 {
                 result[code] = this.parseBalanceHelper(entry);
             }
         }
-        return isolated ? result : this.safeBalance(result);
+        const returnResult = isolated ? result : this.safeBalance(result);
+        return returnResult;
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
@@ -2824,10 +2829,16 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the gateio api endpoint
          * @param {string} [params.price] "mark" or "index" for mark price and index price candles
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000);
+        }
         if (market['option']) {
             return await this.fetchOptionOHLCV(symbol, timeframe, since, limit, params);
         }
@@ -2896,15 +2907,14 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
          * @param {string} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -2989,13 +2999,24 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#options-trade-history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchTrades', symbol, since, limit, params);
+        }
         const market = this.market(symbol);
         //
         // spot
@@ -3026,6 +3047,11 @@ class gate extends gate$1 {
             'future': 'publicDeliveryGetSettleTrades',
             'option': 'publicOptionsGetTrades',
         });
+        const until = this.safeInteger2(params, 'to', 'until');
+        if (until !== undefined) {
+            params = this.omit(params, ['until']);
+            request['to'] = this.parseToInt(until / 1000);
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -3038,13 +3064,13 @@ class gate extends gate$1 {
         //
         //     [
         //         {
-        //             id: "1852958144",
-        //             create_time: "1634673259",
-        //             create_time_ms: "1634673259378.105000",
-        //             currency_pair: "ADA_USDT",
-        //             side: "sell",
-        //             amount: "307.078",
-        //             price: "2.104",
+        //             "id": "1852958144",
+        //             "create_time": "1634673259",
+        //             "create_time_ms": "1634673259378.105000",
+        //             "currency_pair": "ADA_USDT",
+        //             "side": "sell",
+        //             "amount": "307.078",
+        //             "price": "2.104",
         //         }
         //     ]
         //
@@ -3052,12 +3078,12 @@ class gate extends gate$1 {
         //
         //     [
         //         {
-        //              size: "2",
-        //              id: "2522911",
-        //              create_time_ms: "1634673380.182",
-        //              create_time: "1634673380.182",
-        //              contract: "ADA_USDT",
-        //              price: "2.10486",
+        //              "size": "2",
+        //              "id": "2522911",
+        //              "create_time_ms": "1634673380.182",
+        //              "create_time": "1634673380.182",
+        //              "contract": "ADA_USDT",
+        //              "price": "2.10486",
         //         }
         //     ]
         //
@@ -3080,6 +3106,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -3133,9 +3163,15 @@ class gate extends gate$1 {
          * @param {int} [params.offset] *contract only* list offset, starting from 0
          * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         let type = undefined;
         let marginMode = undefined;
         let request = {};
@@ -3257,11 +3293,11 @@ class gate extends gate$1 {
         // public ws
         //
         //     {
-        //         id: 221994511,
-        //         time: 1580311438.618647,
-        //         price: '9309',
-        //         amount: '0.0019',
-        //         type: 'sell'
+        //         "id": 221994511,
+        //         "time": 1580311438.618647,
+        //         "price": "9309",
+        //         "amount": "0.0019",
+        //         "type": "sell"
         //     }
         //
         // spot rest
@@ -3391,14 +3427,22 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {int} [params.until] end time in ms
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchDeposits', code, since, limit, params);
+        }
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3412,6 +3456,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
+        [request, params] = this.handleUntilOption('to', request, params);
         const response = await this.privateWalletGetDeposits(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }
@@ -3420,14 +3465,22 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
         await this.loadMarkets();
-        const request = {};
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchWithdrawals', code, since, limit, params);
+        }
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3441,6 +3494,7 @@ class gate extends gate$1 {
             request['from'] = start;
             request['to'] = this.sum(start, 30 * 24 * 60 * 60);
         }
+        [request, params] = this.handleUntilOption('to', request, params);
         const response = await this.privateWalletGetWithdrawals(this.extend(request, params));
         return this.parseTransactions(response, currency);
     }
@@ -3449,6 +3503,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#withdraw
          * @description make a withdrawal
+         * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3533,6 +3588,13 @@ class gate extends gate$1 {
         //        "memo": null
         //    }
         //
+        //     {
+        //         "currency":"usdt",
+        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "amount":"1880",
+        //         "chain":"eth"
+        //     }
+        //
         const id = this.safeString(transaction, 'id');
         let type = undefined;
         let amountString = this.safeString(transaction, 'amount');
@@ -3550,6 +3612,7 @@ class gate extends gate$1 {
         if (type === 'withdrawal') {
             amountString = Precise["default"].stringSub(amountString, feeCostString);
         }
+        const networkId = this.safeStringUpper(transaction, 'chain');
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const txid = this.safeString(transaction, 'txid');
@@ -3564,7 +3627,7 @@ class gate extends gate$1 {
             'txid': txid,
             'currency': code,
             'amount': this.parseNumber(amountString),
-            'network': undefined,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -3587,6 +3650,13 @@ class gate extends gate$1 {
          * @method
          * @name gate#createOrder
          * @description Create an order on the exchange
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-price-triggered-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
@@ -3609,6 +3679,156 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const trigger = this.safeValue(params, 'trigger');
+        const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue(params, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const nonTriggerOrder = !isStopOrder && (trigger === undefined);
+        const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (market['spot'] || market['margin']) {
+            if (nonTriggerOrder) {
+                response = await this.privateSpotPostOrders(orderRequest);
+            }
+            else {
+                response = await this.privateSpotPostPriceOrders(orderRequest);
+            }
+        }
+        else if (market['swap']) {
+            if (nonTriggerOrder) {
+                response = await this.privateFuturesPostSettleOrders(orderRequest);
+            }
+            else {
+                response = await this.privateFuturesPostSettlePriceOrders(orderRequest);
+            }
+        }
+        else if (market['future']) {
+            if (nonTriggerOrder) {
+                response = await this.privateDeliveryPostSettleOrders(orderRequest);
+            }
+            else {
+                response = await this.privateDeliveryPostSettlePriceOrders(orderRequest);
+            }
+        }
+        else {
+            response = await this.privateOptionsPostOrders(orderRequest);
+        }
+        // const response = await this[method] (this.deepExtend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "id": "95282841887",
+        //         "text": "apiv4",
+        //         "create_time": "1637383156",
+        //         "update_time": "1637383156",
+        //         "create_time_ms": 1637383156017,
+        //         "update_time_ms": 1637383156017,
+        //         "status": "open",
+        //         "currency_pair": "ETH_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "buy",
+        //         "amount": "0.01",
+        //         "price": "3500",
+        //         "time_in_force": "gtc",
+        //         "iceberg": "0",
+        //         "left": "0.01",
+        //         "fill_price": "0",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "ETH",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_discount": false,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "USDT"
+        //     }
+        //
+        // spot conditional
+        //
+        //     {"id": 5891843}
+        //
+        // futures, perpetual swaps and options
+        //
+        //     {
+        //         "id": 95938572327,
+        //         "contract": "ETH_USDT",
+        //         "mkfr": "0",
+        //         "tkfr": "0.0005",
+        //         "tif": "gtc",
+        //         "is_reduce_only": false,
+        //         "create_time": 1637384600.08,
+        //         "price": "3000",
+        //         "size": 1,
+        //         "refr": "0",
+        //         "left": 1,
+        //         "text": "api",
+        //         "fill_price": "0",
+        //         "user": 2436035,
+        //         "status": "open",
+        //         "is_liq": false,
+        //         "refu": 0,
+        //         "is_close": false,
+        //         "iceberg": 0
+        //     }
+        //
+        // futures and perpetual swaps conditionals
+        //
+        //     {"id": 7615567}
+        //
+        return this.parseOrder(response, market);
+    }
+    async createOrders(orders, params = {}) {
+        /**
+         * @method
+         * @name gate#createOrders
+         * @description create a list of trade orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets();
+        const ordersRequests = [];
+        const orderSymbols = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString(rawOrder, 'symbol');
+            orderSymbols.push(marketId);
+            const type = this.safeString(rawOrder, 'type');
+            const side = this.safeString(rawOrder, 'side');
+            const amount = this.safeValue(rawOrder, 'amount');
+            const price = this.safeValue(rawOrder, 'price');
+            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            const triggerValue = this.safeValueN(orderParams, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice']);
+            if (triggerValue !== undefined) {
+                throw new errors.NotSupported(this.id + ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
+            }
+            extendedParams['textIsRequired'] = true; // Gate.io requires a text parameter for each order here
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
+            ordersRequests.push(orderRequest);
+        }
+        const symbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(symbols[0]);
+        if (market['future'] || market['option']) {
+            throw new errors.NotSupported(this.id + ' createOrders() does not support futures or options markets');
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateSpotPostBatchOrders(ordersRequests);
+        }
+        else if (market['swap']) {
+            response = await this.privateFuturesPostSettleBatchOrders(ordersRequests);
+        }
+        return this.parseOrders(response);
+    }
+    createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        const market = this.market(symbol);
         const contract = market['contract'];
         const trigger = this.safeValue(params, 'trigger');
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
@@ -3620,7 +3840,6 @@ class gate extends gate$1 {
         if (isStopLossOrder && isTakeProfitOrder) {
             throw new errors.ExchangeError(this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        let methodTail = 'Orders';
         const reduceOnly = this.safeValue(params, 'reduceOnly');
         const exchangeSpecificTimeInForce = this.safeStringLowerN(params, ['timeInForce', 'tif', 'time_in_force']);
         let postOnly = undefined;
@@ -3733,6 +3952,7 @@ class gate extends gate$1 {
                 }
             }
             let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
+            const textIsRequired = this.safeValue(params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -3741,11 +3961,17 @@ class gate extends gate$1 {
                 if (clientOrderId.length > 28) {
                     throw new errors.BadRequest(this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
-                params = this.omit(params, ['text', 'clientOrderId']);
+                params = this.omit(params, ['text', 'clientOrderId', 'textIsRequired']);
                 if (clientOrderId[0] !== 't') {
                     clientOrderId = 't-' + clientOrderId;
                 }
                 request['text'] = clientOrderId;
+            }
+            else {
+                if (textIsRequired) {
+                    // batchOrders requires text in the request
+                    request['text'] = 't-' + this.uuid16();
+                }
             }
         }
         else {
@@ -3840,80 +4066,8 @@ class gate extends gate$1 {
                     };
                 }
             }
-            methodTail = 'PriceOrders';
         }
-        const method = this.getSupportedMapping(market['type'], {
-            'spot': 'privateSpotPost' + methodTail,
-            'margin': 'privateSpotPost' + methodTail,
-            'swap': 'privateFuturesPostSettle' + methodTail,
-            'future': 'privateDeliveryPostSettle' + methodTail,
-            'option': 'privateOptionsPostOrders',
-        });
-        const response = await this[method](this.deepExtend(request, params));
-        //
-        // spot
-        //
-        //     {
-        //         "id": "95282841887",
-        //         "text": "apiv4",
-        //         "create_time": "1637383156",
-        //         "update_time": "1637383156",
-        //         "create_time_ms": 1637383156017,
-        //         "update_time_ms": 1637383156017,
-        //         "status": "open",
-        //         "currency_pair": "ETH_USDT",
-        //         "type": "limit",
-        //         "account": "spot",
-        //         "side": "buy",
-        //         "amount": "0.01",
-        //         "price": "3500",
-        //         "time_in_force": "gtc",
-        //         "iceberg": "0",
-        //         "left": "0.01",
-        //         "fill_price": "0",
-        //         "filled_total": "0",
-        //         "fee": "0",
-        //         "fee_currency": "ETH",
-        //         "point_fee": "0",
-        //         "gt_fee": "0",
-        //         "gt_discount": false,
-        //         "rebated_fee": "0",
-        //         "rebated_fee_currency": "USDT"
-        //     }
-        //
-        // spot conditional
-        //
-        //     {"id": 5891843}
-        //
-        // futures, perpetual swaps and options
-        //
-        //     {
-        //         "id": 95938572327,
-        //         "contract": "ETH_USDT",
-        //         "mkfr": "0",
-        //         "tkfr": "0.0005",
-        //         "tif": "gtc",
-        //         "is_reduce_only": false,
-        //         "create_time": 1637384600.08,
-        //         "price": "3000",
-        //         "size": 1,
-        //         "refr": "0",
-        //         "left": 1,
-        //         "text": "api",
-        //         "fill_price": "0",
-        //         "user": 2436035,
-        //         "status": "open",
-        //         "is_liq": false,
-        //         "refu": 0,
-        //         "is_close": false,
-        //         "iceberg": 0
-        //     }
-        //
-        // futures and perpetual swaps conditionals
-        //
-        //     {"id": 7615567}
-        //
-        return this.parseOrder(response, market);
+        return this.extend(request, params);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -4139,6 +4293,22 @@ class gate extends gate$1 {
         //        "order_type": ""
         //    }
         //
+        //    {
+        //        "text": "t-d18baf9ac44d82e2",
+        //        "succeeded": false,
+        //        "label": "BALANCE_NOT_ENOUGH",
+        //        "message": "Not enough balance"
+        //    }
+        //
+        const succeeded = this.safeValue(order, 'succeeded', true);
+        if (!succeeded) {
+            // cancelOrders response
+            return this.safeOrder({
+                'clientOrderId': this.safeString(order, 'text'),
+                'info': order,
+                'status': 'rejected',
+            });
+        }
         const put = this.safeValue2(order, 'put', 'initial', {});
         const trigger = this.safeValue(order, 'trigger', {});
         let contract = this.safeString(put, 'contract');
@@ -4299,6 +4469,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -4315,6 +4486,13 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -4523,6 +4701,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#cancelOrder
          * @description Cancels an open order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4
          * @param {string} id Order id
          * @param {string} symbol Unified market symbol
          * @param {object} [params] Parameters specified by the exchange api
@@ -4603,27 +4785,27 @@ class gate extends gate$1 {
         // swap, future and option
         //
         //     {
-        //         id: "82241928192",
-        //         contract: "BTC_USDT",
-        //         mkfr: "0",
-        //         tkfr: "0.0005",
-        //         tif: "gtc",
-        //         is_reduce_only: false,
-        //         create_time: "1635196145.06",
-        //         finish_time: "1635196233.396",
-        //         price: "61000",
-        //         size: "4",
-        //         refr: "0",
-        //         left: "4",
-        //         text: "web",
-        //         fill_price: "0",
-        //         user: "6693577",
-        //         finish_as: "cancelled",
-        //         status: "finished",
-        //         is_liq: false,
-        //         refu: "0",
-        //         is_close: false,
-        //         iceberg: "0",
+        //         "id": "82241928192",
+        //         "contract": "BTC_USDT",
+        //         "mkfr": "0",
+        //         "tkfr": "0.0005",
+        //         "tif": "gtc",
+        //         "is_reduce_only": false,
+        //         "create_time": "1635196145.06",
+        //         "finish_time": "1635196233.396",
+        //         "price": "61000",
+        //         "size": "4",
+        //         "refr": "0",
+        //         "left": "4",
+        //         "text": "web",
+        //         "fill_price": "0",
+        //         "user": "6693577",
+        //         "finish_as": "cancelled",
+        //         "status": "finished",
+        //         "is_liq": false,
+        //         "refu": "0",
+        //         "is_close": false,
+        //         "iceberg": "0",
         //     }
         //
         return this.parseOrder(response, market);
@@ -4633,6 +4815,10 @@ class gate extends gate$1 {
          * @method
          * @name gate#cancelAllOrders
          * @description cancel all open orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -4764,14 +4950,14 @@ class gate extends gate$1 {
          * @method
          * @name gate#setLeverage
          * @description set the level of leverage for a market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-leverage-2
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setLeverage', symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 0) || (leverage > 100)) {
@@ -4833,29 +5019,29 @@ class gate extends gate$1 {
         // swap and future
         //
         //     {
-        //         value: "12.475572",
-        //         leverage: "0",
-        //         mode: "single",
-        //         realised_point: "0",
-        //         contract: "BTC_USDT",
-        //         entry_price: "62422.6",
-        //         mark_price: "62377.86",
-        //         history_point: "0",
-        //         realised_pnl: "-0.00624226",
-        //         close_order:  null,
-        //         size: "2",
-        //         cross_leverage_limit: "25",
-        //         pending_orders: "0",
-        //         adl_ranking: "5",
-        //         maintenance_rate: "0.005",
-        //         unrealised_pnl: "-0.008948",
-        //         user: "663337",
-        //         leverage_max: "100",
-        //         history_pnl: "14.98868396636",
-        //         risk_limit: "1000000",
-        //         margin: "0.740721495056",
-        //         last_close_pnl: "-0.041996015",
-        //         liq_price: "59058.58"
+        //         "value": "12.475572",
+        //         "leverage": "0",
+        //         "mode": "single",
+        //         "realised_point": "0",
+        //         "contract": "BTC_USDT",
+        //         "entry_price": "62422.6",
+        //         "mark_price": "62377.86",
+        //         "history_point": "0",
+        //         "realised_pnl": "-0.00624226",
+        //         "close_order":  null,
+        //         "size": "2",
+        //         "cross_leverage_limit": "25",
+        //         "pending_orders": "0",
+        //         "adl_ranking": "5",
+        //         "maintenance_rate": "0.005",
+        //         "unrealised_pnl": "-0.008948",
+        //         "user": "663337",
+        //         "leverage_max": "100",
+        //         "history_pnl": "14.98868396636",
+        //         "risk_limit": "1000000",
+        //         "margin": "0.740721495056",
+        //         "last_close_pnl": "-0.041996015",
+        //         "liq_price": "59058.58"
         //     }
         //
         // option
@@ -4906,13 +5092,14 @@ class gate extends gate$1 {
         const takerFee = '0.00075';
         const feePaid = Precise["default"].stringMul(takerFee, notional);
         const initialMarginString = Precise["default"].stringAdd(Precise["default"].stringDiv(notional, leverage), feePaid);
+        const timestamp = this.safeInteger(position, 'time_ms');
         return this.safePosition({
             'info': position,
             'id': undefined,
             'symbol': this.safeString(market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise["default"].stringDiv(initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber(Precise["default"].stringMul(maintenanceRate, notional)),
@@ -4921,6 +5108,7 @@ class gate extends gate$1 {
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
+            'realizedPnl': this.safeNumber(position, 'realised_pnl'),
             'contracts': this.parseNumber(Precise["default"].stringAbs(size)),
             'contractSize': this.safeValue(market, 'contractSize'),
             // 'realisedPnl': position['realised_pnl'],
@@ -5034,23 +5222,19 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         let market = undefined;
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
         if (symbols !== undefined) {
-            symbols = this.marketSymbols(symbols);
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
                 market = this.market(symbols[0]);
-                for (let i = 1; i < symbols.length; i++) {
-                    const checkMarket = this.market(symbols[i]);
-                    if (checkMarket['type'] !== market['type']) {
-                        throw new errors.BadRequest(this.id + ' fetchPositions() does not support multiple types of positions at the same time');
-                    }
-                }
             }
         }
         let type = undefined;
         let request = {};
         [type, params] = this.handleMarketTypeAndParams('fetchPositions', market, params);
-        this.checkRequiredArgument('fetchPositions', type, 'type', ['swap', 'future', 'option']);
+        if ((type === undefined) || (type === 'spot')) {
+            type = 'swap'; // default to swap
+        }
         if (type === 'option') {
             if (symbols !== undefined) {
                 const marketId = market['id'];
@@ -5061,40 +5245,44 @@ class gate extends gate$1 {
         else {
             [request, params] = this.prepareRequest(undefined, type, params);
         }
-        const method = this.getSupportedMapping(type, {
-            'swap': 'privateFuturesGetSettlePositions',
-            'future': 'privateDeliveryGetSettlePositions',
-            'option': 'privateOptionsGetPositions',
-        });
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.privateFuturesGetSettlePositions(this.extend(request, params));
+        }
+        else if (type === 'future') {
+            response = await this.privateDeliveryGetSettlePositions(this.extend(request, params));
+        }
+        else if (type === 'option') {
+            response = await this.privateOptionsGetPositions(this.extend(request, params));
+        }
         //
         // swap and future
         //
         //     [
         //         {
-        //             value: "12.475572",
-        //             leverage: "0",
-        //             mode: "single",
-        //             realised_point: "0",
-        //             contract: "BTC_USDT",
-        //             entry_price: "62422.6",
-        //             mark_price: "62377.86",
-        //             history_point: "0",
-        //             realised_pnl: "-0.00624226",
-        //             close_order:  null,
-        //             size: "2",
-        //             cross_leverage_limit: "25",
-        //             pending_orders: "0",
-        //             adl_ranking: "5",
-        //             maintenance_rate: "0.005",
-        //             unrealised_pnl: "-0.008948",
-        //             user: "6693577",
-        //             leverage_max: "100",
-        //             history_pnl: "14.98868396636",
-        //             risk_limit: "1000000",
-        //             margin: "0.740721495056",
-        //             last_close_pnl: "-0.041996015",
-        //             liq_price: "59058.58"
+        //             "value": "12.475572",
+        //             "leverage": "0",
+        //             "mode": "single",
+        //             "realised_point": "0",
+        //             "contract": "BTC_USDT",
+        //             "entry_price": "62422.6",
+        //             "mark_price": "62377.86",
+        //             "history_point": "0",
+        //             "realised_pnl": "-0.00624226",
+        //             "close_order":  null,
+        //             "size": "2",
+        //             "cross_leverage_limit": "25",
+        //             "pending_orders": "0",
+        //             "adl_ranking": "5",
+        //             "maintenance_rate": "0.005",
+        //             "unrealised_pnl": "-0.008948",
+        //             "user": "6693577",
+        //             "leverage_max": "100",
+        //             "history_pnl": "14.98868396636",
+        //             "risk_limit": "1000000",
+        //             "margin": "0.740721495056",
+        //             "last_close_pnl": "-0.041996015",
+        //             "liq_price": "59058.58"
         //         }
         //     ]
         //
@@ -5128,6 +5316,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure}, indexed by market symbols
@@ -5383,12 +5573,12 @@ class gate extends gate$1 {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        let method = undefined;
+        let response = undefined;
+        params = this.omit(params, ['marginMode']);
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossRepayments';
+            response = await this.privateMarginPostCrossRepayments(this.extend(request, params));
         }
         else {
-            method = 'privateMarginPostLoansLoanIdRepayment';
             const market = this.market(symbol);
             request['currency_pair'] = market['id'];
             request['mode'] = 'partial';
@@ -5397,9 +5587,9 @@ class gate extends gate$1 {
                 throw new errors.ArgumentsRequired(this.id + ' repayMargin() requires loan_id param for isolated margin');
             }
             request['loan_id'] = loanId;
+            params = this.omit(params, ['loan_id', 'id']);
+            response = await this.privateMarginPostLoansLoanIdRepayment(this.extend(request, params));
         }
-        params = this.omit(params, ['marginMode', 'loan_id', 'id']);
-        let response = await this[method](this.extend(request, params));
         //
         // Cross
         //
@@ -5466,9 +5656,9 @@ class gate extends gate$1 {
             'currency': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        let method = undefined;
+        let response = undefined;
         if (symbol === undefined) {
-            method = 'privateMarginPostCrossLoans';
+            response = await this.privateMarginPostCrossLoans(this.extend(request, params));
         }
         else {
             const market = this.market(symbol);
@@ -5478,10 +5668,9 @@ class gate extends gate$1 {
             // as it is the smallest tick size currently offered by gateio
             request['rate'] = this.safeString(params, 'rate', '0.0001');
             request['auto_renew'] = true;
-            method = 'privateMarginPostLoans';
+            params = this.omit(params, ['rate']);
+            response = await this.privateMarginPostLoans(this.extend(request, params));
         }
-        params = this.omit(params, ['marginMode', 'rate']);
-        const response = await this[method](this.extend(request, params));
         //
         // Cross
         //
@@ -5578,7 +5767,16 @@ class gate extends gate$1 {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit(params, this.extractParams(path));
-        path = this.implodeParams(path, params);
+        if (Array.isArray(params)) {
+            // endpoints like createOrders use an array instead of an object
+            // so we infer the settle from one of the elements
+            // they have to be all the same so relying on the first one is fine
+            const first = this.safeValue(params, 0, {});
+            path = this.implodeParams(path, first);
+        }
+        else {
+            path = this.implodeParams(path, params);
+        }
         const endPart = (path === '') ? '' : ('/' + path);
         let entirePath = '/' + type + endPart;
         if ((type === 'subAccounts') || (type === 'withdrawals')) {
@@ -5696,6 +5894,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#reduceMargin
          * @description remove margin from a position
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
          * @param {string} symbol unified market symbol
          * @param {float} amount the amount of margin to remove
          * @param {object} [params] extra parameters specific to the exmo api endpoint
@@ -5708,6 +5908,8 @@ class gate extends gate$1 {
          * @method
          * @name gate#addMargin
          * @description add margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
+         * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
          * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
          * @param {object} [params] extra parameters specific to the exmo api endpoint
@@ -5726,9 +5928,14 @@ class gate extends gate$1 {
          * @param {int} [since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [limit] default 30
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 100);
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports swap markets only');
@@ -5748,20 +5955,20 @@ class gate extends gate$1 {
         //
         //    [
         //        {
-        //            long_liq_size: '0',
-        //            short_liq_size: '0',
-        //            short_liq_usd: '0',
-        //            lsr_account: '3.2808988764045',
-        //            mark_price: '0.34619',
-        //            top_lsr_size: '0',
-        //            time: '1674057000',
-        //            short_liq_amount: '0',
-        //            long_liq_amount: '0',
-        //            open_interest_usd: '9872386.7775',
-        //            top_lsr_account: '0',
-        //            open_interest: '2851725',
-        //            long_liq_usd: '0',
-        //            lsr_taker: '9.3765153315902'
+        //            "long_liq_size": "0",
+        //            "short_liq_size": "0",
+        //            "short_liq_usd": "0",
+        //            "lsr_account": "3.2808988764045",
+        //            "mark_price": "0.34619",
+        //            "top_lsr_size": "0",
+        //            "time": "1674057000",
+        //            "short_liq_amount": "0",
+        //            "long_liq_amount": "0",
+        //            "open_interest_usd": "9872386.7775",
+        //            "top_lsr_account": "0",
+        //            "open_interest": "2851725",
+        //            "long_liq_usd": "0",
+        //            "lsr_taker": "9.3765153315902"
         //        },
         //        ...
         //    ]
@@ -5771,23 +5978,23 @@ class gate extends gate$1 {
     parseOpenInterest(interest, market = undefined) {
         //
         //    {
-        //        long_liq_size: '0',
-        //        short_liq_size: '0',
-        //        short_liq_usd: '0',
-        //        lsr_account: '3.2808988764045',
-        //        mark_price: '0.34619',
-        //        top_lsr_size: '0',
-        //        time: '1674057000',
-        //        short_liq_amount: '0',
-        //        long_liq_amount: '0',
-        //        open_interest_usd: '9872386.7775',
-        //        top_lsr_account: '0',
-        //        open_interest: '2851725',
-        //        long_liq_usd: '0',
-        //        lsr_taker: '9.3765153315902'
+        //        "long_liq_size": "0",
+        //        "short_liq_size": "0",
+        //        "short_liq_usd": "0",
+        //        "lsr_account": "3.2808988764045",
+        //        "mark_price": "0.34619",
+        //        "top_lsr_size": "0",
+        //        "time": "1674057000",
+        //        "short_liq_amount": "0",
+        //        "long_liq_amount": "0",
+        //        "open_interest_usd": "9872386.7775",
+        //        "top_lsr_account": "0",
+        //        "open_interest": "2851725",
+        //        "long_liq_usd": "0",
+        //        "lsr_taker": "9.3765153315902"
         //    }
         //
-        const timestamp = this.safeIntegerProduct(interest, 'time', 1000);
+        const timestamp = this.safeTimestamp(interest, 'time');
         return {
             'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'open_interest'),
@@ -5987,13 +6194,20 @@ class gate extends gate$1 {
          * @param {int} [since] timestamp in ms of the earliest ledger entry
          * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @param {int} [params.until] end time in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
+        }
         let type = undefined;
         let currency = undefined;
         let response = undefined;
-        const request = {};
+        let request = {};
         [type, params] = this.handleMarketTypeAndParams('fetchLedger', undefined, params);
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
@@ -6013,6 +6227,7 @@ class gate extends gate$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('to', request, params);
         if (type === 'spot') {
             response = await this.privateSpotGetAccountBook(this.extend(request, params));
         }
@@ -6232,6 +6447,7 @@ class gate extends gate$1 {
          * @method
          * @name gate#fetchUnderlyingAssets
          * @description fetches the market ids of underlying assets for a specific contract market type
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-underlyings
          * @param {object} [params] exchange specific params
          * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @returns {object[]} a list of [underlying assets]{@link https://github.com/ccxt/ccxt/wiki/Manual#underlying-assets-structure}
@@ -6264,6 +6480,193 @@ class gate extends gate$1 {
             }
         }
         return underlyings;
+    }
+    async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchLiquidations
+         * @description retrieves the public liquidations of a trading pair
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest liquidation
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.NotSupported(this.id + ' fetchLiquidations() supports swap markets only');
+        }
+        let request = {
+            'settle': market['settleId'],
+            'contract': market['id'],
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        [request, params] = this.handleUntilOption('to', request, params);
+        const response = await this.publicFuturesGetSettleLiqOrders(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "contract": "BTC_USDT",
+        //             "left": 0,
+        //             "size": -165,
+        //             "fill_price": "28070",
+        //             "order_price": "28225",
+        //             "time": 1696736132
+        //         },
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchMyLiquidations
+         * @description retrieves the users liquidated positions
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the gate api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        this.checkRequiredSymbol('fetchMyLiquidations', symbol);
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'contract': market['id'],
+        };
+        let response = undefined;
+        if ((market['swap']) || (market['future'])) {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            request['settle'] = market['settleId'];
+        }
+        else if (market['option']) {
+            const marketId = market['id'];
+            const optionParts = marketId.split('-');
+            request['underlying'] = this.safeString(optionParts, 0);
+        }
+        if (market['swap']) {
+            response = await this.privateFuturesGetSettleLiquidates(this.extend(request, params));
+        }
+        else if (market['future']) {
+            response = await this.privateDeliveryGetSettleLiquidates(this.extend(request, params));
+        }
+        else if (market['option']) {
+            response = await this.privateOptionsGetPositionClose(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders');
+        }
+        //
+        // swap and future
+        //
+        //     [
+        //         {
+        //             "time": 1548654951,
+        //             "contract": "BTC_USDT",
+        //             "size": 600,
+        //             "leverage": "25",
+        //             "margin": "0.006705256878",
+        //             "entry_price": "3536.123",
+        //             "liq_price": "3421.54",
+        //             "mark_price": "3420.27",
+        //             "order_id": 317393847,
+        //             "order_price": "3405",
+        //             "fill_price": "3424",
+        //             "left": 0
+        //         }
+        //     ]
+        //
+        // option
+        //
+        //     [
+        //         {
+        //             "time": 1631764800,
+        //             "pnl": "-42914.291",
+        //             "settle_size": "-10001",
+        //             "side": "short",
+        //             "contract": "BTC_USDT-20210916-5000-C",
+        //             "text": "settled"
+        //         }
+        //     ]
+        //
+        return this.parseLiquidations(response, market, since, limit);
+    }
+    parseLiquidation(liquidation, market = undefined) {
+        //
+        // fetchLiquidations
+        //
+        //     {
+        //         "contract": "BTC_USDT",
+        //         "left": 0,
+        //         "size": -165,
+        //         "fill_price": "28070",
+        //         "order_price": "28225",
+        //         "time": 1696736132
+        //     }
+        //
+        // swap and future: fetchMyLiquidations
+        //
+        //     {
+        //         "time": 1548654951,
+        //         "contract": "BTC_USDT",
+        //         "size": 600,
+        //         "leverage": "25",
+        //         "margin": "0.006705256878",
+        //         "entry_price": "3536.123",
+        //         "liq_price": "3421.54",
+        //         "mark_price": "3420.27",
+        //         "order_id": 317393847,
+        //         "order_price": "3405",
+        //         "fill_price": "3424",
+        //         "left": 0
+        //     }
+        //
+        // option: fetchMyLiquidations
+        //
+        //     {
+        //         "time": 1631764800,
+        //         "pnl": "-42914.291",
+        //         "settle_size": "-10001",
+        //         "side": "short",
+        //         "contract": "BTC_USDT-20210916-5000-C",
+        //         "text": "settled"
+        //     }
+        //
+        const marketId = this.safeString(liquidation, 'contract');
+        const timestamp = this.safeTimestamp(liquidation, 'time');
+        const contractsStringRaw = this.safeString2(liquidation, 'size', 'settle_size');
+        const contractsString = Precise["default"].stringAbs(contractsStringRaw);
+        const contractSizeString = this.safeString(market, 'contractSize');
+        const priceString = this.safeString2(liquidation, 'liq_price', 'fill_price');
+        const baseValueString = Precise["default"].stringMul(contractsString, contractSizeString);
+        let quoteValueString = this.safeString(liquidation, 'pnl');
+        if (quoteValueString === undefined) {
+            quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
+        }
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.parseNumber(contractsString),
+            'contractSize': this.parseNumber(contractSizeString),
+            'price': this.parseNumber(priceString),
+            'baseValue': this.parseNumber(baseValueString),
+            'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

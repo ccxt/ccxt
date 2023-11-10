@@ -319,7 +319,7 @@ export default class gemini extends Exchange {
         //            [ "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ], // as confirmed, precisions seem to be the 5th index
         //            [ "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ],
         //            [ "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ],
-        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ],
+        //            [ "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ],
         //            ...
         //        ],
         //        "networks": [
@@ -495,6 +495,7 @@ export default class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': row,
             });
         }
@@ -559,11 +560,10 @@ export default class gemini extends Exchange {
         }
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const method = 'publicGetV1SymbolsDetailsSymbol';
             const request = {
                 'symbol': marketId,
             };
-            promises.push(this[method](this.extend(request, params)));
+            promises.push(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, params)));
             //
             //     {
             //         "symbol": "BTCUSD",
@@ -645,6 +645,7 @@ export default class gemini extends Exchange {
                     'max': undefined,
                 },
             },
+            'created': undefined,
             'info': response,
         };
     }
@@ -737,7 +738,13 @@ export default class gemini extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const method = this.safeValue(this.options, 'fetchTickerMethod', 'fetchTickerV1');
-        return await this[method](symbol, params);
+        if (method === 'fetchTickerV1') {
+            return await this.fetchTickerV1(symbol, params);
+        }
+        if (method === 'fetchTickerV2') {
+            return await this.fetchTickerV2(symbol, params);
+        }
+        return await this.fetchTickerV1AndV2(symbol, params);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1447,9 +1454,7 @@ export default class gemini extends Exchange {
          * @param {object} [params] extra parameters specific to the gemini api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1609,9 +1614,9 @@ export default class gemini extends Exchange {
     parseDepositAddress(depositAddress, currency = undefined) {
         //
         //      {
-        //          address: "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        //          timestamp: "1636813923098",
-        //          addressVersion: "eV1"                                         }
+        //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          "timestamp": "1636813923098",
+        //          "addressVersion": "eV1"                                         }
         //      }
         //
         const address = this.safeString(depositAddress, 'address');

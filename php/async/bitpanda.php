@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitpanda extends Exchange {
 
@@ -309,8 +310,8 @@ class bitpanda extends Exchange {
             $response = Async\await($this->publicGetTime ($params));
             //
             //     {
-            //         iso => '2020-07-10T05:17:26.716Z',
-            //         epoch_millis => 1594358246716,
+            //         "iso" => "2020-07-10T05:17:26.716Z",
+            //         "epoch_millis" => 1594358246716,
             //     }
             //
             return $this->safe_integer($response, 'epoch_millis');
@@ -370,12 +371,12 @@ class bitpanda extends Exchange {
             //
             //     array(
             //         {
-            //             $state => 'ACTIVE',
-            //             $base => array( code => 'ETH', precision => 8 ),
-            //             $quote => array( code => 'CHF', precision => 2 ),
-            //             amount_precision => 4,
-            //             market_precision => 2,
-            //             min_size => '10.0'
+            //             "state" => "ACTIVE",
+            //             "base" => array( code => "ETH", precision => 8 ),
+            //             "quote" => array( code => "CHF", precision => 2 ),
+            //             "amount_precision" => 4,
+            //             "market_precision" => 2,
+            //             "min_size" => "10.0"
             //         }
             //     )
             //
@@ -436,6 +437,7 @@ class bitpanda extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -572,7 +574,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -625,7 +627,7 @@ class bitpanda extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -698,11 +700,11 @@ class bitpanda extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -786,7 +788,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "instrument_code":"BTC_EUR",
@@ -829,7 +831,7 @@ class bitpanda extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -876,7 +878,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -958,7 +960,7 @@ class bitpanda extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1000,7 +1002,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
@@ -1015,7 +1017,7 @@ class bitpanda extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1114,7 +1116,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made $to an account
@@ -1179,7 +1181,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1306,7 +1308,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits, fetchWithdrawals
         //
@@ -1398,7 +1400,7 @@ class bitpanda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -1723,7 +1725,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1844,7 +1846,7 @@ class bitpanda extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user

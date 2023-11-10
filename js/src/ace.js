@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/ace.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
+import { BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -245,6 +245,7 @@ export default class ace extends Exchange {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
                 },
                 'active': undefined,
+                'created': undefined,
                 'info': market,
             });
         }
@@ -339,7 +340,7 @@ export default class ace extends Exchange {
             const ticker = this.parseTicker(rawTicker, market);
             tickers.push(ticker);
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -702,9 +703,7 @@ export default class ace extends Exchange {
          * @param {object} [params] extra parameters specific to the ace api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires the symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -880,10 +879,7 @@ export default class ace extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'attachment');
-        const trades = this.safeValue(data, 'trades');
-        if (trades === undefined) {
-            return trades;
-        }
+        const trades = this.safeValue(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -997,9 +993,9 @@ export default class ace extends Exchange {
         //                 "currencyName": "BTC"
         //             }
         //         ],
-        //         message: null,
-        //         parameters: null,
-        //         status: '200'
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": "200"
         //     }
         //
         return this.parseBalance(balances);
@@ -1019,7 +1015,7 @@ export default class ace extends Exchange {
                 'timeStamp': nonce,
             }, params);
             const dataKeys = Object.keys(data);
-            const sortedDataKeys = this.sortBy(dataKeys, 0);
+            const sortedDataKeys = this.sortBy(dataKeys, 0, false, '');
             for (let i = 0; i < sortedDataKeys.length; i++) {
                 const key = sortedDataKeys[i];
                 auth += this.safeString(data, key);

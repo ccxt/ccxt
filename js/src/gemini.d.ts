@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class gemini
  * @extends Exchange
@@ -59,68 +59,31 @@ export default class gemini extends Exchange {
                 max: any;
             };
         };
+        created: any;
         info: any;
     };
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickerV1(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV2(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickerV1AndV2(symbol: string, params?: {}): Promise<any>;
-    fetchTicker(symbol: string, params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTickerV1(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerV1AndV2(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseBalance(response: any): Balances;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: any;
-        address: string;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: any;
-        fee: any;
-    }>;
+    fetchBalance(params?: {}): Promise<Balances>;
+    parseOrder(order: any, market?: any): Order;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     nonce(): number;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: any;
-        address: string;
-        addressTo: any;
-        addressFrom: any;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: any;
-        fee: any;
-    };
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatus(status: any): string;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
@@ -144,5 +107,5 @@ export default class gemini extends Exchange {
         tag: any;
         info: any;
     }>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
 }

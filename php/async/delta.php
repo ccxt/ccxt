@@ -12,6 +12,7 @@ use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class delta extends Exchange {
 
@@ -825,6 +826,7 @@ class delta extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                     'info' => $market,
                 );
             }
@@ -832,7 +834,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -977,7 +979,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1270,11 +1272,11 @@ class delta extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1316,7 +1318,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -1416,7 +1418,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1453,7 +1455,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "time":1605393120,
@@ -1474,7 +1476,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -1527,7 +1529,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
@@ -1544,7 +1546,7 @@ class delta extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1687,7 +1689,7 @@ class delta extends Exchange {
                 $side = 'sell';
             }
         }
-        return array(
+        return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $symbol,
@@ -1713,7 +1715,7 @@ class delta extends Exchange {
             'marginRatio' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
-        );
+        ));
     }
 
     public function parse_order_status($status) {
@@ -1726,7 +1728,7 @@ class delta extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -1915,8 +1917,8 @@ class delta extends Exchange {
             $request = array(
                 'id' => intval($id),
                 'product_id' => $market['numericId'],
-                // 'limit_price' => $this->price_to_precision($symbol, $price),
-                // 'size' => $this->amount_to_precision($symbol, $amount),
+                // "limit_price" => $this->price_to_precision($symbol, $price),
+                // "size" => $this->amount_to_precision($symbol, $amount),
             );
             if ($amount !== null) {
                 $request['size'] = intval($this->amount_to_precision($symbol, $amount));
@@ -2034,7 +2036,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2049,7 +2051,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2711,7 +2713,7 @@ class delta extends Exchange {
              * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] exchange specific parameters
-             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+             * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2831,7 +2833,7 @@ class delta extends Exchange {
         //
         $timestamp = $this->safe_integer_product($interest, 'timestamp', 0.001);
         $marketId = $this->safe_string($interest, 'symbol');
-        return array(
+        return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($marketId, $market),
             'baseVolume' => $this->safe_number($interest, 'oi_value'),
             'quoteVolume' => $this->safe_number($interest, 'oi_value_usd'),
@@ -2840,7 +2842,7 @@ class delta extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
-        );
+        ), $market);
     }
 
     public function fetch_leverage(string $symbol, $params = array ()) {

@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class mexc extends Exchange {
 
@@ -32,8 +33,8 @@ class mexc extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => true,
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'addMargin' => true,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
@@ -41,6 +42,7 @@ class mexc extends Exchange {
                 'cancelOrders' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
                 'editOrder' => null,
@@ -198,6 +200,8 @@ class mexc extends Exchange {
                             'rebate/detail/kickback' => 1,
                             'rebate/referCode' => 1,
                             'rebate/affiliate/commission' => 1,
+                            'rebate/affiliate/withdraw' => 1,
+                            'rebate/affiliate/commission/detail' => 1,
                             'mxDeduct/enable' => 1,
                             'userDataStream' => 1,
                         ),
@@ -398,10 +402,6 @@ class mexc extends Exchange {
                 'fetchMarkets' => array(
                     'types' => array(
                         'spot' => true,
-                        'future' => array(
-                            'linear' => false,
-                            'inverse' => false,
-                        ),
                         'swap' => array(
                             'linear' => true,
                             'inverse' => false,
@@ -903,38 +903,38 @@ class mexc extends Exchange {
             $response = Async\await($this->spotPrivateGetCapitalConfigGetall ($params));
             //
             // {
-            //     coin => 'QANX',
-            //     $name => 'QANplatform',
-            //     networkList => array(
+            //     "coin" => "QANX",
+            //     "name" => "QANplatform",
+            //     "networkList" => array(
             //       array(
-            //         coin => 'QANX',
-            //         depositDesc => null,
-            //         depositEnable => true,
-            //         minConfirm => '0',
-            //         $name => 'QANplatform',
-            //         $network => 'BEP20(BSC)',
-            //         withdrawEnable => false,
-            //         withdrawFee => '42.000000000000000000',
-            //         withdrawIntegerMultiple => null,
-            //         $withdrawMax => '24000000.000000000000000000',
-            //         $withdrawMin => '20.000000000000000000',
-            //         sameAddress => false,
-            //         contract => '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+            //         "coin" => "QANX",
+            //         "depositDesc" => null,
+            //         "depositEnable" => true,
+            //         "minConfirm" => "0",
+            //         "name" => "QANplatform",
+            //         "network" => "BEP20(BSC)",
+            //         "withdrawEnable" => false,
+            //         "withdrawFee" => "42.000000000000000000",
+            //         "withdrawIntegerMultiple" => null,
+            //         "withdrawMax" => "24000000.000000000000000000",
+            //         "withdrawMin" => "20.000000000000000000",
+            //         "sameAddress" => false,
+            //         "contract" => "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
             //       ),
             //       {
-            //         coin => 'QANX',
-            //         depositDesc => null,
-            //         depositEnable => true,
-            //         minConfirm => '0',
-            //         $name => 'QANplatform',
-            //         $network => 'ERC20',
-            //         withdrawEnable => true,
-            //         withdrawFee => '2732.000000000000000000',
-            //         withdrawIntegerMultiple => null,
-            //         $withdrawMax => '24000000.000000000000000000',
-            //         $withdrawMin => '240.000000000000000000',
-            //         sameAddress => false,
-            //         contract => '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+            //         "coin" => "QANX",
+            //         "depositDesc" => null,
+            //         "depositEnable" => true,
+            //         "minConfirm" => "0",
+            //         "name" => "QANplatform",
+            //         "network" => "ERC20",
+            //         "withdrawEnable" => true,
+            //         "withdrawFee" => "2732.000000000000000000",
+            //         "withdrawIntegerMultiple" => null,
+            //         "withdrawMax" => "24000000.000000000000000000",
+            //         "withdrawMin" => "240.000000000000000000",
+            //         "sameAddress" => false,
+            //         "contract" => "0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa"
             //       }
             //     )
             //   }
@@ -1172,6 +1172,7 @@ class mexc extends Exchange {
                             'max' => $maxQuoteAmount,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1286,6 +1287,7 @@ class mexc extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -1293,7 +1295,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
@@ -1369,14 +1371,18 @@ class mexc extends Exchange {
         return array( $price, $amount );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-$trades-list
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-$trades-list
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
+             * @param {int} [$params->until] *spot only* *$since must be defined* the latest time in ms to fetch entries for
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
@@ -1387,11 +1393,21 @@ class mexc extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            // if ($since !== null) {
-            //     $request['startTime'] = $since; bug in api, waiting for fix
-            // }
             $trades = null;
             if ($market['spot']) {
+                $until = $this->safe_integer_n($params, array( 'endTime', 'until', 'till' ));
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                    if ($until === null) {
+                        throw new ArgumentsRequired($this->id . ' fetchTrades() requires an $until parameter when $since is provided');
+                    }
+                }
+                if ($until !== null) {
+                    if ($since === null) {
+                        throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $since parameter when $until is provided');
+                    }
+                    $request['endTime'] = $until;
+                }
                 $method = $this->safe_string($this->options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
                 $method = $this->safe_string($params, 'method', $method); // AggTrades, HistoricalTrades, Trades
                 $trades = Async\await($this->$method (array_merge($request, $params)));
@@ -1449,7 +1465,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $id = null;
         $timestamp = null;
         $orderId = null;
@@ -1619,33 +1635,55 @@ class mexc extends Exchange {
         return $id;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-$data
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $maxLimit = ($market['spot']) ? 1000 : 2000;
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, $maxLimit));
+            }
             $options = $this->safe_value($this->options, 'timeframes', array());
             $timeframes = $this->safe_value($options, $market['type'], array());
             $timeframeValue = $this->safe_string($timeframes, $timeframe);
+            $duration = $this->parse_timeframe($timeframe) * 1000;
             $request = array(
                 'symbol' => $market['id'],
                 'interval' => $timeframeValue,
             );
             $candles = null;
             if ($market['spot']) {
+                $until = $this->safe_integer_n($params, array( 'until', 'endTime', 'till' ));
                 if ($since !== null) {
                     $request['startTime'] = $since;
+                    if ($until === null) {
+                        // we have to calculate it assuming we can get at most 2000 entries per $request
+                        $end = $this->sum($since, $maxLimit * $duration);
+                        $now = $this->milliseconds();
+                        $request['endTime'] = min ($end, $now);
+                    }
                 }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
+                }
+                if ($until !== null) {
+                    $params = $this->omit($params, array( 'until', 'till' ));
+                    $request['endTime'] = $until;
                 }
                 $response = Async\await($this->spotPublicGetKlines (array_merge($request, $params)));
                 //
@@ -1664,8 +1702,13 @@ class mexc extends Exchange {
                 //
                 $candles = $response;
             } elseif ($market['swap']) {
+                $until = $this->safe_integer_product_n($params, array( 'until', 'endTime', 'till' ), 0.001);
                 if ($since !== null) {
                     $request['start'] = $this->parse_to_int($since / 1000);
+                }
+                if ($until !== null) {
+                    $params = $this->omit($params, array( 'until', 'till' ));
+                    $request['end'] = $until;
                 }
                 $priceType = $this->safe_string($params, 'price', 'default');
                 $params = $this->omit($params, 'price');
@@ -1697,7 +1740,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1796,7 +1839,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1869,7 +1912,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = null;
@@ -2046,61 +2089,69 @@ class mexc extends Exchange {
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($market['spot']) {
                 return Async\await($this->create_spot_order($market, $type, $side, $amount, $price, $marginMode, $query));
-            } elseif ($market['swap']) {
+            } else {
                 return Async\await($this->create_swap_order($market, $type, $side, $amount, $price, $marginMode, $query));
             }
-            return null;
         }) ();
+    }
+
+    public function create_spot_order_request($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
+        $symbol = $market['symbol'];
+        $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $orderSide,
+            'type' => strtoupper($type),
+        );
+        if ($orderSide === 'BUY' && $type === 'market') {
+            $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
+            if ($quoteOrderQty !== null) {
+                $amount = $quoteOrderQty;
+            } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
+                if ($price === null) {
+                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                } else {
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = $this->parse_number($quoteAmount);
+                }
+            }
+            $request['quoteOrderQty'] = $amount;
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['newClientOrderId'] = $clientOrderId;
+            $params = $this->omit($params, array( 'type', 'clientOrderId' ));
+        }
+        if ($marginMode !== null) {
+            if ($marginMode !== 'isolated') {
+                throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+            }
+        }
+        $postOnly = null;
+        list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
+        if ($postOnly) {
+            $request['type'] = 'LIMIT_MAKER';
+        }
+        return array_merge($request, $params);
     }
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
         return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
-            $symbol = $market['symbol'];
-            $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
-            $request = array(
-                'symbol' => $market['id'],
-                'side' => $orderSide,
-                'type' => strtoupper($type),
-            );
-            if ($orderSide === 'BUY' && $type === 'market') {
-                $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
-                if ($quoteOrderQty !== null) {
-                    $amount = $quoteOrderQty;
-                } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                    } else {
-                        $amountString = $this->number_to_string($amount);
-                        $priceString = $this->number_to_string($price);
-                        $quoteAmount = Precise::string_mul($amountString, $priceString);
-                        $amount = $this->parse_number($quoteAmount);
-                    }
-                }
-                $request['quoteOrderQty'] = $amount;
-            } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            }
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['newClientOrderId'] = $clientOrderId;
-                $params = $this->omit($params, array( 'type', 'clientOrderId' ));
-            }
-            $method = 'spotPrivatePostOrder';
+            Async\await($this->load_markets());
+            $request = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $params);
+            $response = null;
             if ($marginMode !== null) {
-                if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
-                }
-                $method = 'spotPrivatePostMarginOrder';
+                $response = Async\await($this->spotPrivatePostMarginOrder (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->spotPrivatePostOrder (array_merge($request, $params)));
             }
-            $postOnly = null;
-            list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'LIMIT_MAKER', $params);
-            if ($postOnly) {
-                $request['type'] = 'LIMIT_MAKER';
-            }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
@@ -2120,12 +2171,12 @@ class mexc extends Exchange {
             //         "transactTime" => 1661992652132
             //     }
             //
-            return array_merge($this->parse_order($response, $market), array(
-                'side' => $side,
-                'type' => $type,
-                'price' => $price,
-                'amount' => $amount,
-            ));
+            $order = $this->parse_order($response, $market);
+            $order['side'] = $side;
+            $order['type'] = $type;
+            $order['price'] = $price;
+            $order['amount'] = $amount;
+            return $order;
         }) ();
     }
 
@@ -2232,6 +2283,70 @@ class mexc extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * *spot only*  *all $orders must have the same $symbol* create a list of trade $orders
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-$orders
+             * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to api endpoint
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $market = $this->market($marketId);
+                if (!$market['spot']) {
+                    throw new NotSupported($this->id . ' createOrders() is only supported for spot markets');
+                }
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+                $orderRequest = $this->create_spot_order_request($market, $type, $side, $amount, $price, $marginMode, $orderParams);
+                $ordersRequests[] = $orderRequest;
+            }
+            $request = array(
+                'batchOrders' => $ordersRequests,
+            );
+            $response = Async\await($this->spotPrivatePostBatchOrders ($request));
+            //
+            // array(
+            //     array(
+            //       "symbol" => "BTCUSDT",
+            //       "orderId" => "1196315350023612316",
+            //       "newClientOrderId" => "hio8279hbdsds",
+            //       "orderListId" => -1
+            //     ),
+            //     array(
+            //       "newClientOrderId" => "123456",
+            //       "msg" => "The minimum transaction volume cannot be less than:0.5USDT",
+            //       "code" => 30002
+            //     ),
+            //     {
+            //       "symbol" => "BTCUSDT",
+            //       "orderId" => "1196315350023612318",
+            //       "orderListId" => -1
+            //     }
+            // )
+            //
+            return $this->parse_orders($response);
+        }) ();
+    }
+
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -2241,9 +2356,7 @@ class mexc extends Exchange {
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -2352,7 +2465,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -2583,7 +2696,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2597,16 +2710,16 @@ class mexc extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $market = null;
+            $marketType = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
             }
-            $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
             if ($marketType === 'spot') {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
                 }
+                $request['symbol'] = $market['id'];
                 $method = 'spotPrivateGetOpenOrders';
                 list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
                 if ($marginMode !== null) {
@@ -2672,7 +2785,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2707,11 +2820,10 @@ class mexc extends Exchange {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
             }
             list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
             if ($marketType === 'spot') {
-                throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
+                throw new NotSupported($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
             } else {
                 $request['states'] = $state;
                 return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
@@ -2946,7 +3058,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // spot => createOrder
         //
@@ -3095,6 +3207,23 @@ class mexc extends Exchange {
         //         "updateTime" => "1648984276000",
         //     }
         //
+        // createOrders error
+        //
+        //     {
+        //         "newClientOrderId" => "123456",
+        //         "msg" => "The minimum transaction volume cannot be less than:0.5USDT",
+        //         "code" => 30002
+        //     }
+        //
+        $code = $this->safe_integer($order, 'code');
+        if ($code !== null) {
+            // error upon placing multiple orders
+            return $this->safe_order(array(
+                'info' => $order,
+                'status' => 'rejected',
+                'clientOrderId' => $this->safe_string($order, 'newClientOrderId'),
+            ));
+        }
         $id = null;
         if (gettype($order) === 'string') {
             $id = $order;
@@ -3301,7 +3430,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function custom_parse_balance($response, $marketType) {
+    public function custom_parse_balance($response, $marketType): array {
         //
         // spot
         //
@@ -3422,7 +3551,7 @@ class mexc extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -3561,9 +3690,7 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
@@ -3961,9 +4088,7 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the mexc api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure funding rate structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchFundingRateHistory', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -4029,6 +4154,7 @@ class mexc extends Exchange {
              * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
              */
             Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, 'swap', true, true);
             $response = Async\await($this->contractPublicGetDetail ($params));
             //
             //     {
@@ -4246,7 +4372,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4290,16 +4416,16 @@ class mexc extends Exchange {
             //
             // array(
             //     {
-            //         amount => '10',
-            //         coin => 'USDC-TRX',
-            //         network => 'TRX',
-            //         status => '5',
-            //         address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-            //         txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-            //         insertTime => '1664805021000',
-            //         unlockConfirm => '200',
-            //         confirmTimes => '203',
-            //         memo => 'xxyy1122'
+            //         "amount" => "10",
+            //         "coin" => "USDC-TRX",
+            //         "network" => "TRX",
+            //         "status" => "5",
+            //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+            //         "insertTime" => "1664805021000",
+            //         "unlockConfirm" => "200",
+            //         "confirmTimes" => "203",
+            //         "memo" => "xxyy1122"
             //     }
             // )
             //
@@ -4307,7 +4433,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4344,19 +4470,19 @@ class mexc extends Exchange {
             //
             // array(
             //     {
-            //       id => 'adcd1c8322154de691b815eedcd10c42',
-            //       txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-            //       coin => 'USDC-MATIC',
-            //       network => 'MATIC',
-            //       address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-            //       amount => '2',
-            //       transferType => '0',
-            //       status => '7',
-            //       transactionFee => '1',
-            //       confirmNo => null,
-            //       applyTime => '1664882739000',
-            //       remark => '',
-            //       memo => null
+            //       "id" => "adcd1c8322154de691b815eedcd10c42",
+            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+            //       "coin" => "USDC-MATIC",
+            //       "network" => "MATIC",
+            //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+            //       "amount" => "2",
+            //       "transferType" => "0",
+            //       "status" => "7",
+            //       "transactionFee" => "1",
+            //       "confirmNo" => null,
+            //       "applyTime" => "1664882739000",
+            //       "remark" => '',
+            //       "memo" => null
             //     }
             // )
             //
@@ -4364,39 +4490,39 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
         // {
-        //     amount => '10',
-        //     coin => 'USDC-TRX',
-        //     $network => 'TRX',
-        //     $status => '5',
-        //     $address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
-        //     txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
-        //     insertTime => '1664805021000',
-        //     unlockConfirm => '200',
-        //     confirmTimes => '203',
-        //     memo => 'xxyy1122'
+        //     "amount" => "10",
+        //     "coin" => "USDC-TRX",
+        //     "network" => "TRX",
+        //     "status" => "5",
+        //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
+        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
+        //     "insertTime" => "1664805021000",
+        //     "unlockConfirm" => "200",
+        //     "confirmTimes" => "203",
+        //     "memo" => "xxyy1122"
         // }
         //
         // fetchWithdrawals
         //
         // {
-        //     $id => 'adcd1c8322154de691b815eedcd10c42',
-        //     txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
-        //     coin => 'USDC-MATIC',
-        //     $network => 'MATIC',
-        //     $address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
-        //     amount => '2',
-        //     transferType => '0',
-        //     $status => '7',
-        //     transactionFee => '1',
-        //     confirmNo => null,
-        //     applyTime => '1664882739000',
-        //     remark => '',
-        //     memo => null
+        //     "id" => "adcd1c8322154de691b815eedcd10c42",
+        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
+        //     "coin" => "USDC-MATIC",
+        //     "network" => "MATIC",
+        //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
+        //     "amount" => "2",
+        //     "transferType" => "0",
+        //     "status" => "7",
+        //     "transactionFee" => "1",
+        //     "confirmNo" => null,
+        //     "applyTime" => "1664882739000",
+        //     "remark" => '',
+        //     "memo" => null
         //   }
         //
         // withdraw
@@ -4627,14 +4753,14 @@ class mexc extends Exchange {
                 $response = Async\await($this->spot2PrivateGetAssetInternalTransferInfo (array_merge($request, $query)));
                 //
                 //     {
-                //         code => '200',
-                //         $data => {
-                //             currency => 'USDT',
-                //             amount => '1',
-                //             transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
-                //             from => 'MAIN',
-                //             to => 'CONTRACT',
-                //             transact_state => 'SUCCESS'
+                //         "code" => "200",
+                //         "data" => {
+                //             "currency" => "USDT",
+                //             "amount" => "1",
+                //             "transact_id" => "954877a2ef54499db9b28a7cf9ebcf41",
+                //             "from" => "MAIN",
+                //             "to" => "CONTRACT",
+                //             "transact_state" => "SUCCESS"
                 //         }
                 //     }
                 //
@@ -4679,17 +4805,17 @@ class mexc extends Exchange {
                 $response = Async\await($this->spot2PrivateGetAssetInternalTransferRecord (array_merge($request, $query)));
                 //
                 //     {
-                //         $code => '200',
-                //         $data => {
-                //             total_page => '1',
-                //             total_size => '5',
-                //             result_list => [array(
-                //                     $currency => 'USDT',
-                //                     amount => '1',
-                //                     transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
-                //                     from => 'MAIN',
-                //                     to => 'CONTRACT',
-                //                     transact_state => 'SUCCESS'
+                //         "code" => "200",
+                //         "data" => {
+                //             "total_page" => "1",
+                //             "total_size" => "5",
+                //             "result_list" => [array(
+                //                     "currency" => "USDT",
+                //                     "amount" => "1",
+                //                     "transact_id" => "954877a2ef54499db9b28a7cf9ebcf41",
+                //                     "from" => "MAIN",
+                //                     "to" => "CONTRACT",
+                //                     "transact_state" => "SUCCESS"
                 //                 ),
                 //                 ...
                 //             ]
@@ -4799,12 +4925,12 @@ class mexc extends Exchange {
         // spot => fetchTransfer
         //
         //     {
-        //         $currency => 'USDT',
-        //         amount => '1',
-        //         transact_id => 'b60c1df8e7b24b268858003f374ecb75',
-        //         from => 'MAIN',
-        //         to => 'CONTRACT',
-        //         transact_state => 'WAIT'
+        //         "currency" => "USDT",
+        //         "amount" => "1",
+        //         "transact_id" => "b60c1df8e7b24b268858003f374ecb75",
+        //         "from" => "MAIN",
+        //         "to" => "CONTRACT",
+        //         "transact_state" => "WAIT"
         //     }
         //
         // swap => fetchTransfer
@@ -4956,10 +5082,8 @@ class mexc extends Exchange {
              * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
              */
+            $this->check_required_symbol('borrowMargin', $symbol);
             Async\await($this->load_markets());
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-            }
             $market = $this->market($symbol);
             $currency = $this->currency($code);
             $request = array(
@@ -4993,10 +5117,8 @@ class mexc extends Exchange {
              * @param {string} [$params->borrowId] $transaction $id '762407666453712896'
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure margin loan structure}
              */
+            $this->check_required_symbol('repayMargin', $symbol);
             Async\await($this->load_markets());
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-            }
             $id = $this->safe_string_2($params, 'id', 'borrowId');
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
@@ -5037,25 +5159,25 @@ class mexc extends Exchange {
             //
             //    array(
             //       {
-            //           coin => 'AGLD',
-            //           name => 'Adventure Gold',
-            //           networkList => array(
+            //           "coin" => "AGLD",
+            //           "name" => "Adventure Gold",
+            //           "networkList" => array(
             //               array(
-            //                   coin => 'AGLD',
-            //                   depositDesc => null,
-            //                   depositEnable => true,
-            //                   minConfirm => '0',
-            //                   name => 'Adventure Gold',
-            //                   network => 'ERC20',
-            //                   withdrawEnable => true,
-            //                   withdrawFee => '10.000000000000000000',
-            //                   withdrawIntegerMultiple => null,
-            //                   withdrawMax => '1200000.000000000000000000',
-            //                   withdrawMin => '20.000000000000000000',
-            //                   sameAddress => false,
-            //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-            //                   withdrawTips => null,
-            //                   depositTips => null
+            //                   "coin" => "AGLD",
+            //                   "depositDesc" => null,
+            //                   "depositEnable" => true,
+            //                   "minConfirm" => "0",
+            //                   "name" => "Adventure Gold",
+            //                   "network" => "ERC20",
+            //                   "withdrawEnable" => true,
+            //                   "withdrawFee" => "10.000000000000000000",
+            //                   "withdrawIntegerMultiple" => null,
+            //                   "withdrawMax" => "1200000.000000000000000000",
+            //                   "withdrawMin" => "20.000000000000000000",
+            //                   "sameAddress" => false,
+            //                   "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+            //                   "withdrawTips" => null,
+            //                   "depositTips" => null
             //               }
             //               ...
             //           )
@@ -5088,25 +5210,25 @@ class mexc extends Exchange {
     public function parse_transaction_fee($transaction, $currency = null) {
         //
         //    {
-        //        coin => 'AGLD',
-        //        name => 'Adventure Gold',
-        //        $networkList => array(
+        //        "coin" => "AGLD",
+        //        "name" => "Adventure Gold",
+        //        "networkList" => array(
         //            {
-        //                coin => 'AGLD',
-        //                depositDesc => null,
-        //                depositEnable => true,
-        //                minConfirm => '0',
-        //                name => 'Adventure Gold',
-        //                network => 'ERC20',
-        //                withdrawEnable => true,
-        //                withdrawFee => '10.000000000000000000',
-        //                withdrawIntegerMultiple => null,
-        //                withdrawMax => '1200000.000000000000000000',
-        //                withdrawMin => '20.000000000000000000',
-        //                sameAddress => false,
-        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                withdrawTips => null,
-        //                depositTips => null
+        //                "coin" => "AGLD",
+        //                "depositDesc" => null,
+        //                "depositEnable" => true,
+        //                "minConfirm" => "0",
+        //                "name" => "Adventure Gold",
+        //                "network" => "ERC20",
+        //                "withdrawEnable" => true,
+        //                "withdrawFee" => "10.000000000000000000",
+        //                "withdrawIntegerMultiple" => null,
+        //                "withdrawMax" => "1200000.000000000000000000",
+        //                "withdrawMin" => "20.000000000000000000",
+        //                "sameAddress" => false,
+        //                "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips" => null,
+        //                "depositTips" => null
         //            }
         //            ...
         //        )
@@ -5138,25 +5260,25 @@ class mexc extends Exchange {
             //
             //    array(
             //       {
-            //           coin => 'AGLD',
-            //           name => 'Adventure Gold',
-            //           networkList => array(
+            //           "coin" => "AGLD",
+            //           "name" => "Adventure Gold",
+            //           "networkList" => array(
             //               array(
-            //                   coin => 'AGLD',
-            //                   depositDesc => null,
-            //                   depositEnable => true,
-            //                   minConfirm => '0',
-            //                   name => 'Adventure Gold',
-            //                   network => 'ERC20',
-            //                   withdrawEnable => true,
-            //                   withdrawFee => '10.000000000000000000',
-            //                   withdrawIntegerMultiple => null,
-            //                   withdrawMax => '1200000.000000000000000000',
-            //                   withdrawMin => '20.000000000000000000',
-            //                   sameAddress => false,
-            //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-            //                   withdrawTips => null,
-            //                   depositTips => null
+            //                   "coin" => "AGLD",
+            //                   "depositDesc" => null,
+            //                   "depositEnable" => true,
+            //                   "minConfirm" => "0",
+            //                   "name" => "Adventure Gold",
+            //                   "network" => "ERC20",
+            //                   "withdrawEnable" => true,
+            //                   "withdrawFee" => "10.000000000000000000",
+            //                   "withdrawIntegerMultiple" => null,
+            //                   "withdrawMax" => "1200000.000000000000000000",
+            //                   "withdrawMin" => "20.000000000000000000",
+            //                   "sameAddress" => false,
+            //                   "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+            //                   "withdrawTips" => null,
+            //                   "depositTips" => null
             //               }
             //               ...
             //           )
@@ -5171,25 +5293,25 @@ class mexc extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         //    {
-        //        coin => 'AGLD',
-        //        name => 'Adventure Gold',
-        //        $networkList => array(
+        //        "coin" => "AGLD",
+        //        "name" => "Adventure Gold",
+        //        "networkList" => array(
         //            {
-        //                coin => 'AGLD',
-        //                depositDesc => null,
-        //                depositEnable => true,
-        //                minConfirm => '0',
-        //                name => 'Adventure Gold',
-        //                network => 'ERC20',
-        //                withdrawEnable => true,
-        //                withdrawFee => '10.000000000000000000',
-        //                withdrawIntegerMultiple => null,
-        //                withdrawMax => '1200000.000000000000000000',
-        //                withdrawMin => '20.000000000000000000',
-        //                sameAddress => false,
-        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
-        //                withdrawTips => null,
-        //                depositTips => null
+        //                "coin" => "AGLD",
+        //                "depositDesc" => null,
+        //                "depositEnable" => true,
+        //                "minConfirm" => "0",
+        //                "name" => "Adventure Gold",
+        //                "network" => "ERC20",
+        //                "withdrawEnable" => true,
+        //                "withdrawFee" => "10.000000000000000000",
+        //                "withdrawIntegerMultiple" => null,
+        //                "withdrawMax" => "1200000.000000000000000000",
+        //                "withdrawMin" => "20.000000000000000000",
+        //                "sameAddress" => false,
+        //                "contract" => "0x32353a6c91143bfd6c7d363b546e62a9a2489a20",
+        //                "withdrawTips" => null,
+        //                "depositTips" => null
         //            }
         //            ...
         //        )

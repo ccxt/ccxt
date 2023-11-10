@@ -229,6 +229,7 @@ class lbank extends lbank$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': id,
             });
         }
@@ -330,7 +331,7 @@ class lbank extends lbank$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = 60, params = {}) {
         /**
@@ -664,7 +665,7 @@ class lbank extends lbank$1 {
             return orders[0];
         }
         else {
-            return orders;
+            throw new errors.BadRequest(this.id + ' fetchOrder() can only return one order at a time. Found ' + numOrders + ' orders.');
         }
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -742,9 +743,9 @@ class lbank extends lbank$1 {
         const response = this.privatePostWithdraw(this.extend(request, params));
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -754,9 +755,9 @@ class lbank extends lbank$1 {
         // withdraw
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         currency = this.safeCurrency(undefined, currency);

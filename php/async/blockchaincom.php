@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\InsufficientFunds;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class blockchaincom extends Exchange {
 
@@ -347,13 +348,14 @@ class blockchaincom extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                 );
             }
             return $result;
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -403,7 +405,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //     "symbol" => "BTC-USD",
@@ -441,7 +443,7 @@ class blockchaincom extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -485,23 +487,23 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
-        //         clOrdId => '00001',
-        //         ordType => 'MARKET',
-        //         ordStatus => 'FILLED',
-        //         $side => 'BUY',
-        //         $symbol => 'USDC-USDT',
-        //         exOrdId => '281775861306290',
-        //         $price => null,
-        //         text => 'Fill',
-        //         lastShares => '30.0',
-        //         lastPx => '0.9999',
-        //         leavesQty => '0.0',
-        //         cumQty => '30.0',
-        //         avgPx => '0.9999',
-        //         $timestamp => '1633940339619'
+        //         "clOrdId" => "00001",
+        //         "ordType" => "MARKET",
+        //         "ordStatus" => "FILLED",
+        //         "side" => "BUY",
+        //         "symbol" => "USDC-USDT",
+        //         "exOrdId" => "281775861306290",
+        //         "price" => null,
+        //         "text" => "Fill",
+        //         "lastShares" => "30.0",
+        //         "lastPx" => "0.9999",
+        //         "leavesQty" => "0.0",
+        //         "cumQty" => "30.0",
+        //         "avgPx" => "0.9999",
+        //         "timestamp" => "1633940339619"
         //     }
         //
         $clientOrderId = $this->safe_string($order, 'clOrdId');
@@ -661,9 +663,9 @@ class blockchaincom extends Exchange {
             $response = Async\await($this->privateGetFees ($params));
             //
             //     {
-            //         makerRate => "0.002",
-            //         takerRate => "0.004",
-            //         volumeInUSD => "0.0"
+            //         "makerRate" => "0.002",
+            //         "takerRate" => "0.004",
+            //         "volumeInUSD" => "0.0"
             //     }
             //
             $makerFee = $this->safe_number($response, 'makerRate');
@@ -697,7 +699,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -712,7 +714,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -746,7 +748,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         //     {
         //         "exOrdId":281685751028507,
@@ -860,7 +862,7 @@ class blockchaincom extends Exchange {
         return $this->safe_string($states, $state, $state);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // deposit
         //
@@ -998,20 +1000,20 @@ class blockchaincom extends Exchange {
             $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
             //
             //     array(
-            //         $amount => "30.0",
-            //         $currency => "USDT",
-            //         beneficiary => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
-            //         withdrawalId => "99df5ef7-eab6-4033-be49-312930fbd1ea",
-            //         fee => "34.005078",
-            //         state => "PENDING",
-            //         timestamp => "1634218452595"
+            //         "amount" => "30.0",
+            //         "currency" => "USDT",
+            //         "beneficiary" => "adcd43fb-9ba6-41f7-8c0d-7013482cb88f",
+            //         "withdrawalId" => "99df5ef7-eab6-4033-be49-312930fbd1ea",
+            //         "fee" => "34.005078",
+            //         "state" => "PENDING",
+            //         "timestamp" => "1634218452595"
             //     ),
             //
             return $this->parse_transaction($response, $currency);
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1056,7 +1058,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1102,7 +1104,7 @@ class blockchaincom extends Exchange {
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders

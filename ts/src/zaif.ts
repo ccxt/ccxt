@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -240,13 +240,14 @@ export default class zaif extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result = {
@@ -273,7 +274,7 @@ export default class zaif extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name zaif#fetchBalance
@@ -287,7 +288,7 @@ export default class zaif extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name zaif#fetchOrderBook
@@ -307,7 +308,7 @@ export default class zaif extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // {
         //     "last": 9e-08,
@@ -349,7 +350,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name zaif#fetchTicker
@@ -379,7 +380,7 @@ export default class zaif extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -417,7 +418,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name zaif#fetchTrades
@@ -506,7 +507,7 @@ export default class zaif extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "currency_pair": "btc_jpy",
@@ -551,7 +552,7 @@ export default class zaif extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name zaif#fetchOpenOrders
@@ -577,7 +578,7 @@ export default class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name zaif#fetchClosedOrders
@@ -660,7 +661,7 @@ export default class zaif extends Exchange {
         return this.parseTransaction (returnData, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //     {
         //         "id": 23634,

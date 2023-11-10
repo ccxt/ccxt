@@ -40,6 +40,8 @@ class ImplicitAPI:
     v1_01private_post_balances_bitbay_balance = v1_01PrivatePostBalancesBITBAYBalance = Entry('balances/BITBAY/balance', 'v1_01Private', 'POST', {})
     v1_01private_post_balances_bitbay_balance_transfer_source_destination = v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination = Entry('balances/BITBAY/balance/transfer/{source}/{destination}', 'v1_01Private', 'POST', {})
     v1_01private_post_fiat_cantor_exchange = v1_01PrivatePostFiatCantorExchange = Entry('fiat_cantor/exchange', 'v1_01Private', 'POST', {})
+    v1_01private_post_api_payments_withdrawals_crypto = v1_01PrivatePostApiPaymentsWithdrawalsCrypto = Entry('api_payments/withdrawals/crypto', 'v1_01Private', 'POST', {})
+    v1_01private_post_api_payments_withdrawals_fiat = v1_01PrivatePostApiPaymentsWithdrawalsFiat = Entry('api_payments/withdrawals/fiat', 'v1_01Private', 'POST', {})
     v1_01private_delete_trading_offer_symbol_id_side_price = v1_01PrivateDeleteTradingOfferSymbolIdSidePrice = Entry('trading/offer/{symbol}/{id}/{side}/{price}', 'v1_01Private', 'DELETE', {})
     v1_01private_delete_trading_stop_offer_symbol_id_side_price = v1_01PrivateDeleteTradingStopOfferSymbolIdSidePrice = Entry('trading/stop/offer/{symbol}/{id}/{side}/{price}', 'v1_01Private', 'DELETE', {})
     v1_01private_put_balances_bitbay_balance_id = v1_01PrivatePutBalancesBITBAYBalanceId = Entry('balances/BITBAY/balance/{id}', 'v1_01Private', 'PUT', {})

@@ -261,6 +261,7 @@ export default class bithumb extends Exchange {
                         },
                         'cost': {}, // set via options
                     },
+                    'created': undefined,
                     'info': market,
                 }, extension);
                 result.push(entry);
@@ -446,7 +447,7 @@ export default class bithumb extends Exchange {
                 result[symbol] = this.parseTicker(ticker, market);
             }
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -490,11 +491,11 @@ export default class bithumb extends Exchange {
         //
         //     [
         //         1576823400000, // 기준 시간
-        //         '8284000', // 시가
-        //         '8286000', // 종가
-        //         '8289000', // 고가
-        //         '8276000', // 저가
-        //         '15.41503692' // 거래량
+        //         "8284000", // 시가
+        //         "8286000", // 종가
+        //         "8289000", // 고가
+        //         "8276000", // 저가
+        //         "15.41503692" // 거래량
         //     ]
         //
         return [
@@ -528,23 +529,23 @@ export default class bithumb extends Exchange {
         const response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, params));
         //
         //     {
-        //         'status': '0000',
-        //         'data': {
+        //         "status": "0000",
+        //         "data": {
         //             [
         //                 1576823400000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8286000', // 종가
-        //                 '8289000', // 고가
-        //                 '8276000', // 저가
-        //                 '15.41503692' // 거래량
+        //                 "8284000", // 시가
+        //                 "8286000", // 종가
+        //                 "8289000", // 고가
+        //                 "8276000", // 저가
+        //                 "15.41503692" // 거래량
         //             ],
         //             [
         //                 1576824000000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8281000', // 종가
-        //                 '8289000', // 고가
-        //                 '8275000', // 저가
-        //                 '6.19584467' // 거래량
+        //                 "8284000", // 시가
+        //                 "8281000", // 종가
+        //                 "8289000", // 고가
+        //                 "8275000", // 저가
+        //                 "6.19584467" // 거래량
         //             ],
         //         }
         //     }
@@ -718,9 +719,7 @@ export default class bithumb extends Exchange {
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -734,24 +733,24 @@ export default class bithumb extends Exchange {
         //     {
         //         "status": "0000",
         //         "data": {
-        //             order_date: '1603161798539254',
-        //             type: 'ask',
-        //             order_status: 'Cancel',
-        //             order_currency: 'BTC',
-        //             payment_currency: 'KRW',
-        //             watch_price: '0',
-        //             order_price: '13344000',
-        //             order_qty: '0.0125',
-        //             cancel_date: '1603161803809993',
-        //             cancel_type: '사용자취소',
-        //             contract: [
+        //             "order_date": "1603161798539254",
+        //             "type": "ask",
+        //             "order_status": "Cancel",
+        //             "order_currency": "BTC",
+        //             "payment_currency": "KRW",
+        //             "watch_price": "0",
+        //             "order_price": "13344000",
+        //             "order_qty": "0.0125",
+        //             "cancel_date": "1603161803809993",
+        //             "cancel_type": "사용자취소",
+        //             "contract": [
         //                 {
-        //                     transaction_date: '1603161799976383',
-        //                     price: '13344000',
-        //                     units: '0.0015',
-        //                     fee_currency: 'KRW',
-        //                     fee: '0',
-        //                     total: '20016'
+        //                     "transaction_date": "1603161799976383",
+        //                     "price": "13344000",
+        //                     "units": "0.0015",
+        //                     "fee_currency": "KRW",
+        //                     "fee": "0",
+        //                     "total": "20016"
         //                 }
         //             ],
         //         }
@@ -779,7 +778,7 @@ export default class bithumb extends Exchange {
         //         "order_status": "Completed", // Completed, Cancel ...
         //         "order_currency": "BTC",
         //         "payment_currency": "KRW",
-        //         "watch_price": '0', // present in Cancel order
+        //         "watch_price": "0", // present in Cancel order
         //         "order_price": "8601000",
         //         "order_qty": "0.007",
         //         "cancel_date": "", // filled in Cancel order
@@ -874,13 +873,11 @@ export default class bithumb extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         if (limit === undefined) {
@@ -925,12 +922,10 @@ export default class bithumb extends Exchange {
          * @param {object} [params] extra parameters specific to the bithumb api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        this.checkRequiredSymbol('cancelOrder', symbol);
         const side_in_params = ('side' in params);
         if (!side_in_params) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a `side` parameter (sell or buy)');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
         }
         const market = this.market(symbol);
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';

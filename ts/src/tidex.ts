@@ -3,7 +3,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 /**
  * @class tidex
@@ -335,13 +335,14 @@ export default class tidex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const balances = this.safeValue (response, 'return');
         const timestamp = this.safeTimestamp (balances, 'server_time');
         const result = {
@@ -363,7 +364,7 @@ export default class tidex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name tidex#fetchBalance
@@ -402,7 +403,7 @@ export default class tidex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name tidex#fetchOrderBook
@@ -466,21 +467,21 @@ export default class tidex extends Exchange {
             const symbol = this.safeSymbol (id);
             result[symbol] = this.parseOrderBook (response[id], symbol);
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
-        //         high: 0.03497582,
-        //         low: 0.03248474,
-        //         avg: 0.03373028,
-        //         vol: 120.11485715062999,
-        //         vol_cur: 3572.24914074,
-        //         last: 0.0337611,
-        //         buy: 0.0337442,
-        //         sell: 0.03377798,
-        //         updated: 1537522009
+        //         "high": 0.03497582,
+        //         "low": 0.03248474,
+        //         "avg": 0.03373028,
+        //         "vol": 120.11485715062999,
+        //         "vol_cur": 3572.24914074,
+        //         "last": 0.0337611,
+        //         "buy": 0.0337442,
+        //         "sell": 0.03377798,
+        //         "updated": 1537522009
         //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
@@ -546,10 +547,10 @@ export default class tidex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name tidex#fetchTicker
@@ -559,10 +560,10 @@ export default class tidex extends Exchange {
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
+        return tickers[symbol] as Ticker;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         let side = this.safeString (trade, 'type');
         if (side === 'ask') {
@@ -618,7 +619,7 @@ export default class tidex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name tidex#fetchTrades
@@ -739,7 +740,7 @@ export default class tidex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestamp_created');
@@ -801,7 +802,7 @@ export default class tidex extends Exchange {
         return this.parseOrder (this.extend ({ 'id': id }, order));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tidex#fetchOpenOrders
@@ -939,7 +940,7 @@ export default class tidex extends Exchange {
         return this.parseTransaction (withdrawInfo, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         //     {
         //         "id":1111,

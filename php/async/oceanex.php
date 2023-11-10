@@ -8,9 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\oceanex as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class oceanex extends Exchange {
 
@@ -159,15 +159,15 @@ class oceanex extends Exchange {
             $response = Async\await($this->publicGetMarkets (array_merge($request, $params)));
             //
             //    array(
-            //        $id => 'xtzusdt',
-            //        $name => 'XTZ/USDT',
-            //        ask_precision => '8',
-            //        bid_precision => '8',
-            //        enabled => true,
-            //        price_precision => '4',
-            //        amount_precision => '3',
-            //        usd_precision => '4',
-            //        minimum_trading_amount => '1.0'
+            //        "id" => "xtzusdt",
+            //        "name" => "XTZ/USDT",
+            //        "ask_precision" => "8",
+            //        "bid_precision" => "8",
+            //        "enabled" => true,
+            //        "price_precision" => "4",
+            //        "amount_precision" => "3",
+            //        "usd_precision" => "4",
+            //        "minimum_trading_amount" => "1.0"
             //    ),
             //
             $result = array();
@@ -228,6 +228,7 @@ class oceanex extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -235,7 +236,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -315,7 +316,7 @@ class oceanex extends Exchange {
                 $symbol = $market['symbol'];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -360,7 +361,7 @@ class oceanex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -462,7 +463,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -505,7 +506,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -603,7 +604,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data');
         $balances = $this->safe_value($data, 'accounts', array());
         $result = array( 'info' => $response );
@@ -619,7 +620,7 @@ class oceanex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -696,7 +697,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -714,7 +715,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -732,20 +733,18 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
              * @see https://api.oceanex.pro/doc/v1/#order-$status-with-filters-post
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the oceanex api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
-            }
+            $this->check_required_symbol('fetchOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $states = $this->safe_value($params, 'states', array( 'wait', 'done', 'cancel' ));
@@ -771,7 +770,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // array(
         //    1559232000,
         //    8889.22,
@@ -790,7 +789,7 @@ class oceanex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -820,7 +819,7 @@ class oceanex extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "created_at" => "2019-01-18T00:38:18Z",
@@ -883,21 +882,6 @@ class oceanex extends Exchange {
             'cancel' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function create_orders(string $symbol, $orders, $params = array ()) {
-        return Async\async(function () use ($symbol, $orders, $params) {
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'orders' => $orders,
-            );
-            // $orders => [array("side":"buy", "volume":.2, "price":1001), array("side":"sell", "volume":0.2, "price":1002)]
-            $response = Async\await($this->privatePostOrdersMulti (array_merge($request, $params)));
-            $data = $response['data'];
-            return $this->parse_orders($data);
-        }) ();
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

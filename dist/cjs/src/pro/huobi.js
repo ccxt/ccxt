@@ -67,13 +67,13 @@ class huobi extends huobi$1 {
                                 },
                             },
                             'swap': {
-                                'inverse': {
-                                    'public': 'wss://api.hbdm.vn/swap-ws',
-                                    'private': 'wss://api.hbdm.vn/swap-notification',
-                                },
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                             },
                         },
@@ -102,7 +102,8 @@ class huobi extends huobi$1 {
                         '2021': errors.BadRequest,
                         '2001': errors.BadSymbol,
                         '2011': errors.BadSymbol,
-                        '2040': errors.BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
+                        '2040': errors.BadRequest,
+                        '4007': errors.BadRequest, // { op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540 }
                     },
                 },
             },
@@ -136,34 +137,34 @@ class huobi extends huobi$1 {
     }
     handleTicker(client, message) {
         //
-        // 'market.btcusdt.detail'
+        // "market.btcusdt.detail"
         //     {
-        //         ch: 'market.btcusdt.detail',
-        //         ts: 1583494163784,
-        //         tick: {
-        //             id: 209988464418,
-        //             low: 8988,
-        //             high: 9155.41,
-        //             open: 9078.91,
-        //             close: 9136.46,
-        //             vol: 237813910.5928412,
-        //             amount: 26184.202558551195,
-        //             version: 209988464418,
-        //             count: 265673
+        //         "ch": "market.btcusdt.detail",
+        //         "ts": 1583494163784,
+        //         "tick": {
+        //             "id": 209988464418,
+        //             "low": 8988,
+        //             "high": 9155.41,
+        //             "open": 9078.91,
+        //             "close": 9136.46,
+        //             "vol": 237813910.5928412,
+        //             "amount": 26184.202558551195,
+        //             "version": 209988464418,
+        //             "count": 265673
         //         }
         //     }
-        // 'market.btcusdt.bbo'
+        // "market.btcusdt.bbo"
         //     {
-        //         ch: 'market.btcusdt.bbo',
-        //         ts: 1671941599613,
-        //         tick: {
-        //             seqId: 161499562790,
-        //             ask: 16829.51,
-        //             askSize: 0.707776,
-        //             bid: 16829.5,
-        //             bidSize: 1.685945,
-        //             quoteTime: 1671941599612,
-        //             symbol: 'btcusdt'
+        //         "ch": "market.btcusdt.bbo",
+        //         "ts": 1671941599613,
+        //         "tick": {
+        //             "seqId": 161499562790,
+        //             "ask": 16829.51,
+        //             "askSize": 0.707776,
+        //             "bid": 16829.5,
+        //             "bidSize": 1.685945,
+        //             "quoteTime": 1671941599612,
+        //             "symbol": "btcusdt"
         //         }
         //     }
         //
@@ -206,19 +207,19 @@ class huobi extends huobi$1 {
     handleTrades(client, message) {
         //
         //     {
-        //         ch: "market.btcusdt.trade.detail",
-        //         ts: 1583495834011,
-        //         tick: {
-        //             id: 105004645372,
-        //             ts: 1583495833751,
-        //             data: [
+        //         "ch": "market.btcusdt.trade.detail",
+        //         "ts": 1583495834011,
+        //         "tick": {
+        //             "id": 105004645372,
+        //             "ts": 1583495833751,
+        //             "data": [
         //                 {
-        //                     id: 1.050046453727319e+22,
-        //                     ts: 1583495833751,
-        //                     tradeId: 102090727790,
-        //                     amount: 0.003893,
-        //                     price: 9150.01,
-        //                     direction: "sell"
+        //                     "id": 1.050046453727319e+22,
+        //                     "ts": 1583495833751,
+        //                     "tradeId": 102090727790,
+        //                     "amount": 0.003893,
+        //                     "price": 9150.01,
+        //                     "direction": "sell"
         //                 }
         //             ]
         //         }
@@ -271,17 +272,17 @@ class huobi extends huobi$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         ch: 'market.btcusdt.kline.1min',
-        //         ts: 1583501786794,
-        //         tick: {
-        //             id: 1583501760,
-        //             open: 9094.5,
-        //             close: 9094.51,
-        //             low: 9094.5,
-        //             high: 9094.51,
-        //             amount: 0.44639786263800907,
-        //             vol: 4059.76919054,
-        //             count: 16
+        //         "ch": "market.btcusdt.kline.1min",
+        //         "ts": 1583501786794,
+        //         "tick": {
+        //             "id": 1583501760,
+        //             "open": 9094.5,
+        //             "close": 9094.51,
+        //             "low": 9094.5,
+        //             "high": 9094.51,
+        //             "amount": 0.44639786263800907,
+        //             "vol": 4059.76919054,
+        //             "count": 16
         //         }
         //     }
         //
@@ -349,17 +350,18 @@ class huobi extends huobi$1 {
     handleOrderBookSnapshot(client, message, subscription) {
         //
         //     {
-        //         id: 1583473663565,
-        //         rep: 'market.btcusdt.mbp.150',
-        //         status: 'ok',
-        //         data: {
-        //             seqNum: 104999417756,
-        //             bids: [
+        //         "id": 1583473663565,
+        //         "rep": "market.btcusdt.mbp.150",
+        //         "status": "ok",
+        //         "ts": 1698359289261,
+        //         "data": {
+        //             "seqNum": 104999417756,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -380,6 +382,9 @@ class huobi extends huobi$1 {
             const sequence = this.safeInteger(tick, 'seqNum');
             const nonce = this.safeInteger(data, 'seqNum');
             snapshot['nonce'] = nonce;
+            const timestamp = this.safeInteger(message, 'ts');
+            snapshot['timestamp'] = timestamp;
+            snapshot['datetime'] = this.iso8601(timestamp);
             const snapshotLimit = this.safeInteger(subscription, 'limit');
             const snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
@@ -462,17 +467,17 @@ class huobi extends huobi$1 {
         // spot markets
         //
         //     {
-        //         ch: "market.btcusdt.mbp.150",
-        //         ts: 1583472025885,
-        //         tick: {
-        //             seqNum: 104998984994,
-        //             prevSeqNum: 104998984977,
-        //             bids: [
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -539,6 +544,9 @@ class huobi extends huobi$1 {
             orderbook.reset(snapshot);
             orderbook['nonce'] = seqNum;
         }
+        if (prevSeqNum !== undefined && prevSeqNum > orderbook['nonce']) {
+            throw new errors.InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
+        }
         if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue(tick, 'asks', []);
             const bids = this.safeValue(tick, 'bids', []);
@@ -557,17 +565,17 @@ class huobi extends huobi$1 {
         // spot markets
         //
         //     {
-        //         ch: "market.btcusdt.mbp.150",
-        //         ts: 1583472025885,
-        //         tick: {
-        //             seqNum: 104998984994,
-        //             prevSeqNum: 104998984977,
-        //             bids: [
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -785,102 +793,102 @@ class huobi extends huobi$1 {
         //
         //     {
         //         "action":"push",
-        //         "ch":"orders#btcusdt", // or 'orders#*' for global subscriptions
+        //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
-        //             orderSource: 'spot-web',
-        //             orderCreateTime: 1645116048355,
-        //             accountId: 44234548,
-        //             orderPrice: '100',
-        //             orderSize: '0.05',
-        //             symbol: 'ethusdt',
-        //             type: 'buy-limit',
-        //             orderId: '478861479986886',
-        //             eventType: 'creation',
-        //             clientOrderId: '',
-        //             orderStatus: 'submitted'
+        //             "orderSource": "spot-web",
+        //             "orderCreateTime": 1645116048355,
+        //             "accountId": 44234548,
+        //             "orderPrice": "100",
+        //             "orderSize": "0.05",
+        //             "symbol": "ethusdt",
+        //             "type": "buy-limit",
+        //             "orderId": "478861479986886",
+        //             "eventType": "creation",
+        //             "clientOrderId": '',
+        //             "orderStatus": "submitted"
         //         }
         //     }
         //
         // spot wrapped trade
         //
         //     {
-        //         action: 'push',
-        //         ch: 'orders#ltcusdt',
-        //         data: {
-        //             tradePrice: '130.01',
-        //             tradeVolume: '0.0385',
-        //             tradeTime: 1648714741525,
-        //             aggressor: true,
-        //             execAmt: '0.0385',
-        //             orderSource: 'spot-web',
-        //             orderSize: '0.0385',
-        //             remainAmt: '0',
-        //             tradeId: 101541578884,
-        //             symbol: 'ltcusdt',
-        //             type: 'sell-market',
-        //             eventType: 'trade',
-        //             clientOrderId: '',
-        //             orderStatus: 'filled',
-        //             orderId: 509835753860328
+        //         "action": "push",
+        //         "ch": "orders#ltcusdt",
+        //         "data": {
+        //             "tradePrice": "130.01",
+        //             "tradeVolume": "0.0385",
+        //             "tradeTime": 1648714741525,
+        //             "aggressor": true,
+        //             "execAmt": "0.0385",
+        //             "orderSource": "spot-web",
+        //             "orderSize": "0.0385",
+        //             "remainAmt": "0",
+        //             "tradeId": 101541578884,
+        //             "symbol": "ltcusdt",
+        //             "type": "sell-market",
+        //             "eventType": "trade",
+        //             "clientOrderId": '',
+        //             "orderStatus": "filled",
+        //             "orderId": 509835753860328
         //         }
         //     }
         //
         // non spot order
         //
         // {
-        //     contract_type: 'swap',
-        //     pair: 'LTC-USDT',
-        //     business_type: 'swap',
-        //     op: 'notify',
-        //     topic: 'orders_cross.ltc-usdt',
-        //     ts: 1650354508696,
-        //     symbol: 'LTC',
-        //     contract_code: 'LTC-USDT',
-        //     volume: 1,
-        //     price: 110.34,
-        //     order_price_type: 'lightning',
-        //     direction: 'sell',
-        //     offset: 'close',
-        //     status: 6,
-        //     lever_rate: 1,
-        //     order_id: '966002354015051776',
-        //     order_id_str: '966002354015051776',
-        //     client_order_id: null,
-        //     order_source: 'web',
-        //     order_type: 1,
-        //     created_at: 1650354508649,
-        //     trade_volume: 1,
-        //     trade_turnover: 11.072,
-        //     fee: -0.005536,
-        //     trade_avg_price: 110.72,
-        //     margin_frozen: 0,
-        //     profit: -0.045,
-        //     trade: [
+        //     "contract_type": "swap",
+        //     "pair": "LTC-USDT",
+        //     "business_type": "swap",
+        //     "op": "notify",
+        //     "topic": "orders_cross.ltc-usdt",
+        //     "ts": 1650354508696,
+        //     "symbol": "LTC",
+        //     "contract_code": "LTC-USDT",
+        //     "volume": 1,
+        //     "price": 110.34,
+        //     "order_price_type": "lightning",
+        //     "direction": "sell",
+        //     "offset": "close",
+        //     "status": 6,
+        //     "lever_rate": 1,
+        //     "order_id": "966002354015051776",
+        //     "order_id_str": "966002354015051776",
+        //     "client_order_id": null,
+        //     "order_source": "web",
+        //     "order_type": 1,
+        //     "created_at": 1650354508649,
+        //     "trade_volume": 1,
+        //     "trade_turnover": 11.072,
+        //     "fee": -0.005536,
+        //     "trade_avg_price": 110.72,
+        //     "margin_frozen": 0,
+        //     "profit": -0.045,
+        //     "trade": [
         //       {
-        //         trade_fee: -0.005536,
-        //         fee_asset: 'USDT',
-        //         real_profit: 0.473,
-        //         profit: -0.045,
-        //         trade_id: 86678766507,
-        //         id: '86678766507-966002354015051776-1',
-        //         trade_volume: 1,
-        //         trade_price: 110.72,
-        //         trade_turnover: 11.072,
-        //         created_at: 1650354508656,
-        //         role: 'taker'
+        //         "trade_fee": -0.005536,
+        //         "fee_asset": "USDT",
+        //         "real_profit": 0.473,
+        //         "profit": -0.045,
+        //         "trade_id": 86678766507,
+        //         "id": "86678766507-966002354015051776-1",
+        //         "trade_volume": 1,
+        //         "trade_price": 110.72,
+        //         "trade_turnover": 11.072,
+        //         "created_at": 1650354508656,
+        //         "role": "taker"
         //       }
         //     ],
-        //     canceled_at: 0,
-        //     fee_asset: 'USDT',
-        //     margin_asset: 'USDT',
-        //     uid: '359305390',
-        //     liquidation_type: '0',
-        //     margin_mode: 'cross',
-        //     margin_account: 'USDT',
-        //     is_tpsl: 0,
-        //     real_profit: 0.473,
-        //     trade_partition: 'USDT',
-        //     reduce_only: 1
+        //     "canceled_at": 0,
+        //     "fee_asset": "USDT",
+        //     "margin_asset": "USDT",
+        //     "uid": "359305390",
+        //     "liquidation_type": "0",
+        //     "margin_mode": "cross",
+        //     "margin_account": "USDT",
+        //     "is_tpsl": 0,
+        //     "real_profit": 0.473,
+        //     "trade_partition": "USDT",
+        //     "reduce_only": 1
         //   }
         //
         //
@@ -955,78 +963,78 @@ class huobi extends huobi$1 {
         // spot
         //
         //     {
-        //         orderSource: 'spot-web',
-        //         orderCreateTime: 1645116048355, // creating only
-        //         accountId: 44234548,
-        //         orderPrice: '100',
-        //         orderSize: '0.05',
-        //         orderValue: '3.71676361', // market-buy only
-        //         symbol: 'ethusdt',
-        //         type: 'buy-limit',
-        //         orderId: '478861479986886',
-        //         eventType: 'creation',
-        //         clientOrderId: '',
-        //         orderStatus: 'submitted'
-        //         lastActTime:1645118621810 // except creating
-        //         execAmt:'0'
+        //         "orderSource": "spot-web",
+        //         "orderCreateTime": 1645116048355, // creating only
+        //         "accountId": 44234548,
+        //         "orderPrice": "100",
+        //         "orderSize": "0.05",
+        //         "orderValue": "3.71676361", // market-buy only
+        //         "symbol": "ethusdt",
+        //         "type": "buy-limit",
+        //         "orderId": "478861479986886",
+        //         "eventType": "creation",
+        //         "clientOrderId": '',
+        //         "orderStatus": "submitted"
+        //         "lastActTime":1645118621810 // except creating
+        //         "execAmt":"0"
         //     }
         //
         // swap order
         //
         //     {
-        //         contract_type: 'swap',
-        //         pair: 'LTC-USDT',
-        //         business_type: 'swap',
-        //         op: 'notify',
-        //         topic: 'orders_cross.ltc-usdt',
-        //         ts: 1648717911384,
-        //         symbol: 'LTC',
-        //         contract_code: 'LTC-USDT',
-        //         volume: 1,
-        //         price: 129.13,
-        //         order_price_type: 'lightning',
-        //         direction: 'sell',
-        //         offset: 'close',
-        //         status: 6,
-        //         lever_rate: 5,
-        //         order_id: '959137967397068800',
-        //         order_id_str: '959137967397068800',
-        //         client_order_id: null,
-        //         order_source: 'web',
-        //         order_type: 1,
-        //         created_at: 1648717911344,
-        //         trade_volume: 1,
-        //         trade_turnover: 12.952,
-        //         fee: -0.006476,
-        //         trade_avg_price: 129.52,
-        //         margin_frozen: 0,
-        //         profit: -0.005,
-        //         trade: [
+        //         "contract_type": "swap",
+        //         "pair": "LTC-USDT",
+        //         "business_type": "swap",
+        //         "op": "notify",
+        //         "topic": "orders_cross.ltc-usdt",
+        //         "ts": 1648717911384,
+        //         "symbol": "LTC",
+        //         "contract_code": "LTC-USDT",
+        //         "volume": 1,
+        //         "price": 129.13,
+        //         "order_price_type": "lightning",
+        //         "direction": "sell",
+        //         "offset": "close",
+        //         "status": 6,
+        //         "lever_rate": 5,
+        //         "order_id": "959137967397068800",
+        //         "order_id_str": "959137967397068800",
+        //         "client_order_id": null,
+        //         "order_source": "web",
+        //         "order_type": 1,
+        //         "created_at": 1648717911344,
+        //         "trade_volume": 1,
+        //         "trade_turnover": 12.952,
+        //         "fee": -0.006476,
+        //         "trade_avg_price": 129.52,
+        //         "margin_frozen": 0,
+        //         "profit": -0.005,
+        //         "trade": [
         //             {
-        //                 trade_fee: -0.006476,
-        //                 fee_asset: 'USDT',
-        //                 real_profit: -0.005,
-        //                 profit: -0.005,
-        //                 trade_id: 83619995370,
-        //                 id: '83619995370-959137967397068800-1',
-        //                 trade_volume: 1,
-        //                 trade_price: 129.52,
-        //                 trade_turnover: 12.952,
-        //                 created_at: 1648717911352,
-        //                 role: 'taker'
+        //                 "trade_fee": -0.006476,
+        //                 "fee_asset": "USDT",
+        //                 "real_profit": -0.005,
+        //                 "profit": -0.005,
+        //                 "trade_id": 83619995370,
+        //                 "id": "83619995370-959137967397068800-1",
+        //                 "trade_volume": 1,
+        //                 "trade_price": 129.52,
+        //                 "trade_turnover": 12.952,
+        //                 "created_at": 1648717911352,
+        //                 "role": "taker"
         //             }
         //         ],
-        //         canceled_at: 0,
-        //         fee_asset: 'USDT',
-        //         margin_asset: 'USDT',
-        //         uid: '359305390',
-        //         liquidation_type: '0',
-        //         margin_mode: 'cross',
-        //         margin_account: 'USDT',
-        //         is_tpsl: 0,
-        //         real_profit: -0.005,
-        //         trade_partition: 'USDT',
-        //         reduce_only: 1
+        //         "canceled_at": 0,
+        //         "fee_asset": "USDT",
+        //         "margin_asset": "USDT",
+        //         "uid": "359305390",
+        //         "liquidation_type": "0",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "is_tpsl": 0,
+        //         "real_profit": -0.005,
+        //         "trade_partition": "USDT",
+        //         "reduce_only": 1
         //     }
         //
         //     {
@@ -1127,21 +1135,21 @@ class huobi extends huobi$1 {
         // spot private wrapped trade
         //
         //     {
-        //         tradePrice: '130.01',
-        //         tradeVolume: '0.0385',
-        //         tradeTime: 1648714741525,
-        //         aggressor: true,
-        //         execAmt: '0.0385',
-        //         orderSource: 'spot-web',
-        //         orderSize: '0.0385',
-        //         remainAmt: '0',
-        //         tradeId: 101541578884,
-        //         symbol: 'ltcusdt',
-        //         type: 'sell-market',
-        //         eventType: 'trade',
-        //         clientOrderId: '',
-        //         orderStatus: 'filled',
-        //         orderId: 509835753860328
+        //         "tradePrice": "130.01",
+        //         "tradeVolume": "0.0385",
+        //         "tradeTime": 1648714741525,
+        //         "aggressor": true,
+        //         "execAmt": "0.0385",
+        //         "orderSource": "spot-web",
+        //         "orderSize": "0.0385",
+        //         "remainAmt": "0",
+        //         "tradeId": 101541578884,
+        //         "symbol": "ltcusdt",
+        //         "type": "sell-market",
+        //         "eventType": "trade",
+        //         "clientOrderId": '',
+        //         "orderStatus": "filled",
+        //         "orderId": 509835753860328
         //     }
         //
         market = this.safeMarket(undefined, market);
@@ -1179,6 +1187,127 @@ class huobi extends huobi$1 {
             'fee': undefined,
         }, market);
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchPositions
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+         * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        let messageHash = '';
+        if (!this.isEmpty(symbols)) {
+            market = this.getMarketFromSymbols(symbols);
+            messageHash = '::' + symbols.join(',');
+        }
+        let type = undefined;
+        let subType = undefined;
+        if (market !== undefined) {
+            type = market['type'];
+            subType = market['linear'] ? 'linear' : 'inverse';
+        }
+        else {
+            [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
+            if (type === 'spot') {
+                type = 'future';
+            }
+            [subType, params] = this.handleOptionAndParams(params, 'watchPositions', 'subType', subType);
+        }
+        symbols = this.marketSymbols(symbols);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchPositions', params, 'cross');
+        const isLinear = (subType === 'linear');
+        const url = this.getUrlByMarketType(type, isLinear, true);
+        messageHash = marginMode + ':positions' + messageHash;
+        const channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+        const newPositions = await this.subscribePrivate(channel, messageHash, type, subType, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions[url][marginMode], symbols, since, limit, false);
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        op: 'notify',
+        //        topic: 'positions_cross',
+        //        ts: 1696767149650,
+        //        event: 'snapshot',
+        //        data: [
+        //          {
+        //            contract_type: 'swap',
+        //            pair: 'BTC-USDT',
+        //            business_type: 'swap',
+        //            liquidation_price: null,
+        //            symbol: 'BTC',
+        //            contract_code: 'BTC-USDT',
+        //            volume: 1,
+        //            available: 1,
+        //            frozen: 0,
+        //            cost_open: 27802.2,
+        //            cost_hold: 27802.2,
+        //            profit_unreal: 0.0175,
+        //            profit_rate: 0.000629446590557581,
+        //            profit: 0.0175,
+        //            margin_asset: 'USDT',
+        //            position_margin: 27.8197,
+        //            lever_rate: 1,
+        //            direction: 'buy',
+        //            last_price: 27819.7,
+        //            margin_mode: 'cross',
+        //            margin_account: 'USDT',
+        //            trade_partition: 'USDT',
+        //            position_mode: 'dual_side'
+        //          },
+        //        ]
+        //    }
+        //
+        const url = client.url;
+        const topic = this.safeString(message, 'topic', '');
+        const marginMode = (topic === 'positions_cross') ? 'cross' : 'isolated';
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        const clientPositions = this.safeValue(this.positions, url);
+        if (clientPositions === undefined) {
+            this.positions[url] = {};
+        }
+        const clientMarginModePositions = this.safeValue(clientPositions, marginMode);
+        if (clientMarginModePositions === undefined) {
+            this.positions[url][marginMode] = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions[url][marginMode];
+        const rawPositions = this.safeValue(message, 'data', []);
+        const newPositions = [];
+        const timestamp = this.safeInteger(message, 'ts');
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition(rawPosition);
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601(timestamp);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, marginMode + ':positions');
+    }
     async watchBalance(params = {}) {
         /**
          * @method
@@ -1187,12 +1316,12 @@ class huobi extends huobi$1 {
          * @param {object} [params] extra parameters specific to the huobi api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
-        let type = this.safeString2(this.options, 'watchBalance', 'defaultType', 'spot');
-        type = this.safeString(params, 'type', type);
-        let subType = this.safeString2(this.options, 'watchBalance', 'subType', 'linear');
-        subType = this.safeString(params, 'subType', subType);
-        params = this.omit(params, ['type', 'subType']);
-        params = this.omit(params, 'type');
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params, 'linear');
+        const isUnifiedAccount = this.safeValue2(params, 'isUnifiedAccount', 'unified', false);
+        params = this.omit(params, ['isUnifiedAccount', 'unified']);
         await this.loadMarkets();
         let messageHash = undefined;
         let channel = undefined;
@@ -1213,29 +1342,37 @@ class huobi extends huobi$1 {
             let prefix = 'accounts';
             messageHash = prefix;
             if (subType === 'linear') {
-                // usdt contracts account
-                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
-                messageHash = prefix;
-                if (marginMode === 'isolated') {
-                    // isolated margin only allows filtering by symbol3
-                    if (symbol !== undefined) {
-                        messageHash += '.' + market['id'];
-                        channel = messageHash;
-                    }
-                    else {
-                        // subscribe to all
-                        channel = prefix + '.' + '*';
-                    }
+                if (isUnifiedAccount) {
+                    // usdt contracts account
+                    prefix = 'accounts_unify';
+                    messageHash = prefix;
+                    channel = prefix + '.' + 'usdt';
                 }
                 else {
-                    // cross margin
-                    if (currencyCode !== undefined) {
-                        channel = prefix + '.' + currencyCode['id'];
-                        messageHash = channel;
+                    // usdt contracts account
+                    prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                    messageHash = prefix;
+                    if (marginMode === 'isolated') {
+                        // isolated margin only allows filtering by symbol3
+                        if (symbol !== undefined) {
+                            messageHash += '.' + market['id'];
+                            channel = messageHash;
+                        }
+                        else {
+                            // subscribe to all
+                            channel = prefix + '.' + '*';
+                        }
                     }
                     else {
-                        // subscribe to all
-                        channel = prefix + '.' + '*';
+                        // cross margin
+                        if (currencyCode !== undefined) {
+                            channel = prefix + '.' + currencyCode['id'];
+                            messageHash = channel;
+                        }
+                        else {
+                            // subscribe to all
+                            channel = prefix + '.' + '*';
+                        }
                     }
                 }
             }
@@ -1322,7 +1459,7 @@ class huobi extends huobi$1 {
         //
         //     {
         //         "op":"notify",
-        //         "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
+        //         "topic":"accounts.btc-usdt", // or "accounts" for global subscriptions
         //         "ts":1603711370689,
         //         "event":"order.open",
         //         "data":[
@@ -1389,13 +1526,13 @@ class huobi extends huobi$1 {
         //     }
         //
         const channel = this.safeString(message, 'ch');
-        const timestamp = this.safeInteger(message, 'ts');
+        const data = this.safeValue(message, 'data', []);
+        const timestamp = this.safeInteger(data, 'changeTime', this.safeInteger(message, 'ts'));
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601(timestamp);
-        this.balance['info'] = this.safeValue(message, 'data');
+        this.balance['info'] = data;
         if (channel !== undefined) {
             // spot balance
-            const data = this.safeValue(message, 'data', {});
             const currencyId = this.safeString(data, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1407,13 +1544,14 @@ class huobi extends huobi$1 {
         }
         else {
             // contract balance
-            const data = this.safeValue(message, 'data', []);
             const dataLength = data.length;
             if (dataLength === 0) {
                 return;
             }
             const first = this.safeValue(data, 0, {});
-            let messageHash = this.safeString(message, 'topic');
+            const topic = this.safeString(message, 'topic');
+            const splitTopic = topic.split('.');
+            let messageHash = this.safeString(splitTopic, 0);
             let subscription = this.safeValue2(client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -1421,13 +1559,37 @@ class huobi extends huobi$1 {
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                const marginAsset = this.safeString(first, 'margin_asset');
-                messageHash += '.' + marginAsset.toLowerCase();
+                const currencyId = this.safeString2(first, 'margin_asset', 'symbol');
+                messageHash += '.' + currencyId.toLowerCase();
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
             const type = this.safeString(subscription, 'type');
             const subType = this.safeString(subscription, 'subType');
-            if (subType === 'linear') {
+            if (topic === 'accounts_unify') {
+                // {
+                //     "margin_asset": "USDT",
+                //     "margin_static": 10,
+                //     "cross_margin_static": 10,
+                //     "margin_balance": 10,
+                //     "cross_profit_unreal": 0,
+                //     "margin_frozen": 0,
+                //     "withdraw_available": 10,
+                //     "cross_risk_rate": null,
+                //     "cross_swap": [],
+                //     "cross_future": [],
+                //     "isolated_swap": []
+                // }
+                const marginAsset = this.safeString(first, 'margin_asset');
+                const code = this.safeCurrencyCode(marginAsset);
+                const marginFrozen = this.safeString(first, 'margin_frozen');
+                const unifiedAccount = this.account();
+                unifiedAccount['free'] = this.safeString(first, 'withdraw_available');
+                unifiedAccount['used'] = marginFrozen;
+                this.balance[code] = unifiedAccount;
+                this.balance = this.safeBalance(this.balance);
+                client.resolve(this.balance, 'accounts_unify');
+            }
+            else if (subType === 'linear') {
                 const margin = this.safeString(subscription, 'margin');
                 if (margin === 'cross') {
                     const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
@@ -1517,8 +1679,8 @@ class huobi extends huobi$1 {
         // involves system status and maintenance updates
         //
         //     {
-        //         id: '1578090234088', // connectId
-        //         type: 'welcome',
+        //         "id": "1578090234088", // connectId
+        //         "type": "welcome",
         //     }
         //
         return message;
@@ -1526,17 +1688,17 @@ class huobi extends huobi$1 {
     handleSubject(client, message) {
         // spot
         //     {
-        //         ch: "market.btcusdt.mbp.150",
-        //         ts: 1583472025885,
-        //         tick: {
-        //             seqNum: 104998984994,
-        //             prevSeqNum: 104998984977,
-        //             bids: [
+        //         "ch": "market.btcusdt.mbp.150",
+        //         "ts": 1583472025885,
+        //         "tick": {
+        //             "seqNum": 104998984994,
+        //             "prevSeqNum": 104998984977,
+        //             "bids": [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks: [
+        //             "asks": [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -1649,13 +1811,16 @@ class huobi extends huobi$1 {
             if (topic.indexOf('account') >= 0) {
                 this.handleBalance(client, message);
             }
+            if (topic.indexOf('positions') >= 0) {
+                this.handlePositions(client, message);
+            }
         }
     }
     async pong(client, message) {
         //
         //     { ping: 1583491673714 }
-        //     { action: 'ping', data: { ts: 1645108204665 } }
-        //     { op: 'ping', ts: '1645202800015' }
+        //     { action: "ping", data: { ts: 1645108204665 } }
+        //     { op: "ping", ts: "1645202800015" }
         //
         try {
             const ping = this.safeInteger(message, 'ping');
@@ -1698,11 +1863,11 @@ class huobi extends huobi$1 {
         // non spot
         //
         //    {
-        //        op: 'auth',
-        //        type: 'api',
-        //        'err-code': 0,
-        //        ts: 1645200307319,
-        //        data: { 'user-id': '35930539' }
+        //        "op": "auth",
+        //        "type": "api",
+        //        "err-code": 0,
+        //        "ts": 1645200307319,
+        //        "data": { "user-id": "35930539" }
         //    }
         //
         const promise = client.futures['authenticated'];
@@ -1711,18 +1876,27 @@ class huobi extends huobi$1 {
     handleErrorMessage(client, message) {
         //
         //     {
-        //         action: 'sub',
-        //         code: 2002,
-        //         ch: 'accounts.update#2',
-        //         message: 'invalid.auth.state'
+        //         "action": "sub",
+        //         "code": 2002,
+        //         "ch": "accounts.update#2",
+        //         "message": "invalid.auth.state"
         //      }
         //
         //     {
-        //         ts: 1586323747018,
-        //         status: 'error',
-        //         'err-code': 'bad-request',
-        //         'err-msg': 'invalid mbp.150.symbol linkusdt',
-        //         id: '2'
+        //         "ts": 1586323747018,
+        //         "status": "error",
+        //         'err-code': "bad-request",
+        //         'err-msg': "invalid mbp.150.symbol linkusdt",
+        //         "id": "2"
+        //     }
+        //
+        //     {
+        //         "op": "sub",
+        //         "cid": "1",
+        //         "topic": "accounts_unify.USDT",
+        //         "err-code": 4007,
+        //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
+        //         "ts": 1698419490189
         //     }
         //
         const status = this.safeString(message, 'status');
@@ -1746,8 +1920,8 @@ class huobi extends huobi$1 {
             }
             return false;
         }
-        const code = this.safeInteger(message, 'code');
-        if (code !== undefined && code !== 200) {
+        const code = this.safeInteger2(message, 'code', 'err-code');
+        if (code !== undefined && ((code !== 200) && (code !== 0))) {
             const feedback = this.id + ' ' + this.json(message);
             try {
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);
@@ -1775,7 +1949,7 @@ class huobi extends huobi$1 {
             //
             // first ping format
             //
-            //    {'ping': 1645106821667 }
+            //    {"ping": 1645106821667 }
             //
             // second ping format
             //
@@ -1796,11 +1970,11 @@ class huobi extends huobi$1 {
             // auth non spot
             //
             //    {
-            //        op: 'auth',
-            //        type: 'api',
-            //        'err-code': 0,
-            //        ts: 1645200307319,
-            //        data: { 'user-id': '35930539' }
+            //        "op": "auth",
+            //        "type": "api",
+            //        "err-code": 0,
+            //        "ts": 1645200307319,
+            //        "data": { "user-id": "35930539" }
             //    }
             //
             // trade

@@ -119,13 +119,13 @@ class coincheck extends coincheck$1 {
                 },
             },
             'markets': {
-                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true },
+                'BTC/JPY': this.safeMarketStructure({ 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }),
                 // 'ETH/JPY': { 'id': 'eth_jpy', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
-                'ETC/JPY': { 'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true },
+                'ETC/JPY': this.safeMarketStructure({ 'id': 'etc_jpy', 'symbol': 'ETC/JPY', 'base': 'ETC', 'quote': 'JPY', 'baseId': 'etc', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }),
                 // 'DAO/JPY': { 'id': 'dao_jpy', 'symbol': 'DAO/JPY', 'base': 'DAO', 'quote': 'JPY', 'baseId': 'dao', 'quoteId': 'jpy' },
                 // 'LSK/JPY': { 'id': 'lsk_jpy', 'symbol': 'LSK/JPY', 'base': 'LSK', 'quote': 'JPY', 'baseId': 'lsk', 'quoteId': 'jpy' },
-                'FCT/JPY': { 'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy', 'type': 'spot', 'spot': true },
-                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy', 'type': 'spot', 'spot': true },
+                'FCT/JPY': this.safeMarketStructure({ 'id': 'fct_jpy', 'symbol': 'FCT/JPY', 'base': 'FCT', 'quote': 'JPY', 'baseId': 'fct', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }),
+                'MONA/JPY': this.safeMarketStructure({ 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy', 'type': 'spot', 'spot': true }),
                 // 'XMR/JPY': { 'id': 'xmr_jpy', 'symbol': 'XMR/JPY', 'base': 'XMR', 'quote': 'JPY', 'baseId': 'xmr', 'quoteId': 'jpy' },
                 // 'REP/JPY': { 'id': 'rep_jpy', 'symbol': 'REP/JPY', 'base': 'REP', 'quote': 'JPY', 'baseId': 'rep', 'quoteId': 'jpy' },
                 // 'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
@@ -134,7 +134,7 @@ class coincheck extends coincheck$1 {
                 // 'LTC/JPY': { 'id': 'ltc_jpy', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
                 // 'DASH/JPY': { 'id': 'dash_jpy', 'symbol': 'DASH/JPY', 'base': 'DASH', 'quote': 'JPY', 'baseId': 'dash', 'quoteId': 'jpy' },
                 // 'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-                'ETC/BTC': { 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc', 'type': 'spot', 'spot': true },
+                'ETC/BTC': this.safeMarketStructure({ 'id': 'etc_btc', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc', 'type': 'spot', 'spot': true }),
                 // 'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc' },
                 // 'FCT/BTC': { 'id': 'fct_btc', 'symbol': 'FCT/BTC', 'base': 'FCT', 'quote': 'BTC', 'baseId': 'fct', 'quoteId': 'btc' },
                 // 'XMR/BTC': { 'id': 'xmr_btc', 'symbol': 'XMR/BTC', 'base': 'XMR', 'quote': 'BTC', 'baseId': 'xmr', 'quoteId': 'btc' },
@@ -223,13 +223,13 @@ class coincheck extends coincheck$1 {
         // fetchOpenOrders
         //
         //     {                        id:  202835,
-        //                      order_type: "buy",
-        //                            rate:  26890,
-        //                            pair: "btc_jpy",
-        //                  pending_amount: "0.5527",
-        //       pending_market_buy_amount:  null,
-        //                  stop_loss_rate:  null,
-        //                      created_at: "2015-01-10T05:55:38.000Z" }
+        //                      "order_type": "buy",
+        //                            "rate":  26890,
+        //                            "pair": "btc_jpy",
+        //                  "pending_amount": "0.5527",
+        //       "pending_market_buy_amount":  null,
+        //                  "stop_loss_rate":  null,
+        //                      "created_at": "2015-01-10T05:55:38.000Z" }
         //
         // todo: add formats for fetchOrder, fetchClosedOrders here
         //
@@ -524,20 +524,20 @@ class coincheck extends coincheck$1 {
         const response = await this.privateGetAccounts(params);
         //
         //     {
-        //         success: true,
-        //         id: '7487995',
-        //         email: 'some@email.com',
-        //         identity_status: 'identity_pending',
-        //         bitcoin_address: null,
-        //         lending_leverage: '4',
-        //         taker_fee: '0.0',
-        //         maker_fee: '0.0',
-        //         exchange_fees: {
-        //           btc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           etc_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           fct_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           mona_jpy: { taker_fee: '0.0', maker_fee: '0.0' },
-        //           plt_jpy: { taker_fee: '0.0', maker_fee: '0.0' }
+        //         "success": true,
+        //         "id": "7487995",
+        //         "email": "some@email.com",
+        //         "identity_status": "identity_pending",
+        //         "bitcoin_address": null,
+        //         "lending_leverage": "4",
+        //         "taker_fee": "0.0",
+        //         "maker_fee": "0.0",
+        //         "exchange_fees": {
+        //           "btc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "etc_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "fct_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "mona_jpy": { taker_fee: '0.0', maker_fee: "0.0" },
+        //           "plt_jpy": { taker_fee: '0.0', maker_fee: "0.0" }
         //         }
         //     }
         //

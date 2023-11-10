@@ -7,9 +7,9 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\coinfalcon as Exchange;
-use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinfalcon extends Exchange {
 
@@ -213,6 +213,7 @@ class coinfalcon extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -220,7 +221,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "name":"ETH-BTC",
@@ -264,7 +265,7 @@ class coinfalcon extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -315,11 +316,11 @@ class coinfalcon extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -340,7 +341,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -410,9 +411,7 @@ class coinfalcon extends Exchange {
              * @param {array} [$params] extra parameters specific to the coinfalcon api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -448,7 +447,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -496,10 +495,10 @@ class coinfalcon extends Exchange {
             $response = Async\await($this->privateGetUserFees ($params));
             //
             //    {
-            //        $data => {
-            //            maker_fee => '0.0',
-            //            taker_fee => '0.2',
-            //            btc_volume_30d => '0.0'
+            //        "data" => {
+            //            "maker_fee" => "0.0",
+            //            "taker_fee" => "0.2",
+            //            "btc_volume_30d" => "0.0"
             //        }
             //    }
             //
@@ -524,7 +523,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -540,7 +539,7 @@ class coinfalcon extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -588,9 +587,9 @@ class coinfalcon extends Exchange {
             $response = Async\await($this->privateGetAccountDepositAddress (array_merge($request, $params)));
             //
             //     {
-            //         $data => {
-            //             address => '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-            //             tag:null
+            //         "data" => {
+            //             "address" => "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+            //             "tag":null
             //         }
             //     }
             //
@@ -610,7 +609,7 @@ class coinfalcon extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -737,7 +736,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -765,7 +764,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -793,16 +792,16 @@ class coinfalcon extends Exchange {
             }
             $response = Async\await($this->privateGetAccountDeposits (array_merge($request, $params)));
             //
-            //     data => array(
+            //     "data" => array(
             //         array(
-            //             id => '6e2f18b5-f80e-xxx-xxx-xxx',
-            //             amount => '0.1',
-            //             status => 'completed',
-            //             currency_code => 'eth',
-            //             txid => '0xxxx',
-            //             address => '0xxxx',
-            //             tag => null,
-            //             type => 'deposit'
+            //             "id" => "6e2f18b5-f80e-xxx-xxx-xxx",
+            //             "amount" => "0.1",
+            //             "status" => "completed",
+            //             "currency_code" => "eth",
+            //             "txid" => "0xxxx",
+            //             "address" => "0xxxx",
+            //             "tag" => null,
+            //             "type" => "deposit"
             //         ),
             //     )
             //
@@ -812,7 +811,7 @@ class coinfalcon extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -840,17 +839,17 @@ class coinfalcon extends Exchange {
             }
             $response = Async\await($this->privateGetAccountWithdrawals (array_merge($request, $params)));
             //
-            //     data => array(
+            //     "data" => array(
             //         array(
-            //             id => '25f6f144-3666-xxx-xxx-xxx',
-            //             amount => '0.01',
-            //             status => 'completed',
-            //             fee => '0.0005',
-            //             currency_code => 'btc',
-            //             txid => '4xxx',
-            //             address => 'bc1xxx',
-            //             tag => null,
-            //             type => 'withdraw'
+            //             "id" => "25f6f144-3666-xxx-xxx-xxx",
+            //             "amount" => "0.01",
+            //             "status" => "completed",
+            //             "fee" => "0.0005",
+            //             "currency_code" => "btc",
+            //             "txid" => "4xxx",
+            //             "address" => "bc1xxx",
+            //             "tag" => null,
+            //             "type" => "withdraw"
             //         ),
             //     )
             //
@@ -886,17 +885,17 @@ class coinfalcon extends Exchange {
             }
             $response = Async\await($this->privatePostAccountWithdraw (array_merge($request, $params)));
             //
-            //     data => array(
+            //     "data" => array(
             //         array(
-            //             id => '25f6f144-3666-xxx-xxx-xxx',
-            //             $amount => '0.01',
-            //             status => 'approval_pending',
-            //             fee => '0.0005',
-            //             currency_code => 'btc',
-            //             txid => null,
-            //             $address => 'bc1xxx',
-            //             $tag => null,
-            //             type => 'withdraw'
+            //             "id" => "25f6f144-3666-xxx-xxx-xxx",
+            //             "amount" => "0.01",
+            //             "status" => "approval_pending",
+            //             "fee" => "0.0005",
+            //             "currency_code" => "btc",
+            //             "txid" => null,
+            //             "address" => "bc1xxx",
+            //             "tag" => null,
+            //             "type" => "withdraw"
             //         ),
             //     )
             //
@@ -914,33 +913,33 @@ class coinfalcon extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchWithdrawals, withdraw
         //
         //     array(
-        //         $id => '25f6f144-3666-xxx-xxx-xxx',
-        //         $amount => '0.01',
-        //         $status => 'completed',
-        //         fee => '0.0005',
-        //         currency_code => 'btc',
-        //         $txid => '4xxx',
-        //         $address => 'bc1xxx',
-        //         $tag => null,
-        //         $type => 'withdraw'
+        //         "id" => "25f6f144-3666-xxx-xxx-xxx",
+        //         "amount" => "0.01",
+        //         "status" => "completed",
+        //         "fee" => "0.0005",
+        //         "currency_code" => "btc",
+        //         "txid" => "4xxx",
+        //         "address" => "bc1xxx",
+        //         "tag" => null,
+        //         "type" => "withdraw"
         //     ),
         //
         // fetchDeposits
         //
         //     array(
-        //         $id => '6e2f18b5-f80e-xxx-xxx-xxx',
-        //         $amount => '0.1',
-        //         $status => 'completed',
-        //         currency_code => 'eth',
-        //         $txid => '0xxxx',
-        //         $address => '0xxxx',
-        //         $tag => null,
-        //         $type => 'deposit'
+        //         "id" => "6e2f18b5-f80e-xxx-xxx-xxx",
+        //         "amount" => "0.1",
+        //         "status" => "completed",
+        //         "currency_code" => "eth",
+        //         "txid" => "0xxxx",
+        //         "address" => "0xxxx",
+        //         "tag" => null,
+        //         "type" => "deposit"
         //     ),
         //
         $id = $this->safe_string($transaction, 'id');
@@ -957,9 +956,9 @@ class coinfalcon extends Exchange {
         $amountString = $this->safe_string($transaction, 'amount');
         $amount = $this->parse_number($amountString);
         $feeCostString = $this->safe_string($transaction, 'fee');
-        $feeCost = 0;
+        $feeCost = '0';
         if ($feeCostString !== null) {
-            $feeCost = $this->parse_number($feeCostString);
+            $feeCost = $feeCostString;
         }
         return array(
             'info' => $transaction,
@@ -981,7 +980,7 @@ class coinfalcon extends Exchange {
             'updated' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
             ),
         );
     }

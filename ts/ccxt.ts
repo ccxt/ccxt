@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position } from './src/base/types.js'
+import { Market, Trade , Fee, Ticker, OrderBook, Order, Transaction, Tickers, Currency, Balance, DepositAddress, WithdrawalResponse, DepositAddressResponse, OHLCV, Balances, PartialBalances, Dictionary, MinMax, Position, FundingRateHistory, Liquidation, FundingHistory } from './src/base/types.js'
 import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, NoChange }  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.0.109';
+const version = '4.1.46';
 
 (Exchange as any).ccxtVersion = version
 
@@ -92,6 +92,7 @@ import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinfalcon from  './src/coinfalcon.js'
+import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
@@ -161,6 +162,7 @@ import binancePro from  './src/pro/binance.js'
 import binancecoinmPro from  './src/pro/binancecoinm.js'
 import binanceusPro from  './src/pro/binanceus.js'
 import binanceusdmPro from  './src/pro/binanceusdm.js'
+import bingxPro from  './src/pro/bingx.js'
 import bitcoincomPro from  './src/pro/bitcoincom.js'
 import bitfinexPro from  './src/pro/bitfinex.js'
 import bitfinex2Pro from  './src/pro/bitfinex2.js'
@@ -261,6 +263,7 @@ const exchanges = {
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinfalcon':             coinfalcon,
+    'coinlist':               coinlist,
     'coinmate':               coinmate,
     'coinone':                coinone,
     'coinsph':                coinsph,
@@ -330,6 +333,7 @@ const pro = {
     'binancecoinm':           binancecoinmPro,
     'binanceus':              binanceusPro,
     'binanceusdm':            binanceusdmPro,
+    'bingx':                  bingxPro,
     'bitcoincom':             bitcoincomPro,
     'bitfinex':               bitfinexPro,
     'bitfinex2':              bitfinex2Pro,
@@ -457,6 +461,9 @@ export {
     Dictionary,
     MinMax,
     Position,
+    FundingRateHistory,
+    Liquidation,
+    FundingHistory,
     ace,
     alpaca,
     ascendex,
@@ -503,6 +510,7 @@ export {
     coincheck,
     coinex,
     coinfalcon,
+    coinlist,
     coinmate,
     coinone,
     coinsph,

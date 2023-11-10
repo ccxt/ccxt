@@ -337,6 +337,7 @@ export default class tidex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -470,15 +471,15 @@ export default class tidex extends Exchange {
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         high: 0.03497582,
-        //         low: 0.03248474,
-        //         avg: 0.03373028,
-        //         vol: 120.11485715062999,
-        //         vol_cur: 3572.24914074,
-        //         last: 0.0337611,
-        //         buy: 0.0337442,
-        //         sell: 0.03377798,
-        //         updated: 1537522009
+        //         "high": 0.03497582,
+        //         "low": 0.03248474,
+        //         "avg": 0.03373028,
+        //         "vol": 120.11485715062999,
+        //         "vol_cur": 3572.24914074,
+        //         "last": 0.0337611,
+        //         "buy": 0.0337442,
+        //         "sell": 0.03377798,
+        //         "updated": 1537522009
         //     }
         //
         const timestamp = this.safeTimestamp(ticker, 'updated');
@@ -544,7 +545,7 @@ export default class tidex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(response[id], market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**

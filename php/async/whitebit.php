@@ -14,6 +14,7 @@ use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class whitebit extends Exchange {
 
@@ -61,6 +62,7 @@ class whitebit extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -286,13 +288,14 @@ class whitebit extends Exchange {
             //          "stockPrec" => "3",          // Stock currency precision
             //          "moneyPrec" => "2",          // Precision of money currency
             //          "feePrec" => "4",            // Fee precision
-            //          "makerFee" => "0.001",       // Default maker fee ratio
-            //          "takerFee" => "0.001",       // Default taker fee ratio
+            //          "makerFee" => "0.1",         // Default $maker fee ratio
+            //          "takerFee" => "0.1",         // Default $taker fee ratio
             //          "minAmount" => "0.001",      // Minimal amount of stock to trade
             //          "minTotal" => "0.001",       // Minimal amount of money to trade
             //          "tradesEnabled" => true,     // Is trading enabled
             //          "isCollateral" => true,      // Is $margin trading enabled
-            //          "type" => "spot"             // Market $type-> Possible values => "spot", "futures"
+            //          "type" => "spot",            // Market $type-> Possible values => "spot", "futures"
+            //          "maxTotal" => "1000000000"   // Maximum total(amount * price) of money to trade
             //        ),
             //        {
             //          ...
@@ -333,6 +336,10 @@ class whitebit extends Exchange {
                 } else {
                     $type = 'spot';
                 }
+                $takerFeeRate = $this->safe_string($market, 'takerFee');
+                $taker = Precise::string_div($takerFeeRate, '100');
+                $makerFeeRate = $this->safe_string($market, 'makerFee');
+                $maker = Precise::string_div($makerFeeRate, '100');
                 $entry = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -352,8 +359,8 @@ class whitebit extends Exchange {
                     'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => $inverse,
-                    'taker' => $this->safe_number($market, 'makerFee'),
-                    'maker' => $this->safe_number($market, 'takerFee'),
+                    'taker' => $this->parse_number($taker),
+                    'maker' => $this->parse_number($maker),
                     'contractSize' => $contractSize,
                     'expiry' => null,
                     'expiryDatetime' => null,
@@ -378,9 +385,10 @@ class whitebit extends Exchange {
                         ),
                         'cost' => array(
                             'min' => $this->safe_number($market, 'minTotal'),
-                            'max' => null,
+                            'max' => $this->safe_number($market, 'maxTotal'),
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
                 $result[] = $entry;
@@ -535,23 +543,23 @@ class whitebit extends Exchange {
             //                "flex" => null
             //            }
             //        ),
-            //        'WBT (ERC20)' => array(
-            //            is_depositable => true,
-            //            is_withdrawal => true,
-            //            ticker => 'WBT',
-            //            name => 'WhiteBIT Token',
-            //            providers => array(),
-            //            withdraw => array( max_amount => '0', min_amount => '0.7', fixed => '0.253', flex => null ),
-            //            deposit => array( max_amount => '0', min_amount => '0.35', fixed => null, flex => null )
+            //        "WBT (ERC20)" => array(
+            //            "is_depositable" => true,
+            //            "is_withdrawal" => true,
+            //            "ticker" => "WBT",
+            //            "name" => "WhiteBIT Token",
+            //            "providers" => array(),
+            //            "withdraw" => array( max_amount => "0", min_amount => '0.7', fixed => "0.253", flex => null ),
+            //            "deposit" => array( max_amount => "0", min_amount => "0.35", fixed => null, flex => null )
             //        ),
-            //        'WBT (TRC20)' => array(
-            //            is_depositable => true,
-            //            is_withdrawal => true,
-            //            ticker => 'WBT',
-            //            name => 'WhiteBIT Token',
-            //            providers => array(),
-            //            withdraw => array( max_amount => '0', min_amount => '1.5', fixed => '0.075', flex => null ),
-            //            deposit => array( max_amount => '0', min_amount => '0.75', fixed => null, flex => null )
+            //        "WBT (TRC20)" => array(
+            //            "is_depositable" => true,
+            //            "is_withdrawal" => true,
+            //            "ticker" => "WBT",
+            //            "name" => "WhiteBIT Token",
+            //            "providers" => array(),
+            //            "withdraw" => array( max_amount => "0", min_amount => "1.5", fixed => "0.075", flex => null ),
+            //            "deposit" => array( max_amount => "0", min_amount => "0.75", fixed => null, flex => null )
             //        ),
             //        ...
             //    }
@@ -582,23 +590,23 @@ class whitebit extends Exchange {
         //                "flex" => null
         //            }
         //        ),
-        //        'WBT (ERC20)' => array(
-        //            is_depositable => true,
-        //            is_withdrawal => true,
-        //            ticker => 'WBT',
-        //            name => 'WhiteBIT Token',
-        //            providers => array(),
-        //            $withdraw => array( max_amount => '0', min_amount => '0.7', fixed => '0.253', flex => null ),
-        //            $deposit => array( max_amount => '0', min_amount => '0.35', fixed => null, flex => null )
+        //        "WBT (ERC20)" => array(
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "WBT",
+        //            "name" => "WhiteBIT Token",
+        //            "providers" => array(),
+        //            "withdraw" => array( max_amount => "0", min_amount => "0.7", fixed => "0.253", flex => null ),
+        //            "deposit" => array( max_amount => "0", min_amount => "0.35", fixed => null, flex => null )
         //        ),
-        //        'WBT (TRC20)' => array(
-        //            is_depositable => true,
-        //            is_withdrawal => true,
-        //            ticker => 'WBT',
-        //            name => 'WhiteBIT Token',
-        //            providers => array(),
-        //            $withdraw => array( max_amount => '0', min_amount => '1.5', fixed => '0.075', flex => null ),
-        //            $deposit => array( max_amount => '0', min_amount => '0.75', fixed => null, flex => null )
+        //        "WBT (TRC20)" => array(
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "WBT",
+        //            "name" => "WhiteBIT Token",
+        //            "providers" => array(),
+        //            "withdraw" => array( max_amount => "0", min_amount => "1.5", fixed => "0.075", flex => null ),
+        //            "deposit" => array( max_amount => "0", min_amount => "0.75", fixed => null, flex => null )
         //        ),
         //        ...
         //    }
@@ -665,17 +673,17 @@ class whitebit extends Exchange {
             $response = Async\await($this->v4PublicGetAssets ($params));
             //
             //      {
-            //          '1INCH' => array(
-            //              name => '1inch',
-            //              unified_cryptoasset_id => '8104',
-            //              can_withdraw => true,
-            //              can_deposit => true,
-            //              min_withdraw => '33',
-            //              max_withdraw => '0',
-            //              maker_fee => '0.1',
-            //              taker_fee => '0.1',
-            //              min_deposit => '30',
-            //              max_deposit => '0'
+            //          "1INCH" => array(
+            //              "name" => "1inch",
+            //              "unified_cryptoasset_id" => "8104",
+            //              "can_withdraw" => true,
+            //              "can_deposit" => true,
+            //              "min_withdraw" => "33",
+            //              "max_withdraw" => "0",
+            //              "maker_fee" => "0.1",
+            //              "taker_fee" => "0.1",
+            //              "min_deposit" => "30",
+            //              "max_deposit" => "0"
             //            ),
             //            ...
             //      }
@@ -702,7 +710,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -738,7 +746,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //  FetchTicker (v1)
         //
@@ -823,13 +831,14 @@ class whitebit extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://whitebit-exchange.github.io/api-docs/public/http-v4/#orderbook
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -842,7 +851,7 @@ class whitebit extends Exchange {
                 'market' => $market['id'],
             );
             if ($limit !== null) {
-                $request['depth'] = $limit; // default = 50, maximum = 100
+                $request['limit'] = $limit; // default = 100, maximum = 100
             }
             $response = Async\await($this->v4PublicGetOrderbookMarket (array_merge($request, $params)));
             //
@@ -864,12 +873,12 @@ class whitebit extends Exchange {
             //          )
             //      }
             //
-            $timestamp = $this->parse_number(Precise::string_mul($this->safe_string($response, 'timestamp'), '1000'));
+            $timestamp = $this->safe_timestamp($response, 'timestamp');
             return $this->parse_order_book($response, $symbol, $timestamp);
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -943,16 +952,16 @@ class whitebit extends Exchange {
             //
             //     array(
             //         array(
-            //             'id' => 1343815269,
-            //             'clientOrderId' => '',
-            //             'time' => 1641051917.532965,
-            //             'side' => 'sell',
-            //             'role' => 2,
-            //             'amount' => '9.986',
-            //             'price' => '0.9995',
-            //             'deal' => '9.981007',
-            //             'fee' => '0.009981007',
-            //             'orderId' => 58166729555,
+            //             "id" => 1343815269,
+            //             "clientOrderId" => '',
+            //             "time" => 1641051917.532965,
+            //             "side" => "sell",
+            //             "role" => 2,
+            //             "amount" => "9.986",
+            //             "price" => "0.9995",
+            //             "deal" => "9.981007",
+            //             "fee" => "0.009981007",
+            //             "orderId" => 58166729555,
             //         ),
             //     )
             //
@@ -974,7 +983,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTradesV4
         //
@@ -1004,16 +1013,16 @@ class whitebit extends Exchange {
         // fetchMyTrades
         //
         //      {
-        //          'id' => 1343815269,
-        //          'clientOrderId' => '',
-        //          'time' => 1641051917.532965,
-        //          'side' => 'sell',
-        //          'role' => 2,
-        //          'amount' => '9.986',
-        //          'price' => '0.9995',
-        //          'deal' => '9.981007',
-        //          'fee' => '0.009981007',
-        //          'orderId' => 58166729555,
+        //          "id" => 1343815269,
+        //          "clientOrderId" => '',
+        //          "time" => 1641051917.532965,
+        //          "side" => "sell",
+        //          "role" => 2,
+        //          "amount" => "9.986",
+        //          "price" => "0.9995",
+        //          "deal" => "9.981007",
+        //          "fee" => "0.009981007",
+        //          "orderId" => 58166729555,
         //      }
         //
         $market = $this->safe_market(null, $market);
@@ -1055,7 +1064,7 @@ class whitebit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1079,10 +1088,7 @@ class whitebit extends Exchange {
                 }
                 $limit = min ($limit, $maxLimit);
                 $start = $this->parse_to_int($since / 1000);
-                $duration = $this->parse_timeframe($timeframe);
-                $end = $this->sum($start, $duration * $limit);
                 $request['start'] = $start;
-                $request['end'] = $end;
             }
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1440);
@@ -1104,7 +1110,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1591488000,
@@ -1255,9 +1261,7 @@ class whitebit extends Exchange {
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
              * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
+            $this->check_required_symbol('cancelOrder', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1268,7 +1272,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balanceKeys = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($balanceKeys); $i++) {
@@ -1290,7 +1294,7 @@ class whitebit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1340,19 +1344,17 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the whitebit api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1386,7 +1388,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -1455,7 +1457,7 @@ class whitebit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder, fetchOpenOrders
         //
@@ -1789,7 +1791,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //     {
         //         "address" => "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit $address
@@ -1938,7 +1940,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account

@@ -364,13 +364,14 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => $this->parse8601($this->safe_string($market, 'createdAt')),
                 'info' => $market,
             );
         }
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $indexed = $this->index_by($response, 'currencySymbol');
         $currencyIds = is_array($indexed) ? array_keys($indexed) : array();
@@ -386,7 +387,7 @@ class bittrex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bittrex api endpoint
@@ -397,7 +398,7 @@ class bittrex extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -501,12 +502,13 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'networks' => array(),
             );
         }
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // $ticker
         //
@@ -604,10 +606,10 @@ class bittrex extends Exchange {
             $ticker = $this->parse_ticker($response[$i]);
             $tickers[] = $ticker;
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -672,7 +674,7 @@ class bittrex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -769,7 +771,7 @@ class bittrex extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -865,7 +867,7 @@ class bittrex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //         "startsAt":"2020-06-12T02:35:00Z",
@@ -887,7 +889,7 @@ class bittrex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -895,8 +897,14 @@ class bittrex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the bittrex api endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 1440);
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $reverseId = $market['baseId'] . '-' . $market['quoteId'];
@@ -948,7 +956,7 @@ class bittrex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1184,19 +1192,19 @@ class bittrex extends Exchange {
         // Spot
         //
         //     {
-        //         id => 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
-        //         marketSymbol => 'BTC-USDT',
-        //         direction => 'SELL',
-        //         $type => 'LIMIT',
-        //         quantity => '0.01',
-        //         $limit => '6000',
-        //         $timeInForce => 'GOOD_TIL_CANCELLED',
-        //         fillQuantity => '0.00000000',
-        //         commission => '0.00000000',
-        //         proceeds => '0.00000000',
-        //         status => 'OPEN',
-        //         createdAt => '2020-03-18T02:37:33.42Z',
-        //         updatedAt => '2020-03-18T02:37:33.42Z'
+        //         "id" => "f03d5e98-b5ac-48fb-8647-dd4db828a297",
+        //         "marketSymbol" => "BTC-USDT",
+        //         "direction" => "SELL",
+        //         "type" => "LIMIT",
+        //         "quantity" => "0.01",
+        //         "limit" => "6000",
+        //         "timeInForce" => "GOOD_TIL_CANCELLED",
+        //         "fillQuantity" => "0.00000000",
+        //         "commission" => "0.00000000",
+        //         "proceeds" => "0.00000000",
+        //         "status" => "OPEN",
+        //         "createdAt" => "2020-03-18T02:37:33.42Z",
+        //         "updatedAt" => "2020-03-18T02:37:33.42Z"
         //       }
         //
         // Stop
@@ -1370,7 +1378,7 @@ class bittrex extends Exchange {
         return $this->safe_value($transactions, 0);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
@@ -1451,7 +1459,7 @@ class bittrex extends Exchange {
         return $this->safe_value($transactions, 0);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1508,7 +1516,7 @@ class bittrex extends Exchange {
         return $this->fetch_withdrawals($code, $since, $limit, array_merge($params, array( 'status' => 'pending' )));
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1639,26 +1647,26 @@ class bittrex extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
-        //         id => '1be35109-b763-44ce-b6ea-05b6b0735c0c',
-        //         $marketSymbol => 'LTC-ETH',
-        //         $direction => 'BUY',
-        //         $type => 'LIMIT',
-        //         $quantity => '0.50000000',
-        //         $limit => '0.17846699',
-        //         $timeInForce => 'GOOD_TIL_CANCELLED',
-        //         $clientOrderId => 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
-        //         $fillQuantity => '0.50000000',
-        //         $commission => '0.00022286',
-        //         $proceeds => '0.08914915',
-        //         $status => 'CLOSED',
-        //         $createdAt => '2018-06-23T13:14:28.613Z',
-        //         $updatedAt => '2018-06-23T13:14:30.19Z',
-        //         $closedAt => '2018-06-23T13:14:30.19Z'
+        //         "id" => "1be35109-b763-44ce-b6ea-05b6b0735c0c",
+        //         "marketSymbol" => "LTC-ETH",
+        //         "direction" => "BUY",
+        //         "type" => "LIMIT",
+        //         "quantity" => "0.50000000",
+        //         "limit" => "0.17846699",
+        //         "timeInForce" => "GOOD_TIL_CANCELLED",
+        //         "clientOrderId" => "ff156d39-fe01-44ca-8f21-b0afa19ef228",
+        //         "fillQuantity" => "0.50000000",
+        //         "commission" => "0.00022286",
+        //         "proceeds" => "0.08914915",
+        //         "status" => "CLOSED",
+        //         "createdAt" => "2018-06-23T13:14:28.613Z",
+        //         "updatedAt" => "2018-06-23T13:14:30.19Z",
+        //         "closedAt" => "2018-06-23T13:14:30.19Z"
         //     }
         //
         // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
@@ -1851,11 +1859,11 @@ class bittrex extends Exchange {
             $request['marketSymbol'] = $market['id'];
         }
         $response = $this->privateGetExecutions (array_merge($request, $params));
-        $trades = $this->parse_trades($response, $market);
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit);
+        $trades = $this->parse_trades($response, $market, $since, $limit);
+        return $trades;
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in

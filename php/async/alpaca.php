@@ -10,6 +10,7 @@ use ccxt\async\abstract\alpaca as Exchange;
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class alpaca extends Exchange {
 
@@ -308,6 +309,7 @@ class alpaca extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $asset,
                 );
             }
@@ -315,7 +317,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -361,7 +363,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -421,7 +423,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -481,7 +483,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     {
         //        "c":22895,
@@ -636,7 +638,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
@@ -656,7 +658,7 @@ class alpaca extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -760,7 +762,7 @@ class alpaca extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",

@@ -735,6 +735,7 @@ class tokocrypto extends tokocrypto$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
@@ -1068,48 +1069,48 @@ class tokocrypto extends tokocrypto$1 {
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
         //     }
         //
         // coinm
         //     {
-        //         baseVolume: '214549.95171161',
-        //         closeTime: '1621965286847',
-        //         count: '1283779',
-        //         firstId: '152560106',
-        //         highPrice: '39938.3',
-        //         lastId: '153843955',
-        //         lastPrice: '37993.4',
-        //         lastQty: '1',
-        //         lowPrice: '36457.2',
-        //         openPrice: '37783.4',
-        //         openTime: '1621878840000',
-        //         pair: 'BTCUSD',
-        //         priceChange: '210.0',
-        //         priceChangePercent: '0.556',
-        //         symbol: 'BTCUSD_PERP',
-        //         volume: '81990451',
-        //         weightedAvgPrice: '38215.08713747'
+        //         "baseVolume": "214549.95171161",
+        //         "closeTime": "1621965286847",
+        //         "count": "1283779",
+        //         "firstId": "152560106",
+        //         "highPrice": "39938.3",
+        //         "lastId": "153843955",
+        //         "lastPrice": "37993.4",
+        //         "lastQty": "1",
+        //         "lowPrice": "36457.2",
+        //         "openPrice": "37783.4",
+        //         "openTime": "1621878840000",
+        //         "pair": "BTCUSD",
+        //         "priceChange": "210.0",
+        //         "priceChangePercent": "0.556",
+        //         "symbol": "BTCUSD_PERP",
+        //         "volume": "81990451",
+        //         "weightedAvgPrice": "38215.08713747"
         //     }
         //
         const timestamp = this.safeInteger(ticker, 'closeTime');
@@ -1420,25 +1421,25 @@ class tokocrypto extends tokocrypto$1 {
         //     }
         // createOrder
         //     {
-        //         orderId: '145265071',
-        //         bOrderListId: '0',
-        //         clientId: '49c09c3c2cd54419a59c05441f517b3c',
-        //         bOrderId: '35247529',
-        //         symbol: 'USDT_BIDR',
-        //         symbolType: '1',
-        //         side: '0',
-        //         type: '1',
-        //         price: '11915',
-        //         origQty: '2',
-        //         origQuoteQty: '23830.00',
-        //         executedQty: '0.00000000',
-        //         executedPrice: '0',
-        //         executedQuoteQty: '0.00',
-        //         timeInForce: '1',
-        //         stopPrice: '0',
-        //         icebergQty: '0',
-        //         status: '0',
-        //         createTime: '1662711074372'
+        //         "orderId": "145265071",
+        //         "bOrderListId": "0",
+        //         "clientId": "49c09c3c2cd54419a59c05441f517b3c",
+        //         "bOrderId": "35247529",
+        //         "symbol": "USDT_BIDR",
+        //         "symbolType": "1",
+        //         "side": "0",
+        //         "type": "1",
+        //         "price": "11915",
+        //         "origQty": "2",
+        //         "origQuoteQty": "23830.00",
+        //         "executedQty": "0.00000000",
+        //         "executedPrice": "0",
+        //         "executedQuoteQty": "0.00",
+        //         "timeInForce": "1",
+        //         "stopPrice": "0",
+        //         "icebergQty": "0",
+        //         "status": "0",
+        //         "createTime": "1662711074372"
         //     }
         //
         // createOrder with { "newOrderRespType": "FULL" }
@@ -1798,13 +1799,11 @@ class tokocrypto extends tokocrypto$1 {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1948,9 +1947,7 @@ class tokocrypto extends tokocrypto$1 {
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

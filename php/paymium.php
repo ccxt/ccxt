@@ -98,7 +98,7 @@ class paymium extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/EUR' => array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'type' => 'spot', 'spot' => true ),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'type' => 'spot', 'spot' => true )),
             ),
             'fees' => array(
                 'trading' => array(
@@ -110,7 +110,7 @@ class paymium extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -129,7 +129,7 @@ class paymium extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
@@ -141,7 +141,7 @@ class paymium extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1depth/get
@@ -159,7 +159,7 @@ class paymium extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "high":"33740.82",
@@ -208,7 +208,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1ticker/get
@@ -243,7 +243,7 @@ class paymium extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $market = $this->safe_market(null, $market);
@@ -268,7 +268,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1trades/get

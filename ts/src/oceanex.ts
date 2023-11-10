@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, Inva
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 import { Precise } from '../ccxt.js';
 
 //  ---------------------------------------------------------------------------
@@ -166,15 +166,15 @@ export default class oceanex extends Exchange {
         const response = await this.publicGetMarkets (this.extend (request, params));
         //
         //    {
-        //        id: 'xtzusdt',
-        //        name: 'XTZ/USDT',
-        //        ask_precision: '8',
-        //        bid_precision: '8',
-        //        enabled: true,
-        //        price_precision: '4',
-        //        amount_precision: '3',
-        //        usd_precision: '4',
-        //        minimum_trading_amount: '1.0'
+        //        "id": "xtzusdt",
+        //        "name": "XTZ/USDT",
+        //        "ask_precision": "8",
+        //        "bid_precision": "8",
+        //        "enabled": true,
+        //        "price_precision": "4",
+        //        "amount_precision": "3",
+        //        "usd_precision": "4",
+        //        "minimum_trading_amount": "1.0"
         //    },
         //
         const result = [];
@@ -235,13 +235,14 @@ export default class oceanex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
         return result;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name oceanex#fetchTicker
@@ -322,7 +323,7 @@ export default class oceanex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     parseTicker (data, market = undefined) {
@@ -366,7 +367,7 @@ export default class oceanex extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name oceanex#fetchOrderBook
@@ -465,10 +466,10 @@ export default class oceanex extends Exchange {
             const timestamp = this.safeTimestamp (orderbook, 'timestamp');
             result[symbol] = this.parseOrderBook (orderbook, symbol, timestamp);
         }
-        return result;
+        return result as Dictionary<OrderBook>;
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name oceanex#fetchTrades
@@ -511,7 +512,7 @@ export default class oceanex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -607,7 +608,7 @@ export default class oceanex extends Exchange {
         return this.safeValue (response, 'data');
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts', []);
         const result = { 'info': response };
@@ -623,7 +624,7 @@ export default class oceanex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name oceanex#fetchBalance
@@ -711,7 +712,7 @@ export default class oceanex extends Exchange {
         return this.parseOrder (data[0], market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name oceanex#fetchOpenOrders
@@ -729,7 +730,7 @@ export default class oceanex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name oceanex#fetchClosedOrders
@@ -747,7 +748,7 @@ export default class oceanex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name oceanex#fetchOrders
@@ -755,13 +756,11 @@ export default class oceanex extends Exchange {
          * @see https://api.oceanex.pro/doc/v1/#order-status-with-filters-post
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const states = this.safeValue (params, 'states', [ 'wait', 'wait_trigger', 'done', 'cancel' ]);
@@ -783,10 +782,10 @@ export default class oceanex extends Exchange {
             const parsedOrders = this.parseOrders (orders, market, since, limit, { 'status': status });
             result = this.arrayConcat (result, parsedOrders);
         }
-        return result;
+        return result as Order[];
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // [
         //    1559232000,
         //    8889.22,
@@ -805,7 +804,7 @@ export default class oceanex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name oceanex#fetchOHLCV
@@ -835,7 +834,7 @@ export default class oceanex extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //    {
         //        "created_at": "2019-01-18T00:38:18Z",
@@ -897,19 +896,6 @@ export default class oceanex extends Exchange {
             'cancel': 'canceled',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    async createOrders (symbol: string, orders, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'orders': orders,
-        };
-        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await this.privatePostOrdersMulti (this.extend (request, params));
-        const data = response['data'];
-        return this.parseOrders (data);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {

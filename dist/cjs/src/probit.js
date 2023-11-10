@@ -334,6 +334,7 @@ class probit extends probit$1 {
                         'max': this.safeNumber(market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -536,7 +537,7 @@ class probit extends probit$1 {
         const response = await this.privateGetBalance(params);
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
         //                 "currency_id":"XRP",
         //                 "total":"100",
@@ -729,7 +730,7 @@ class probit extends probit$1 {
         const response = await this.privateGetTradeHistory(this.extend(request, params));
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
         //                 "id":"BTC-USDT:183566",
         //                 "order_id":"17209376",
@@ -1079,9 +1080,7 @@ class probit extends probit$1 {
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1114,17 +1113,17 @@ class probit extends probit$1 {
         //         id,
         //         user_id,
         //         market_id,
-        //         type: 'orderType',
-        //         side: 'side',
+        //         "type": "orderType",
+        //         "side": "side",
         //         quantity,
         //         limit_price,
-        //         time_in_force: 'timeInForce',
+        //         "time_in_force": "timeInForce",
         //         filled_cost,
         //         filled_quantity,
         //         open_quantity,
         //         cancelled_quantity,
-        //         status: 'orderStatus',
-        //         time: 'date',
+        //         "status": "orderStatus",
+        //         "time": "date",
         //         client_order_id,
         //     }
         //
@@ -1241,21 +1240,21 @@ class probit extends probit$1 {
         const response = await this.privatePostNewOrder(this.extend(request, query));
         //
         //     {
-        //         data: {
+        //         "data": {
         //             id,
         //             user_id,
         //             market_id,
-        //             type: 'orderType',
-        //             side: 'side',
+        //             "type": "orderType",
+        //             "side": "side",
         //             quantity,
         //             limit_price,
-        //             time_in_force: 'timeInForce',
+        //             "time_in_force": "timeInForce",
         //             filled_cost,
         //             filled_quantity,
         //             open_quantity,
         //             cancelled_quantity,
-        //             status: 'orderStatus',
-        //             time: 'date',
+        //             "status": "orderStatus",
+        //             "time": "date",
         //             client_order_id,
         //         }
         //     }
@@ -1282,9 +1281,7 @@ class probit extends probit$1 {
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1480,6 +1477,7 @@ class probit extends probit$1 {
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch transactions for
          * @param {int} [limit] the maximum number of transaction structures to retrieve
+         * @param {int} [params.until] the latest time in ms to fetch transactions for
          * @param {object} [params] extra parameters specific to the probit api endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
          */
@@ -1493,8 +1491,22 @@ class probit extends probit$1 {
         if (since !== undefined) {
             request['start_time'] = this.iso8601(since);
         }
+        else {
+            request['start_time'] = this.iso8601(1);
+        }
+        const until = this.safeInteger2(params, 'till', 'until');
+        if (until !== undefined) {
+            request['end_time'] = this.iso8601(until);
+            params = this.omit(params, ['until', 'till']);
+        }
+        else {
+            request['end_time'] = this.iso8601(this.milliseconds());
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTransferPayment(this.extend(request, params));
         //
@@ -1525,7 +1537,29 @@ class probit extends probit$1 {
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": "01211d4b-0e68-41d6-97cb-298bfe2cab67",
+        //         "type": "deposit",
+        //         "status": "done",
+        //         "amount": "0.01",
+        //         "address": "0x9e7430fc0bdd14745bd00a1b92ed25133a7c765f",
+        //         "time": "2023-06-14T12:03:11.000Z",
+        //         "hash": "0x0ff5bedc9e378f9529acc6b9840fa8c2ef00fd0275e0bac7fa0589a9b5d1712e",
+        //         "currency_id": "ETH",
+        //         "confirmations":0,
+        //         "fee": "0",
+        //         "destination_tag": null,
+        //         "platform_id": "ETH",
+        //         "fee_currency_id": "ETH",
+        //         "payment_service_name":null,
+        //         "payment_service_display_name":null,
+        //         "crypto":null
+        //     }
+        //
         const id = this.safeString(transaction, 'id');
+        const networkId = this.safeString(transaction, 'platform_id');
+        const networkCode = this.networkIdToCode(networkId);
         const amount = this.safeNumber(transaction, 'amount');
         const address = this.safeString(transaction, 'address');
         const tag = this.safeString(transaction, 'destination_tag');
@@ -1547,7 +1581,7 @@ class probit extends probit$1 {
             'id': id,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': networkCode,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,
@@ -1650,36 +1684,36 @@ class probit extends probit$1 {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         // {
-        //     id: 'USDT',
-        //     display_name: { 'ko-kr': '테더', 'en-us': 'Tether' },
-        //     show_in_ui: true,
-        //     platform: [
+        //     "id": "USDT",
+        //     "display_name": { "ko-kr": '테더', "en-us": "Tether" },
+        //     "show_in_ui": true,
+        //     "platform": [
         //       {
-        //         id: 'ETH',
-        //         priority: '1',
-        //         deposit: true,
-        //         withdrawal: true,
-        //         currency_id: 'USDT',
-        //         precision: '6',
-        //         min_confirmation_count: '15',
-        //         require_destination_tag: false,
-        //         allow_withdrawal_destination_tag: false,
-        //         display_name: [Object],
-        //         min_deposit_amount: '0',
-        //         min_withdrawal_amount: '1',
-        //         withdrawal_fee: [Array],
-        //         deposit_fee: {},
-        //         suspended_reason: '',
-        //         deposit_suspended: false,
-        //         withdrawal_suspended: false,
-        //         platform_currency_display_name: [Object]
+        //         "id": "ETH",
+        //         "priority": "1",
+        //         "deposit": true,
+        //         "withdrawal": true,
+        //         "currency_id": "USDT",
+        //         "precision": "6",
+        //         "min_confirmation_count": "15",
+        //         "require_destination_tag": false,
+        //         "allow_withdrawal_destination_tag": false,
+        //         "display_name": [Object],
+        //         "min_deposit_amount": "0",
+        //         "min_withdrawal_amount": "1",
+        //         "withdrawal_fee": [Array],
+        //         "deposit_fee": {},
+        //         "suspended_reason": '',
+        //         "deposit_suspended": false,
+        //         "withdrawal_suspended": false,
+        //         "platform_currency_display_name": [Object]
         //       },
         //     ],
-        //     internal_transfer: { suspended_reason: null, suspended: false },
-        //     stakeable: false,
-        //     unstakeable: false,
-        //     auto_stake: false,
-        //     auto_stake_amount: '0'
+        //     "internal_transfer": { suspended_reason: null, suspended: false },
+        //     "stakeable": false,
+        //     "unstakeable": false,
+        //     "auto_stake": false,
+        //     "auto_stake_amount": "0"
         //   }
         //
         const depositWithdrawFee = this.depositWithdrawFee({});
@@ -1779,9 +1813,9 @@ class probit extends probit$1 {
         const response = await this.accountsPostToken(this.extend(request, params));
         //
         //     {
-        //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-        //         token_type: 'bearer',
-        //         expires_in: 900
+        //         "access_token": "0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=",
+        //         "token_type": "bearer",
+        //         "expires_in": 900
         //     }
         //
         const expiresIn = this.safeInteger(response, 'expires_in');

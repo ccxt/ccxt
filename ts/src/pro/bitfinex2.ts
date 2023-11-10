@@ -307,7 +307,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         //    [
         //        360141,
-        //        'te',
+        //        "te",
         //        [
         //            1128060969, // id
         //            1654702500098, // mts
@@ -588,7 +588,6 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageHash = channel + ':' + marketId;
         const prec = this.safeString (subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
-        const id = this.safeString (message, 0);
         // if it is an initial snapshot
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -625,6 +624,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                     bookside.store (price, size, counter);
                 }
             }
+            orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
         } else {
             const deltas = message[1];
@@ -636,7 +636,8 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const bookside = orderbookItem[side];
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt (price, '0') ? size : '0';
-                bookside.store (this.parseNumber (price), this.parseNumber (amount), id);
+                const idString = this.safeString (deltas, 0);
+                bookside.store (this.parseNumber (price), this.parseNumber (amount), idString);
             } else {
                 const amount = this.safeString (deltas, 2);
                 const counter = this.safeString (deltas, 1);
@@ -652,7 +653,7 @@ export default class bitfinex2 extends bitfinex2Rest {
 
     handleChecksum (client: Client, message, subscription) {
         //
-        // [ 173904, 'cs', -890884919 ]
+        // [ 173904, "cs", -890884919 ]
         //
         const marketId = this.safeString (subscription, 'symbol');
         const symbol = this.safeSymbol (marketId);
@@ -666,16 +667,19 @@ export default class bitfinex2 extends bitfinex2Rest {
         const stringArray = [];
         const bids = book['bids'];
         const asks = book['asks'];
+        const prec = this.safeString (subscription, 'prec', 'P0');
+        const isRaw = (prec === 'R0');
+        const idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (let i = 0; i < depth; i++) {
             const bid = this.safeValue (bids, i);
             const ask = this.safeValue (asks, i);
             if (bid !== undefined) {
-                stringArray.push (this.numberToString (bids[i][0]));
+                stringArray.push (this.numberToString (bids[i][idToCheck]));
                 stringArray.push (this.numberToString (bids[i][1]));
             }
             if (ask !== undefined) {
-                stringArray.push (this.numberToString (asks[i][0]));
+                stringArray.push (this.numberToString (asks[i][idToCheck]));
                 stringArray.push (this.numberToString (-asks[i][1]));
             }
         }
@@ -709,24 +713,24 @@ export default class bitfinex2 extends bitfinex2Rest {
         // snapshot (exchange + margin together)
         //   [
         //       0,
-        //       'ws',
+        //       "ws",
         //       [
         //           [
-        //               'exchange',
-        //               'LTC',
+        //               "exchange",
+        //               "LTC",
         //               0.05479727,
         //               0,
         //               null,
-        //               'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //               "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //               null,
         //           ]
         //           [
-        //               'margin',
-        //               'USTF0',
+        //               "margin",
+        //               "USTF0",
         //               11.960650700086292,
         //               0,
         //               null,
-        //               'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //               "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //               null,
         //           ],
         //       ],
@@ -735,22 +739,22 @@ export default class bitfinex2 extends bitfinex2Rest {
         // spot
         //   [
         //       0,
-        //       'wu',
+        //       "wu",
         //       [
-        //         'exchange',
-        //         'LTC', // currency
+        //         "exchange",
+        //         "LTC", // currency
         //         0.06729727, // wallet balance
         //         0, // unsettled balance
         //         0.06729727, // available balance might be null
-        //         'Exchange 0.4 LTC for UST @ 65.075',
+        //         "Exchange 0.4 LTC for UST @ 65.075",
         //         {
-        //           reason: 'TRADE',
-        //           order_id: 96596397973,
-        //           order_id_oppo: 96596632735,
-        //           trade_price: '65.075',
-        //           trade_amount: '-0.4',
-        //           order_cid: 1654636218766,
-        //           order_gid: null
+        //           "reason": "TRADE",
+        //           "order_id": 96596397973,
+        //           "order_id_oppo": 96596632735,
+        //           "trade_price": "65.075",
+        //           "trade_amount": "-0.4",
+        //           "order_cid": 1654636218766,
+        //           "order_gid": null
         //         }
         //       ]
         //   ]
@@ -758,12 +762,12 @@ export default class bitfinex2 extends bitfinex2Rest {
         // margin
         //
         //   [
-        //       'margin',
-        //       'USTF0',
+        //       "margin",
+        //       "USTF0",
         //       11.960650700086292, // total
         //       0,
         //       6.776250700086292, // available
-        //       'Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)',
+        //       "Trading fees for 0.1 LTCF0 (LTCF0:USTF0) @ 51.844 on BFX (0.065%)",
         //       null
         //   ]
         //
@@ -798,12 +802,12 @@ export default class bitfinex2 extends bitfinex2Rest {
     parseWsBalance (balance) {
         //
         //     [
-        //         'exchange',
-        //         'LTC',
+        //         "exchange",
+        //         "LTC",
         //         0.05479727, // balance
         //         0,
         //         null, // available null if not calculated yet
-        //         'Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)',
+        //         "Trading fees for 0.05 LTC (LTCUST) @ 51.872 on BFX (0.2%)",
         //         null,
         //     ]
         //
@@ -820,10 +824,10 @@ export default class bitfinex2 extends bitfinex2Rest {
     handleSystemStatus (client: Client, message) {
         //
         //     {
-        //         event: 'info',
-        //         version: 2,
-        //         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform: { status: 1 }, // 1 for operative, 0 for maintenance
+        //         "event": "info",
+        //         "version": 2,
+        //         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform": { status: 1 }, // 1 for operative, 0 for maintenance
         //     }
         //
         return message;
@@ -832,14 +836,14 @@ export default class bitfinex2 extends bitfinex2Rest {
     handleSubscriptionStatus (client: Client, message) {
         //
         //     {
-        //         event: 'subscribed',
-        //         channel: 'book',
-        //         chanId: 67473,
-        //         symbol: 'tBTCUSD',
-        //         prec: 'P0',
-        //         freq: 'F0',
-        //         len: '25',
-        //         pair: 'BTCUSD'
+        //         "event": "subscribed",
+        //         "channel": "book",
+        //         "chanId": 67473,
+        //         "symbol": "tBTCUSD",
+        //         "prec": "P0",
+        //         "freq": "F0",
+        //         "len": "25",
+        //         "pair": "BTCUSD"
         //     }
         //
         const channelId = this.safeString (message, 'chanId');
@@ -1006,17 +1010,17 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       97084883506, // order id
         //       null,
         //       1655110144596, // clientOrderId
-        //       'tLTCUST', // symbol
+        //       "tLTCUST", // symbol
         //       1655110144596, // created timestamp
         //       1655110144598, // updated timestamp
         //       0, // amount
         //       0.1, // amount_orig negative if sell order
-        //       'EXCHANGE MARKET', // type
+        //       "EXCHANGE MARKET", // type
         //       null,
         //       null,
         //       null,
         //       0,
-        //       'EXECUTED @ 42.821(0.1)', // status
+        //       "EXECUTED @ 42.821(0.1)", // status
         //       null,
         //       null,
         //       42.799, // price
@@ -1031,7 +1035,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         //       null,
         //       null,
         //       null,
-        //       'BFX',
+        //       "BFX",
         //       null,
         //       null,
         //       {}
@@ -1092,25 +1096,25 @@ export default class bitfinex2 extends bitfinex2Rest {
         //
         //     [
         //         1231,
-        //         'hb',
+        //         "hb",
         //     ]
         //
         // auth message
         //    {
-        //        event: 'auth',
-        //        status: 'OK',
-        //        chanId: 0,
-        //        userId: 3159883,
-        //        auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        //        caps: {
-        //          orders: { read: 1, write: 1 },
-        //          account: { read: 1, write: 1 },
-        //          funding: { read: 1, write: 1 },
-        //          history: { read: 1, write: 0 },
-        //          wallets: { read: 1, write: 1 },
-        //          withdraw: { read: 0, write: 1 },
-        //          positions: { read: 1, write: 1 },
-        //          ui_withdraw: { read: 0, write: 0 }
+        //        "event": "auth",
+        //        "status": "OK",
+        //        "chanId": 0,
+        //        "userId": 3159883,
+        //        "auth_id": "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        //        "caps": {
+        //          "orders": { read: 1, write: 1 },
+        //          "account": { read: 1, write: 1 },
+        //          "funding": { read: 1, write: 1 },
+        //          "history": { read: 1, write: 0 },
+        //          "wallets": { read: 1, write: 1 },
+        //          "withdraw": { read: 0, write: 1 },
+        //          "positions": { read: 1, write: 1 },
+        //          "ui_withdraw": { read: 0, write: 0 }
         //        }
         //    }
         //

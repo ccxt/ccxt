@@ -147,11 +147,11 @@ class kraken extends \ccxt\async\kraken {
         //
         //  createOrder
         //    {
-        //        descr => 'sell 0.00010000 XBTUSDT @ market',
-        //        event => 'addOrderStatus',
-        //        reqid => 1,
-        //        status => 'ok',
-        //        txid => 'OAVXZH-XIE54-JCYYDG'
+        //        "descr" => "sell 0.00010000 XBTUSDT @ market",
+        //        "event" => "addOrderStatus",
+        //        "reqid" => 1,
+        //        "status" => "ok",
+        //        "txid" => "OAVXZH-XIE54-JCYYDG"
         //    }
         //  editOrder
         //    {
@@ -403,18 +403,18 @@ class kraken extends \ccxt\async\kraken {
         //     array(
         //         216, // channelID
         //         array(
-        //             '1574454214.962096', // Time, seconds since epoch
-        //             '1574454240.000000', // End $timestamp of the $interval
-        //             '0.020970', // Open price at midnight UTC
-        //             '0.020970', // Intraday high price
-        //             '0.020970', // Intraday low price
-        //             '0.020970', // Closing price at midnight UTC
-        //             '0.020970', // Volume weighted average price
-        //             '0.08636138', // Accumulated volume today
+        //             "1574454214.962096", // Time, seconds since epoch
+        //             "1574454240.000000", // End $timestamp of the $interval
+        //             "0.020970", // Open price at midnight UTC
+        //             "0.020970", // Intraday high price
+        //             "0.020970", // Intraday low price
+        //             "0.020970", // Closing price at midnight UTC
+        //             "0.020970", // Volume weighted average price
+        //             "0.08636138", // Accumulated volume today
         //             1, // Number of trades today
         //         ),
-        //         'ohlc-1', // Channel Name of $subscription
-        //         'ETH/XBT', // Asset pair
+        //         "ohlc-1", // Channel Name of $subscription
+        //         "ETH/XBT", // Asset pair
         //     )
         //
         $info = $this->safe_value($subscription, 'subscription', array());
@@ -796,10 +796,10 @@ class kraken extends \ccxt\async\kraken {
         // involves system status and maintenance updates
         //
         //     {
-        //         connectionID => 15527282728335292000,
-        //         event => 'systemStatus',
-        //         status => 'online', // online|maintenance|(custom status tbd)
-        //         version => '0.2.0'
+        //         "connectionID" => 15527282728335292000,
+        //         "event" => "systemStatus",
+        //         "status" => "online", // online|maintenance|(custom status tbd)
+        //         "version" => "0.2.0"
         //     }
         //
         return $message;
@@ -877,37 +877,37 @@ class kraken extends \ccxt\async\kraken {
         //     array(
         //         array(
         //             {
-        //                 'TT5UC3-GOIRW-6AZZ6R' => array(
-        //                     cost => '1493.90107',
-        //                     fee => '3.88415',
-        //                     margin => '0.00000',
-        //                     ordertxid => 'OTLAS3-RRHUF-NDWH5A',
-        //                     ordertype => 'market',
-        //                     pair => 'XBT/USDT',
-        //                     postxid => 'TKH2SE-M7IF5-CFI7LT',
-        //                     price => '6851.50005',
-        //                     time => '1586822919.335498',
-        //                     type => 'sell',
-        //                     vol => '0.21804000'
+        //                 "TT5UC3-GOIRW-6AZZ6R" => array(
+        //                     "cost" => "1493.90107",
+        //                     "fee" => "3.88415",
+        //                     "margin" => "0.00000",
+        //                     "ordertxid" => "OTLAS3-RRHUF-NDWH5A",
+        //                     "ordertype" => "market",
+        //                     "pair" => "XBT/USDT",
+        //                     "postxid" => "TKH2SE-M7IF5-CFI7LT",
+        //                     "price" => "6851.50005",
+        //                     "time" => "1586822919.335498",
+        //                     "type" => "sell",
+        //                     "vol" => "0.21804000"
         //                 }
         //             ),
         //             {
-        //                 'TIY6G4-LKLAI-Y3GD4A' => array(
-        //                     cost => '22.17134',
-        //                     fee => '0.05765',
-        //                     margin => '0.00000',
-        //                     ordertxid => 'ODQXS7-MOLK6-ICXKAA',
-        //                     ordertype => 'market',
-        //                     pair => 'ETH/USD',
-        //                     postxid => 'TKH2SE-M7IF5-CFI7LT',
-        //                     price => '169.97999',
-        //                     time => '1586340530.895739',
-        //                     type => 'buy',
-        //                     vol => '0.13043500'
+        //                 "TIY6G4-LKLAI-Y3GD4A" => array(
+        //                     "cost" => "22.17134",
+        //                     "fee" => "0.05765",
+        //                     "margin" => "0.00000",
+        //                     "ordertxid" => "ODQXS7-MOLK6-ICXKAA",
+        //                     "ordertype" => "market",
+        //                     "pair" => "ETH/USD",
+        //                     "postxid" => "TKH2SE-M7IF5-CFI7LT",
+        //                     "price" => "169.97999",
+        //                     "time" => "1586340530.895739",
+        //                     "type" => "buy",
+        //                     "vol" => "0.13043500"
         //                 }
         //             ),
         //         ),
-        //         'ownTrades',
+        //         "ownTrades",
         //         array( sequence => 1 )
         //     )
         //
@@ -945,34 +945,34 @@ class kraken extends \ccxt\async\kraken {
     public function parse_ws_trade($trade, $market = null) {
         //
         //     {
-        //         $id => 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
-        //         ordertxid => 'OQRPN2-LRHFY-HIFA7D',
-        //         postxid => 'TKH2SE-M7IF5-CFI7LT',
-        //         pair => 'USDCUSDT',
-        //         time => 1586340086.457,
-        //         $type => 'sell',
-        //         ordertype => 'market',
-        //         $price => '0.99860000',
-        //         $cost => '22.16892001',
-        //         $fee => '0.04433784',
-        //         vol => '22.20000000',
-        //         margin => '0.00000000',
-        //         misc => ''
+        //         "id" => "TIMIRG-WUNNE-RRJ6GT", // injected from outside
+        //         "ordertxid" => "OQRPN2-LRHFY-HIFA7D",
+        //         "postxid" => "TKH2SE-M7IF5-CFI7LT",
+        //         "pair" => "USDCUSDT",
+        //         "time" => 1586340086.457,
+        //         "type" => "sell",
+        //         "ordertype" => "market",
+        //         "price" => "0.99860000",
+        //         "cost" => "22.16892001",
+        //         "fee" => "0.04433784",
+        //         "vol" => "22.20000000",
+        //         "margin" => "0.00000000",
+        //         "misc" => ''
         //     }
         //
         //     {
-        //         $id => 'TIY6G4-LKLAI-Y3GD4A',
-        //         $cost => '22.17134',
-        //         $fee => '0.05765',
-        //         margin => '0.00000',
-        //         ordertxid => 'ODQXS7-MOLK6-ICXKAA',
-        //         ordertype => 'market',
-        //         pair => 'ETH/USD',
-        //         postxid => 'TKH2SE-M7IF5-CFI7LT',
-        //         $price => '169.97999',
-        //         time => '1586340530.895739',
-        //         $type => 'buy',
-        //         vol => '0.13043500'
+        //         "id" => "TIY6G4-LKLAI-Y3GD4A",
+        //         "cost" => "22.17134",
+        //         "fee" => "0.05765",
+        //         "margin" => "0.00000",
+        //         "ordertxid" => "ODQXS7-MOLK6-ICXKAA",
+        //         "ordertype" => "market",
+        //         "pair" => "ETH/USD",
+        //         "postxid" => "TKH2SE-M7IF5-CFI7LT",
+        //         "price" => "169.97999",
+        //         "time" => "1586340530.895739",
+        //         "type" => "buy",
+        //         "vol" => "0.13043500"
         //     }
         //
         $wsName = $this->safe_string($trade, 'pair');
@@ -1174,32 +1174,32 @@ class kraken extends \ccxt\async\kraken {
         //
         // createOrder
         //    {
-        //        avg_price => '0.00000',
-        //        $cost => '0.00000',
-        //        descr => array(
-        //            close => null,
-        //            leverage => null,
-        //            $order => 'sell 0.01000000 ETH/USDT @ limit 1900.00000',
-        //            ordertype => 'limit',
-        //            pair => 'ETH/USDT',
-        //            $price => '1900.00000',
-        //            price2 => '0.00000',
-        //            $type => 'sell'
+        //        "avg_price" => "0.00000",
+        //        "cost" => "0.00000",
+        //        "descr" => array(
+        //            "close" => null,
+        //            "leverage" => null,
+        //            "order" => "sell 0.01000000 ETH/USDT @ limit 1900.00000",
+        //            "ordertype" => "limit",
+        //            "pair" => "ETH/USDT",
+        //            "price" => "1900.00000",
+        //            "price2" => "0.00000",
+        //            "type" => "sell"
         //        ),
-        //        expiretm => null,
-        //        $fee => '0.00000',
-        //        limitprice => '0.00000',
-        //        misc => '',
-        //        oflags => 'fciq',
-        //        opentm => '1667522705.757622',
-        //        refid => null,
-        //        starttm => null,
-        //        $status => 'open',
-        //        stopprice => '0.00000',
-        //        timeinforce => 'GTC',
-        //        userref => 0,
-        //        vol => '0.01000000',
-        //        vol_exec => '0.00000000'
+        //        "expiretm" => null,
+        //        "fee" => "0.00000",
+        //        "limitprice" => "0.00000",
+        //        "misc" => '',
+        //        "oflags" => "fciq",
+        //        "opentm" => "1667522705.757622",
+        //        "refid" => null,
+        //        "starttm" => null,
+        //        "status" => "open",
+        //        "stopprice" => "0.00000",
+        //        "timeinforce" => "GTC",
+        //        "userref" => 0,
+        //        "vol" => "0.01000000",
+        //        "vol_exec" => "0.00000000"
         //    }
         //
         $description = $this->safe_value($order, 'descr', array());
@@ -1295,30 +1295,30 @@ class kraken extends \ccxt\async\kraken {
         // public
         //
         //     {
-        //         channelID => 210,
-        //         channelName => 'book-10',
-        //         event => 'subscriptionStatus',
-        //         reqid => 1574146735269,
-        //         pair => 'ETH/XBT',
-        //         status => 'subscribed',
-        //         subscription => array( depth => 10, name => 'book' )
+        //         "channelID" => 210,
+        //         "channelName" => "book-10",
+        //         "event" => "subscriptionStatus",
+        //         "reqid" => 1574146735269,
+        //         "pair" => "ETH/XBT",
+        //         "status" => "subscribed",
+        //         "subscription" => array( depth => 10, name => "book" )
         //     }
         //
         // private
         //
         //     {
-        //         channelName => 'openOrders',
-        //         event => 'subscriptionStatus',
-        //         reqid => 1,
-        //         status => 'subscribed',
-        //         subscription => array( maxratecount => 125, name => 'openOrders' )
+        //         "channelName" => "openOrders",
+        //         "event" => "subscriptionStatus",
+        //         "reqid" => 1,
+        //         "status" => "subscribed",
+        //         "subscription" => array( maxratecount => 125, name => "openOrders" )
         //     }
         //
         $channelId = $this->safe_string($message, 'channelID');
         if ($channelId !== null) {
             $client->subscriptions[$channelId] = $message;
         }
-        // $requestId = $this->safe_string($message, 'reqid');
+        // $requestId = $this->safe_string($message, "reqid");
         // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
         //     unset($client->futures[$requestId]);
         // }
@@ -1327,12 +1327,12 @@ class kraken extends \ccxt\async\kraken {
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         $errorMessage => 'Currency pair not in ISO 4217-A3 format foobar',
-        //         event => 'subscriptionStatus',
-        //         pair => 'foobar',
-        //         reqid => 1574146735269,
-        //         status => 'error',
-        //         subscription => array( name => 'ticker' )
+        //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",
+        //         "event" => "subscriptionStatus",
+        //         "pair" => "foobar",
+        //         "reqid" => 1574146735269,
+        //         "status" => "error",
+        //         "subscription" => array( name => "ticker" )
         //     }
         //
         $errorMessage = $this->safe_value($message, 'errorMessage');

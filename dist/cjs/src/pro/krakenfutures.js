@@ -23,6 +23,7 @@ class krakenfutures extends krakenfutures$1 {
                 // 'watchStatus': true, // https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'watchPositions': true,
             },
             'urls': {
                 'api': {
@@ -99,6 +100,9 @@ class krakenfutures extends krakenfutures$1 {
         };
         const marketIds = [];
         let messageHash = name;
+        if (symbols === undefined) {
+            symbols = [];
+        }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             marketIds.push(this.marketId(symbol));
@@ -164,6 +168,7 @@ class krakenfutures extends krakenfutures$1 {
         const method = this.safeString(this.options, 'watchTickerMethod', 'ticker'); // or ticker_lite
         const name = this.safeString2(params, 'method', 'watchTickerMethod', method);
         params = this.omit(params, ['watchTickerMethod', 'method']);
+        symbols = this.marketSymbols(symbols, undefined, false);
         return await this.subscribePublic(name, symbols, params);
     }
     async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -199,6 +204,133 @@ class krakenfutures extends krakenfutures$1 {
          */
         const orderbook = await this.subscribePublic('book', [symbol], params);
         return orderbook.limit();
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name krakenfutures#watchPositions
+         * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the krakenfutures api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let messageHash = '';
+        symbols = this.marketSymbols(symbols);
+        if (!this.isEmpty(symbols)) {
+            messageHash = '::' + symbols.join(',');
+        }
+        messageHash = 'positions' + messageHash;
+        const newPositions = await this.subscribePrivate('open_positions', messageHash, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        feed: 'open_positions',
+        //        account: '3b111acc-4fcc-45be-a622-57e611fe9f7f',
+        //        positions: [
+        //            {
+        //                instrument: 'PF_LTCUSD',
+        //                balance: 0.5,
+        //                pnl: -0.8628305877699987,
+        //                entry_price: 70.53,
+        //                mark_price: 68.80433882446,
+        //                index_price: 68.8091,
+        //                liquidation_threshold: 0,
+        //                effective_leverage: 0.007028866753648637,
+        //                return_on_equity: -1.2233525985679834,
+        //                unrealized_funding: 0.0000690610530935388,
+        //                initial_margin: 0.7053,
+        //                initial_margin_with_orders: 0.7053,
+        //                maintenance_margin: 0.35265,
+        //                pnl_currency: 'USD'
+        //            }
+        //        ],
+        //        seq: 0,
+        //        timestamp: 1698608414910
+        //    }
+        //
+        if (this.positions === undefined) {
+            this.positions = new Cache.ArrayCacheBySymbolById();
+        }
+        const cache = this.positions;
+        const rawPositions = this.safeValue(message, 'positions', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition(rawPosition);
+            const timestamp = this.safeInteger(message, 'timestamp');
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601(timestamp);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, 'positions');
+    }
+    parseWsPosition(position, market = undefined) {
+        //
+        //        {
+        //            instrument: 'PF_LTCUSD',
+        //            balance: 0.5,
+        //            pnl: -0.8628305877699987,
+        //            entry_price: 70.53,
+        //            mark_price: 68.80433882446,
+        //            index_price: 68.8091,
+        //            liquidation_threshold: 0,
+        //            effective_leverage: 0.007028866753648637,
+        //            return_on_equity: -1.2233525985679834,
+        //            unrealized_funding: 0.0000690610530935388,
+        //            initial_margin: 0.7053,
+        //            initial_margin_with_orders: 0.7053,
+        //            maintenance_margin: 0.35265,
+        //            pnl_currency: 'USD'
+        //        }
+        //
+        const marketId = this.safeString(position, 'instrument');
+        const hedged = 'both';
+        const balance = this.safeNumber(position, 'balance');
+        const side = (balance > 0) ? 'long' : 'short';
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol(marketId),
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber(position, 'liquidation_threshold'),
+            'entryPrice': this.safeNumber(position, 'entry_price'),
+            'unrealizedPnl': this.safeNumber(position, 'pnl'),
+            'percentage': this.safeNumber(position, 'return_on_equity'),
+            'contracts': this.parseNumber(Precise["default"].stringAbs(this.numberToString(balance))),
+            'contractSize': undefined,
+            'markPrice': this.safeNumber(position, 'mark_price'),
+            'side': side,
+            'hedged': hedged,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': this.safeNumber(position, 'maintenance_margin'),
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': this.safeNumber(position, 'initial_margin'),
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -315,7 +447,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const channel = this.safeString(message, 'feed');
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         if (marketId !== undefined) {
             const market = this.market(marketId);
             const symbol = market['symbol'];
@@ -356,7 +488,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "price": 34893
         //    }
         //
-        const marketId = this.safeStringLower(trade, 'product_id');
+        const marketId = this.safeString(trade, 'product_id');
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 'time');
         return this.safeTrade({
@@ -409,7 +541,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const timestamp = this.safeInteger(trade, 'tradeTime');
-        const marketId = this.safeStringLower(trade, 'symbol');
+        const marketId = this.safeString(trade, 'symbol');
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'tradeId'),
@@ -474,10 +606,10 @@ class krakenfutures extends krakenfutures$1 {
         //        "reason": "new_placed_order_by_user"
         //    }
         //    {
-        //        feed: 'open_orders',
-        //        order_id: 'ea8a7144-37db-449b-bb4a-b53c814a0f43',
-        //        is_cancel: true,
-        //        reason: 'cancelled_by_user'
+        //        "feed": "open_orders",
+        //        "order_id": "ea8a7144-37db-449b-bb4a-b53c814a0f43",
+        //        "is_cancel": true,
+        //        "reason": "cancelled_by_user"
         //    }
         //
         let orders = this.orders;
@@ -488,7 +620,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         const order = this.safeValue(message, 'order');
         if (order !== undefined) {
-            const marketId = this.safeStringLower(order, 'instrument');
+            const marketId = this.safeString(order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol(marketId);
             const orderId = this.safeString(order, 'order_id');
@@ -681,7 +813,7 @@ class krakenfutures extends krakenfutures$1 {
                 status = 'cancelled';
             }
         }
-        const marketId = this.safeStringLower(unparsedOrder, 'instrument');
+        const marketId = this.safeString(unparsedOrder, 'instrument');
         const timestamp = this.safeString(unparsedOrder, 'time');
         const direction = this.safeInteger(unparsedOrder, 'direction');
         return this.safeOrder({
@@ -716,33 +848,33 @@ class krakenfutures extends krakenfutures$1 {
     handleTicker(client, message) {
         //
         //    {
-        //        time: 1680811086487,
-        //        product_id: 'PI_XBTUSD',
-        //        funding_rate: 7.792297e-12,
-        //        funding_rate_prediction: -4.2671095e-11,
-        //        relative_funding_rate: 2.18013888889e-7,
-        //        relative_funding_rate_prediction: -0.0000011974,
-        //        next_funding_rate_time: 1680811200000,
-        //        feed: 'ticker',
-        //        bid: 28060,
-        //        ask: 28070,
-        //        bid_size: 2844,
-        //        ask_size: 1902,
-        //        volume: 19628180,
-        //        dtm: 0,
-        //        leverage: '50x',
-        //        index: 28062.14,
-        //        premium: 0,
-        //        last: 28053.5,
-        //        change: -0.7710945651981715,
-        //        suspended: false,
-        //        tag: 'perpetual',
-        //        pair: 'XBT:USD',
-        //        openInterest: 28875946,
-        //        markPrice: 28064.92082724592,
-        //        maturityTime: 0,
-        //        post_only: false,
-        //        volumeQuote: 19628180
+        //        "time": 1680811086487,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": 7.792297e-12,
+        //        "funding_rate_prediction": -4.2671095e-11,
+        //        "relative_funding_rate": 2.18013888889e-7,
+        //        "relative_funding_rate_prediction": -0.0000011974,
+        //        "next_funding_rate_time": 1680811200000,
+        //        "feed": "ticker",
+        //        "bid": 28060,
+        //        "ask": 28070,
+        //        "bid_size": 2844,
+        //        "ask_size": 1902,
+        //        "volume": 19628180,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 28062.14,
+        //        "premium": 0,
+        //        "last": 28053.5,
+        //        "change": -0.7710945651981715,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 28875946,
+        //        "markPrice": 28064.92082724592,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 19628180
         //    }
         //
         // ticker_lite
@@ -762,7 +894,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         const feed = this.safeString(message, 'feed');
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker(message);
@@ -777,33 +909,33 @@ class krakenfutures extends krakenfutures$1 {
     parseWsTicker(ticker, market = undefined) {
         //
         //    {
-        //        time: 1680811086487,
-        //        product_id: 'PI_XBTUSD',
-        //        funding_rate: 7.792297e-12,
-        //        funding_rate_prediction: -4.2671095e-11,
-        //        relative_funding_rate: 2.18013888889e-7,
-        //        relative_funding_rate_prediction: -0.0000011974,
-        //        next_funding_rate_time: 1680811200000,
-        //        feed: 'ticker',
-        //        bid: 28060,
-        //        ask: 28070,
-        //        bid_size: 2844,
-        //        ask_size: 1902,
-        //        volume: 19628180,
-        //        dtm: 0,
-        //        leverage: '50x',
-        //        index: 28062.14,
-        //        premium: 0,
-        //        last: 28053.5,
-        //        change: -0.7710945651981715,
-        //        suspended: false,
-        //        tag: 'perpetual',
-        //        pair: 'XBT:USD',
-        //        openInterest: 28875946,
-        //        markPrice: 28064.92082724592,
-        //        maturityTime: 0,
-        //        post_only: false,
-        //        volumeQuote: 19628180
+        //        "time": 1680811086487,
+        //        "product_id": "PI_XBTUSD",
+        //        "funding_rate": 7.792297e-12,
+        //        "funding_rate_prediction": -4.2671095e-11,
+        //        "relative_funding_rate": 2.18013888889e-7,
+        //        "relative_funding_rate_prediction": -0.0000011974,
+        //        "next_funding_rate_time": 1680811200000,
+        //        "feed": "ticker",
+        //        "bid": 28060,
+        //        "ask": 28070,
+        //        "bid_size": 2844,
+        //        "ask_size": 1902,
+        //        "volume": 19628180,
+        //        "dtm": 0,
+        //        "leverage": "50x",
+        //        "index": 28062.14,
+        //        "premium": 0,
+        //        "last": 28053.5,
+        //        "change": -0.7710945651981715,
+        //        "suspended": false,
+        //        "tag": "perpetual",
+        //        "pair": "XBT:USD",
+        //        "openInterest": 28875946,
+        //        "markPrice": 28064.92082724592,
+        //        "maturityTime": 0,
+        //        "post_only": false,
+        //        "volumeQuote": 19628180
         //    }
         //
         // ticker_lite
@@ -823,7 +955,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        const marketId = this.safeStringLower(ticker, 'product_id');
+        const marketId = this.safeString(ticker, 'product_id');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.parse8601(this.safeString(ticker, 'lastTime'));
@@ -881,7 +1013,7 @@ class krakenfutures extends krakenfutures$1 {
         //        ]
         //    }
         //
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -921,7 +1053,7 @@ class krakenfutures extends krakenfutures$1 {
         //        "timestamp": 1612269953629
         //    }
         //
-        const marketId = this.safeStringLower(message, 'product_id');
+        const marketId = this.safeString(message, 'product_id');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -1225,7 +1357,7 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const timestamp = this.safeInteger(trade, 'time');
-        const marketId = this.safeStringLower(trade, 'instrument');
+        const marketId = this.safeString(trade, 'instrument');
         market = this.safeMarket(marketId, market);
         const isBuy = this.safeValue(trade, 'buy');
         const feeCurrencyId = this.safeString(trade, 'fee_currency');
@@ -1275,6 +1407,7 @@ class krakenfutures extends krakenfutures$1 {
                 'open_orders_snapshot': this.handleOrderSnapshot,
                 'balances': this.handleBalance,
                 'balances_snapshot': this.handleBalance,
+                'open_positions': this.handlePositions,
             };
             const method = this.safeValue(methods, feed);
             if (method !== undefined) {

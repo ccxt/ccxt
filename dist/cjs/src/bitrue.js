@@ -491,17 +491,17 @@ class bitrue extends bitrue$1 {
         //         ],
         //         "coins":[
         //           {
-        //               coin: "near",
-        //               coinFulName: "NEAR Protocol",
-        //               chains: [ "BEP20", ],
-        //               chainDetail: [
+        //               "coin": "near",
+        //               "coinFulName": "NEAR Protocol",
+        //               "chains": [ "BEP20", ],
+        //               "chainDetail": [
         //                 {
-        //                     chain: "BEP20",
-        //                     enableWithdraw: true,
-        //                     enableDeposit: true,
-        //                     withdrawFee: "0.2000",
-        //                     minWithdraw: "5.0000",
-        //                     maxWithdraw: "1000000000000000.0000",
+        //                     "chain": "BEP20",
+        //                     "enableWithdraw": true,
+        //                     "enableDeposit": true,
+        //                     "withdrawFee": "0.2000",
+        //                     "minWithdraw": "5.0000",
+        //                     "maxWithdraw": "1000000000000000.0000",
         //                 },
         //               ],
         //           },
@@ -702,6 +702,7 @@ class bitrue extends bitrue$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push(entry);
@@ -796,6 +797,16 @@ class bitrue extends bitrue$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        //
         // fetchTicker
         //
         //     {
@@ -819,17 +830,17 @@ class bitrue extends bitrue$1 {
             'datetime': undefined,
             'high': this.safeString(ticker, 'high24hr'),
             'low': this.safeString(ticker, 'low24hr'),
-            'bid': this.safeString(ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'lowestAsk'),
-            'askVolume': undefined,
+            'bid': this.safeString2(ticker, 'highestBid', 'bidPrice'),
+            'bidVolume': this.safeString(ticker, 'bidQty'),
+            'ask': this.safeString2(ticker, 'lowestAsk', 'askPrice'),
+            'askVolume': this.safeString(ticker, 'askQty'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString(ticker, 'percentChange'),
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'percentChange'), '10000'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
@@ -950,26 +961,31 @@ class bitrue extends bitrue$1 {
          * @method
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
-        const defaultType = this.safeString2(this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString(params, 'type', defaultType);
-        const query = this.omit(params, 'type');
-        let method = undefined;
-        if (type === 'future') {
-            method = 'fapiPublicGetTickerBookTicker';
+        symbols = this.marketSymbols(symbols);
+        let market = undefined;
+        const request = {};
+        if (symbols !== undefined) {
+            const first = this.safeString(symbols, 0);
+            market = this.market(first);
+            request['symbol'] = market['id'];
         }
-        else if (type === 'delivery') {
-            method = 'dapiPublicGetTickerBookTicker';
-        }
-        else {
-            method = 'publicGetTickerBookTicker';
-        }
-        const response = await this[method](query);
-        return this.parseTickers(response, symbols);
+        const response = await this.v1PublicGetTickerBookTicker(this.extend(request, params));
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        const data = {};
+        data[market['id']] = response;
+        return this.parseTickers(data, symbols);
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
@@ -1353,9 +1369,7 @@ class bitrue extends bitrue$1 {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1379,13 +1393,11 @@ class bitrue extends bitrue$1 {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchClosedOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1433,13 +1445,11 @@ class bitrue extends bitrue$1 {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1480,17 +1490,15 @@ class bitrue extends bitrue$1 {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const origClientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
-            // 'orderId': id,
-            // 'origClientOrderId': id,
-            // 'newClientOrderId': id,
+            // "orderId": id,
+            // "origClientOrderId": id,
+            // "newClientOrderId": id,
         };
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -1888,10 +1896,10 @@ class bitrue extends bitrue$1 {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //   {
-        //       coin: 'adx',
-        //       coinFulName: 'Ambire AdEx',
-        //       chains: [ 'BSC' ],
-        //       chainDetail: [ [Object] ]
+        //       "coin": "adx",
+        //       "coinFulName": "Ambire AdEx",
+        //       "chains": [ "BSC" ],
+        //       "chainDetail": [ [Object] ]
         //   }
         //
         const chainDetails = this.safeValue(fee, 'chainDetail', []);

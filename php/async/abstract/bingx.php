@@ -163,6 +163,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v2_private_delete_trade_allopenorders($params = array()) {
         return $this->request('trade/allOpenOrders', array('swap', 'v2', 'private'), 'DELETE', $params, null, null, array("cost" => 3));
     }
+    public function swap_v3_public_get_quote_klines($params = array()) {
+        return $this->request('quote/klines', array('swap', 'v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_v1_private_get_allposition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -231,6 +234,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function user_auth_private_post_userdatastream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function copytrading_v1_private_get_swap_trace_currenttrack($params = array()) {
         return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
@@ -409,6 +415,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swapV2PrivateDeleteTradeAllOpenOrders($params = array()) {
         return $this->request('trade/allOpenOrders', array('swap', 'v2', 'private'), 'DELETE', $params, null, null, array("cost" => 3));
     }
+    public function swapV3PublicGetQuoteKlines($params = array()) {
+        return $this->request('quote/klines', array('swap', 'v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contractV1PrivateGetAllPosition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
@@ -477,6 +486,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function userAuthPrivatePostUserDataStream($params = array()) {
+        return $this->request('userDataStream', array('user', 'auth', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function copyTradingV1PrivateGetSwapTraceCurrentTrack($params = array()) {
         return $this->request('swap/trace/currentTrack', array('copyTrading', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));

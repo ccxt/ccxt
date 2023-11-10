@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitso import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -203,23 +202,23 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetLedger(self.extend(request, params))
         #
         #     {
-        #         success: True,
-        #         payload: [{
-        #             eid: '2510b3e2bc1c87f584500a18084f35ed',
-        #             created_at: '2022-06-08T12:21:42+0000',
-        #             balance_updates: [{
-        #                 amount: '0.00080000',
-        #                 currency: 'btc'
+        #         "success": True,
+        #         "payload": [{
+        #             "eid": "2510b3e2bc1c87f584500a18084f35ed",
+        #             "created_at": "2022-06-08T12:21:42+0000",
+        #             "balance_updates": [{
+        #                 "amount": "0.00080000",
+        #                 "currency": "btc"
         #             }],
-        #             operation: 'funding',
-        #             details: {
-        #                 network: 'btc',
-        #                 method: 'btc',
-        #                 method_name: 'Bitcoin',
-        #                 asset: 'btc',
-        #                 protocol: 'btc',
-        #                 integration: 'bitgo-v2',
-        #                 fid: '6112c6369100d6ecceb7f54f17cf0511'
+        #             "operation": "funding",
+        #             "details": {
+        #                 "network": "btc",
+        #                 "method": "btc",
+        #                 "method_name": "Bitcoin",
+        #                 "asset": "btc",
+        #                 "protocol": "btc",
+        #                 "integration": "bitgo-v2",
+        #                 "fid": "6112c6369100d6ecceb7f54f17cf0511"
         #             }
         #         }]
         #     }
@@ -240,56 +239,56 @@ class bitso(Exchange, ImplicitAPI):
     def parse_ledger_entry(self, item, currency=None):
         #
         #     {
-        #         eid: '2510b3e2bc1c87f584500a18084f35ed',
-        #         created_at: '2022-06-08T12:21:42+0000',
-        #         balance_updates: [{
-        #             amount: '0.00080000',
-        #             currency: 'btc'
+        #         "eid": "2510b3e2bc1c87f584500a18084f35ed",
+        #         "created_at": "2022-06-08T12:21:42+0000",
+        #         "balance_updates": [{
+        #             "amount": "0.00080000",
+        #             "currency": "btc"
         #         }],
-        #         operation: 'funding',
-        #         details: {
-        #             network: 'btc',
-        #             method: 'btc',
-        #             method_name: 'Bitcoin',
-        #             asset: 'btc',
-        #             protocol: 'btc',
-        #             integration: 'bitgo-v2',
-        #             fid: '6112c6369100d6ecceb7f54f17cf0511'
+        #         "operation": "funding",
+        #         "details": {
+        #             "network": "btc",
+        #             "method": "btc",
+        #             "method_name": "Bitcoin",
+        #             "asset": "btc",
+        #             "protocol": "btc",
+        #             "integration": "bitgo-v2",
+        #             "fid": "6112c6369100d6ecceb7f54f17cf0511"
         #         }
         #     }
         #
         #  trade
         #     {
-        #         eid: '8976c6053f078f704f037d82a813678a',
-        #         created_at: '2022-06-08T17:01:48+0000',
-        #         balance_updates: [{
-        #                 amount: '59.21320500',
-        #                 currency: 'mxn'
+        #         "eid": "8976c6053f078f704f037d82a813678a",
+        #         "created_at": "2022-06-08T17:01:48+0000",
+        #         "balance_updates": [{
+        #                 "amount": "59.21320500",
+        #                 "currency": "mxn"
         #             },
         #             {
-        #                 amount: '-0.00010000',
-        #                 currency: 'btc'
+        #                 "amount": "-0.00010000",
+        #                 "currency": "btc"
         #             }
         #         ],
-        #         operation: 'trade',
-        #         details: {
-        #             tid: '72145428',
-        #             oid: 'JO5TZmMZjzjlZDyT'
+        #         "operation": "trade",
+        #         "details": {
+        #             "tid": "72145428",
+        #             "oid": "JO5TZmMZjzjlZDyT"
         #         }
         #     }
         #
         #  fee
         #     {
-        #         eid: 'cbbb3c8d4e41723d25d2850dcb7c3c74',
-        #         created_at: '2022-06-08T17:01:48+0000',
-        #         balance_updates: [{
-        #             amount: '-0.38488583',
-        #             currency: 'mxn'
+        #         "eid": "cbbb3c8d4e41723d25d2850dcb7c3c74",
+        #         "created_at": "2022-06-08T17:01:48+0000",
+        #         "balance_updates": [{
+        #             "amount": "-0.38488583",
+        #             "currency": "mxn"
         #         }],
-        #         operation: 'fee',
-        #         details: {
-        #             tid: '72145428',
-        #             oid: 'JO5TZmMZjzjlZDyT'
+        #         "operation": "fee",
+        #         "details": {
+        #             "tid": "72145428",
+        #             "oid": "JO5TZmMZjzjlZDyT"
         #         }
         #     }
         operation = self.safe_string(item, 'operation')
@@ -466,11 +465,12 @@ class bitso(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'maximum_value'),
                     },
                 },
+                'created': None,
                 'info': market,
             }, fee))
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         payload = self.safe_value(response, 'payload', {})
         balances = self.safe_value(payload, 'balances', [])
         result = {
@@ -489,7 +489,7 @@ class bitso(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitso api endpoint
@@ -524,7 +524,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -542,7 +542,7 @@ class bitso(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
         return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "high":"37446.85",
@@ -586,7 +586,7 @@ class bitso(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -619,7 +619,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -667,7 +667,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_value(response, 'payload', [])
         return self.parse_ohlcvs(payload, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #         "bucket_start_time":1648219140000,
@@ -691,7 +691,7 @@ class bitso(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -790,7 +790,7 @@ class bitso(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -817,42 +817,42 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #    {
-        #        success: True,
-        #        payload: {
-        #            fees: [
+        #        "success": True,
+        #        "payload": {
+        #            "fees": [
         #                {
-        #                    book: 'btc_mxn',
-        #                    fee_percent: '0.6500',
-        #                    fee_decimal: '0.00650000',
-        #                    taker_fee_percent: '0.6500',
-        #                    taker_fee_decimal: '0.00650000',
-        #                    maker_fee_percent: '0.5000',
-        #                    maker_fee_decimal: '0.00500000',
-        #                    volume_currency: 'mxn',
-        #                    current_volume: '0.00',
-        #                    next_volume: '1500000.00',
-        #                    next_maker_fee_percent: '0.490',
-        #                    next_taker_fee_percent: '0.637',
-        #                    nextVolume: '1500000.00',
-        #                    nextFee: '0.490',
-        #                    nextTakerFee: '0.637'
+        #                    "book": "btc_mxn",
+        #                    "fee_percent": "0.6500",
+        #                    "fee_decimal": "0.00650000",
+        #                    "taker_fee_percent": "0.6500",
+        #                    "taker_fee_decimal": "0.00650000",
+        #                    "maker_fee_percent": "0.5000",
+        #                    "maker_fee_decimal": "0.00500000",
+        #                    "volume_currency": "mxn",
+        #                    "current_volume": "0.00",
+        #                    "next_volume": "1500000.00",
+        #                    "next_maker_fee_percent": "0.490",
+        #                    "next_taker_fee_percent": "0.637",
+        #                    "nextVolume": "1500000.00",
+        #                    "nextFee": "0.490",
+        #                    "nextTakerFee": "0.637"
         #                },
         #                ...
         #            ],
-        #            deposit_fees: [
+        #            "deposit_fees": [
         #                {
-        #                    currency: 'btc',
-        #                    method: 'rewards',
-        #                    fee: '0.00',
-        #                    is_fixed: False
+        #                    "currency": "btc",
+        #                    "method": "rewards",
+        #                    "fee": "0.00",
+        #                    "is_fixed": False
         #                },
         #                ...
         #            ],
-        #            withdrawal_fees: {
-        #                ada: '0.20958100',
-        #                bch: '0.00009437',
-        #                ars: '0',
-        #                btc: '0.00001209',
+        #            "withdrawal_fees": {
+        #                "ada": "0.20958100",
+        #                "bch": "0.00009437",
+        #                "ars": "0",
+        #                "btc": "0.00001209",
         #                ...
         #            }
         #        }
@@ -993,8 +993,8 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateDeleteOrdersAll(params)
         #
         #     {
-        #         success: True,
-        #         payload: ['NWUZUYNT12ljwzDT', 'kZUkZmQ2TTjkkYTY']
+        #         "success": True,
+        #         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         #     }
         #
         payload = self.safe_value(response, 'payload', [])
@@ -1013,7 +1013,7 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #
         # canceledOrder
@@ -1059,7 +1059,7 @@ class bitso(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=25, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=25, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1144,23 +1144,23 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFundingsFid(self.extend(request, params))
         #
         #     {
-        #         success: True,
-        #         payload: [{
-        #             fid: '6112c6369100d6ecceb7f54f17cf0511',
-        #             status: 'complete',
-        #             created_at: '2022-06-08T12:02:49+0000',
-        #             currency: 'btc',
-        #             method: 'btc',
-        #             method_name: 'Bitcoin',
-        #             amount: '0.00080000',
-        #             asset: 'btc',
-        #             network: 'btc',
-        #             protocol: 'btc',
-        #             integration: 'bitgo-v2',
-        #             details: {
-        #                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
-        #                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
-        #                 confirmations: '4'
+        #         "success": True,
+        #         "payload": [{
+        #             "fid": "6112c6369100d6ecceb7f54f17cf0511",
+        #             "status": "complete",
+        #             "created_at": "2022-06-08T12:02:49+0000",
+        #             "currency": "btc",
+        #             "method": "btc",
+        #             "method_name": "Bitcoin",
+        #             "amount": "0.00080000",
+        #             "asset": "btc",
+        #             "network": "btc",
+        #             "protocol": "btc",
+        #             "integration": "bitgo-v2",
+        #             "details": {
+        #                 "receiving_address": "3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif",
+        #                 "tx_hash": "327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d",
+        #                 "confirmations": "4"
         #             }
         #         }]
         #     }
@@ -1169,7 +1169,7 @@ class bitso(Exchange, ImplicitAPI):
         first = self.safe_value(transactions, 0, {})
         return self.parse_transaction(first)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1185,23 +1185,23 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFundings(params)
         #
         #     {
-        #         success: True,
-        #         payload: [{
-        #             fid: '6112c6369100d6ecceb7f54f17cf0511',
-        #             status: 'complete',
-        #             created_at: '2022-06-08T12:02:49+0000',
-        #             currency: 'btc',
-        #             method: 'btc',
-        #             method_name: 'Bitcoin',
-        #             amount: '0.00080000',
-        #             asset: 'btc',
-        #             network: 'btc',
-        #             protocol: 'btc',
-        #             integration: 'bitgo-v2',
-        #             details: {
-        #                 receiving_address: '3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
-        #                 tx_hash: '327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
-        #                 confirmations: '4'
+        #         "success": True,
+        #         "payload": [{
+        #             "fid": "6112c6369100d6ecceb7f54f17cf0511",
+        #             "status": "complete",
+        #             "created_at": "2022-06-08T12:02:49+0000",
+        #             "currency": "btc",
+        #             "method": "btc",
+        #             "method_name": "Bitcoin",
+        #             "amount": "0.00080000",
+        #             "asset": "btc",
+        #             "network": "btc",
+        #             "protocol": "btc",
+        #             "integration": "bitgo-v2",
+        #             "details": {
+        #                 "receiving_address": "3N2vbcYKhogs6RoTb4eYCUJ3beRSqLgSif",
+        #                 "tx_hash": "327f3838531f211485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d",
+        #                 "confirmations": "4"
         #             }
         #         }]
         #     }
@@ -1241,7 +1241,7 @@ class bitso(Exchange, ImplicitAPI):
         """
          * @deprecated
         please use fetchDepositWithdrawFees instead
-        see https://bitso.com/api_info#fees
+        :see: https://bitso.com/api_info#fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitso api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1250,42 +1250,42 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #    {
-        #        success: True,
-        #        payload: {
-        #            fees: [
+        #        "success": True,
+        #        "payload": {
+        #            "fees": [
         #                {
-        #                    book: 'btc_mxn',
-        #                    fee_percent: '0.6500',
-        #                    fee_decimal: '0.00650000',
-        #                    taker_fee_percent: '0.6500',
-        #                    taker_fee_decimal: '0.00650000',
-        #                    maker_fee_percent: '0.5000',
-        #                    maker_fee_decimal: '0.00500000',
-        #                    volume_currency: 'mxn',
-        #                    current_volume: '0.00',
-        #                    next_volume: '1500000.00',
-        #                    next_maker_fee_percent: '0.490',
-        #                    next_taker_fee_percent: '0.637',
-        #                    nextVolume: '1500000.00',
-        #                    nextFee: '0.490',
-        #                    nextTakerFee: '0.637'
+        #                    "book": "btc_mxn",
+        #                    "fee_percent": "0.6500",
+        #                    "fee_decimal": "0.00650000",
+        #                    "taker_fee_percent": "0.6500",
+        #                    "taker_fee_decimal": "0.00650000",
+        #                    "maker_fee_percent": "0.5000",
+        #                    "maker_fee_decimal": "0.00500000",
+        #                    "volume_currency": "mxn",
+        #                    "current_volume": "0.00",
+        #                    "next_volume": "1500000.00",
+        #                    "next_maker_fee_percent": "0.490",
+        #                    "next_taker_fee_percent": "0.637",
+        #                    "nextVolume": "1500000.00",
+        #                    "nextFee": "0.490",
+        #                    "nextTakerFee": "0.637"
         #                },
         #                ...
         #            ],
-        #            deposit_fees: [
+        #            "deposit_fees": [
         #                {
-        #                    currency: 'btc',
-        #                    method: 'rewards',
-        #                    fee: '0.00',
-        #                    is_fixed: False
+        #                    "currency": "btc",
+        #                    "method": "rewards",
+        #                    "fee": "0.00",
+        #                    "is_fixed": False
         #                },
         #                ...
         #            ],
-        #            withdrawal_fees: {
-        #                ada: '0.20958100',
-        #                bch: '0.00009437',
-        #                ars: '0',
-        #                btc: '0.00001209',
+        #            "withdrawal_fees": {
+        #                "ada": "0.20958100",
+        #                "bch": "0.00009437",
+        #                "ars": "0",
+        #                "btc": "0.00001209",
         #                ...
         #            }
         #        }
@@ -1328,7 +1328,7 @@ class bitso(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://bitso.com/api_info#fees
+        :see: https://bitso.com/api_info#fees
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the bitso api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1337,42 +1337,42 @@ class bitso(Exchange, ImplicitAPI):
         response = self.privateGetFees(params)
         #
         #    {
-        #        success: True,
-        #        payload: {
-        #            fees: [
+        #        "success": True,
+        #        "payload": {
+        #            "fees": [
         #                {
-        #                    book: 'btc_mxn',
-        #                    fee_percent: '0.6500',
-        #                    fee_decimal: '0.00650000',
-        #                    taker_fee_percent: '0.6500',
-        #                    taker_fee_decimal: '0.00650000',
-        #                    maker_fee_percent: '0.5000',
-        #                    maker_fee_decimal: '0.00500000',
-        #                    volume_currency: 'mxn',
-        #                    current_volume: '0.00',
-        #                    next_volume: '1500000.00',
-        #                    next_maker_fee_percent: '0.490',
-        #                    next_taker_fee_percent: '0.637',
-        #                    nextVolume: '1500000.00',
-        #                    nextFee: '0.490',
-        #                    nextTakerFee: '0.637'
+        #                    "book": "btc_mxn",
+        #                    "fee_percent": "0.6500",
+        #                    "fee_decimal": "0.00650000",
+        #                    "taker_fee_percent": "0.6500",
+        #                    "taker_fee_decimal": "0.00650000",
+        #                    "maker_fee_percent": "0.5000",
+        #                    "maker_fee_decimal": "0.00500000",
+        #                    "volume_currency": "mxn",
+        #                    "current_volume": "0.00",
+        #                    "next_volume": "1500000.00",
+        #                    "next_maker_fee_percent": "0.490",
+        #                    "next_taker_fee_percent": "0.637",
+        #                    "nextVolume": "1500000.00",
+        #                    "nextFee": "0.490",
+        #                    "nextTakerFee": "0.637"
         #                },
         #                ...
         #            ],
-        #            deposit_fees: [
+        #            "deposit_fees": [
         #                {
-        #                    currency: 'btc',
-        #                    method: 'rewards',
-        #                    fee: '0.00',
-        #                    is_fixed: False
+        #                    "currency": "btc",
+        #                    "method": "rewards",
+        #                    "fee": "0.00",
+        #                    "is_fixed": False
         #                },
         #                ...
         #            ],
-        #            withdrawal_fees: {
-        #                ada: '0.20958100',
-        #                bch: '0.00009437',
-        #                ars: '0',
-        #                btc: '0.00001209',
+        #            "withdrawal_fees": {
+        #                "ada": "0.20958100",
+        #                "bch": "0.00009437",
+        #                "ars": "0",
+        #                "btc": "0.00001209",
         #                ...
         #            }
         #        }
@@ -1384,40 +1384,40 @@ class bitso(Exchange, ImplicitAPI):
     def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
         #
         #    {
-        #        fees: [
+        #        "fees": [
         #            {
-        #                book: 'btc_mxn',
-        #                fee_percent: '0.6500',
-        #                fee_decimal: '0.00650000',
-        #                taker_fee_percent: '0.6500',
-        #                taker_fee_decimal: '0.00650000',
-        #                maker_fee_percent: '0.5000',
-        #                maker_fee_decimal: '0.00500000',
-        #                volume_currency: 'mxn',
-        #                current_volume: '0.00',
-        #                next_volume: '1500000.00',
-        #                next_maker_fee_percent: '0.490',
-        #                next_taker_fee_percent: '0.637',
-        #                nextVolume: '1500000.00',
-        #                nextFee: '0.490',
-        #                nextTakerFee: '0.637'
+        #                "book": "btc_mxn",
+        #                "fee_percent": "0.6500",
+        #                "fee_decimal": "0.00650000",
+        #                "taker_fee_percent": "0.6500",
+        #                "taker_fee_decimal": "0.00650000",
+        #                "maker_fee_percent": "0.5000",
+        #                "maker_fee_decimal": "0.00500000",
+        #                "volume_currency": "mxn",
+        #                "current_volume": "0.00",
+        #                "next_volume": "1500000.00",
+        #                "next_maker_fee_percent": "0.490",
+        #                "next_taker_fee_percent": "0.637",
+        #                "nextVolume": "1500000.00",
+        #                "nextFee": "0.490",
+        #                "nextTakerFee": "0.637"
         #            },
         #            ...
         #        ],
-        #        deposit_fees: [
+        #        "deposit_fees": [
         #            {
-        #                currency: 'btc',
-        #                method: 'rewards',
-        #                fee: '0.00',
-        #                is_fixed: False
+        #                "currency": "btc",
+        #                "method": "rewards",
+        #                "fee": "0.00",
+        #                "is_fixed": False
         #            },
         #            ...
         #        ],
-        #        withdrawal_fees: {
-        #            ada: '0.20958100',
-        #            bch: '0.00009437',
-        #            ars: '0',
-        #            btc: '0.00001209',
+        #        "withdrawal_fees": {
+        #            "ada": "0.20958100",
+        #            "bch": "0.00009437",
+        #            "ars": "0",
+        #            "btc": "0.00001209",
         #            ...
         #        }
         #    }
@@ -1521,25 +1521,25 @@ class bitso(Exchange, ImplicitAPI):
         }
         return self.safe_string(networksById, networkId, networkId)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # deposit
         #     {
-        #         fid: '6112c6369100d6ecceb7f54f17cf0511',
-        #         status: 'complete',
-        #         created_at: '2022-06-08T12:02:49+0000',
-        #         currency: 'btc',
-        #         method: 'btc',
-        #         method_name: 'Bitcoin',
-        #         amount: '0.00080000',
-        #         asset: 'btc',
-        #         network: 'btc',
-        #         protocol: 'btc',
-        #         integration: 'bitgo-v2',
-        #         details: {
-        #             receiving_address: '3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif',
-        #             tx_hash: '327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d',
-        #             confirmations: '4'
+        #         "fid": "6112c6369100d6ecceb7f54f17cf0511",
+        #         "status": "complete",
+        #         "created_at": "2022-06-08T12:02:49+0000",
+        #         "currency": "btc",
+        #         "method": "btc",
+        #         "method_name": "Bitcoin",
+        #         "amount": "0.00080000",
+        #         "asset": "btc",
+        #         "network": "btc",
+        #         "protocol": "btc",
+        #         "integration": "bitgo-v2",
+        #         "details": {
+        #             "receiving_address": "3NmvbcYKhogs6RoTb4eYCUJ3beRSqLgSif",
+        #             "tx_hash": "327f3838531f611485ec59f9d0a119fea1595591e274d942b2c10b9b8262eb1d",
+        #             "confirmations": "4"
         #         }
         #     }
         #
@@ -1576,7 +1576,7 @@ class bitso(Exchange, ImplicitAPI):
             'addressFrom': receivingAddress,
             'address': withdrawalAddress if (withdrawalAddress is not None) else receivingAddress,
             'addressTo': withdrawalAddress,
-            'amount': self.safe_string(transaction, 'amount'),
+            'amount': self.safe_number(transaction, 'amount'),
             'type': 'deposit' if (withdrawId is None) else 'withdrawal',
             'currency': self.safe_currency_code(currencyId, currency),
             'status': self.parse_transaction_status(status),

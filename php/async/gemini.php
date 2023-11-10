@@ -14,6 +14,7 @@ use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
+use React\Promise\PromiseInterface;
 
 class gemini extends Exchange {
 
@@ -321,7 +322,7 @@ class gemini extends Exchange {
             //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), //, precisions seem to be the 5th index
             //            array( "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ),
             //            array( "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ),
-            //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, '£', null ),
+            //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ),
             //            ...
             //        ),
             //        "networks" => array(
@@ -501,6 +502,7 @@ class gemini extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $row,
                 );
             }
@@ -571,11 +573,10 @@ class gemini extends Exchange {
             }
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
-                $method = 'publicGetV1SymbolsDetailsSymbol';
                 $request = array(
                     'symbol' => $marketId,
                 );
-                $promises[] = $this->$method (array_merge($request, $params));
+                $promises[] = $this->publicGetV1SymbolsDetailsSymbol (array_merge($request, $params));
                 //
                 //     {
                 //         "symbol" => "BTCUSD",
@@ -659,11 +660,12 @@ class gemini extends Exchange {
                     'max' => null,
                 ),
             ),
+            'created' => null,
             'info' => $response,
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -751,7 +753,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -761,11 +763,17 @@ class gemini extends Exchange {
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             $method = $this->safe_value($this->options, 'fetchTickerMethod', 'fetchTickerV1');
-            return Async\await($this->$method ($symbol, $params));
+            if ($method === 'fetchTickerV1') {
+                return Async\await($this->fetch_ticker_v1($symbol, $params));
+            }
+            if ($method === 'fetchTickerV2') {
+                return Async\await($this->fetch_ticker_v2($symbol, $params));
+            }
+            return Async\await($this->fetch_ticker_v1_and_v2($symbol, $params));
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTickers
         //
@@ -887,7 +895,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -951,7 +959,7 @@ class gemini extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -991,7 +999,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -1064,7 +1072,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1077,7 +1085,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder (private)
         //
@@ -1283,7 +1291,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1476,9 +1484,7 @@ class gemini extends Exchange {
              * @param {array} [$params] extra parameters specific to the gemini api endpoint
              * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchMyTrades', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
@@ -1555,7 +1561,7 @@ class gemini extends Exchange {
         return $this->seconds();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1578,7 +1584,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
@@ -1645,9 +1651,9 @@ class gemini extends Exchange {
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //      {
-        //          $address => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
-        //          timestamp => "1636813923098",
-        //          addressVersion => "eV1"                                         }
+        //          "address" => "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
+        //          "timestamp" => "1636813923098",
+        //          "addressVersion" => "eV1"                                         }
         //      }
         //
         $address = $this->safe_string($depositAddress, 'address');
@@ -1796,7 +1802,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

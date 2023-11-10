@@ -232,6 +232,7 @@ export default class coinone extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': ticker,
             });
         }
@@ -315,7 +316,7 @@ export default class coinone extends Exchange {
             result[symbol] = this.parseTicker(ticker, market);
             result[symbol]['timestamp'] = timestamp;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -536,9 +537,7 @@ export default class coinone extends Exchange {
          * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -626,10 +625,19 @@ export default class coinone extends Exchange {
         const id = this.safeString(order, 'orderId');
         const baseId = this.safeString(order, 'baseCurrency');
         const quoteId = this.safeString(order, 'targetCurrency');
-        const base = this.safeCurrencyCode(baseId, market['base']);
-        const quote = this.safeCurrencyCode(quoteId, market['quote']);
-        const symbol = base + '/' + quote;
-        market = this.safeMarket(symbol, market, '/');
+        let base = undefined;
+        let quote = undefined;
+        if (baseId !== undefined) {
+            base = this.safeCurrencyCode(baseId, this.safeString(market, 'base'));
+        }
+        if (quoteId !== undefined) {
+            quote = this.safeCurrencyCode(quoteId, this.safeString(market, 'quote'));
+        }
+        let symbol = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+            market = this.safeMarket(symbol, market, '/');
+        }
         const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
         let side = this.safeString2(order, 'type', 'side');
         if (side === 'ask') {
@@ -739,9 +747,7 @@ export default class coinone extends Exchange {
          * @param {object} [params] extra parameters specific to the coinone api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -822,15 +828,15 @@ export default class coinone extends Exchange {
         const response = await this.privatePostAccountDepositAddress(params);
         //
         //     {
-        //         result: 'success',
-        //         errorCode: '0',
-        //         walletAddress: {
-        //             matic: null,
-        //             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        //             xrp: null,
-        //             xrp_tag: '-1',
-        //             kava: null,
-        //             kava_memo: null,
+        //         "result": "success",
+        //         "errorCode": "0",
+        //         "walletAddress": {
+        //             "matic": null,
+        //             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        //             "xrp": null,
+        //             "xrp_tag": "-1",
+        //             "kava": null,
+        //             "kava_memo": null,
         //         }
         //     }
         //
@@ -889,7 +895,7 @@ export default class coinone extends Exchange {
             const payload = this.stringToBase64(json);
             body = payload;
             const secret = this.secret.toUpperCase();
-            const signature = this.hmac(payload, this.encode(secret), sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

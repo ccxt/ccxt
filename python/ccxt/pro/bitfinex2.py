@@ -285,7 +285,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #
         #    [
         #        360141,
-        #        'te',
+        #        "te",
         #        [
         #            1128060969,  # id
         #            1654702500098,  # mts
@@ -547,7 +547,6 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         messageHash = channel + ':' + marketId
         prec = self.safe_string(subscription, 'prec', 'P0')
         isRaw = (prec == 'R0')
-        id = self.safe_string(message, 0)
         # if it is an initial snapshot
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -580,6 +579,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                     side = 'asks' if (amount < 0) else 'bids'
                     bookside = orderbook[side]
                     bookside.store(price, size, counter)
+            orderbook['symbol'] = symbol
             client.resolve(orderbook, messageHash)
         else:
             deltas = message[1]
@@ -591,7 +591,8 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 bookside = orderbookItem[side]
                 # price = 0 means that you have to remove the order from your book
                 amount = size if Precise.string_gt(price, '0') else '0'
-                bookside.store(self.parse_number(price), self.parse_number(amount), id)
+                idString = self.safe_string(deltas, 0)
+                bookside.store(self.parse_number(price), self.parse_number(amount), idString)
             else:
                 amount = self.safe_string(deltas, 2)
                 counter = self.safe_string(deltas, 1)
@@ -604,7 +605,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
 
     def handle_checksum(self, client: Client, message, subscription):
         #
-        # [173904, 'cs', -890884919]
+        # [173904, "cs", -890884919]
         #
         marketId = self.safe_string(subscription, 'symbol')
         symbol = self.safe_symbol(marketId)
@@ -617,15 +618,18 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         stringArray = []
         bids = book['bids']
         asks = book['asks']
+        prec = self.safe_string(subscription, 'prec', 'P0')
+        isRaw = (prec == 'R0')
+        idToCheck = 2 if isRaw else 0
         # pepperoni pizza from bitfinex
         for i in range(0, depth):
             bid = self.safe_value(bids, i)
             ask = self.safe_value(asks, i)
             if bid is not None:
-                stringArray.append(self.number_to_string(bids[i][0]))
+                stringArray.append(self.number_to_string(bids[i][idToCheck]))
                 stringArray.append(self.number_to_string(bids[i][1]))
             if ask is not None:
-                stringArray.append(self.number_to_string(asks[i][0]))
+                stringArray.append(self.number_to_string(asks[i][idToCheck]))
                 stringArray.append(self.number_to_string(-asks[i][1]))
         payload = ':'.join(stringArray)
         localChecksum = self.crc32(payload, True)
@@ -652,24 +656,24 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         # snapshot(exchange + margin together)
         #   [
         #       0,
-        #       'ws',
+        #       "ws",
         #       [
         #           [
-        #               'exchange',
-        #               'LTC',
+        #               "exchange",
+        #               "LTC",
         #               0.05479727,
         #               0,
         #               null,
-        #               'Trading fees for 0.05 LTC(LTCUST) @ 51.872 on BFX(0.2%)',
+        #               "Trading fees for 0.05 LTC(LTCUST) @ 51.872 on BFX(0.2%)",
         #               null,
         #           ]
         #           [
-        #               'margin',
-        #               'USTF0',
+        #               "margin",
+        #               "USTF0",
         #               11.960650700086292,
         #               0,
         #               null,
-        #               'Trading fees for 0.1 LTCF0(LTCF0:USTF0) @ 51.844 on BFX(0.065%)',
+        #               "Trading fees for 0.1 LTCF0(LTCF0:USTF0) @ 51.844 on BFX(0.065%)",
         #               null,
         #           ],
         #       ],
@@ -678,22 +682,22 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         # spot
         #   [
         #       0,
-        #       'wu',
+        #       "wu",
         #       [
-        #         'exchange',
-        #         'LTC',  # currency
+        #         "exchange",
+        #         "LTC",  # currency
         #         0.06729727,  # wallet balance
         #         0,  # unsettled balance
         #         0.06729727,  # available balance might be null
-        #         'Exchange 0.4 LTC for UST @ 65.075',
+        #         "Exchange 0.4 LTC for UST @ 65.075",
         #         {
-        #           reason: 'TRADE',
-        #           order_id: 96596397973,
-        #           order_id_oppo: 96596632735,
-        #           trade_price: '65.075',
-        #           trade_amount: '-0.4',
-        #           order_cid: 1654636218766,
-        #           order_gid: null
+        #           "reason": "TRADE",
+        #           "order_id": 96596397973,
+        #           "order_id_oppo": 96596632735,
+        #           "trade_price": "65.075",
+        #           "trade_amount": "-0.4",
+        #           "order_cid": 1654636218766,
+        #           "order_gid": null
         #         }
         #       ]
         #   ]
@@ -701,12 +705,12 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         # margin
         #
         #   [
-        #       'margin',
-        #       'USTF0',
+        #       "margin",
+        #       "USTF0",
         #       11.960650700086292,  # total
         #       0,
         #       6.776250700086292,  # available
-        #       'Trading fees for 0.1 LTCF0(LTCF0:USTF0) @ 51.844 on BFX(0.065%)',
+        #       "Trading fees for 0.1 LTCF0(LTCF0:USTF0) @ 51.844 on BFX(0.065%)",
         #       null
         #   ]
         #
@@ -737,12 +741,12 @@ class bitfinex2(ccxt.async_support.bitfinex2):
     def parse_ws_balance(self, balance):
         #
         #     [
-        #         'exchange',
-        #         'LTC',
+        #         "exchange",
+        #         "LTC",
         #         0.05479727,  # balance
         #         0,
         #         null,  # available null if not calculated yet
-        #         'Trading fees for 0.05 LTC(LTCUST) @ 51.872 on BFX(0.2%)',
+        #         "Trading fees for 0.05 LTC(LTCUST) @ 51.872 on BFX(0.2%)",
         #         null,
         #     ]
         #
@@ -757,10 +761,10 @@ class bitfinex2(ccxt.async_support.bitfinex2):
     def handle_system_status(self, client: Client, message):
         #
         #     {
-        #         event: 'info',
-        #         version: 2,
-        #         serverId: 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        #         platform: {status: 1},  # 1 for operative, 0 for maintenance
+        #         "event": "info",
+        #         "version": 2,
+        #         "serverId": "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        #         "platform": {status: 1},  # 1 for operative, 0 for maintenance
         #     }
         #
         return message
@@ -768,14 +772,14 @@ class bitfinex2(ccxt.async_support.bitfinex2):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         event: 'subscribed',
-        #         channel: 'book',
-        #         chanId: 67473,
-        #         symbol: 'tBTCUSD',
-        #         prec: 'P0',
-        #         freq: 'F0',
-        #         len: '25',
-        #         pair: 'BTCUSD'
+        #         "event": "subscribed",
+        #         "channel": "book",
+        #         "chanId": 67473,
+        #         "symbol": "tBTCUSD",
+        #         "prec": "P0",
+        #         "freq": "F0",
+        #         "len": "25",
+        #         "pair": "BTCUSD"
         #     }
         #
         channelId = self.safe_string(message, 'chanId')
@@ -924,17 +928,17 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #       97084883506,  # order id
         #       null,
         #       1655110144596,  # clientOrderId
-        #       'tLTCUST',  # symbol
+        #       "tLTCUST",  # symbol
         #       1655110144596,  # created timestamp
         #       1655110144598,  # updated timestamp
         #       0,  # amount
         #       0.1,  # amount_orig negative if sell order
-        #       'EXCHANGE MARKET',  # type
+        #       "EXCHANGE MARKET",  # type
         #       null,
         #       null,
         #       null,
         #       0,
-        #       'EXECUTED @ 42.821(0.1)',  # status
+        #       "EXECUTED @ 42.821(0.1)",  # status
         #       null,
         #       null,
         #       42.799,  # price
@@ -949,7 +953,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #       null,
         #       null,
         #       null,
-        #       'BFX',
+        #       "BFX",
         #       null,
         #       null,
         #       {}
@@ -1007,25 +1011,25 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         #
         #     [
         #         1231,
-        #         'hb',
+        #         "hb",
         #     ]
         #
         # auth message
         #    {
-        #        event: 'auth',
-        #        status: 'OK',
-        #        chanId: 0,
-        #        userId: 3159883,
-        #        auth_id: 'ac7108e7-2f26-424d-9982-c24700dc02ca',
-        #        caps: {
-        #          orders: {read: 1, write: 1},
-        #          account: {read: 1, write: 1},
-        #          funding: {read: 1, write: 1},
-        #          history: {read: 1, write: 0},
-        #          wallets: {read: 1, write: 1},
-        #          withdraw: {read: 0, write: 1},
-        #          positions: {read: 1, write: 1},
-        #          ui_withdraw: {read: 0, write: 0}
+        #        "event": "auth",
+        #        "status": "OK",
+        #        "chanId": 0,
+        #        "userId": 3159883,
+        #        "auth_id": "ac7108e7-2f26-424d-9982-c24700dc02ca",
+        #        "caps": {
+        #          "orders": {read: 1, write: 1},
+        #          "account": {read: 1, write: 1},
+        #          "funding": {read: 1, write: 1},
+        #          "history": {read: 1, write: 0},
+        #          "wallets": {read: 1, write: 1},
+        #          "withdraw": {read: 0, write: 1},
+        #          "positions": {read: 1, write: 1},
+        #          "ui_withdraw": {read: 0, write: 0}
         #        }
         #    }
         #

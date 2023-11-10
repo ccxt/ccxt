@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btcmarkets extends Exchange {
 
@@ -191,7 +192,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -205,7 +206,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -219,7 +220,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -252,7 +253,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $type, $type);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //    {
         //         "id" => "6500230339",
@@ -320,13 +321,13 @@ class btcmarkets extends Exchange {
         $tagTo = $tag;
         $addressFrom = null;
         $tagFrom = null;
-        $fee = $this->safe_number($transaction, 'fee');
+        $fee = $this->safe_string($transaction, 'fee');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $currencyId = $this->safe_string($transaction, 'assetName');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         if ($fee) {
-            $amount -= $fee;
+            $amount = Precise::string_sub($amount, $fee);
         }
         return array(
             'id' => $this->safe_string($transaction, 'id'),
@@ -341,14 +342,14 @@ class btcmarkets extends Exchange {
             'tagTo' => $tagTo,
             'tagFrom' => $tagFrom,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'currency' => $code,
             'status' => $status,
             'updated' => $lastUpdate,
             'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $fee,
+                'cost' => $this->parse_number($fee),
                 'rate' => null,
             ),
             'info' => $transaction,
@@ -441,6 +442,7 @@ class btcmarkets extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -465,7 +467,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -479,7 +481,7 @@ class btcmarkets extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -492,7 +494,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         "2020-09-12T18:30:00.000000Z",
@@ -513,7 +515,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -553,7 +555,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -591,7 +593,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -642,7 +644,7 @@ class btcmarkets extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -687,7 +689,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -754,7 +756,7 @@ class btcmarkets extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -952,7 +954,7 @@ class btcmarkets extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // createOrder
         //
@@ -1036,7 +1038,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1066,7 +1068,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1081,7 +1083,7 @@ class btcmarkets extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user

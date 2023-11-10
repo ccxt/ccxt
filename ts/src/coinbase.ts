@@ -4,9 +4,9 @@
 import Exchange from './abstract/coinbase.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Transaction, Balances } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -323,6 +323,7 @@ export default class coinbase extends Exchange {
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a dictionary of [account structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#account-structure} indexed by the account type
          */
         const method = this.safeString (this.options, 'fetchAccounts', 'fetchAccountsV3');
@@ -334,6 +335,11 @@ export default class coinbase extends Exchange {
 
     async fetchAccountsV2 (params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'next_starting_after', 'starting_after', undefined, 100);
+        }
         const request = {
             'limit': 100,
         };
@@ -383,11 +389,25 @@ export default class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        const pagination = this.safeValue (response, 'pagination', {});
+        const cursor = this.safeString (pagination, 'next_starting_after');
+        const accounts = this.safeValue (response, 'data', []);
+        const lastIndex = accounts.length - 1;
+        const last = this.safeValue (accounts, lastIndex);
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['next_starting_after'] = cursor;
+            accounts[lastIndex] = last;
+        }
         return this.parseAccounts (data, params);
     }
 
     async fetchAccountsV3 (params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchAccounts', undefined, undefined, undefined, params, 'cursor', 'cursor', undefined, 100);
+        }
         const request = {
             'limit': 100,
         };
@@ -422,8 +442,15 @@ export default class coinbase extends Exchange {
         //         "size": 9
         //     }
         //
-        const data = this.safeValue (response, 'accounts', []);
-        return this.parseAccounts (data, params);
+        const accounts = this.safeValue (response, 'accounts', []);
+        const lastIndex = accounts.length - 1;
+        const last = this.safeValue (accounts, lastIndex);
+        const cursor = this.safeString (response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            last['cursor'] = cursor;
+            accounts[lastIndex] = last;
+        }
+        return this.parseAccounts (accounts, params);
     }
 
     parseAccount (account) {
@@ -618,7 +645,7 @@ export default class coinbase extends Exchange {
         return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
@@ -633,7 +660,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbase#fetchDeposits
@@ -764,7 +791,7 @@ export default class coinbase extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchMyBuys, fetchMySells
         //
@@ -1089,6 +1116,7 @@ export default class coinbase extends Exchange {
                         'max': this.safeNumber (market, 'quote_max_size'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1236,7 +1264,7 @@ export default class coinbase extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (rates[baseId], market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTickersV3 (symbols: string[] = undefined, params = {}) {
@@ -1245,7 +1273,7 @@ export default class coinbase extends Exchange {
         const response = await this.v3PrivateGetBrokerageProducts (params);
         //
         //     {
-        //         'products': [
+        //         "products": [
         //             {
         //                 "product_id": "TONE-USD",
         //                 "price": "0.01523",
@@ -1289,10 +1317,10 @@ export default class coinbase extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (entry, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbase#fetchTicker
@@ -1365,13 +1393,12 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeValue (response, 'trades', []);
         const ticker = this.parseTicker (data[0], market);
-        return this.extend (ticker, {
-            'bid': this.safeNumber (response, 'best_bid'),
-            'ask': this.safeNumber (response, 'best_ask'),
-        });
+        ticker['bid'] = this.safeNumber (response, 'best_bid');
+        ticker['ask'] = this.safeNumber (response, 'best_ask');
+        return ticker;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // fetchTickerV2
         //
@@ -1521,7 +1548,7 @@ export default class coinbase extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinbase#fetchBalance
@@ -1629,242 +1656,242 @@ export default class coinbase extends Exchange {
         // crypto deposit transaction
         //
         //     {
-        //         id: '34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        //         type: 'send',
-        //         status: 'completed',
-        //         amount: { amount: '28.31976528', currency: 'BCH' },
-        //         native_amount: { amount: '2799.65', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2019-02-28T12:35:20Z',
-        //         updated_at: '2019-02-28T12:43:24Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        //         instant_exchange: false,
-        //         network: {
-        //             status: 'confirmed',
-        //             hash: '56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701',
-        //             transaction_url: 'https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701'
+        //         "id": "34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        //         "type": "send",
+        //         "status": "completed",
+        //         "amount": { amount: "28.31976528", currency: "BCH" },
+        //         "native_amount": { amount: "2799.65", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-02-28T12:35:20Z",
+        //         "updated_at": "2019-02-28T12:43:24Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        //         "instant_exchange": false,
+        //         "network": {
+        //             "status": "confirmed",
+        //             "hash": "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
+        //             "transaction_url": "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
         //         },
-        //         from: { resource: 'bitcoin_cash_network', currency: 'BCH' },
-        //         details: { title: 'Received Bitcoin Cash', subtitle: 'From Bitcoin Cash address' }
+        //         "from": { resource: "bitcoin_cash_network", currency: "BCH" },
+        //         "details": { title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address" }
         //     }
         //
         // crypto withdrawal transaction
         //
         //     {
-        //         id: '459aad99-2c41-5698-ac71-b6b81a05196c',
-        //         type: 'send',
-        //         status: 'completed',
-        //         amount: { amount: '-0.36775642', currency: 'BTC' },
-        //         native_amount: { amount: '-1111.65', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2019-03-20T08:37:07Z',
-        //         updated_at: '2019-03-20T08:49:33Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c',
-        //         instant_exchange: false,
-        //         network: {
-        //             status: 'confirmed',
-        //             hash: '2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        //             transaction_url: 'https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        //             transaction_fee: { amount: '0.00000000', currency: 'BTC' },
-        //             transaction_amount: { amount: '0.36775642', currency: 'BTC' },
-        //             confirmations: 15682
+        //         "id": "459aad99-2c41-5698-ac71-b6b81a05196c",
+        //         "type": "send",
+        //         "status": "completed",
+        //         "amount": { amount: "-0.36775642", currency: "BTC" },
+        //         "native_amount": { amount: "-1111.65", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-03-20T08:37:07Z",
+        //         "updated_at": "2019-03-20T08:49:33Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
+        //         "instant_exchange": false,
+        //         "network": {
+        //             "status": "confirmed",
+        //             "hash": "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        //             "transaction_url": "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        //             "transaction_fee": { amount: "0.00000000", currency: "BTC" },
+        //             "transaction_amount": { amount: "0.36775642", currency: "BTC" },
+        //             "confirmations": 15682
         //         },
-        //         to: {
-        //             resource: 'bitcoin_address',
-        //             address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //             currency: 'BTC',
-        //             address_info: { address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX' }
+        //         "to": {
+        //             "resource": "bitcoin_address",
+        //             "address": "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
+        //             "currency": "BTC",
+        //             "address_info": { address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX" }
         //         },
-        //         idem: 'da0a2f14-a2af-4c5a-a37e-d4484caf582bsend',
-        //         application: {
-        //             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        //             resource: 'application',
-        //             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        //         "idem": "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
+        //         "application": {
+        //             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource": "application",
+        //             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         //         },
-        //         details: { title: 'Sent Bitcoin', subtitle: 'To Bitcoin address' }
+        //         "details": { title: 'Sent Bitcoin', subtitle: "To Bitcoin address" }
         //     }
         //
         // withdrawal transaction from coinbase to coinbasepro
         //
         //     {
-        //         id: '5b1b9fb8-5007-5393-b923-02903b973fdc',
-        //         type: 'pro_deposit',
-        //         status: 'completed',
-        //         amount: { amount: '-0.00001111', currency: 'BCH' },
-        //         native_amount: { amount: '0.00', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2019-02-28T13:31:58Z',
-        //         updated_at: '2019-02-28T13:31:58Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc',
-        //         instant_exchange: false,
-        //         application: {
-        //             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        //             resource: 'application',
-        //             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        //         "id": "5b1b9fb8-5007-5393-b923-02903b973fdc",
+        //         "type": "pro_deposit",
+        //         "status": "completed",
+        //         "amount": { amount: "-0.00001111", currency: "BCH" },
+        //         "native_amount": { amount: "0.00", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-02-28T13:31:58Z",
+        //         "updated_at": "2019-02-28T13:31:58Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
+        //         "instant_exchange": false,
+        //         "application": {
+        //             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource": "application",
+        //             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         //         },
-        //         details: { title: 'Transferred Bitcoin Cash', subtitle: 'To Coinbase Pro' }
+        //         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro" }
         //     }
         //
         // withdrawal transaction from coinbase to gdax
         //
         //     {
-        //         id: 'badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        //         type: 'exchange_deposit',
-        //         status: 'completed',
-        //         amount: { amount: '-0.43704149', currency: 'BCH' },
-        //         native_amount: { amount: '-51.90', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2019-03-19T10:30:40Z',
-        //         updated_at: '2019-03-19T10:30:40Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        //         instant_exchange: false,
-        //         details: { title: 'Transferred Bitcoin Cash', subtitle: 'To GDAX' }
+        //         "id": "badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        //         "type": "exchange_deposit",
+        //         "status": "completed",
+        //         "amount": { amount: "-0.43704149", currency: "BCH" },
+        //         "native_amount": { amount: "-51.90", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-03-19T10:30:40Z",
+        //         "updated_at": "2019-03-19T10:30:40Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        //         "instant_exchange": false,
+        //         "details": { title: 'Transferred Bitcoin Cash', subtitle: "To GDAX" }
         //     }
         //
         // deposit transaction from gdax to coinbase
         //
         //     {
-        //         id: '9c4b642c-8688-58bf-8962-13cef64097de',
-        //         type: 'exchange_withdrawal',
-        //         status: 'completed',
-        //         amount: { amount: '0.57729420', currency: 'BTC' },
-        //         native_amount: { amount: '4418.72', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2018-02-17T11:33:33Z',
-        //         updated_at: '2018-02-17T11:33:33Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de',
-        //         instant_exchange: false,
-        //         details: { title: 'Transferred Bitcoin', subtitle: 'From GDAX' }
+        //         "id": "9c4b642c-8688-58bf-8962-13cef64097de",
+        //         "type": "exchange_withdrawal",
+        //         "status": "completed",
+        //         "amount": { amount: "0.57729420", currency: "BTC" },
+        //         "native_amount": { amount: "4418.72", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2018-02-17T11:33:33Z",
+        //         "updated_at": "2018-02-17T11:33:33Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
+        //         "instant_exchange": false,
+        //         "details": { title: 'Transferred Bitcoin', subtitle: "From GDAX" }
         //     }
         //
         // deposit transaction from coinbasepro to coinbase
         //
         //     {
-        //         id: '8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        //         type: 'pro_withdrawal',
-        //         status: 'completed',
-        //         amount: { amount: '0.40555386', currency: 'BTC' },
-        //         native_amount: { amount: '1140.27', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2019-03-04T19:41:58Z',
-        //         updated_at: '2019-03-04T19:41:58Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        //         instant_exchange: false,
-        //         application: {
-        //             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        //             resource: 'application',
-        //             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        //         "id": "8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        //         "type": "pro_withdrawal",
+        //         "status": "completed",
+        //         "amount": { amount: "0.40555386", currency: "BTC" },
+        //         "native_amount": { amount: "1140.27", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2019-03-04T19:41:58Z",
+        //         "updated_at": "2019-03-04T19:41:58Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        //         "instant_exchange": false,
+        //         "application": {
+        //             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        //             "resource": "application",
+        //             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         //         },
-        //         details: { title: 'Transferred Bitcoin', subtitle: 'From Coinbase Pro' }
+        //         "details": { title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro" }
         //     }
         //
         // sell trade
         //
         //     {
-        //         id: 'a9409207-df64-585b-97ab-a50780d2149e',
-        //         type: 'sell',
-        //         status: 'completed',
-        //         amount: { amount: '-9.09922880', currency: 'BTC' },
-        //         native_amount: { amount: '-7285.73', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2017-03-27T15:38:34Z',
-        //         updated_at: '2017-03-27T15:38:34Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e',
-        //         instant_exchange: false,
-        //         sell: {
-        //             id: 'e3550b4d-8ae6-5de3-95fe-1fb01ba83051',
-        //             resource: 'sell',
-        //             resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051'
+        //         "id": "a9409207-df64-585b-97ab-a50780d2149e",
+        //         "type": "sell",
+        //         "status": "completed",
+        //         "amount": { amount: "-9.09922880", currency: "BTC" },
+        //         "native_amount": { amount: "-7285.73", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-03-27T15:38:34Z",
+        //         "updated_at": "2017-03-27T15:38:34Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
+        //         "instant_exchange": false,
+        //         "sell": {
+        //             "id": "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
+        //             "resource": "sell",
+        //             "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051"
         //         },
-        //         details: {
-        //             title: 'Sold Bitcoin',
-        //             subtitle: 'Using EUR Wallet',
-        //             payment_method_name: 'EUR Wallet'
+        //         "details": {
+        //             "title": "Sold Bitcoin",
+        //             "subtitle": "Using EUR Wallet",
+        //             "payment_method_name": "EUR Wallet"
         //         }
         //     }
         //
         // buy trade
         //
         //     {
-        //         id: '63eeed67-9396-5912-86e9-73c4f10fe147',
-        //         type: 'buy',
-        //         status: 'completed',
-        //         amount: { amount: '2.39605772', currency: 'ETH' },
-        //         native_amount: { amount: '98.31', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2017-03-27T09:07:56Z',
-        //         updated_at: '2017-03-27T09:07:57Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147',
-        //         instant_exchange: false,
-        //         buy: {
-        //             id: '20b25b36-76c6-5353-aa57-b06a29a39d82',
-        //             resource: 'buy',
-        //             resource_path: '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82'
+        //         "id": "63eeed67-9396-5912-86e9-73c4f10fe147",
+        //         "type": "buy",
+        //         "status": "completed",
+        //         "amount": { amount: "2.39605772", currency: "ETH" },
+        //         "native_amount": { amount: "98.31", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-03-27T09:07:56Z",
+        //         "updated_at": "2017-03-27T09:07:57Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
+        //         "instant_exchange": false,
+        //         "buy": {
+        //             "id": "20b25b36-76c6-5353-aa57-b06a29a39d82",
+        //             "resource": "buy",
+        //             "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82"
         //         },
-        //         details: {
-        //             title: 'Bought Ethereum',
-        //             subtitle: 'Using EUR Wallet',
-        //             payment_method_name: 'EUR Wallet'
+        //         "details": {
+        //             "title": "Bought Ethereum",
+        //             "subtitle": "Using EUR Wallet",
+        //             "payment_method_name": "EUR Wallet"
         //         }
         //     }
         //
         // fiat deposit transaction
         //
         //     {
-        //         id: '04ed4113-3732-5b0c-af86-b1d2146977d0',
-        //         type: 'fiat_deposit',
-        //         status: 'completed',
-        //         amount: { amount: '114.02', currency: 'EUR' },
-        //         native_amount: { amount: '97.23', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2017-02-09T07:01:21Z',
-        //         updated_at: '2017-02-09T07:01:22Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0',
-        //         instant_exchange: false,
-        //         fiat_deposit: {
-        //             id: 'f34c19f3-b730-5e3d-9f72-96520448677a',
-        //             resource: 'fiat_deposit',
-        //             resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a'
+        //         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //         "type": "fiat_deposit",
+        //         "status": "completed",
+        //         "amount": { amount: "114.02", currency: "EUR" },
+        //         "native_amount": { amount: "97.23", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-02-09T07:01:21Z",
+        //         "updated_at": "2017-02-09T07:01:22Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //         "instant_exchange": false,
+        //         "fiat_deposit": {
+        //             "id": "f34c19f3-b730-5e3d-9f72-96520448677a",
+        //             "resource": "fiat_deposit",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a"
         //         },
-        //         details: {
-        //             title: 'Deposited funds',
-        //             subtitle: 'From SEPA Transfer (GB47 BARC 20..., reference CBADVI)',
-        //             payment_method_name: 'SEPA Transfer (GB47 BARC 20..., reference CBADVI)'
+        //         "details": {
+        //             "title": "Deposited funds",
+        //             "subtitle": "From SEPA Transfer (GB47 BARC 20..., reference CBADVI)",
+        //             "payment_method_name": "SEPA Transfer (GB47 BARC 20..., reference CBADVI)"
         //         }
         //     }
         //
         // fiat withdrawal transaction
         //
         //     {
-        //         id: '957d98e2-f80e-5e2f-a28e-02945aa93079',
-        //         type: 'fiat_withdrawal',
-        //         status: 'completed',
-        //         amount: { amount: '-11000.00', currency: 'EUR' },
-        //         native_amount: { amount: '-9698.22', currency: 'GBP' },
-        //         description: null,
-        //         created_at: '2017-12-06T13:19:19Z',
-        //         updated_at: '2017-12-06T13:19:19Z',
-        //         resource: 'transaction',
-        //         resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079',
-        //         instant_exchange: false,
-        //         fiat_withdrawal: {
-        //             id: 'f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7',
-        //             resource: 'fiat_withdrawal',
-        //             resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7'
+        //         "id": "957d98e2-f80e-5e2f-a28e-02945aa93079",
+        //         "type": "fiat_withdrawal",
+        //         "status": "completed",
+        //         "amount": { amount: "-11000.00", currency: "EUR" },
+        //         "native_amount": { amount: "-9698.22", currency: "GBP" },
+        //         "description": null,
+        //         "created_at": "2017-12-06T13:19:19Z",
+        //         "updated_at": "2017-12-06T13:19:19Z",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
+        //         "instant_exchange": false,
+        //         "fiat_withdrawal": {
+        //             "id": "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
+        //             "resource": "fiat_withdrawal",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7"
         //         },
-        //         details: {
-        //             title: 'Withdrew funds',
-        //             subtitle: 'To HSBC BANK PLC (GB74 MIDL...)',
-        //             payment_method_name: 'HSBC BANK PLC (GB74 MIDL...)'
+        //         "details": {
+        //             "title": "Withdrew funds",
+        //             "subtitle": "To HSBC BANK PLC (GB74 MIDL...)",
+        //             "payment_method_name": "HSBC BANK PLC (GB74 MIDL...)"
         //         }
         //     }
         //
@@ -2146,7 +2173,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -2420,7 +2447,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -2430,9 +2457,16 @@ export default class coinbase extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2446,6 +2480,11 @@ export default class coinbase extends Exchange {
         }
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
+        }
+        const until = this.safeValueN (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until', 'till' ]);
+            request['end_date'] = this.iso8601 (until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
@@ -2491,6 +2530,12 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'orders', []);
+        const first = this.safeValue (orders, 0);
+        const cursor = this.safeString (response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            orders[0] = first;
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -2513,6 +2558,11 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
         }
+        const until = this.safeValueN (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until', 'till' ]);
+            request['end_date'] = this.iso8601 (until);
+        }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
         //
         //     {
@@ -2557,10 +2607,16 @@ export default class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'orders', []);
+        const first = this.safeValue (orders, 0);
+        const cursor = this.safeString (response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            orders[0] = first;
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOpenOrders
@@ -2570,12 +2626,20 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+        }
         return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchClosedOrders
@@ -2585,8 +2649,16 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of closed order structures to retrieve
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Order[];
+        }
         return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
     }
 
@@ -2605,7 +2677,7 @@ export default class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('CANCELLED', symbol, since, limit, params);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinbase#fetchOHLCV
@@ -2616,23 +2688,39 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch, not used by coinbase
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 299) as OHLCV[];
+        }
         const market = this.market (symbol);
-        const end = this.seconds ().toString ();
         const request = {
             'product_id': market['id'],
             'granularity': this.safeString (this.timeframes, timeframe, timeframe),
-            'end': end,
         };
+        const until = this.safeValueN (params, [ 'until', 'till', 'end' ]);
+        params = this.omit (params, [ 'until', 'till' ]);
+        const duration = this.parseTimeframe (timeframe);
+        const candles300 = 300 * duration;
+        let sinceString = undefined;
         if (since !== undefined) {
-            const sinceString = since.toString ();
-            const timeframeToSeconds = Precise.stringDiv (sinceString, '1000');
-            request['start'] = this.decimalToPrecision (timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+            sinceString = this.numberToString (this.parseToInt (since / 1000));
         } else {
-            request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
+            const now = this.seconds ().toString ();
+            sinceString = Precise.stringSub (now, candles300.toString ());
         }
+        request['start'] = sinceString;
+        let endString = this.numberToString (until);
+        if (until === undefined) {
+            // 300 candles max
+            endString = Precise.stringAdd (sinceString, candles300.toString ());
+        }
+        request['end'] = endString;
         const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         //
         //     {
@@ -2652,7 +2740,7 @@ export default class coinbase extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         {
@@ -2675,7 +2763,7 @@ export default class coinbase extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbase#fetchTrades
@@ -2726,9 +2814,16 @@ export default class coinbase extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] the maximum number of trade structures to fetch
          * @param {object} [params] extra parameters specific to the coinbase api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Trade[];
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2742,6 +2837,11 @@ export default class coinbase extends Exchange {
         }
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601 (since);
+        }
+        const until = this.safeValueN (params, [ 'until', 'till' ]);
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until', 'till' ]);
+            request['end_sequence_timestamp'] = this.iso8601 (until);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
         //
@@ -2768,10 +2868,16 @@ export default class coinbase extends Exchange {
         //     }
         //
         const trades = this.safeValue (response, 'fills', []);
+        const first = this.safeValue (trades, 0);
+        const cursor = this.safeString (response, 'cursor');
+        if ((cursor !== undefined) && (cursor !== '')) {
+            first['cursor'] = cursor;
+            trades[0] = first;
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbase#fetchOrderBook

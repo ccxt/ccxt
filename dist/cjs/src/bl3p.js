@@ -107,7 +107,7 @@ class bl3p extends bl3p$1 {
                 },
             },
             'markets': {
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
+                'BTC/EUR': this.safeMarketStructure({ 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true }),
             },
             'precisionMode': number.TICK_SIZE,
         });
@@ -319,29 +319,29 @@ class bl3p extends bl3p$1 {
         const response = await this.privatePostGENMKTMoneyInfo(params);
         //
         //     {
-        //         result: 'success',
-        //         data: {
-        //             user_id: '13396',
-        //             wallets: {
-        //                 BTC: {
-        //                     balance: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //         "result": "success",
+        //         "data": {
+        //             "user_id": "13396",
+        //             "wallets": {
+        //                 "BTC": {
+        //                     "balance": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     },
-        //                     available: {
-        //                         value_int: '0',
-        //                         display: '0.00000000 BTC',
-        //                         currency: 'BTC',
-        //                         value: '0.00000000',
-        //                         display_short: '0.00 BTC'
+        //                     "available": {
+        //                         "value_int": "0",
+        //                         "display": "0.00000000 BTC",
+        //                         "currency": "BTC",
+        //                         "value": "0.00000000",
+        //                         "display_short": "0.00 BTC"
         //                     }
         //                 },
         //                 ...
         //             },
-        //             trade_fee: '0.25'
+        //             "trade_fee": "0.25"
         //         }
         //     }
         //

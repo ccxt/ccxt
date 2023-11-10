@@ -2,10 +2,10 @@
 
 import Exchange from './abstract/tokocrypto.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
-import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -739,6 +739,7 @@ export default class tokocrypto extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
@@ -780,7 +781,7 @@ export default class tokocrypto extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name tokocrypto#fetchOrderBook
@@ -841,7 +842,7 @@ export default class tokocrypto extends Exchange {
         return orderbook;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -987,7 +988,7 @@ export default class tokocrypto extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name tokocrypto#fetchTrades
@@ -1070,51 +1071,51 @@ export default class tokocrypto extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
         //     }
         //
         // coinm
         //     {
-        //         baseVolume: '214549.95171161',
-        //         closeTime: '1621965286847',
-        //         count: '1283779',
-        //         firstId: '152560106',
-        //         highPrice: '39938.3',
-        //         lastId: '153843955',
-        //         lastPrice: '37993.4',
-        //         lastQty: '1',
-        //         lowPrice: '36457.2',
-        //         openPrice: '37783.4',
-        //         openTime: '1621878840000',
-        //         pair: 'BTCUSD',
-        //         priceChange: '210.0',
-        //         priceChangePercent: '0.556',
-        //         symbol: 'BTCUSD_PERP',
-        //         volume: '81990451',
-        //         weightedAvgPrice: '38215.08713747'
+        //         "baseVolume": "214549.95171161",
+        //         "closeTime": "1621965286847",
+        //         "count": "1283779",
+        //         "firstId": "152560106",
+        //         "highPrice": "39938.3",
+        //         "lastId": "153843955",
+        //         "lastPrice": "37993.4",
+        //         "lastQty": "1",
+        //         "lowPrice": "36457.2",
+        //         "openPrice": "37783.4",
+        //         "openTime": "1621878840000",
+        //         "pair": "BTCUSD",
+        //         "priceChange": "210.0",
+        //         "priceChangePercent": "0.556",
+        //         "symbol": "BTCUSD_PERP",
+        //         "volume": "81990451",
+        //         "weightedAvgPrice": "38215.08713747"
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
@@ -1179,7 +1180,7 @@ export default class tokocrypto extends Exchange {
         return market['id'];
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name tokocrypto#fetchTicker
@@ -1217,7 +1218,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
@@ -1262,7 +1263,7 @@ export default class tokocrypto extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name tokocrypto#fetchOHLCV
@@ -1320,7 +1321,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name tokocrypto#fetchBalance
@@ -1408,7 +1409,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // spot
         //
@@ -1432,25 +1433,25 @@ export default class tokocrypto extends Exchange {
         //     }
         // createOrder
         //     {
-        //         orderId: '145265071',
-        //         bOrderListId: '0',
-        //         clientId: '49c09c3c2cd54419a59c05441f517b3c',
-        //         bOrderId: '35247529',
-        //         symbol: 'USDT_BIDR',
-        //         symbolType: '1',
-        //         side: '0',
-        //         type: '1',
-        //         price: '11915',
-        //         origQty: '2',
-        //         origQuoteQty: '23830.00',
-        //         executedQty: '0.00000000',
-        //         executedPrice: '0',
-        //         executedQuoteQty: '0.00',
-        //         timeInForce: '1',
-        //         stopPrice: '0',
-        //         icebergQty: '0',
-        //         status: '0',
-        //         createTime: '1662711074372'
+        //         "orderId": "145265071",
+        //         "bOrderListId": "0",
+        //         "clientId": "49c09c3c2cd54419a59c05441f517b3c",
+        //         "bOrderId": "35247529",
+        //         "symbol": "USDT_BIDR",
+        //         "symbolType": "1",
+        //         "side": "0",
+        //         "type": "1",
+        //         "price": "11915",
+        //         "origQty": "2",
+        //         "origQuoteQty": "23830.00",
+        //         "executedQty": "0.00000000",
+        //         "executedPrice": "0",
+        //         "executedQuoteQty": "0.00",
+        //         "timeInForce": "1",
+        //         "stopPrice": "0",
+        //         "icebergQty": "0",
+        //         "status": "0",
+        //         "createTime": "1662711074372"
         //     }
         //
         // createOrder with { "newOrderRespType": "FULL" }
@@ -1794,7 +1795,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrder (rawOrder);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tokocrypto#fetchOrders
@@ -1802,13 +1803,11 @@ export default class tokocrypto extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1866,7 +1865,7 @@ export default class tokocrypto extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tokocrypto#fetchOpenOrders
@@ -1882,7 +1881,7 @@ export default class tokocrypto extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name tokocrypto#fetchClosedOrders
@@ -1956,9 +1955,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} [params] extra parameters specific to the tokocrypto api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2063,7 +2060,7 @@ export default class tokocrypto extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name tokocrypto#fetchDeposits
@@ -2125,7 +2122,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name tokocrypto#fetchWithdrawals
@@ -2203,7 +2200,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //

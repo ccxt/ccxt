@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lbank2 import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -305,8 +304,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        see https://www.lbank.info/en-US/docs/index.html#get-timestamp
-        see https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
+        :see: https://www.lbank.info/en-US/docs/index.html#get-timestamp
+        :see: https://www.lbank.com/en-US/docs/contract.html#get-the-current-time
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -342,8 +341,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for lbank2
-        see https://www.lbank.com/en-US/docs/index.html#trading-pairs
-        see https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
+        :see: https://www.lbank.com/en-US/docs/index.html#trading-pairs
+        :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-information-list
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -428,6 +427,7 @@ class lbank2(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -523,11 +523,12 @@ class lbank2(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -587,10 +588,10 @@ class lbank2(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
+        :see: https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -632,8 +633,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
-        see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        :see: https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
+        :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the lbank api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
@@ -703,11 +704,11 @@ class lbank2(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://www.lbank.info/en-US/docs/index.html#query-market-depth
-        see https://www.lbank.com/en-US/docs/contract.html#get-handicap
+        :see: https://www.lbank.info/en-US/docs/index.html#query-market-depth
+        :see: https://www.lbank.com/en-US/docs/contract.html#get-handicap
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
@@ -783,7 +784,7 @@ class lbank2(Exchange, ImplicitAPI):
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(old) spotPublicGetTrades
         #
@@ -876,11 +877,11 @@ class lbank2(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        see https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
-        see https://www.lbank.info/en-US/docs/index.html#recent-transactions-list
+        :see: https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
+        :see: https://www.lbank.info/en-US/docs/index.html#recent-transactions-list
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -923,7 +924,7 @@ class lbank2(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #   [
         #     1482311500,  # timestamp
@@ -943,10 +944,10 @@ class lbank2(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
+        :see: https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -993,7 +994,7 @@ class lbank2(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         #
         # spotPrivatePostUserInfo
         #
@@ -1118,12 +1119,12 @@ class lbank2(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         return None
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://www.lbank.info/en-US/docs/index.html#asset-information
-        see https://www.lbank.info/en-US/docs/index.html#account-information
-        see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+        :see: https://www.lbank.info/en-US/docs/index.html#asset-information
+        :see: https://www.lbank.info/en-US/docs/index.html#account-information
+        :see: https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
@@ -1185,7 +1186,7 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}):
         """
         fetch the trading fees for a market
-        see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
+        :see: https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -1197,7 +1198,7 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        see https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
+        :see: https://www.lbank.info/en-US/docs/index.html#transaction-fee-rate-query
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
@@ -1215,8 +1216,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://www.lbank.info/en-US/docs/index.html#place-order
-        see https://www.lbank.info/en-US/docs/index.html#place-an-order
+        :see: https://www.lbank.info/en-US/docs/index.html#place-order
+        :see: https://www.lbank.info/en-US/docs/index.html#place-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1303,7 +1304,7 @@ class lbank2(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrderSupplement(private)
         #
@@ -1426,8 +1427,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        see https://www.lbank.info/en-US/docs/index.html#query-order
-        see https://www.lbank.info/en-US/docs/index.html#query-order-new
+        :see: https://www.lbank.info/en-US/docs/index.html#query-order
+        :see: https://www.lbank.info/en-US/docs/index.html#query-order-new
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1437,8 +1438,9 @@ class lbank2(Exchange, ImplicitAPI):
         if method is None:
             options = self.safe_value(self.options, 'fetchOrder', {})
             method = self.safe_string(options, 'method', 'fetchOrderSupplement')
-        result = await getattr(self, method)(id, symbol, params)
-        return result
+        if method == 'fetchOrderSupplement':
+            return await self.fetch_order_supplement(id, symbol, params)
+        return await self.fetch_order_default(id, symbol, params)
 
     async def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
         self.check_required_symbol('fetchOrder', symbol)
@@ -1508,16 +1510,18 @@ class lbank2(Exchange, ImplicitAPI):
         if numOrders == 1:
             return self.parse_order(result[0])
         else:
-            parsedOrders = []
-            for i in range(0, numOrders):
-                parsedOrder = self.parse_order(result[i])
-                parsedOrders.append(parsedOrder)
-            return parsedOrders
+            # parsedOrders = []
+            # for i in range(0, numOrders):
+            #     parsedOrder = self.parse_order(result[i])
+            #     parsedOrders.append(parsedOrder)
+            # }
+            # return parsedOrders
+            raise BadRequest(self.id + ' fetchOrder() can only fetch one order at a time')
 
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        see https://www.lbank.info/en-US/docs/index.html#past-transaction-details
+        :see: https://www.lbank.info/en-US/docs/index.html#past-transaction-details
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -1567,10 +1571,10 @@ class lbank2(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        see https://www.lbank.info/en-US/docs/index.html#query-all-orders
+        :see: https://www.lbank.info/en-US/docs/index.html#query-all-orders
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1622,10 +1626,10 @@ class lbank2(Exchange, ImplicitAPI):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        see https://www.lbank.info/en-US/docs/index.html#current-pending-order
+        :see: https://www.lbank.info/en-US/docs/index.html#current-pending-order
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -1677,7 +1681,7 @@ class lbank2(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         cancels an open order
-        see https://www.lbank.info/en-US/docs/index.html#cancel-order-new
+        :see: https://www.lbank.info/en-US/docs/index.html#cancel-order-new
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
@@ -1714,7 +1718,7 @@ class lbank2(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
         """
         cancel all open orders in a market
-        see https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
+        :see: https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -1757,8 +1761,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        see https://www.lbank.info/en-US/docs/index.html#get-deposit-address
-        see https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
+        :see: https://www.lbank.info/en-US/docs/index.html#get-deposit-address
+        :see: https://www.lbank.info/en-US/docs/index.html#the-user-obtains-the-deposit-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -1851,7 +1855,7 @@ class lbank2(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
-        see https://www.lbank.info/en-US/docs/index.html#withdrawal
+        :see: https://www.lbank.info/en-US/docs/index.html#withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1923,7 +1927,7 @@ class lbank2(Exchange, ImplicitAPI):
         }
         return self.safe_string(self.safe_value(statuses, type, {}), status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits(private)
         #
@@ -2005,10 +2009,10 @@ class lbank2(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        see https://www.lbank.info/en-US/docs/index.html#get-recharge-history
+        :see: https://www.lbank.info/en-US/docs/index.html#get-recharge-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -2054,10 +2058,10 @@ class lbank2(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        see https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
+        :see: https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2199,23 +2203,23 @@ class lbank2(Exchange, ImplicitAPI):
         response = await self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
-        #        result: 'true',
-        #        data: [
+        #        "result": "true",
+        #        "data": [
         #          {
-        #            amountScale: '4',
-        #            chain: 'heco',
-        #            assetCode: 'lbk',
-        #            min: '200',
-        #            transferAmtScale: '4',
-        #            canWithDraw: True,
-        #            fee: '100',
-        #            minTransfer: '0.0001',
-        #            type: '1'
+        #            "amountScale": "4",
+        #            "chain": "heco",
+        #            "assetCode": "lbk",
+        #            "min": "200",
+        #            "transferAmtScale": "4",
+        #            "canWithDraw": True,
+        #            "fee": "100",
+        #            "minTransfer": "0.0001",
+        #            "type": "1"
         #          },
         #          ...
         #        ],
-        #        error_code: '0',
-        #        ts: '1663364435973'
+        #        "error_code": "0",
+        #        "ts": "1663364435973"
         #    }
         #
         result = self.safe_value(response, 'data', [])
@@ -2243,8 +2247,8 @@ class lbank2(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
-        see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
-        see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
+        :see: https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+        :see: https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
         :param str[]|None codes: array of unified currency codes
         :param dict [params]: extra parameters specific to the lbank2 api endpoint
         :returns dict: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -2308,23 +2312,23 @@ class lbank2(Exchange, ImplicitAPI):
         response = await self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
-        #        result: 'true',
-        #        data: [
+        #        "result": "true",
+        #        "data": [
         #            {
-        #                amountScale: '4',
-        #                chain: 'heco',
-        #                assetCode: 'lbk',
-        #                min: '200',
-        #                transferAmtScale: '4',
-        #                canWithDraw: True,
-        #                fee: '100',
-        #                minTransfer: '0.0001',
-        #                type: '1'
+        #                "amountScale": "4",
+        #                "chain": "heco",
+        #                "assetCode": "lbk",
+        #                "min": "200",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "100",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
         #            },
         #            ...
         #        ],
-        #        error_code: '0',
-        #        ts: '1663364435973'
+        #        "error_code": "0",
+        #        "ts": "1663364435973"
         #    }
         #
         data = self.safe_value(response, 'data', [])
@@ -2334,15 +2338,15 @@ class lbank2(Exchange, ImplicitAPI):
         #
         #    [
         #        {
-        #            amountScale: '4',
-        #            chain: 'heco',
-        #            assetCode: 'lbk',
-        #            min: '200',
-        #            transferAmtScale: '4',
-        #            canWithDraw: True,
-        #            fee: '100',
-        #            minTransfer: '0.0001',
-        #            type: '1'
+        #            "amountScale": "4",
+        #            "chain": "heco",
+        #            "assetCode": "lbk",
+        #            "min": "200",
+        #            "transferAmtScale": "4",
+        #            "canWithDraw": True,
+        #            "fee": "100",
+        #            "minTransfer": "0.0001",
+        #            "type": "1"
         #        },
         #        ...
         #    ]

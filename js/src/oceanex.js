@@ -161,15 +161,15 @@ export default class oceanex extends Exchange {
         const response = await this.publicGetMarkets(this.extend(request, params));
         //
         //    {
-        //        id: 'xtzusdt',
-        //        name: 'XTZ/USDT',
-        //        ask_precision: '8',
-        //        bid_precision: '8',
-        //        enabled: true,
-        //        price_precision: '4',
-        //        amount_precision: '3',
-        //        usd_precision: '4',
-        //        minimum_trading_amount: '1.0'
+        //        "id": "xtzusdt",
+        //        "name": "XTZ/USDT",
+        //        "ask_precision": "8",
+        //        "bid_precision": "8",
+        //        "enabled": true,
+        //        "price_precision": "4",
+        //        "amount_precision": "3",
+        //        "usd_precision": "4",
+        //        "minimum_trading_amount": "1.0"
         //    },
         //
         const result = [];
@@ -230,6 +230,7 @@ export default class oceanex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -315,7 +316,7 @@ export default class oceanex extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     parseTicker(data, market = undefined) {
         //
@@ -723,13 +724,11 @@ export default class oceanex extends Exchange {
          * @see https://api.oceanex.pro/doc/v1/#order-status-with-filters-post
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the oceanex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const states = this.safeValue(params, 'states', ['wait', 'done', 'cancel']);
@@ -862,18 +861,6 @@ export default class oceanex extends Exchange {
             'cancel': 'canceled',
         };
         return this.safeString(statuses, status, status);
-    }
-    async createOrders(symbol, orders, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'market': market['id'],
-            'orders': orders,
-        };
-        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await this.privatePostOrdersMulti(this.extend(request, params));
-        const data = response['data'];
-        return this.parseOrders(data);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

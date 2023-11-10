@@ -8,9 +8,9 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\btctradeua as Exchange;
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btctradeua extends Exchange {
 
@@ -100,23 +100,23 @@ class btctradeua extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'markets' => array(
-                'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => $this->parse_number('1e-1') ), 'limits' => array( 'amount' => array( 'min' => $this->parse_number('1e-10') )), 'type' => 'spot', 'spot' => true ),
-                'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
-                'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
-                'DOGE/UAH' => array( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH', 'baseId' => 'doge', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'ETH/UAH' => array( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'baseId' => 'eth', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'ITI/UAH' => array( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH', 'baseId' => 'iti', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'KRB/UAH' => array( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH', 'baseId' => 'krb', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
-                'LTC/UAH' => array( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH', 'baseId' => 'ltc', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'NVC/BTC' => array( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC', 'baseId' => 'nvc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
-                'NVC/UAH' => array( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH', 'baseId' => 'nvc', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'PPC/BTC' => array( 'id' => 'ppc_btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC', 'baseId' => 'ppc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
-                'SIB/UAH' => array( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH', 'baseId' => 'sib', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'XMR/UAH' => array( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH', 'baseId' => 'xmr', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
-                'ZEC/UAH' => array( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH', 'baseId' => 'zec', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true ),
+                'BCH/UAH' => $this->safe_market_structure(array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'BTC/UAH' => $this->safe_market_structure(array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => $this->parse_number('1e-1') ), 'limits' => array( 'amount' => array( 'min' => $this->parse_number('1e-10') )), 'type' => 'spot', 'spot' => true )),
+                'DASH/BTC' => $this->safe_market_structure(array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
+                'DASH/UAH' => $this->safe_market_structure(array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'DOGE/BTC' => $this->safe_market_structure(array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
+                'DOGE/UAH' => $this->safe_market_structure(array( 'id' => 'doge_uah', 'symbol' => 'DOGE/UAH', 'base' => 'DOGE', 'quote' => 'UAH', 'baseId' => 'doge', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'ETH/UAH' => $this->safe_market_structure(array( 'id' => 'eth_uah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'baseId' => 'eth', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'ITI/UAH' => $this->safe_market_structure(array( 'id' => 'iti_uah', 'symbol' => 'ITI/UAH', 'base' => 'ITI', 'quote' => 'UAH', 'baseId' => 'iti', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'KRB/UAH' => $this->safe_market_structure(array( 'id' => 'krb_uah', 'symbol' => 'KRB/UAH', 'base' => 'KRB', 'quote' => 'UAH', 'baseId' => 'krb', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'LTC/BTC' => $this->safe_market_structure(array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
+                'LTC/UAH' => $this->safe_market_structure(array( 'id' => 'ltc_uah', 'symbol' => 'LTC/UAH', 'base' => 'LTC', 'quote' => 'UAH', 'baseId' => 'ltc', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'NVC/BTC' => $this->safe_market_structure(array( 'id' => 'nvc_btc', 'symbol' => 'NVC/BTC', 'base' => 'NVC', 'quote' => 'BTC', 'baseId' => 'nvc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
+                'NVC/UAH' => $this->safe_market_structure(array( 'id' => 'nvc_uah', 'symbol' => 'NVC/UAH', 'base' => 'NVC', 'quote' => 'UAH', 'baseId' => 'nvc', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'PPC/BTC' => $this->safe_market_structure(array( 'id' => 'ppc_btc', 'symbol' => 'PPC/BTC', 'base' => 'PPC', 'quote' => 'BTC', 'baseId' => 'ppc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
+                'SIB/UAH' => $this->safe_market_structure(array( 'id' => 'sib_uah', 'symbol' => 'SIB/UAH', 'base' => 'SIB', 'quote' => 'UAH', 'baseId' => 'sib', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'XMR/UAH' => $this->safe_market_structure(array( 'id' => 'xmr_uah', 'symbol' => 'XMR/UAH', 'base' => 'XMR', 'quote' => 'UAH', 'baseId' => 'xmr', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
+                'ZEC/UAH' => $this->safe_market_structure(array( 'id' => 'zec_uah', 'symbol' => 'ZEC/UAH', 'base' => 'ZEC', 'quote' => 'UAH', 'baseId' => 'zec', 'quoteId' => 'uah', 'type' => 'spot', 'spot' => true )),
             ),
             'fees' => array(
                 'trading' => array(
@@ -138,7 +138,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'accounts', array());
         for ($i = 0; $i < count($balances); $i++) {
@@ -152,7 +152,7 @@ class btctradeua extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -165,7 +165,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -199,7 +199,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // [
         //     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
@@ -260,7 +260,7 @@ class btctradeua extends Exchange {
         return $this->safe_ticker($result, $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -370,7 +370,7 @@ class btctradeua extends Exchange {
         return $timestamp - 10800000;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -410,7 +410,7 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -498,7 +498,7 @@ class btctradeua extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $side = $this->safe_string($order, 'type');
@@ -531,19 +531,17 @@ class btctradeua extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open $orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open $orders for
-             * @param {int} [$limit] the maximum number of  open $orders structures to retrieve
+             * @param {int} [$limit] the maximum number of open order structures to retrieve
              * @param {array} [$params] extra parameters specific to the btctradeua api endpoint
              * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
+            $this->check_required_symbol('fetchOpenOrders', $symbol);
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(

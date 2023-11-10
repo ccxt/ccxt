@@ -241,12 +241,6 @@ abstract class gate extends \ccxt\Exchange {
     public function private_subaccounts_delete_sub_accounts_user_id_keys_key($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 2.5));
     }
-    public function private_portfolio_get_spot_currency_pairs($params = array()) {
-        return $this->request('spot/currency_pairs', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function private_portfolio_get_spot_currency_pairs_currency_pair($params = array()) {
-        return $this->request('spot/currency_pairs/{currency_pair}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
     public function private_portfolio_get_accounts($params = array()) {
         return $this->request('accounts', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -268,26 +262,11 @@ abstract class gate extends \ccxt\Exchange {
     public function private_portfolio_get_interest_records($params = array()) {
         return $this->request('interest_records', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function private_portfolio_get_spot_orders($params = array()) {
-        return $this->request('spot/orders', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function private_portfolio_get_spot_orders_order_id($params = array()) {
-        return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
     public function private_portfolio_post_account_mode($params = array()) {
         return $this->request('account_mode', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_portfolio_post_loans($params = array()) {
         return $this->request('loans', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
-    }
-    public function private_portfolio_post_spot_orders($params = array()) {
-        return $this->request('spot/orders', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function private_portfolio_delete_spot_orders_order_id($params = array()) {
-        return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function private_portfolio_patch_spot_orders_order_id($params = array()) {
-        return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'PATCH', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_spot_get_fee($params = array()) {
         return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -333,6 +312,9 @@ abstract class gate extends \ccxt\Exchange {
     }
     public function private_spot_post_countdown_cancel_all($params = array()) {
         return $this->request('countdown_cancel_all', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.26666666666666666));
+    }
+    public function private_spot_post_amend_batch_orders($params = array()) {
+        return $this->request('amend_batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function private_spot_post_price_orders($params = array()) {
         return $this->request('price_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
@@ -685,6 +667,9 @@ abstract class gate extends \ccxt\Exchange {
     public function private_earn_post_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_earn_put_uni_interest_reinvest($params = array()) {
+        return $this->request('uni/interest_reinvest', array('private', 'earn'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_earn_patch_uni_lends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'PATCH', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -976,12 +961,6 @@ abstract class gate extends \ccxt\Exchange {
     public function privateSubAccountsDeleteSubAccountsUserIdKeysKey($params = array()) {
         return $this->request('sub_accounts/{user_id}/keys/{key}', array('private', 'subAccounts'), 'DELETE', $params, null, null, array("cost" => 2.5));
     }
-    public function privatePortfolioGetSpotCurrencyPairs($params = array()) {
-        return $this->request('spot/currency_pairs', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function privatePortfolioGetSpotCurrencyPairsCurrencyPair($params = array()) {
-        return $this->request('spot/currency_pairs/{currency_pair}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
     public function privatePortfolioGetAccounts($params = array()) {
         return $this->request('accounts', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1003,26 +982,11 @@ abstract class gate extends \ccxt\Exchange {
     public function privatePortfolioGetInterestRecords($params = array()) {
         return $this->request('interest_records', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
-    public function privatePortfolioGetSpotOrders($params = array()) {
-        return $this->request('spot/orders', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function privatePortfolioGetSpotOrdersOrderId($params = array()) {
-        return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
-    }
     public function privatePortfolioPostAccountMode($params = array()) {
         return $this->request('account_mode', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privatePortfolioPostLoans($params = array()) {
         return $this->request('loans', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
-    }
-    public function privatePortfolioPostSpotOrders($params = array()) {
-        return $this->request('spot/orders', array('private', 'portfolio'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function privatePortfolioDeleteSpotOrdersOrderId($params = array()) {
-        return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'DELETE', $params, null, null, array("cost" => 1.3333333333333333));
-    }
-    public function privatePortfolioPatchSpotOrdersOrderId($params = array()) {
-        return $this->request('spot/orders/{order_id}', array('private', 'portfolio'), 'PATCH', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateSpotGetFee($params = array()) {
         return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -1068,6 +1032,9 @@ abstract class gate extends \ccxt\Exchange {
     }
     public function privateSpotPostCountdownCancelAll($params = array()) {
         return $this->request('countdown_cancel_all', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.26666666666666666));
+    }
+    public function privateSpotPostAmendBatchOrders($params = array()) {
+        return $this->request('amend_batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     public function privateSpotPostPriceOrders($params = array()) {
         return $this->request('price_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
@@ -1419,6 +1386,9 @@ abstract class gate extends \ccxt\Exchange {
     }
     public function privateEarnPostUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateEarnPutUniInterestReinvest($params = array()) {
+        return $this->request('uni/interest_reinvest', array('private', 'earn'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateEarnPatchUniLends($params = array()) {
         return $this->request('uni/lends', array('private', 'earn'), 'PATCH', $params, null, null, array("cost" => 1.3333333333333333));

@@ -10,6 +10,7 @@ use ccxt\async\abstract\coincheck as Exchange;
 use ccxt\ExchangeError;
 use ccxt\BadSymbol;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coincheck extends Exchange {
 
@@ -120,13 +121,13 @@ class coincheck extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/JPY' => array( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true ), // the only real pair
+                'BTC/JPY' => $this->safe_market_structure(array( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )), // the only real pair
                 // 'ETH/JPY' => array( 'id' => 'eth_jpy', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy' ),
-                'ETC/JPY' => array( 'id' => 'etc_jpy', 'symbol' => 'ETC/JPY', 'base' => 'ETC', 'quote' => 'JPY', 'baseId' => 'etc', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true ),
+                'ETC/JPY' => $this->safe_market_structure(array( 'id' => 'etc_jpy', 'symbol' => 'ETC/JPY', 'base' => 'ETC', 'quote' => 'JPY', 'baseId' => 'etc', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )),
                 // 'DAO/JPY' => array( 'id' => 'dao_jpy', 'symbol' => 'DAO/JPY', 'base' => 'DAO', 'quote' => 'JPY', 'baseId' => 'dao', 'quoteId' => 'jpy' ),
                 // 'LSK/JPY' => array( 'id' => 'lsk_jpy', 'symbol' => 'LSK/JPY', 'base' => 'LSK', 'quote' => 'JPY', 'baseId' => 'lsk', 'quoteId' => 'jpy' ),
-                'FCT/JPY' => array( 'id' => 'fct_jpy', 'symbol' => 'FCT/JPY', 'base' => 'FCT', 'quote' => 'JPY', 'baseId' => 'fct', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true ),
-                'MONA/JPY' => array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true ),
+                'FCT/JPY' => $this->safe_market_structure(array( 'id' => 'fct_jpy', 'symbol' => 'FCT/JPY', 'base' => 'FCT', 'quote' => 'JPY', 'baseId' => 'fct', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )),
+                'MONA/JPY' => $this->safe_market_structure(array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy', 'type' => 'spot', 'spot' => true )),
                 // 'XMR/JPY' => array( 'id' => 'xmr_jpy', 'symbol' => 'XMR/JPY', 'base' => 'XMR', 'quote' => 'JPY', 'baseId' => 'xmr', 'quoteId' => 'jpy' ),
                 // 'REP/JPY' => array( 'id' => 'rep_jpy', 'symbol' => 'REP/JPY', 'base' => 'REP', 'quote' => 'JPY', 'baseId' => 'rep', 'quoteId' => 'jpy' ),
                 // 'XRP/JPY' => array( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
@@ -135,7 +136,7 @@ class coincheck extends Exchange {
                 // 'LTC/JPY' => array( 'id' => 'ltc_jpy', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy' ),
                 // 'DASH/JPY' => array( 'id' => 'dash_jpy', 'symbol' => 'DASH/JPY', 'base' => 'DASH', 'quote' => 'JPY', 'baseId' => 'dash', 'quoteId' => 'jpy' ),
                 // 'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
-                'ETC/BTC' => array( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'baseId' => 'etc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true ),
+                'ETC/BTC' => $this->safe_market_structure(array( 'id' => 'etc_btc', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'baseId' => 'etc', 'quoteId' => 'btc', 'type' => 'spot', 'spot' => true )),
                 // 'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'lsk', 'quoteId' => 'btc' ),
                 // 'FCT/BTC' => array( 'id' => 'fct_btc', 'symbol' => 'FCT/BTC', 'base' => 'FCT', 'quote' => 'BTC', 'baseId' => 'fct', 'quoteId' => 'btc' ),
                 // 'XMR/BTC' => array( 'id' => 'xmr_btc', 'symbol' => 'XMR/BTC', 'base' => 'XMR', 'quote' => 'BTC', 'baseId' => 'xmr', 'quoteId' => 'btc' ),
@@ -165,7 +166,7 @@ class coincheck extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -183,7 +184,7 @@ class coincheck extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -196,7 +197,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -223,18 +224,18 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOpenOrders
         //
         //     {                        $id =>  202835,
-        //                      order_type => "buy",
-        //                            rate =>  26890,
-        //                            pair => "btc_jpy",
-        //                  pending_amount => "0.5527",
-        //       pending_market_buy_amount =>  null,
-        //                  stop_loss_rate =>  null,
-        //                      created_at => "2015-01-10T05:55:38.000Z" }
+        //                      "order_type" => "buy",
+        //                            "rate" =>  26890,
+        //                            "pair" => "btc_jpy",
+        //                  "pending_amount" => "0.5527",
+        //       "pending_market_buy_amount" =>  null,
+        //                  "stop_loss_rate" =>  null,
+        //                      "created_at" => "2015-01-10T05:55:38.000Z" }
         //
         // todo => add formats for fetchOrder, fetchClosedOrders here
         //
@@ -273,7 +274,7 @@ class coincheck extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -292,7 +293,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "last":4192632.0,
@@ -331,7 +332,7 @@ class coincheck extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -363,7 +364,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -488,7 +489,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -533,20 +534,20 @@ class coincheck extends Exchange {
             $response = Async\await($this->privateGetAccounts ($params));
             //
             //     {
-            //         success => true,
-            //         id => '7487995',
-            //         email => 'some@email.com',
-            //         identity_status => 'identity_pending',
-            //         bitcoin_address => null,
-            //         lending_leverage => '4',
-            //         taker_fee => '0.0',
-            //         maker_fee => '0.0',
-            //         exchange_fees => {
-            //           btc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           etc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           fct_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           mona_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
-            //           plt_jpy => array( taker_fee => '0.0', maker_fee => '0.0' )
+            //         "success" => true,
+            //         "id" => "7487995",
+            //         "email" => "some@email.com",
+            //         "identity_status" => "identity_pending",
+            //         "bitcoin_address" => null,
+            //         "lending_leverage" => "4",
+            //         "taker_fee" => "0.0",
+            //         "maker_fee" => "0.0",
+            //         "exchange_fees" => {
+            //           "btc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "etc_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "fct_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "mona_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" ),
+            //           "plt_jpy" => array( taker_fee => '0.0', maker_fee => "0.0" )
             //         }
             //     }
             //
@@ -621,7 +622,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -670,7 +671,7 @@ class coincheck extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -730,7 +731,7 @@ class coincheck extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //

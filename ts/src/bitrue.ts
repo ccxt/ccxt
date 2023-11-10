@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -499,17 +499,17 @@ export default class bitrue extends Exchange {
         //         ],
         //         "coins":[
         //           {
-        //               coin: "near",
-        //               coinFulName: "NEAR Protocol",
-        //               chains: [ "BEP20", ],
-        //               chainDetail: [
+        //               "coin": "near",
+        //               "coinFulName": "NEAR Protocol",
+        //               "chains": [ "BEP20", ],
+        //               "chainDetail": [
         //                 {
-        //                     chain: "BEP20",
-        //                     enableWithdraw: true,
-        //                     enableDeposit: true,
-        //                     withdrawFee: "0.2000",
-        //                     minWithdraw: "5.0000",
-        //                     maxWithdraw: "1000000000000000.0000",
+        //                     "chain": "BEP20",
+        //                     "enableWithdraw": true,
+        //                     "enableDeposit": true,
+        //                     "withdrawFee": "0.2000",
+        //                     "minWithdraw": "5.0000",
+        //                     "maxWithdraw": "1000000000000000.0000",
         //                 },
         //               ],
         //           },
@@ -711,6 +711,7 @@ export default class bitrue extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             };
             result.push (entry);
@@ -718,7 +719,7 @@ export default class bitrue extends Exchange {
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
         };
@@ -738,7 +739,7 @@ export default class bitrue extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitrue#fetchBalance
@@ -768,7 +769,7 @@ export default class bitrue extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitrue#fetchOrderBook
@@ -807,7 +808,17 @@ export default class bitrue extends Exchange {
         return orderbook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
+        //
+        // fetchBidsAsks
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
         //
         // fetchTicker
         //
@@ -832,17 +843,17 @@ export default class bitrue extends Exchange {
             'datetime': undefined,
             'high': this.safeString (ticker, 'high24hr'),
             'low': this.safeString (ticker, 'low24hr'),
-            'bid': this.safeString (ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeString (ticker, 'lowestAsk'),
-            'askVolume': undefined,
+            'bid': this.safeString2 (ticker, 'highestBid', 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString2 (ticker, 'lowestAsk', 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'percentChange'),
+            'percentage': Precise.stringMul (this.safeString (ticker, 'percentChange'), '10000'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'baseVolume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
@@ -850,7 +861,7 @@ export default class bitrue extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitrue#fetchTicker
@@ -897,7 +908,7 @@ export default class bitrue extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitrue#fetchOHLCV
@@ -940,7 +951,7 @@ export default class bitrue extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //      {
         //         "i":"1660825020",
@@ -967,24 +978,31 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = undefined;
-        if (type === 'future') {
-            method = 'fapiPublicGetTickerBookTicker';
-        } else if (type === 'delivery') {
-            method = 'dapiPublicGetTickerBookTicker';
-        } else {
-            method = 'publicGetTickerBookTicker';
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        const request = {};
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+            request['symbol'] = market['id'];
         }
-        const response = await this[method] (query);
-        return this.parseTickers (response, symbols);
+        const response = await this.v1PublicGetTickerBookTicker (this.extend (request, params));
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "bidPrice": "4.00000000",
+        //         "bidQty": "431.00000000",
+        //         "askPrice": "4.00000200",
+        //         "askQty": "9.00000000"
+        //     }
+        const data = {};
+        data[market['id']] = response;
+        return this.parseTickers (data, symbols);
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
@@ -1034,7 +1052,7 @@ export default class bitrue extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // aggregate trades
         //  - "T" is timestamp of *api-call* not trades. Use more expensive v1PublicGetHistoricalTrades if actual timestamp of trades matter
@@ -1125,7 +1143,7 @@ export default class bitrue extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitrue#fetchTrades
@@ -1201,7 +1219,7 @@ export default class bitrue extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // createOrder
         //
@@ -1372,9 +1390,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1391,20 +1407,18 @@ export default class bitrue extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1446,20 +1460,18 @@ export default class bitrue extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1501,17 +1513,15 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         const request = {
             'symbol': market['id'],
-            // 'orderId': id,
-            // 'origClientOrderId': id,
-            // 'newClientOrderId': id,
+            // "orderId": id,
+            // "origClientOrderId": id,
+            // "newClientOrderId": id,
         };
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
@@ -1587,7 +1597,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitrue#fetchDeposits
@@ -1659,7 +1669,7 @@ export default class bitrue extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitrue#fetchWithdrawals
@@ -1725,7 +1735,7 @@ export default class bitrue extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1915,10 +1925,10 @@ export default class bitrue extends Exchange {
     parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //   {
-        //       coin: 'adx',
-        //       coinFulName: 'Ambire AdEx',
-        //       chains: [ 'BSC' ],
-        //       chainDetail: [ [Object] ]
+        //       "coin": "adx",
+        //       "coinFulName": "Ambire AdEx",
+        //       "chains": [ "BSC" ],
+        //       "chainDetail": [ [Object] ]
         //   }
         //
         const chainDetails = this.safeValue (fee, 'chainDetail', []);

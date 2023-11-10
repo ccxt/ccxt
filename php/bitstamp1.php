@@ -105,23 +105,23 @@ class bitstamp1 extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'markets' => array(
-                'BTC/USD' => array( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'BTC/EUR' => array( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'EUR/USD' => array( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD', 'baseId' => 'eur', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'XRP/USD' => array( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'baseId' => 'xrp', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'XRP/EUR' => array( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'baseId' => 'xrp', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'XRP/BTC' => array( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'LTC/USD' => array( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'ltc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'LTC/EUR' => array( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'ltc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'LTC/BTC' => array( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'ETH/USD' => array( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'eth', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'ETH/EUR' => array( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'eth', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
-                'ETH/BTC' => array( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true ),
+                'BTC/USD' => $this->safe_market_structure(array( 'id' => 'btcusd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'btceur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'EUR/USD' => $this->safe_market_structure(array( 'id' => 'eurusd', 'symbol' => 'EUR/USD', 'base' => 'EUR', 'quote' => 'USD', 'baseId' => 'eur', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'XRP/USD' => $this->safe_market_structure(array( 'id' => 'xrpusd', 'symbol' => 'XRP/USD', 'base' => 'XRP', 'quote' => 'USD', 'baseId' => 'xrp', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'XRP/EUR' => $this->safe_market_structure(array( 'id' => 'xrpeur', 'symbol' => 'XRP/EUR', 'base' => 'XRP', 'quote' => 'EUR', 'baseId' => 'xrp', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'XRP/BTC' => $this->safe_market_structure(array( 'id' => 'xrpbtc', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'baseId' => 'xrp', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'LTC/USD' => $this->safe_market_structure(array( 'id' => 'ltcusd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD', 'baseId' => 'ltc', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'LTC/EUR' => $this->safe_market_structure(array( 'id' => 'ltceur', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'ltc', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'LTC/BTC' => $this->safe_market_structure(array( 'id' => 'ltcbtc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'ETH/USD' => $this->safe_market_structure(array( 'id' => 'ethusd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'eth', 'quoteId' => 'usd', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'ETH/EUR' => $this->safe_market_structure(array( 'id' => 'etheur', 'symbol' => 'ETH/EUR', 'base' => 'ETH', 'quote' => 'EUR', 'baseId' => 'eth', 'quoteId' => 'eur', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
+                'ETH/BTC' => $this->safe_market_structure(array( 'id' => 'ethbtc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.005, 'taker' => 0.005, 'type' => 'spot', 'spot' => true )),
             ),
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
@@ -138,7 +138,7 @@ class bitstamp1 extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "volume" => "2836.47827985",
@@ -182,7 +182,7 @@ class bitstamp1 extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -211,7 +211,7 @@ class bitstamp1 extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public $trade
         //
@@ -248,7 +248,7 @@ class bitstamp1 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -280,7 +280,7 @@ class bitstamp1 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -296,7 +296,7 @@ class bitstamp1 extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitstamp1 api endpoint

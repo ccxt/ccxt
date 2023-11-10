@@ -10,6 +10,7 @@ use ccxt\async\abstract\btcbox as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class btcbox extends Exchange {
 
@@ -100,10 +101,10 @@ class btcbox extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/JPY' => array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0005'), 'maker' => $this->parse_number('0.0005'), 'type' => 'spot', 'spot' => true ),
-                'ETH/JPY' => array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true ),
-                'LTC/JPY' => array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true ),
-                'BCH/JPY' => array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true ),
+                'BTC/JPY' => $this->safe_market_structure(array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0005'), 'maker' => $this->parse_number('0.0005'), 'type' => 'spot', 'spot' => true )),
+                'ETH/JPY' => $this->safe_market_structure(array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true )),
+                'LTC/JPY' => $this->safe_market_structure(array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true )),
+                'BCH/JPY' => $this->safe_market_structure(array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => $this->parse_number('0.0010'), 'maker' => $this->parse_number('0.0010'), 'type' => 'spot', 'spot' => true )),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -121,7 +122,7 @@ class btcbox extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
@@ -140,7 +141,7 @@ class btcbox extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -153,7 +154,7 @@ class btcbox extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -174,7 +175,7 @@ class btcbox extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_string($ticker, 'last');
@@ -202,7 +203,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -222,7 +223,7 @@ class btcbox extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -258,7 +259,7 @@ class btcbox extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -361,7 +362,7 @@ class btcbox extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "id":11,
@@ -492,7 +493,7 @@ class btcbox extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -506,7 +507,7 @@ class btcbox extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders

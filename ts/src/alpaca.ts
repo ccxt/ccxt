@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -307,13 +307,14 @@ export default class alpaca extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': asset,
             });
         }
         return markets;
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name alpaca#fetchTrades
@@ -359,7 +360,7 @@ export default class alpaca extends Exchange {
         return this.parseTrades (symbolTrades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name alpaca#fetchOrderBook
@@ -419,7 +420,7 @@ export default class alpaca extends Exchange {
         return this.parseOrderBook (rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name alpaca#fetchOHLCV
@@ -479,7 +480,7 @@ export default class alpaca extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //        "c":22895,
@@ -634,7 +635,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name alpaca#fetchOpenOrders
@@ -654,7 +655,7 @@ export default class alpaca extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -758,7 +759,7 @@ export default class alpaca extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",

@@ -92,7 +92,10 @@ setup(
             'yarl>=1.7.2',
         ],
         'qa': [
-            'flake8==3.7.9',
+            'ruff==0.0.292',
+        ],
+        'type': [
+            'mypy==1.6.1',
         ],
     },
     project_urls=project_urls,

@@ -1,5 +1,5 @@
 import Exchange from './abstract/oceanex.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Dictionary, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 /**
  * @class oceanex
  * @extends Exchange
@@ -7,31 +7,30 @@ import { Int, OrderSide, OrderType } from './base/types.js';
 export default class oceanex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    parseTicker(data: any, market?: any): import("./base/types.js").Ticker;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<{}>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    parseTicker(data: any, market?: any): Ticker;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
     fetchTime(params?: {}): Promise<number>;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchKey(params?: {}): Promise<any>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): string;
-    createOrders(symbol: string, orders: any, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
-    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<import("./base/types.js").Order[]>;
+    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<Order[]>;
+    cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

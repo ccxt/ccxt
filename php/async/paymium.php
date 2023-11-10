@@ -10,6 +10,7 @@ use ccxt\async\abstract\paymium as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class paymium extends Exchange {
 
@@ -101,7 +102,7 @@ class paymium extends Exchange {
                 ),
             ),
             'markets' => array(
-                'BTC/EUR' => array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'type' => 'spot', 'spot' => true ),
+                'BTC/EUR' => $this->safe_market_structure(array( 'id' => 'eur', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'btc', 'quoteId' => 'eur', 'type' => 'spot', 'spot' => true )),
             ),
             'fees' => array(
                 'trading' => array(
@@ -113,7 +114,7 @@ class paymium extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -132,7 +133,7 @@ class paymium extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -146,7 +147,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -166,7 +167,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // {
         //     "high":"33740.82",
@@ -215,7 +216,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -252,7 +253,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $market = $this->safe_market(null, $market);
@@ -277,7 +278,7 @@ class paymium extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol

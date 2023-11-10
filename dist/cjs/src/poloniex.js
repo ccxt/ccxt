@@ -104,39 +104,51 @@ class poloniex extends poloniex$1 {
                         'markets/{symbol}': 1,
                         'currencies': 20,
                         'currencies/{currency}': 20,
+                        'v2/currencies': 20,
+                        'v2/currencies/{currency}': 20,
                         'timestamp': 1,
                         'markets/price': 1,
                         'markets/{symbol}/price': 1,
+                        'markets/markPrice': 1,
+                        'markets/{symbol}/markPrice': 1,
+                        'markets/{symbol}/markPriceComponents': 1,
                         'markets/{symbol}/orderBook': 1,
                         'markets/{symbol}/candles': 1,
                         'markets/{symbol}/trades': 20,
                         'markets/ticker24h': 20,
                         'markets/{symbol}/ticker24h': 20,
+                        'markets/collateralInfo': 1,
+                        'markets/{currency}/collateralInfo': 1,
+                        'markets/borrowRatesInfo': 1,
                     },
                 },
                 'private': {
                     'get': {
                         'accounts': 4,
-                        'accounts/activity': 4,
                         'accounts/balances': 4,
                         'accounts/{id}/balances': 4,
+                        'accounts/activity': 20,
                         'accounts/transfer': 20,
                         'accounts/transfer/{id}': 4,
+                        'feeinfo': 20,
+                        'accounts/interest/history': 1,
                         'subaccounts': 4,
                         'subaccounts/balances': 20,
                         'subaccounts/{id}/balances': 4,
                         'subaccounts/transfer': 20,
                         'subaccounts/transfer/{id}': 4,
-                        'feeinfo': 20,
                         'wallets/addresses': 20,
-                        'wallets/activity': 20,
                         'wallets/addresses/{currency}': 20,
+                        'wallets/activity': 20,
+                        'margin/accountMargin': 4,
+                        'margin/borrowStatus': 4,
+                        'margin/maxSize': 4,
                         'orders': 20,
                         'orders/{id}': 4,
-                        'orders/history': 20,
                         'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
+                        'orders/history': 20,
                         'smartorders/history': 20,
                         'trades': 20,
                         'orders/{id}/trades': 4,
@@ -146,9 +158,10 @@ class poloniex extends poloniex$1 {
                         'subaccounts/transfer': 20,
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
+                        'v2/wallets/withdraw': 20,
                         'orders': 4,
-                        'orders/killSwitch': 4,
                         'orders/batch': 20,
+                        'orders/killSwitch': 4,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -160,8 +173,8 @@ class poloniex extends poloniex$1 {
                         'smartorders': 20,
                     },
                     'put': {
-                        'orders/{id}': 4,
-                        'smartorders/{id}': 4,
+                        'orders/{id}': 20,
+                        'smartorders/{id}': 20,
                     },
                 },
             },
@@ -288,6 +301,7 @@ class poloniex extends poloniex$1 {
                     '21352': errors.BadSymbol,
                     '21353': errors.PermissionDenied,
                     '21354': errors.PermissionDenied,
+                    '21359': errors.OrderNotFound,
                     '21360': errors.InvalidOrder,
                     '24106': errors.BadRequest,
                     '24201': errors.ExchangeNotAvailable,
@@ -397,11 +411,18 @@ class poloniex extends poloniex$1 {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {int} [params.until] timestamp in ms
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 500);
+        }
         const market = this.market(symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
@@ -412,6 +433,7 @@ class poloniex extends poloniex$1 {
             // limit should in between 100 and 500
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.publicGetMarketsSymbolCandles(this.extend(request, params));
         //
         //     [
@@ -530,6 +552,7 @@ class poloniex extends poloniex$1 {
                         'max': undefined,
                     },
                 },
+                'created': this.safeInteger(market, 'tradableStartTime'),
                 'info': market,
             });
         }
@@ -666,8 +689,8 @@ class poloniex extends poloniex$1 {
         //                 "delisted": false,
         //                 "tradingState": "NORMAL",
         //                 "walletState": "DISABLED",
-        //                 "walletDepositState": 'DISABLED',
-        //                 "walletWithdrawalState": 'DISABLED',
+        //                 "walletDepositState": "DISABLED",
+        //                 "walletWithdrawalState": "DISABLED",
         //                 "parentChain": null,
         //                 "isMultiChain": false,
         //                 "isChildChain": false,
@@ -951,14 +974,21 @@ class poloniex extends poloniex$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const request = {
+        let request = {
         // 'from': 12345678, // A 'trade Id'. The query begins at ‘from'.
         // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
@@ -968,6 +998,7 @@ class poloniex extends poloniex$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.privateGetTrades(this.extend(request, params));
         //
         //     [
@@ -990,8 +1021,8 @@ class poloniex extends poloniex$1 {
         //         }
         //     ]
         //
-        const result = this.parseTrades(response, market);
-        return this.filterBySinceLimit(result, since, limit);
+        const result = this.parseTrades(response, market, since, limit);
+        return result;
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -1473,9 +1504,9 @@ class poloniex extends poloniex$1 {
         //         "updateTime": 1646196019020
         //     }
         //
-        return this.extend(this.parseOrder(response), {
-            'id': id,
-        });
+        const order = this.parseOrder(response);
+        order['id'] = id;
+        return order;
     }
     async fetchOrderStatus(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1855,9 +1886,9 @@ class poloniex extends poloniex$1 {
         const response = await this.privatePostWalletsWithdraw(this.extend(request, params));
         //
         //     {
-        //         response: 'Withdrew 1.00000000 USDT.',
-        //         email2FA: false,
-        //         withdrawalNumber: 13449869
+        //         "response": "Withdrew 1.00000000 USDT.",
+        //         "email2FA": false,
+        //         "withdrawalNumber": 13449869
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1877,22 +1908,22 @@ class poloniex extends poloniex$1 {
         //         "adjustments":[],
         //         "deposits":[
         //             {
-        //                 currency: "BTC",
-        //                 address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //                 amount: "0.01063000",
-        //                 confirmations:  1,
-        //                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //                 timestamp:  1507916888,
-        //                 status: "COMPLETE"
+        //                 "currency": "BTC",
+        //                 "address": "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                 "amount": "0.01063000",
+        //                 "confirmations":  1,
+        //                 "txid": "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                 "timestamp":  1507916888,
+        //                 "status": "COMPLETE"
         //             },
         //             {
-        //                 currency: "ETH",
-        //                 address: "0x20108ba20b65c04d82909e91df06618107460197",
-        //                 amount: "4.00000000",
-        //                 confirmations: 38,
-        //                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
-        //                 timestamp: 1525060430,
-        //                 status: "COMPLETE"
+        //                 "currency": "ETH",
+        //                 "address": "0x20108ba20b65c04d82909e91df06618107460197",
+        //                 "amount": "4.00000000",
+        //                 "confirmations": 38,
+        //                 "txid": "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                 "timestamp": 1525060430,
+        //                 "status": "COMPLETE"
         //             }
         //         ],
         //         "withdrawals":[
@@ -1911,34 +1942,34 @@ class poloniex extends poloniex$1 {
         //                 "scope":"crypto"
         //             },
         //             {
-        //                 withdrawalNumber: 8224394,
-        //                 currency: "EMC2",
-        //                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
-        //                 amount: "63.10796020",
-        //                 fee: "0.01000000",
-        //                 timestamp: 1510819838,
-        //                 status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 8224394,
+        //                 "currency": "EMC2",
+        //                 "address": "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                 "amount": "63.10796020",
+        //                 "fee": "0.01000000",
+        //                 "timestamp": 1510819838,
+        //                 "status": "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                 "ipAddress": "x.x.x.x"
         //             },
         //             {
-        //                 withdrawalNumber: 9290444,
-        //                 currency: "ETH",
-        //                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
-        //                 amount: "0.15500000",
-        //                 fee: "0.00500000",
-        //                 timestamp: 1514099289,
-        //                 status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 9290444,
+        //                 "currency": "ETH",
+        //                 "address": "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                 "amount": "0.15500000",
+        //                 "fee": "0.00500000",
+        //                 "timestamp": 1514099289,
+        //                 "status": "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                 "ipAddress": "x.x.x.x"
         //             },
         //             {
-        //                 withdrawalNumber: 11518260,
-        //                 currency: "BTC",
-        //                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
-        //                 amount: "0.20000000",
-        //                 fee: "0.00050000",
-        //                 timestamp: 1527918155,
-        //                 status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
-        //                 ipAddress: "x.x.x.x"
+        //                 "withdrawalNumber": 11518260,
+        //                 "currency": "BTC",
+        //                 "address": "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                 "amount": "0.20000000",
+        //                 "fee": "0.00050000",
+        //                 "timestamp": 1527918155,
+        //                 "status": "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                 "ipAddress": "x.x.x.x"
         //             }
         //         ]
         //     }

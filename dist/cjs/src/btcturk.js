@@ -92,6 +92,7 @@ class btcturk extends btcturk$1 {
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -103,6 +104,8 @@ class btcturk extends btcturk$1 {
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -259,6 +262,7 @@ class btcturk extends btcturk$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -524,12 +528,12 @@ class btcturk extends btcturk$1 {
     parseOHLCV(ohlcv, market = undefined) {
         //
         //    {
-        //        'timestamp': 1661990400,
-        //        'high': 368388.0,
-        //        'open': 368388.0,
-        //        'low': 368388.0,
-        //        'close': 368388.0,
-        //        'volume': 0.00035208,
+        //        "timestamp": 1661990400,
+        //        "high": 368388.0,
+        //        "open": 368388.0,
+        //        "low": 368388.0,
+        //        "close": 368388.0,
+        //        "volume": 0.00035208,
         //    }
         //
         return [

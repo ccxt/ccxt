@@ -246,6 +246,7 @@ class bitbank extends bitbank$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
@@ -398,26 +399,26 @@ class bitbank extends bitbank$1 {
         const response = await this.marketsGetSpotPairs(params);
         //
         //     {
-        //         success: '1',
-        //         data: {
-        //           pairs: [
+        //         "success": "1",
+        //         "data": {
+        //           "pairs": [
         //             {
-        //               name: 'btc_jpy',
-        //               base_asset: 'btc',
-        //               quote_asset: 'jpy',
-        //               maker_fee_rate_base: '0',
-        //               taker_fee_rate_base: '0',
-        //               maker_fee_rate_quote: '-0.0002',
-        //               taker_fee_rate_quote: '0.0012',
-        //               unit_amount: '0.0001',
-        //               limit_max_amount: '1000',
-        //               market_max_amount: '10',
-        //               market_allowance_rate: '0.2',
-        //               price_digits: '0',
-        //               amount_digits: '4',
-        //               is_enabled: true,
-        //               stop_order: false,
-        //               stop_order_and_cancel: false
+        //               "name": "btc_jpy",
+        //               "base_asset": "btc",
+        //               "quote_asset": "jpy",
+        //               "maker_fee_rate_base": "0",
+        //               "taker_fee_rate_base": "0",
+        //               "maker_fee_rate_quote": "-0.0002",
+        //               "taker_fee_rate_quote": "0.0012",
+        //               "unit_amount": "0.0001",
+        //               "limit_max_amount": "1000",
+        //               "market_max_amount": "10",
+        //               "market_allowance_rate": "0.2",
+        //               "price_digits": "0",
+        //               "amount_digits": "4",
+        //               "is_enabled": true,
+        //               "stop_order": false,
+        //               "stop_order_and_cancel": false
         //             },
         //             ...
         //           ]

@@ -1,10 +1,10 @@
 // ---------------------------------------------------------------------------
-import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable } from './base/errors.js';
+import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Transaction, Ticker, Balances } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -340,6 +340,7 @@ export default class bitfinex2 extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '11010': RateLimitExceeded,
                     '10001': PermissionDenied, // api_key: permission invalid (#10001)
                     '10020': BadRequest,
                     '10100': AuthenticationError,
@@ -579,6 +580,7 @@ export default class bitfinex2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
                 'info': market,
             });
         }
@@ -619,58 +621,58 @@ export default class bitfinex2 extends Exchange {
         //         // sym
         //         // maps symbols to their API symbols, BAB > BCH
         //         [
-        //             [ 'BAB', 'BCH' ],
-        //             [ 'CNHT', 'CNHt' ],
-        //             [ 'DSH', 'DASH' ],
-        //             [ 'IOT', 'IOTA' ],
-        //             [ 'LES', 'LEO-EOS' ],
-        //             [ 'LET', 'LEO-ERC20' ],
-        //             [ 'STJ', 'STORJ' ],
-        //             [ 'TSD', 'TUSD' ],
-        //             [ 'UDC', 'USDC' ],
-        //             [ 'USK', 'USDK' ],
-        //             [ 'UST', 'USDt' ],
-        //             [ 'USTF0', 'USDt0' ],
-        //             [ 'XCH', 'XCHF' ],
-        //             [ 'YYW', 'YOYOW' ],
+        //             [ "BAB", "BCH" ],
+        //             [ "CNHT", "CNHt" ],
+        //             [ "DSH", "DASH" ],
+        //             [ "IOT", "IOTA" ],
+        //             [ "LES", "LEO-EOS" ],
+        //             [ "LET", "LEO-ERC20" ],
+        //             [ "STJ", "STORJ" ],
+        //             [ "TSD", "TUSD" ],
+        //             [ "UDC", "USDC" ],
+        //             [ "USK", "USDK" ],
+        //             [ "UST", "USDt" ],
+        //             [ "USTF0", "USDt0" ],
+        //             [ "XCH", "XCHF" ],
+        //             [ "YYW", "YOYOW" ],
         //             // ...
         //         ],
         //         // label
         //         // verbose friendly names, BNT > Bancor
         //         [
-        //             [ 'BAB', 'Bitcoin Cash' ],
-        //             [ 'BCH', 'Bitcoin Cash' ],
-        //             [ 'LEO', 'Unus Sed LEO' ],
-        //             [ 'LES', 'Unus Sed LEO (EOS)' ],
-        //             [ 'LET', 'Unus Sed LEO (ERC20)' ],
+        //             [ "BAB", "Bitcoin Cash" ],
+        //             [ "BCH", "Bitcoin Cash" ],
+        //             [ "LEO", "Unus Sed LEO" ],
+        //             [ "LES", "Unus Sed LEO (EOS)" ],
+        //             [ "LET", "Unus Sed LEO (ERC20)" ],
         //             // ...
         //         ],
         //         // unit
         //         // maps symbols to unit of measure where applicable
         //         [
-        //             [ 'IOT', 'Mi|MegaIOTA' ],
+        //             [ "IOT", "Mi|MegaIOTA" ],
         //         ],
         //         // undl
         //         // maps derivatives symbols to their underlying currency
         //         [
-        //             [ 'USTF0', 'UST' ],
-        //             [ 'BTCF0', 'BTC' ],
-        //             [ 'ETHF0', 'ETH' ],
+        //             [ "USTF0", "UST" ],
+        //             [ "BTCF0", "BTC" ],
+        //             [ "ETHF0", "ETH" ],
         //         ],
         //         // pool
         //         // maps symbols to underlying network/protocol they operate on
         //         [
-        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ 'EDO', 'ETH' ],
-        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ 'MTO', 'EOS' ],
-        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ 'VLD', 'ETH' ],
-        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ 'GNO', 'ETH' ],
+        //             [ 'SAN', 'ETH' ], [ 'OMG', 'ETH' ], [ 'AVT', 'ETH' ], [ "EDO", "ETH" ],
+        //             [ 'ESS', 'ETH' ], [ 'ATD', 'EOS' ], [ 'ADD', 'EOS' ], [ "MTO", "EOS" ],
+        //             [ 'PNK', 'ETH' ], [ 'BAB', 'BCH' ], [ 'WLO', 'XLM' ], [ "VLD", "ETH" ],
+        //             [ 'BTT', 'TRX' ], [ 'IMP', 'ETH' ], [ 'SCR', 'ETH' ], [ "GNO", "ETH" ],
         //             // ...
         //         ],
         //         // explorer
         //         // maps symbols to their recognised block explorer URLs
         //         [
         //             [
-        //                 'AIO',
+        //                 "AIO",
         //                 [
         //                     "https://mainnet.aion.network",
         //                     "https://mainnet.aion.network/#/account/VAL",
@@ -798,7 +800,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitfinex2#fetchBalance
@@ -966,9 +968,9 @@ export default class bitfinex2 extends Exchange {
     convertDerivativesId (currency, type) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
-        //   id: 'fUSTF0',
-        //   code: 'USTF0',
-        //   info: [ 'USTF0', [], [], [], [ 'USTF0', 'UST' ] ],
+        //   "id": "fUSTF0",
+        //   "code": "USTF0",
+        //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         const info = this.safeValue (currency, 'info');
         const transferId = this.safeString (info, 0);
         const underlying = this.safeValue (info, 4, []);
@@ -988,7 +990,7 @@ export default class bitfinex2 extends Exchange {
         return currencyId;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitfinex2#fetchOrderBook
@@ -1031,10 +1033,10 @@ export default class bitfinex2 extends Exchange {
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
-        return result as any;
+        return result as OrderBook;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1170,10 +1172,10 @@ export default class bitfinex2 extends Exchange {
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitfinex2#fetchTicker
@@ -1192,7 +1194,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1275,22 +1277,29 @@ export default class bitfinex2 extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitfinex2#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.bitfinex.com/reference/rest-public-tickers-history
+         * @see https://docs.bitfinex.com/reference/rest-public-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {int} [params.until] the latest time in ms to fetch entries for
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params, 10000) as Trade[];
+        }
         const market = this.market (symbol);
         let sort = '-1';
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1301,6 +1310,7 @@ export default class bitfinex2 extends Exchange {
             request['limit'] = Math.min (limit, 10000); // default 120, max 10000
         }
         request['sort'] = sort;
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.publicGetTradesSymbolHist (this.extend (request, params));
         //
         //     [
@@ -1316,7 +1326,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTrades (trades, market, undefined, limit);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 100, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitfinex2#fetchOHLCV
@@ -1328,23 +1338,27 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 10000) as OHLCV[];
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
-            limit = 100; // default 100, max 5000
+            limit = 10000; // default 100, max 5000
         }
-        if (since === undefined) {
-            const duration = this.parseTimeframe (timeframe);
-            since = this.milliseconds () - duration * limit * 1000;
-        }
-        const request = {
+        let request = {
             'symbol': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,
         };
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.publicGetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         //
         //     [
@@ -1356,7 +1370,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,
@@ -1422,7 +1436,7 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (orderTypes, orderType, 'GTC');
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 3);
         const symbol = this.safeSymbol (marketId);
@@ -1598,7 +1612,7 @@ export default class bitfinex2 extends Exchange {
         //
         //      [
         //          1653325121,   // Timestamp in milliseconds
-        //          "on-req",     // Purpose of notification ('on-req', 'oc-req', 'uca', 'fon-req', 'foc-req')
+        //          "on-req",     // Purpose of notification ('on-req', 'oc-req', "uca", 'fon-req', "foc-req")
         //          null,         // unique ID of the message
         //          null,
         //              [
@@ -1750,7 +1764,7 @@ export default class bitfinex2 extends Exchange {
         return order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex2#fetchOpenOrders
@@ -1815,7 +1829,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitfinex2#fetchClosedOrders
@@ -1826,17 +1840,25 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         // returns the most recent closed or canceled orders up to circa two weeks ago
         await this.loadMarkets ();
-        const request = {};
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchClosedOrders', symbol, since, limit, params) as Order[];
+        }
+        let request = {};
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 25, max 2500
         }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         let market = undefined;
         let response = undefined;
         if (symbol === undefined) {
@@ -1900,9 +1922,7 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderId = parseInt (id);
@@ -1998,20 +2018,20 @@ export default class bitfinex2 extends Exchange {
         //
         //     [
         //         1582269616687, // MTS Millisecond Time Stamp of the update
-        //         'acc_dep', // TYPE Purpose of notification 'acc_dep' for account deposit
+        //         "acc_dep", // TYPE Purpose of notification "acc_dep" for account deposit
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         [
         //             null, // PLACEHOLDER
-        //             'BITCOIN', // METHOD Method of deposit
-        //             'BTC', // CURRENCY_CODE Currency code of new address
+        //             "BITCOIN", // METHOD Method of deposit
+        //             "BTC", // CURRENCY_CODE Currency code of new address
         //             null, // PLACEHOLDER
-        //             '1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG', // ADDRESS
+        //             "1BC9PZqpUmjyEB54uggn8TFKj49zSDYzqG", // ADDRESS
         //             null, // POOL_ADDRESS
         //         ],
         //         null, // CODE null or integer work in progress
-        //         'SUCCESS', // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
-        //         'success', // TEXT Text of the notification
+        //         "SUCCESS", // STATUS Status of the notification, SUCCESS, ERROR, FAILURE
+        //         "success", // TEXT Text of the notification
         //     ]
         //
         const result = this.safeValue (response, 4, []);
@@ -2045,13 +2065,13 @@ export default class bitfinex2 extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // withdraw
         //
         //     [
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         [
@@ -2074,26 +2094,26 @@ export default class bitfinex2 extends Exchange {
         //
         //     [
         //         13293039, // ID
-        //         'ETH', // CURRENCY
-        //         'ETHEREUM', // CURRENCY_NAME
+        //         "ETH", // CURRENCY
+        //         "ETHEREUM", // CURRENCY_NAME
         //         null,
         //         null,
         //         1574175052000, // MTS_STARTED
         //         1574181326000, // MTS_UPDATED
         //         null,
         //         null,
-        //         'CANCELED', // STATUS
+        //         "CANCELED", // STATUS
         //         null,
         //         null,
         //         -0.24, // AMOUNT, negative for withdrawals
         //         -0.00135, // FEES
         //         null,
         //         null,
-        //         '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //         "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //         null,
         //         null,
         //         null,
-        //         '0x523ec8945500.....................................', // TRANSACTION_ID
+        //         "0x523ec8945500.....................................", // TRANSACTION_ID
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
@@ -2243,13 +2263,13 @@ export default class bitfinex2 extends Exchange {
         //         [
         //          [
         //              {
-        //              curr: 'Total (USD)',
-        //              vol: '0',
-        //              vol_safe: '0',
-        //              vol_maker: '0',
-        //              vol_BFX: '0',
-        //              vol_BFX_safe: '0',
-        //              vol_BFX_maker: '0'
+        //              "curr": "Total (USD)",
+        //              "vol": "0",
+        //              "vol_safe": "0",
+        //              "vol_maker": "0",
+        //              "vol_BFX": "0",
+        //              "vol_BFX_safe": "0",
+        //              "vol_BFX_maker": "0"
         //              }
         //          ],
         //          {},
@@ -2258,7 +2278,7 @@ export default class bitfinex2 extends Exchange {
         //         [ null, {}, 0 ],
         //         null,
         //         null,
-        //         { leo_lev: '0', leo_amount_avg: '0' }
+        //         { leo_lev: "0", leo_amount_avg: "0" }
         //     ]
         //
         const result = {};
@@ -2296,7 +2316,7 @@ export default class bitfinex2 extends Exchange {
         return result;
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitfinex2#fetchDepositsWithdrawals
@@ -2330,26 +2350,26 @@ export default class bitfinex2 extends Exchange {
         //     [
         //         [
         //             13293039, // ID
-        //             'ETH', // CURRENCY
-        //             'ETHEREUM', // CURRENCY_NAME
+        //             "ETH", // CURRENCY
+        //             "ETHEREUM", // CURRENCY_NAME
         //             null,
         //             null,
         //             1574175052000, // MTS_STARTED
         //             1574181326000, // MTS_UPDATED
         //             null,
         //             null,
-        //             'CANCELED', // STATUS
+        //             "CANCELED", // STATUS
         //             null,
         //             null,
         //             -0.24, // AMOUNT, negative for withdrawals
         //             -0.00135, // FEES
         //             null,
         //             null,
-        //             '0x38110e0Fc932CB2BE...........', // DESTINATION_ADDRESS
+        //             "0x38110e0Fc932CB2BE...........", // DESTINATION_ADDRESS
         //             null,
         //             null,
         //             null,
-        //             '0x523ec8945500.....................................', // TRANSACTION_ID
+        //             "0x523ec8945500.....................................", // TRANSACTION_ID
         //             "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //         ]
         //     ]
@@ -2402,7 +2422,7 @@ export default class bitfinex2 extends Exchange {
         //
         //     [
         //         1582271520931, // MTS Millisecond Time Stamp of the update
-        //         "acc_wd-req", // TYPE Purpose of notification 'acc_wd-req' account withdrawal request
+        //         "acc_wd-req", // TYPE Purpose of notification "acc_wd-req" account withdrawal request
         //         null, // MESSAGE_ID unique ID of the message
         //         null, // not documented
         //         [
@@ -2603,6 +2623,7 @@ export default class bitfinex2 extends Exchange {
     }
 
     handleErrors (statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+        // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray (response)) {
                 const message = this.safeString2 (response, 'message', 'error');
@@ -2613,6 +2634,9 @@ export default class bitfinex2 extends Exchange {
             }
         } else if (response === '') {
             throw new ExchangeError (this.id + ' returned empty response');
+        }
+        if (statusCode === 429) {
+            throw new RateLimitExceeded (this.id + ' ' + body);
         }
         if (statusCode === 500) {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
@@ -2705,18 +2729,26 @@ export default class bitfinex2 extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         await this.loadMarkets ();
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params, 2500);
+        }
         let currency = undefined;
-        const request = {};
+        let request = {};
         if (since !== undefined) {
             request['start'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 2500
         }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         let response = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2816,14 +2848,25 @@ export default class bitfinex2 extends Exchange {
          * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the bingx api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest funding rate
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [funding rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure}
          */
         await this.loadMarkets ();
         this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', params, 5000) as FundingRateHistory[];
+        }
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'symbol': market['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.publicGetStatusDerivSymbolHist (this.extend (request, params));
         //
         //   [
@@ -2861,7 +2904,7 @@ export default class bitfinex2 extends Exchange {
             const rate = this.parseFundingRateHistory (fr, market);
             rates.push (rate);
         }
-        return this.filterBySymbolSinceLimit (rates, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRate (contract, market = undefined) {

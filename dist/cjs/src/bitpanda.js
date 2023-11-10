@@ -305,8 +305,8 @@ class bitpanda extends bitpanda$1 {
         const response = await this.publicGetTime(params);
         //
         //     {
-        //         iso: '2020-07-10T05:17:26.716Z',
-        //         epoch_millis: 1594358246716,
+        //         "iso": "2020-07-10T05:17:26.716Z",
+        //         "epoch_millis": 1594358246716,
         //     }
         //
         return this.safeInteger(response, 'epoch_millis');
@@ -364,12 +364,12 @@ class bitpanda extends bitpanda$1 {
         //
         //     [
         //         {
-        //             state: 'ACTIVE',
-        //             base: { code: 'ETH', precision: 8 },
-        //             quote: { code: 'CHF', precision: 2 },
-        //             amount_precision: 4,
-        //             market_precision: 2,
-        //             min_size: '10.0'
+        //             "state": "ACTIVE",
+        //             "base": { code: "ETH", precision: 8 },
+        //             "quote": { code: "CHF", precision: 2 },
+        //             "amount_precision": 4,
+        //             "market_precision": 2,
+        //             "min_size": "10.0"
         //         }
         //     ]
         //
@@ -430,6 +430,7 @@ class bitpanda extends bitpanda$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -681,7 +682,7 @@ class bitpanda extends bitpanda$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**

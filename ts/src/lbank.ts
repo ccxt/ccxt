@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/lbank.js';
-import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
+import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { rsa } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -231,13 +231,14 @@ export default class lbank extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': id,
             });
         }
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "symbol":"btc_usdt",
@@ -284,7 +285,7 @@ export default class lbank extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name lbank#fetchTicker
@@ -335,7 +336,7 @@ export default class lbank extends Exchange {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol: string, limit = 60, params = {}) {
@@ -362,7 +363,7 @@ export default class lbank extends Exchange {
         return this.parseOrderBook (response, market['symbol']);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         market = this.safeMarket (undefined, market);
         const timestamp = this.safeInteger (trade, 'date_ms');
         const priceString = this.safeString (trade, 'price');
@@ -393,7 +394,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name lbank#fetchTrades
@@ -420,7 +421,7 @@ export default class lbank extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     [
         //         1590969600,
@@ -441,7 +442,7 @@ export default class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -479,7 +480,7 @@ export default class lbank extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -502,7 +503,7 @@ export default class lbank extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name lbank#fetchBalance
@@ -548,7 +549,7 @@ export default class lbank extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         //     {
         //         "symbol"："eth_btc",
@@ -677,13 +678,13 @@ export default class lbank extends Exchange {
         const orders = this.parseOrders (data, market);
         const numOrders = orders.length;
         if (numOrders === 1) {
-            return orders[0];
+            return orders[0] as Order;
         } else {
-            return orders as any;
+            throw new BadRequest (this.id + ' fetchOrder() can only return one order at a time. Found ' + numOrders + ' orders.');
         }
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lbank#fetchOrders
@@ -709,7 +710,7 @@ export default class lbank extends Exchange {
         return this.parseOrders (data, undefined, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name lbank#fetchClosedOrders
@@ -729,7 +730,7 @@ export default class lbank extends Exchange {
         const closed = this.filterBy (orders, 'status', 'closed');
         const canceled = this.filterBy (orders, 'status', 'cancelled'); // cancelled orders may be partially filled
         const allOrders = this.arrayConcat (closed, canceled);
-        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as any;
+        return this.filterBySymbolSinceLimit (allOrders, symbol, since, limit) as Order[];
     }
 
     async withdraw (code: string, amount, address, tag = undefined, params = {}) {
@@ -760,22 +761,22 @@ export default class lbank extends Exchange {
         const response = this.privatePostWithdraw (this.extend (request, params));
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // withdraw
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         currency = this.safeCurrency (undefined, currency);

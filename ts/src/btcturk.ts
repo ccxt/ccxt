@@ -6,7 +6,7 @@ import { BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from './ba
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -94,6 +94,7 @@ export default class btcturk extends Exchange {
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,   // ?last=COUNT (max 50)
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -105,6 +106,8 @@ export default class btcturk extends Exchange {
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -262,13 +265,14 @@ export default class btcturk extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': entry,
             });
         }
         return result;
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const data = this.safeValue (response, 'data', []);
         const result = {
             'info': response,
@@ -288,7 +292,7 @@ export default class btcturk extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name btcturk#fetchBalance
@@ -317,7 +321,7 @@ export default class btcturk extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name btcturk#fetchOrderBook
@@ -349,7 +353,7 @@ export default class btcturk extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //   {
         //     "pair": "BTCTRY",
@@ -414,7 +418,7 @@ export default class btcturk extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name btcturk#fetchTicker
@@ -425,10 +429,10 @@ export default class btcturk extends Exchange {
          */
         await this.loadMarkets ();
         const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return this.safeValue (tickers, symbol) as Ticker;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -491,7 +495,7 @@ export default class btcturk extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name btcturk#fetchTrades
@@ -533,15 +537,15 @@ export default class btcturk extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //    {
-        //        'timestamp': 1661990400,
-        //        'high': 368388.0,
-        //        'open': 368388.0,
-        //        'low': 368388.0,
-        //        'close': 368388.0,
-        //        'volume': 0.00035208,
+        //        "timestamp": 1661990400,
+        //        "high": 368388.0,
+        //        "open": 368388.0,
+        //        "low": 368388.0,
+        //        "close": 368388.0,
+        //        "volume": 0.00035208,
         //    }
         //
         return [
@@ -554,7 +558,7 @@ export default class btcturk extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name btcturk#fetchOHLCV
@@ -653,7 +657,7 @@ export default class btcturk extends Exchange {
             results.push (this.parseOHLCV (ohlcv, market));
         }
         const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
+        return this.filterBySinceLimit (sorted, since, limit, 0) as OHLCV[];
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
@@ -706,7 +710,7 @@ export default class btcturk extends Exchange {
         return await this.privateDeleteOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcturk#fetchOpenOrders
@@ -731,7 +735,7 @@ export default class btcturk extends Exchange {
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcturk#fetchOrders
@@ -789,7 +793,7 @@ export default class btcturk extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrders / fetchOpenOrders
         //     {

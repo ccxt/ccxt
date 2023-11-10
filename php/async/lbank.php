@@ -7,8 +7,10 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\lbank as Exchange;
+use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class lbank extends Exchange {
 
@@ -225,6 +227,7 @@ class lbank extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $id,
                 );
             }
@@ -232,7 +235,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "symbol":"btc_usdt",
@@ -279,7 +282,7 @@ class lbank extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -329,7 +332,7 @@ class lbank extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -357,7 +360,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         $market = $this->safe_market(null, $market);
         $timestamp = $this->safe_integer($trade, 'date_ms');
         $priceString = $this->safe_string($trade, 'price');
@@ -388,7 +391,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -415,7 +418,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
         //         1590969600,
@@ -436,7 +439,7 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 1000, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 1000, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -474,7 +477,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -497,7 +500,7 @@ class lbank extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -543,7 +546,7 @@ class lbank extends Exchange {
         return $this->safe_string($statuses, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "symbol"："eth_btc",
@@ -673,12 +676,12 @@ class lbank extends Exchange {
             if ($numOrders === 1) {
                 return $orders[0];
             } else {
-                return $orders;
+                throw new BadRequest($this->id . ' fetchOrder() can only return one order at a time. Found ' . $numOrders . ' $orders->');
             }
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -704,7 +707,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $closed $orders made by the user
@@ -754,23 +757,23 @@ class lbank extends Exchange {
             $response = $this->privatePostWithdraw (array_merge($request, $params));
             //
             //     {
-            //         'result' => 'true',
-            //         'withdrawId' => 90082,
-            //         'fee':0.001
+            //         "result" => "true",
+            //         "withdrawId" => 90082,
+            //         "fee":0.001
             //     }
             //
             return $this->parse_transaction($response, $currency);
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
         //     {
-        //         'result' => 'true',
-        //         'withdrawId' => 90082,
-        //         'fee':0.001
+        //         "result" => "true",
+        //         "withdrawId" => 90082,
+        //         "fee":0.001
         //     }
         //
         $currency = $this->safe_currency(null, $currency);

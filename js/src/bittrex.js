@@ -369,6 +369,7 @@ export default class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': this.parse8601(this.safeString(market, 'createdAt')),
                 'info': market,
             });
         }
@@ -510,6 +511,7 @@ export default class bittrex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'networks': {},
             };
         }
         return result;
@@ -613,7 +615,7 @@ export default class bittrex extends Exchange {
             const ticker = this.parseTicker(response[i]);
             tickers.push(ticker);
         }
-        return this.filterByArray(tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
     async fetchTicker(symbol, params = {}) {
         /**
@@ -908,8 +910,14 @@ export default class bittrex extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the bittrex api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1440);
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const reverseId = market['baseId'] + '-' + market['quoteId'];
@@ -1211,19 +1219,19 @@ export default class bittrex extends Exchange {
         // Spot
         //
         //     {
-        //         id: 'f03d5e98-b5ac-48fb-8647-dd4db828a297',
-        //         marketSymbol: 'BTC-USDT',
-        //         direction: 'SELL',
-        //         type: 'LIMIT',
-        //         quantity: '0.01',
-        //         limit: '6000',
-        //         timeInForce: 'GOOD_TIL_CANCELLED',
-        //         fillQuantity: '0.00000000',
-        //         commission: '0.00000000',
-        //         proceeds: '0.00000000',
-        //         status: 'OPEN',
-        //         createdAt: '2020-03-18T02:37:33.42Z',
-        //         updatedAt: '2020-03-18T02:37:33.42Z'
+        //         "id": "f03d5e98-b5ac-48fb-8647-dd4db828a297",
+        //         "marketSymbol": "BTC-USDT",
+        //         "direction": "SELL",
+        //         "type": "LIMIT",
+        //         "quantity": "0.01",
+        //         "limit": "6000",
+        //         "timeInForce": "GOOD_TIL_CANCELLED",
+        //         "fillQuantity": "0.00000000",
+        //         "commission": "0.00000000",
+        //         "proceeds": "0.00000000",
+        //         "status": "OPEN",
+        //         "createdAt": "2020-03-18T02:37:33.42Z",
+        //         "updatedAt": "2020-03-18T02:37:33.42Z"
         //       }
         //
         // Stop
@@ -1685,21 +1693,21 @@ export default class bittrex extends Exchange {
         // Spot createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
         //
         //     {
-        //         id: '1be35109-b763-44ce-b6ea-05b6b0735c0c',
-        //         marketSymbol: 'LTC-ETH',
-        //         direction: 'BUY',
-        //         type: 'LIMIT',
-        //         quantity: '0.50000000',
-        //         limit: '0.17846699',
-        //         timeInForce: 'GOOD_TIL_CANCELLED',
-        //         clientOrderId: 'ff156d39-fe01-44ca-8f21-b0afa19ef228',
-        //         fillQuantity: '0.50000000',
-        //         commission: '0.00022286',
-        //         proceeds: '0.08914915',
-        //         status: 'CLOSED',
-        //         createdAt: '2018-06-23T13:14:28.613Z',
-        //         updatedAt: '2018-06-23T13:14:30.19Z',
-        //         closedAt: '2018-06-23T13:14:30.19Z'
+        //         "id": "1be35109-b763-44ce-b6ea-05b6b0735c0c",
+        //         "marketSymbol": "LTC-ETH",
+        //         "direction": "BUY",
+        //         "type": "LIMIT",
+        //         "quantity": "0.50000000",
+        //         "limit": "0.17846699",
+        //         "timeInForce": "GOOD_TIL_CANCELLED",
+        //         "clientOrderId": "ff156d39-fe01-44ca-8f21-b0afa19ef228",
+        //         "fillQuantity": "0.50000000",
+        //         "commission": "0.00022286",
+        //         "proceeds": "0.08914915",
+        //         "status": "CLOSED",
+        //         "createdAt": "2018-06-23T13:14:28.613Z",
+        //         "updatedAt": "2018-06-23T13:14:30.19Z",
+        //         "closedAt": "2018-06-23T13:14:30.19Z"
         //     }
         //
         // Stop createOrder, fetchOpenOrders, fetchClosedOrders, fetchOrder, cancelOrder
@@ -1896,8 +1904,8 @@ export default class bittrex extends Exchange {
             request['marketSymbol'] = market['id'];
         }
         const response = await this.privateGetExecutions(this.extend(request, params));
-        const trades = this.parseTrades(response, market);
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit);
+        const trades = this.parseTrades(response, market, since, limit);
+        return trades;
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

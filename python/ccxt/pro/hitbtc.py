@@ -68,7 +68,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
          * @ignore
         authenticates the user to access private web socket channels
-        see https://api.hitbtc.com/#socket-authentication
+        :see: https://api.hitbtc.com/#socket-authentication
         :returns dict: response from exchange
         """
         self.check_required_credentials()
@@ -92,18 +92,18 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.watch(url, messageHash, request, messageHash)
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        result: True
+            #        "jsonrpc": "2.0",
+            #        "result": True
             #    }
             #
             #    # Failure to return results
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        error: {
-            #            code: 1002,
-            #            message: 'Authorization is required or has been failed',
-            #            description: 'invalid signature format'
+            #        "jsonrpc": "2.0",
+            #        "error": {
+            #            "code": 1002,
+            #            "message": "Authorization is required or has been failed",
+            #            "description": "invalid signature format"
             #        }
             #    }
             #
@@ -113,9 +113,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
          * @ignore
         :param str name: websocket endpoint name
-        :param [str] [symbols]: unified CCXT symbol(s)
+        :param str[] [symbols]: unified CCXT symbol(s)
         :param dict [params]: extra parameters specific to the hitbtc api
-         * @returns
         """
         await self.load_markets()
         url = self.urls['api']['ws']['public']
@@ -136,7 +135,6 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str name: websocket endpoint name
         :param str [symbol]: unified CCXT symbol
         :param dict [params]: extra parameters specific to the hitbtc api
-         * @returns
         """
         await self.load_markets()
         await self.authenticate()
@@ -155,11 +153,11 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://api.hitbtc.com/#subscribe-to-full-order-book
-        see https://api.hitbtc.com/#subscribe-to-partial-order-book
-        see https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
-        see https://api.hitbtc.com/#subscribe-to-top-of-book
-        see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
+        :see: https://api.hitbtc.com/#subscribe-to-full-order-book
+        :see: https://api.hitbtc.com/#subscribe-to-partial-order-book
+        :see: https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
+        :see: https://api.hitbtc.com/#subscribe-to-top-of-book
+        :see: https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
@@ -253,10 +251,10 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://api.hitbtc.com/#subscribe-to-ticker
-        see https://api.hitbtc.com/#subscribe-to-ticker-in-batches
-        see https://api.hitbtc.com/#subscribe-to-mini-ticker
-        see https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
+        :see: https://api.hitbtc.com/#subscribe-to-ticker
+        :see: https://api.hitbtc.com/#subscribe-to-ticker-in-batches
+        :see: https://api.hitbtc.com/#subscribe-to-mini-ticker
+        :see: https://api.hitbtc.com/#subscribe-to-mini-ticker-in-batches
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :param str [params.method]: 'ticker/{speed}'(default), or 'ticker/price/{speed}'
@@ -434,7 +432,7 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://api.hitbtc.com/#subscribe-to-trades
+        :see: https://api.hitbtc.com/#subscribe-to-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -553,13 +551,13 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://api.hitbtc.com/#subscribe-to-candles
+        :see: https://api.hitbtc.com/#subscribe-to-candles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str [timeframe]: the length of time each candle represents
         :param int [since]: not used by hitbtc watchOHLCV
         :param int [limit]: 0 – 1000, default value = 0(no history returned)
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
@@ -633,7 +631,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "t": 1626860340000,             # Message timestamp
@@ -657,14 +655,14 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://api.hitbtc.com/#subscribe-to-reports
-        see https://api.hitbtc.com/#subscribe-to-reports-2
-        see https://api.hitbtc.com/#subscribe-to-reports-3
+        :see: https://api.hitbtc.com/#subscribe-to-reports
+        :see: https://api.hitbtc.com/#subscribe-to-reports-2
+        :see: https://api.hitbtc.com/#subscribe-to-reports-3
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: timestamp in ms of the earliest order to fetch
         :param int [limit]: the maximum amount of orders to fetch
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         marketType = None
@@ -880,14 +878,14 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_balance(self, params={}):
         """
         watches balance updates, cannot subscribe to margin account balances
-        see https://api.hitbtc.com/#subscribe-to-spot-balances
-        see https://api.hitbtc.com/#subscribe-to-futures-balances
+        :see: https://api.hitbtc.com/#subscribe-to-spot-balances
+        :see: https://api.hitbtc.com/#subscribe-to-futures-balances
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
         :param str [params.type]: 'spot', 'swap', or 'future'
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.mode]: 'updates' or 'batches'(default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-        :returns [dict]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -928,7 +926,7 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def handle_notification(self, client: Client, message):
         #
-        #     {jsonrpc: '2.0', result: True, id: null}
+        #     {jsonrpc: "2.0", result: True, id: null}
         #
         return message
 
@@ -962,8 +960,8 @@ class hitbtc(ccxt.async_support.hitbtc):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        jsonrpc: '2.0',
-        #        result: True
+        #        "jsonrpc": "2.0",
+        #        "result": True
         #    }
         #
         success = self.safe_value(message, 'result')
