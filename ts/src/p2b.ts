@@ -503,7 +503,7 @@ export default class p2b extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetBook (this.extend (request, params));
+        const response = await this.publicGetDepthResult (this.extend (request, params));
         //
         //    {
         //        "success": true,
