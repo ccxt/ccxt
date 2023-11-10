@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Exchange from './abstract/huobi.js';
+import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
@@ -14,11 +14,11 @@ import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Bal
  * @class huobi
  * @extends Exchange
  */
-export default class huobi extends Exchange {
+export default class htx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'huobi',
-            'name': 'Huobi',
+            'id': 'htx',
+            'name': 'HTX',
             'countries': [ 'CN' ],
             'rateLimit': 100,
             'userAgent': this.userAgents['chrome100'],
