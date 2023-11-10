@@ -1104,8 +1104,8 @@ export default class p2b extends Exchange {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const request = {
-            'startTime': since / 1000,
-            'endTime': until / 1000,
+            'startTime': this.parseToInt (since / 1000),
+            'endTime': this.parseToInt (until / 1000),
         };
         if (market !== undefined) {
             request['market'] = market['id'];
