@@ -3840,7 +3840,7 @@ Some fields from the returned order structure may be `undefined / None / null` i
 "must be greater than minimum amount precision of 1"
 ```
 
-This error happens when the exchange is expecting the number of contracts in the `amount` argument of `createOrder`. The [market structure](#market-structure) has a key called `contractSize`. Each contract is worth a certain amount of the base asset that is determined by the `contractSize`. The number of contracts multiplied by the `contractSize` is equal to the base amount. `Base amount = (contracts * contractSize)`.
+This error happens when the exchange is expecting the number of contracts in the `amount` argument of `createOrder`. The [market structure](#market-structure) has a key called `contractSize`. Each contract is worth a certain amount of the base asset that is determined by the `contractSize`. The number of contracts multiplied by the `contractSize` is equal to the base amount. `Base amount = (contracts * contractSize)` so to derive the number of contracts you should enter in the `amount` argument you can solve for contracts: `contracts = (Base amount / contractSize)`.
 
 Here is an example of finding the `contractSize`:
 ```python
