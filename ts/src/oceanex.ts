@@ -7,6 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
 import { Int, OrderSide, OrderType } from './base/types.js';
+import { Precise } from '../ccxt.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -995,20 +996,27 @@ export default class oceanex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    subClassOnJsonResponse (responseBody) {
+        return responseBody.replaceAll ('"{', '{').replaceAll ('}"', '}').replaceAll ('\\"', '"');
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
+        //     {"code":-2,"message":"{\"error\":{\"code\":2002,\"message\":\"Failed to create order. #\\u003cAccount::AccountError: Cannot lock funds (amount: 0.1).\\u003e\"}}","data":{}} 
         //
         if (response === undefined) {
             return undefined;
         }
         let errorCode = this.safeString (response, 'code');
-        if (errorCode === undefined) {
-            const errorBlock = this.safeValue (response, 'error');
-            errorCode = this.safeString (errorBlock, 'errorCode');
-        }
-        const message = this.safeString (response, 'message');
+        let message = this.safeString (response, 'message');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
+            if (Precise.stringLt (errorCode, '0')) {
+                const messageBlock = this.safeValue (response, 'message');
+                const errorBlock = this.safeValue (messageBlock, 'error');
+                errorCode = this.safeString (errorBlock, 'code', errorCode);
+                message = this.safeString (errorBlock, 'message', message);
+            }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['codes'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);

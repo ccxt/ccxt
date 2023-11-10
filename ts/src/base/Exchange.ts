@@ -964,7 +964,8 @@ export default class Exchange {
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (this.onJsonResponse (jsonString))
+                const jsonResponse = this.onJsonResponse (jsonString)
+                return JSON.parse (jsonResponse)
             }
         } catch (e) {
             // SyntaxError
@@ -1024,8 +1025,18 @@ export default class Exchange {
         return responseBody.trim ()
     }
 
+    subClassOnJsonResponse (responseBody) {
+        /** 
+         * @ignore
+         * @method
+         * @description to be implemented by subclasses when special parsing is needed
+         */
+        return responseBody
+    }
+
     onJsonResponse (responseBody) {
-        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
+        const response = this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
+        return this.subClassOnJsonResponse (response);
     }
 
     async loadMarketsHelper (reload = false, params = {}) {
