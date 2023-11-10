@@ -55,6 +55,7 @@ export interface Market {
         leverage?: MinMax,
         price?: MinMax,
     };
+    created?: number | undefined;
     info: any;
 }
 
@@ -91,6 +92,9 @@ export interface Order {
     amount: number;
     filled: number;
     remaining: number;
+    stopPrice?: number;
+    takeProfitPrice?: number;
+    stopLossPrice?: number;
     cost: number;
     trades: Trade[];
     fee: Fee;
@@ -135,12 +139,20 @@ export interface Transaction {
     timestamp: number;
     datetime: string;
     address: string;
+    addressFrom: string
+    addressTo: string
+    tag: string,
+    tagFrom: string
+    tagTo: string
     type: 'deposit' | 'withdrawal' | string;
     amount: number;
     currency: string;
     status: 'pending' | 'ok' | string;
     updated: number;
     fee: Fee;
+    network: string,
+    comment?: string,
+    internal?: boolean
 }
 
 export interface Tickers extends Dictionary<Ticker> {
@@ -165,6 +177,8 @@ export interface PartialBalances extends Dictionary<number> {
 
 export interface Balances extends Dictionary<Balance> {
     info: any;
+    timestamp?: any; // we need to fix this later
+    datetime?: any;
 }
 
 export interface DepositAddress {
@@ -184,6 +198,85 @@ export interface DepositAddressResponse {
     address: string;
     info: any;
     tag?: string;
+}
+
+export interface Position {
+    symbol: string;
+    id: string;
+    timestamp?: number;
+    datetime: string;
+    contracts?: number;
+    contractSize?: number;
+    side: string;
+    notional?: number;
+    leverage?: number;
+    unrealizedPnl?: number;
+    realizedPnl?: number;
+    collateral?: number;
+    entryPrice?: number;
+    markPrice?: number;
+    liquidationPrice?: number;
+    hedged?: boolean;
+    maintenanceMargin?: number;
+    maintenanceMarginPercentage?: number;
+    initialMargin?: number;
+    initialMarginPercentage?: number;
+    marginMode: string;
+    marginRatio?: number;
+    lastUpdateTimestamp?: number;
+    lastPrice?: number;
+    percentage?: number;
+    stopLossPrice?: number;
+    takeProfitPrice?: number;
+    info: any;
+}
+
+export interface FundingRateHistory {
+    info: any;
+    symbol: string;
+    fundingRate: number;
+    timestamp?: number
+    datetime?: string;
+}
+
+export interface OpenInterest {
+    symbol: string;
+    openInterestAmount?: number;
+    openInterestValue?: number;
+    baseVolume?: number;
+    quoteVolume?: number;
+    timestamp?: number;
+    datetime?: string;
+    info: any;
+}
+
+export interface Liquidation {
+    info: any;
+    symbol: string;
+    timestamp?: number
+    datetime?: string;
+    price: number;
+    baseValue?: number;
+    quoteValue?: number;
+}
+
+export interface OrderRequest {
+    symbol: string;
+    type: string;
+    side: string;
+    amount?: number;
+    price?: number | undefined;
+    params?: any;
+}
+
+export interface FundingHistory {
+    info: any;
+    symbol: string;
+    code: string;
+    timestamp?: number
+    datetime?: string;
+    id: string;
+    amount: number;
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

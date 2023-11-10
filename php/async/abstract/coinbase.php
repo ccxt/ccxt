@@ -169,6 +169,12 @@ abstract class coinbase extends \ccxt\async\Exchange {
     public function v3_private_get_brokerage_transaction_summary($params = array()) {
         return $this->request('brokerage/transaction_summary', array('v3', 'private'), 'GET', $params, null, null, array());
     }
+    public function v3_private_get_brokerage_product_book($params = array()) {
+        return $this->request('brokerage/product_book', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3_private_get_brokerage_best_bid_ask($params = array()) {
+        return $this->request('brokerage/best_bid_ask', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
     public function v3_private_post_brokerage_orders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array());
     }
@@ -336,6 +342,12 @@ abstract class coinbase extends \ccxt\async\Exchange {
     }
     public function v3PrivateGetBrokerageTransactionSummary($params = array()) {
         return $this->request('brokerage/transaction_summary', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3PrivateGetBrokerageProductBook($params = array()) {
+        return $this->request('brokerage/product_book', array('v3', 'private'), 'GET', $params, null, null, array());
+    }
+    public function v3PrivateGetBrokerageBestBidAsk($params = array()) {
+        return $this->request('brokerage/best_bid_ask', array('v3', 'private'), 'GET', $params, null, null, array());
     }
     public function v3PrivatePostBrokerageOrders($params = array()) {
         return $this->request('brokerage/orders', array('v3', 'private'), 'POST', $params, null, null, array());

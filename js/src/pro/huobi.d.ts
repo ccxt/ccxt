@@ -24,6 +24,8 @@ export default class huobi extends huobiRest {
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseOrderTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handlePositions(client: any, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
@@ -31,7 +33,7 @@ export default class huobi extends huobiRest {
     handleSubject(client: Client, message: any): any;
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
-    handleAuthenticate(client: Client, message: any): any;
+    handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;

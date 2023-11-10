@@ -55,6 +55,8 @@ interface Exchange {
     v3PrivateGetBrokerageProductsProductIdCandles(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageProductsProductIdTicker(params?: {}): Promise<implicitReturnType>;
     v3PrivateGetBrokerageTransactionSummary(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageProductBook(params?: {}): Promise<implicitReturnType>;
+    v3PrivateGetBrokerageBestBidAsk(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrders(params?: {}): Promise<implicitReturnType>;
     v3PrivatePostBrokerageOrdersBatchCancel(params?: {}): Promise<implicitReturnType>;
 }

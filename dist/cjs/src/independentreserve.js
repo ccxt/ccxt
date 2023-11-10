@@ -7,6 +7,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class independentreserve
+ * @extends Exchange
+ */
 class independentreserve extends independentreserve$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -136,8 +140,8 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchMarkets
          * @description retrieves data on all markets for independentreserve
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[object]} an array of objects representing market data
+         * @param {object} [params] extra parameters specific to the exchange api endpoint
+         * @returns {object[]} an array of objects representing market data
          */
         const baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes(params);
         //     ['Xbt', 'Eth', 'Usdt', ...]
@@ -207,6 +211,7 @@ class independentreserve extends independentreserve$1 {
                             'max': undefined,
                         },
                     },
+                    'created': undefined,
                     'info': id,
                 });
             }
@@ -231,8 +236,8 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostGetAccounts(params);
@@ -244,9 +249,9 @@ class independentreserve extends independentreserve$1 {
          * @name independentreserve#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -311,8 +316,8 @@ class independentreserve extends independentreserve$1 {
          * @name independentreserve#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -455,9 +460,9 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const response = await this.privatePostGetOrderDetails(this.extend({
@@ -474,11 +479,11 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = this.ordered({});
@@ -502,11 +507,11 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = this.ordered({});
@@ -530,11 +535,11 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         await this.loadMarkets();
         const pageIndex = this.safeInteger(params, 'pageIndex', 1);
@@ -599,10 +604,10 @@ class independentreserve extends independentreserve$1 {
          * @name independentreserve#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -619,8 +624,8 @@ class independentreserve extends independentreserve$1 {
          * @method
          * @name independentreserve#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure} indexed by market symbols
          */
         await this.loadMarkets();
         const response = await this.privatePostGetBrokerageFees(params);
@@ -669,9 +674,9 @@ class independentreserve extends independentreserve$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -700,9 +705,9 @@ class independentreserve extends independentreserve$1 {
          * @name independentreserve#cancelOrder
          * @description cancels an open order
          * @param {string} id order id
-         * @param {string|undefined} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the independentreserve api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the independentreserve api endpoint
+         * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets();
         const request = {

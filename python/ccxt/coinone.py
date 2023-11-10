@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -30,6 +29,7 @@ class coinone(Exchange, ImplicitAPI):
             # 'enableRateLimit': False,
             'rateLimit': 667,
             'version': 'v2',
+            'pro': False,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -80,6 +80,7 @@ class coinone(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'ws': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -147,8 +148,8 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for coinone
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         request = {
             'currency': 'all',
@@ -233,11 +234,12 @@ class coinone(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': ticker,
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -255,23 +257,23 @@ class coinone(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         self.load_markets()
         response = self.privatePostAccountBalance(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -286,9 +288,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -307,14 +309,14 @@ class coinone(Exchange, ImplicitAPI):
             ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
             result[symbol]['timestamp'] = timestamp
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -325,7 +327,7 @@ class coinone(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "currency":"xec",
@@ -369,7 +371,7 @@ class coinone(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -437,14 +439,14 @@ class coinone(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -475,15 +477,15 @@ class coinone(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -509,11 +511,10 @@ class coinone(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -554,7 +555,7 @@ class coinone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -601,10 +602,16 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'baseCurrency')
         quoteId = self.safe_string(order, 'targetCurrency')
-        base = self.safe_currency_code(baseId, market['base'])
-        quote = self.safe_currency_code(quoteId, market['quote'])
-        symbol = base + '/' + quote
-        market = self.safe_market(symbol, market, '/')
+        base = None
+        quote = None
+        if baseId is not None:
+            base = self.safe_currency_code(baseId, self.safe_string(market, 'base'))
+        if quoteId is not None:
+            quote = self.safe_currency_code(quoteId, self.safe_string(market, 'quote'))
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
+            market = self.safe_market(symbol, market, '/')
         timestamp = self.safe_timestamp_2(order, 'timestamp', 'updatedAt')
         side = self.safe_string_2(order, 'type', 'side')
         if side == 'ask':
@@ -655,14 +662,14 @@ class coinone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         # The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
@@ -698,13 +705,12 @@ class coinone(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -739,8 +745,8 @@ class coinone(Exchange, ImplicitAPI):
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if symbol is None:
             # eslint-disable-next-line quotes
@@ -771,23 +777,23 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_deposit_addresses(self, codes=None, params={}):
         """
         fetch deposit addresses for multiple currencies and chain types
-        :param [str]|None codes: list of unified currency codes, default is None
-        :param dict params: extra parameters specific to the coinone api endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
+        :param str[]|None codes: list of unified currency codes, default is None
+        :param dict [params]: extra parameters specific to the coinone api endpoint
+        :returns dict: a list of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         self.load_markets()
         response = self.privatePostAccountDepositAddress(params)
         #
         #     {
-        #         result: 'success',
-        #         errorCode: '0',
-        #         walletAddress: {
-        #             matic: null,
-        #             btc: "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
-        #             xrp: null,
-        #             xrp_tag: '-1',
-        #             kava: null,
-        #             kava_memo: null,
+        #         "result": "success",
+        #         "errorCode": "0",
+        #         "walletAddress": {
+        #             "matic": null,
+        #             "btc": "mnobqu4i6qMCJWDpf5UimRmr8JCvZ8FLcN",
+        #             "xrp": null,
+        #             "xrp_tag": "-1",
+        #             "kava": null,
+        #             "kava_memo": null,
         #         }
         #     }
         #
@@ -840,7 +846,7 @@ class coinone(Exchange, ImplicitAPI):
             payload = self.string_to_base64(json)
             body = payload
             secret = self.secret.upper()
-            signature = self.hmac(payload, self.encode(secret), hashlib.sha512)
+            signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha512)
             headers = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

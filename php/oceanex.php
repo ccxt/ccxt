@@ -146,22 +146,23 @@ class oceanex extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for oceanex
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
+         * @see https://api.oceanex.pro/doc/v1/#$markets-post
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing $market data
          */
         $request = array( 'show_details' => true );
         $response = $this->publicGetMarkets (array_merge($request, $params));
         //
         //    array(
-        //        $id => 'xtzusdt',
-        //        $name => 'XTZ/USDT',
-        //        ask_precision => '8',
-        //        bid_precision => '8',
-        //        enabled => true,
-        //        price_precision => '4',
-        //        amount_precision => '3',
-        //        usd_precision => '4',
-        //        minimum_trading_amount => '1.0'
+        //        "id" => "xtzusdt",
+        //        "name" => "XTZ/USDT",
+        //        "ask_precision" => "8",
+        //        "bid_precision" => "8",
+        //        "enabled" => true,
+        //        "price_precision" => "4",
+        //        "amount_precision" => "3",
+        //        "usd_precision" => "4",
+        //        "minimum_trading_amount" => "1.0"
         //    ),
         //
         $result = array();
@@ -222,18 +223,20 @@ class oceanex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @see https://api.oceanex.pro/doc/v1/#ticker-post
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -265,9 +268,10 @@ class oceanex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @see https://api.oceanex.pro/doc/v1/#multiple-tickers-post
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -303,7 +307,7 @@ class oceanex extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
     public function parse_ticker($data, $market = null) {
@@ -347,13 +351,14 @@ class oceanex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://api.oceanex.pro/doc/v1/#order-book-post
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -391,10 +396,11 @@ class oceanex extends Exchange {
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data for multiple markets
-         * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
-         * @param {int|null} $limit max number of entries per $orderbook to return, default is null
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
+         * @see https://api.oceanex.pro/doc/v1/#multiple-order-books-post
+         * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+         * @param {int} [$limit] max number of entries per $orderbook to return, default is null
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market $symbol
          */
         $this->load_markets();
         if ($symbols === null) {
@@ -443,14 +449,15 @@ class oceanex extends Exchange {
         return $result;
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://api.oceanex.pro/doc/v1/#trades-post
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -483,7 +490,7 @@ class oceanex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -532,7 +539,8 @@ class oceanex extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
+         * @see https://api.oceanex.pro/doc/v1/#api-server-time-post
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
         $response = $this->publicGetTimestamp ($params);
@@ -545,8 +553,9 @@ class oceanex extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @see https://api.oceanex.pro/doc/v1/#trading-fees-post
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures} indexed by market symbols
          */
         $response = $this->publicGetFeesTrading ($params);
         $data = $this->safe_value($response, 'data', array());
@@ -573,7 +582,7 @@ class oceanex extends Exchange {
         return $this->safe_value($response, 'data');
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data');
         $balances = $this->safe_value($data, 'accounts', array());
         $result = array( 'info' => $response );
@@ -589,11 +598,12 @@ class oceanex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @see https://api.oceanex.pro/doc/v1/#account-info-post
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $response = $this->privateGetMembersMe ($params);
@@ -603,13 +613,14 @@ class oceanex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://api.oceanex.pro/doc/v1/#new-order-post
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -630,9 +641,10 @@ class oceanex extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {string|null} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @see https://api.oceanex.pro/doc/v1/#order-status-get
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = null;
@@ -657,14 +669,15 @@ class oceanex extends Exchange {
         return $this->parse_order($data[0], $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         * @see https://api.oceanex.pro/doc/v1/#order-status-get
          * @param {string} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $request = array(
             'states' => array( 'wait' ),
@@ -672,14 +685,15 @@ class oceanex extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         * @see https://api.oceanex.pro/doc/v1/#order-status-get
          * @param {string} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $request = array(
             'states' => array( 'done', 'cancel' ),
@@ -687,18 +701,17 @@ class oceanex extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
+         * @see https://api.oceanex.pro/doc/v1/#order-$status-with-filters-post
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('fetchOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $states = $this->safe_value($params, 'states', array( 'wait', 'done', 'cancel' ));
@@ -723,7 +736,7 @@ class oceanex extends Exchange {
         return $result;
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         // array(
         //    1559232000,
         //    8889.22,
@@ -742,15 +755,16 @@ class oceanex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://api.oceanex.pro/doc/v1/#k-line-post
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -769,7 +783,7 @@ class oceanex extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
         //         "created_at" => "2019-01-18T00:38:18Z",
@@ -834,26 +848,14 @@ class oceanex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_orders(string $symbol, $orders, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'orders' => $orders,
-        );
-        // $orders => [array("side":"buy", "volume":.2, "price":1001), array("side":"sell", "volume":0.2, "price":1002)]
-        $response = $this->privatePostOrdersMulti (array_merge($request, $params));
-        $data = $response['data'];
-        return $this->parse_orders($data);
-    }
-
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://api.oceanex.pro/doc/v1/#cancel-order-post
          * @param {string} $id order $id
-         * @param {string|null} $symbol not used by oceanex cancelOrder ()
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @param {string} $symbol not used by oceanex cancelOrder ()
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $response = $this->privatePostOrderDelete (array_merge(array( 'id' => $id ), $params));
@@ -864,10 +866,11 @@ class oceanex extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string|null} $symbol not used by oceanex cancelOrders ()
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @see https://api.oceanex.pro/doc/v1/#cancel-multiple-orders-post
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol not used by oceanex cancelOrders ()
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $response = $this->privatePostOrderDeleteMulti (array_merge(array( 'ids' => $ids ), $params));
@@ -878,9 +881,10 @@ class oceanex extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the oceanex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @see https://api.oceanex.pro/doc/v1/#cancel-all-orders-post
+         * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the oceanex api endpoint
+         * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $response = $this->privatePostOrdersClear ($params);

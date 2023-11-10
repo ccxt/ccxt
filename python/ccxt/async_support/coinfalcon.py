@@ -6,12 +6,10 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinfalcon import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -141,8 +139,8 @@ class coinfalcon(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for coinfalcon
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetMarkets(params)
         #
@@ -218,11 +216,12 @@ class coinfalcon(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "name":"ETH-BTC",
@@ -265,12 +264,12 @@ class coinfalcon(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         tickers = await self.fetch_tickers([symbol], params)
@@ -279,9 +278,9 @@ class coinfalcon(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -311,15 +310,15 @@ class coinfalcon(Exchange, ImplicitAPI):
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -331,7 +330,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -393,13 +392,12 @@ class coinfalcon(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -431,14 +429,14 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -467,17 +465,17 @@ class coinfalcon(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
         await self.load_markets()
         response = await self.privateGetUserFees(params)
         #
         #    {
-        #        data: {
-        #            maker_fee: '0.0',
-        #            taker_fee: '0.2',
-        #            btc_volume_30d: '0.0'
+        #        "data": {
+        #            "maker_fee": "0.0",
+        #            "taker_fee": "0.2",
+        #            "btc_volume_30d": "0.0"
         #        }
         #    }
         #
@@ -499,7 +497,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -513,11 +511,11 @@ class coinfalcon(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetUserAccounts(params)
@@ -545,8 +543,8 @@ class coinfalcon(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         await self.load_markets()
         currency = self.safe_currency(code)
@@ -556,9 +554,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         response = await self.privateGetAccountDepositAddress(self.extend(request, params))
         #
         #     {
-        #         data: {
-        #             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-        #             tag:null
+        #         "data": {
+        #             "address": "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+        #             "tag":null
         #         }
         #     }
         #
@@ -575,7 +573,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -638,9 +636,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -662,9 +660,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -678,9 +676,9 @@ class coinfalcon(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -690,14 +688,14 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -713,14 +711,14 @@ class coinfalcon(Exchange, ImplicitAPI):
         orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'], False)
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -738,16 +736,16 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['since_time'] = self.iso8601(since)
         response = await self.privateGetAccountDeposits(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        #             amount: '0.1',
-        #             status: 'completed',
-        #             currency_code: 'eth',
-        #             txid: '0xxxx',
-        #             address: '0xxxx',
-        #             tag: null,
-        #             type: 'deposit'
+        #             "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        #             "amount": "0.1",
+        #             "status": "completed",
+        #             "currency_code": "eth",
+        #             "txid": "0xxxx",
+        #             "address": "0xxxx",
+        #             "tag": null,
+        #             "type": "deposit"
         #         },
         #     ]
         #
@@ -755,14 +753,14 @@ class coinfalcon(Exchange, ImplicitAPI):
         transactions.reverse()  # no timestamp but in reversed order
         return self.parse_transactions(transactions, currency, None, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         await self.load_markets()
         request = {
@@ -780,17 +778,17 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['since_time'] = self.iso8601(since)
         response = await self.privateGetAccountWithdrawals(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '25f6f144-3666-xxx-xxx-xxx',
-        #             amount: '0.01',
-        #             status: 'completed',
-        #             fee: '0.0005',
-        #             currency_code: 'btc',
-        #             txid: '4xxx',
-        #             address: 'bc1xxx',
-        #             tag: null,
-        #             type: 'withdraw'
+        #             "id": "25f6f144-3666-xxx-xxx-xxx",
+        #             "amount": "0.01",
+        #             "status": "completed",
+        #             "fee": "0.0005",
+        #             "currency_code": "btc",
+        #             "txid": "4xxx",
+        #             "address": "bc1xxx",
+        #             "tag": null,
+        #             "type": "withdraw"
         #         },
         #     ]
         #
@@ -804,9 +802,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the coinfalcon api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the coinfalcon api endpoint
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -822,17 +820,17 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['tag'] = tag
         response = await self.privatePostAccountWithdraw(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '25f6f144-3666-xxx-xxx-xxx',
-        #             amount: '0.01',
-        #             status: 'approval_pending',
-        #             fee: '0.0005',
-        #             currency_code: 'btc',
-        #             txid: null,
-        #             address: 'bc1xxx',
-        #             tag: null,
-        #             type: 'withdraw'
+        #             "id": "25f6f144-3666-xxx-xxx-xxx",
+        #             "amount": "0.01",
+        #             "status": "approval_pending",
+        #             "fee": "0.0005",
+        #             "currency_code": "btc",
+        #             "txid": null,
+        #             "address": "bc1xxx",
+        #             "tag": null,
+        #             "type": "withdraw"
         #         },
         #     ]
         #
@@ -847,33 +845,33 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals, withdraw
         #
         #     {
-        #         id: '25f6f144-3666-xxx-xxx-xxx',
-        #         amount: '0.01',
-        #         status: 'completed',
-        #         fee: '0.0005',
-        #         currency_code: 'btc',
-        #         txid: '4xxx',
-        #         address: 'bc1xxx',
-        #         tag: null,
-        #         type: 'withdraw'
+        #         "id": "25f6f144-3666-xxx-xxx-xxx",
+        #         "amount": "0.01",
+        #         "status": "completed",
+        #         "fee": "0.0005",
+        #         "currency_code": "btc",
+        #         "txid": "4xxx",
+        #         "address": "bc1xxx",
+        #         "tag": null,
+        #         "type": "withdraw"
         #     },
         #
         # fetchDeposits
         #
         #     {
-        #         id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        #         amount: '0.1',
-        #         status: 'completed',
-        #         currency_code: 'eth',
-        #         txid: '0xxxx',
-        #         address: '0xxxx',
-        #         tag: null,
-        #         type: 'deposit'
+        #         "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        #         "amount": "0.1",
+        #         "status": "completed",
+        #         "currency_code": "eth",
+        #         "txid": "0xxxx",
+        #         "address": "0xxxx",
+        #         "tag": null,
+        #         "type": "deposit"
         #     },
         #
         id = self.safe_string(transaction, 'id')
@@ -889,9 +887,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         amountString = self.safe_string(transaction, 'amount')
         amount = self.parse_number(amountString)
         feeCostString = self.safe_string(transaction, 'fee')
-        feeCost = 0
+        feeCost = '0'
         if feeCostString is not None:
-            feeCost = self.parse_number(feeCostString)
+            feeCost = feeCostString
         return {
             'info': transaction,
             'id': id,
@@ -912,7 +910,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             'updated': None,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
             },
         }
 

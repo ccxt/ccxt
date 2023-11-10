@@ -9,9 +9,16 @@ export default class kucoinfutures extends kucoinfuturesRest {
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
+    watchPosition(symbol?: string, params?: {}): Promise<any>;
+    getCurrentPosition(symbol: any): any;
+    setPositionCache(client: Client, symbol: string): void;
+    loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
+    handlePosition(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<any>;
     handleDelta(orderbook: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -33,6 +40,6 @@ export default class kucoinfutures extends kucoinfuturesRest {
         type: string;
     };
     handlePong(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): void;
     handleMessage(client: Client, message: any): any;
 }

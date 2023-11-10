@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
@@ -23,10 +24,12 @@ class bitmex(ccxt.async_support.bitmex):
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
             },
             'urls': {
                 'test': {
@@ -59,8 +62,8 @@ class bitmex(ccxt.async_support.bitmex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -78,226 +81,226 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         table: 'instrument',
-        #         action: 'partial',
-        #         keys: ['symbol'],
-        #         types: {
-        #             symbol: 'symbol',
-        #             rootSymbol: 'symbol',
-        #             state: 'symbol',
-        #             typ: 'symbol',
-        #             listing: 'timestamp',
-        #             front: 'timestamp',
-        #             expiry: 'timestamp',
-        #             settle: 'timestamp',
-        #             relistInterval: 'timespan',
-        #             inverseLeg: 'symbol',
-        #             sellLeg: 'symbol',
-        #             buyLeg: 'symbol',
-        #             optionStrikePcnt: 'float',
-        #             optionStrikeRound: 'float',
-        #             optionStrikePrice: 'float',
-        #             optionMultiplier: 'float',
-        #             positionCurrency: 'symbol',
-        #             underlying: 'symbol',
-        #             quoteCurrency: 'symbol',
-        #             underlyingSymbol: 'symbol',
-        #             reference: 'symbol',
-        #             referenceSymbol: 'symbol',
-        #             calcInterval: 'timespan',
-        #             publishInterval: 'timespan',
-        #             publishTime: 'timespan',
-        #             maxOrderQty: 'long',
-        #             maxPrice: 'float',
-        #             lotSize: 'long',
-        #             tickSize: 'float',
-        #             multiplier: 'long',
-        #             settlCurrency: 'symbol',
-        #             underlyingToPositionMultiplier: 'long',
-        #             underlyingToSettleMultiplier: 'long',
-        #             quoteToSettleMultiplier: 'long',
-        #             isQuanto: 'boolean',
-        #             isInverse: 'boolean',
-        #             initMargin: 'float',
-        #             maintMargin: 'float',
-        #             riskLimit: 'long',
-        #             riskStep: 'long',
-        #             limit: 'float',
-        #             capped: 'boolean',
-        #             taxed: 'boolean',
-        #             deleverage: 'boolean',
-        #             makerFee: 'float',
-        #             takerFee: 'float',
-        #             settlementFee: 'float',
-        #             insuranceFee: 'float',
-        #             fundingBaseSymbol: 'symbol',
-        #             fundingQuoteSymbol: 'symbol',
-        #             fundingPremiumSymbol: 'symbol',
-        #             fundingTimestamp: 'timestamp',
-        #             fundingInterval: 'timespan',
-        #             fundingRate: 'float',
-        #             indicativeFundingRate: 'float',
-        #             rebalanceTimestamp: 'timestamp',
-        #             rebalanceInterval: 'timespan',
-        #             openingTimestamp: 'timestamp',
-        #             closingTimestamp: 'timestamp',
-        #             sessionInterval: 'timespan',
-        #             prevClosePrice: 'float',
-        #             limitDownPrice: 'float',
-        #             limitUpPrice: 'float',
-        #             bankruptLimitDownPrice: 'float',
-        #             bankruptLimitUpPrice: 'float',
-        #             prevTotalVolume: 'long',
-        #             totalVolume: 'long',
-        #             volume: 'long',
-        #             volume24h: 'long',
-        #             prevTotalTurnover: 'long',
-        #             totalTurnover: 'long',
-        #             turnover: 'long',
-        #             turnover24h: 'long',
-        #             homeNotional24h: 'float',
-        #             foreignNotional24h: 'float',
-        #             prevPrice24h: 'float',
-        #             vwap: 'float',
-        #             highPrice: 'float',
-        #             lowPrice: 'float',
-        #             lastPrice: 'float',
-        #             lastPriceProtected: 'float',
-        #             lastTickDirection: 'symbol',
-        #             lastChangePcnt: 'float',
-        #             bidPrice: 'float',
-        #             midPrice: 'float',
-        #             askPrice: 'float',
-        #             impactBidPrice: 'float',
-        #             impactMidPrice: 'float',
-        #             impactAskPrice: 'float',
-        #             hasLiquidity: 'boolean',
-        #             openInterest: 'long',
-        #             openValue: 'long',
-        #             fairMethod: 'symbol',
-        #             fairBasisRate: 'float',
-        #             fairBasis: 'float',
-        #             fairPrice: 'float',
-        #             markMethod: 'symbol',
-        #             markPrice: 'float',
-        #             indicativeTaxRate: 'float',
-        #             indicativeSettlePrice: 'float',
-        #             optionUnderlyingPrice: 'float',
-        #             settledPrice: 'float',
-        #             timestamp: 'timestamp'
+        #         "table": "instrument",
+        #         "action": "partial",
+        #         "keys": ["symbol"],
+        #         "types": {
+        #             "symbol": "symbol",
+        #             "rootSymbol": "symbol",
+        #             "state": "symbol",
+        #             "typ": "symbol",
+        #             "listing": "timestamp",
+        #             "front": "timestamp",
+        #             "expiry": "timestamp",
+        #             "settle": "timestamp",
+        #             "relistInterval": "timespan",
+        #             "inverseLeg": "symbol",
+        #             "sellLeg": "symbol",
+        #             "buyLeg": "symbol",
+        #             "optionStrikePcnt": "float",
+        #             "optionStrikeRound": "float",
+        #             "optionStrikePrice": "float",
+        #             "optionMultiplier": "float",
+        #             "positionCurrency": "symbol",
+        #             "underlying": "symbol",
+        #             "quoteCurrency": "symbol",
+        #             "underlyingSymbol": "symbol",
+        #             "reference": "symbol",
+        #             "referenceSymbol": "symbol",
+        #             "calcInterval": "timespan",
+        #             "publishInterval": "timespan",
+        #             "publishTime": "timespan",
+        #             "maxOrderQty": "long",
+        #             "maxPrice": "float",
+        #             "lotSize": "long",
+        #             "tickSize": "float",
+        #             "multiplier": "long",
+        #             "settlCurrency": "symbol",
+        #             "underlyingToPositionMultiplier": "long",
+        #             "underlyingToSettleMultiplier": "long",
+        #             "quoteToSettleMultiplier": "long",
+        #             "isQuanto": "boolean",
+        #             "isInverse": "boolean",
+        #             "initMargin": "float",
+        #             "maintMargin": "float",
+        #             "riskLimit": "long",
+        #             "riskStep": "long",
+        #             "limit": "float",
+        #             "capped": "boolean",
+        #             "taxed": "boolean",
+        #             "deleverage": "boolean",
+        #             "makerFee": "float",
+        #             "takerFee": "float",
+        #             "settlementFee": "float",
+        #             "insuranceFee": "float",
+        #             "fundingBaseSymbol": "symbol",
+        #             "fundingQuoteSymbol": "symbol",
+        #             "fundingPremiumSymbol": "symbol",
+        #             "fundingTimestamp": "timestamp",
+        #             "fundingInterval": "timespan",
+        #             "fundingRate": "float",
+        #             "indicativeFundingRate": "float",
+        #             "rebalanceTimestamp": "timestamp",
+        #             "rebalanceInterval": "timespan",
+        #             "openingTimestamp": "timestamp",
+        #             "closingTimestamp": "timestamp",
+        #             "sessionInterval": "timespan",
+        #             "prevClosePrice": "float",
+        #             "limitDownPrice": "float",
+        #             "limitUpPrice": "float",
+        #             "bankruptLimitDownPrice": "float",
+        #             "bankruptLimitUpPrice": "float",
+        #             "prevTotalVolume": "long",
+        #             "totalVolume": "long",
+        #             "volume": "long",
+        #             "volume24h": "long",
+        #             "prevTotalTurnover": "long",
+        #             "totalTurnover": "long",
+        #             "turnover": "long",
+        #             "turnover24h": "long",
+        #             "homeNotional24h": "float",
+        #             "foreignNotional24h": "float",
+        #             "prevPrice24h": "float",
+        #             "vwap": "float",
+        #             "highPrice": "float",
+        #             "lowPrice": "float",
+        #             "lastPrice": "float",
+        #             "lastPriceProtected": "float",
+        #             "lastTickDirection": "symbol",
+        #             "lastChangePcnt": "float",
+        #             "bidPrice": "float",
+        #             "midPrice": "float",
+        #             "askPrice": "float",
+        #             "impactBidPrice": "float",
+        #             "impactMidPrice": "float",
+        #             "impactAskPrice": "float",
+        #             "hasLiquidity": "boolean",
+        #             "openInterest": "long",
+        #             "openValue": "long",
+        #             "fairMethod": "symbol",
+        #             "fairBasisRate": "float",
+        #             "fairBasis": "float",
+        #             "fairPrice": "float",
+        #             "markMethod": "symbol",
+        #             "markPrice": "float",
+        #             "indicativeTaxRate": "float",
+        #             "indicativeSettlePrice": "float",
+        #             "optionUnderlyingPrice": "float",
+        #             "settledPrice": "float",
+        #             "timestamp": "timestamp"
         #         },
-        #         foreignKeys: {
-        #             inverseLeg: 'instrument',
-        #             sellLeg: 'instrument',
-        #             buyLeg: 'instrument'
+        #         "foreignKeys": {
+        #             "inverseLeg": "instrument",
+        #             "sellLeg": "instrument",
+        #             "buyLeg": "instrument"
         #         },
-        #         attributes: {symbol: 'unique'},
-        #         filter: {symbol: 'XBTUSD'},
-        #         data: [
+        #         "attributes": {symbol: "unique"},
+        #         "filter": {symbol: "XBTUSD"},
+        #         "data": [
         #             {
-        #                 symbol: 'XBTUSD',
-        #                 rootSymbol: 'XBT',
-        #                 state: 'Open',
-        #                 typ: 'FFWCSX',
-        #                 listing: '2016-05-13T12:00:00.000Z',
-        #                 front: '2016-05-13T12:00:00.000Z',
-        #                 expiry: null,
-        #                 settle: null,
-        #                 relistInterval: null,
-        #                 inverseLeg: '',
-        #                 sellLeg: '',
-        #                 buyLeg: '',
-        #                 optionStrikePcnt: null,
-        #                 optionStrikeRound: null,
-        #                 optionStrikePrice: null,
-        #                 optionMultiplier: null,
-        #                 positionCurrency: 'USD',
-        #                 underlying: 'XBT',
-        #                 quoteCurrency: 'USD',
-        #                 underlyingSymbol: 'XBT=',
-        #                 reference: 'BMEX',
-        #                 referenceSymbol: '.BXBT',
-        #                 calcInterval: null,
-        #                 publishInterval: null,
-        #                 publishTime: null,
-        #                 maxOrderQty: 10000000,
-        #                 maxPrice: 1000000,
-        #                 lotSize: 1,
-        #                 tickSize: 0.5,
-        #                 multiplier: -100000000,
-        #                 settlCurrency: 'XBt',
-        #                 underlyingToPositionMultiplier: null,
-        #                 underlyingToSettleMultiplier: -100000000,
-        #                 quoteToSettleMultiplier: null,
-        #                 isQuanto: False,
-        #                 isInverse: True,
-        #                 initMargin: 0.01,
-        #                 maintMargin: 0.005,
-        #                 riskLimit: 20000000000,
-        #                 riskStep: 10000000000,
-        #                 limit: null,
-        #                 capped: False,
-        #                 taxed: True,
-        #                 deleverage: True,
-        #                 makerFee: -0.00025,
-        #                 takerFee: 0.00075,
-        #                 settlementFee: 0,
-        #                 insuranceFee: 0,
-        #                 fundingBaseSymbol: '.XBTBON8H',
-        #                 fundingQuoteSymbol: '.USDBON8H',
-        #                 fundingPremiumSymbol: '.XBTUSDPI8H',
-        #                 fundingTimestamp: '2020-01-29T12:00:00.000Z',
-        #                 fundingInterval: '2000-01-01T08:00:00.000Z',
-        #                 fundingRate: 0.000597,
-        #                 indicativeFundingRate: 0.000652,
-        #                 rebalanceTimestamp: null,
-        #                 rebalanceInterval: null,
-        #                 openingTimestamp: '2020-01-29T11:00:00.000Z',
-        #                 closingTimestamp: '2020-01-29T12:00:00.000Z',
-        #                 sessionInterval: '2000-01-01T01:00:00.000Z',
-        #                 prevClosePrice: 9063.96,
-        #                 limitDownPrice: null,
-        #                 limitUpPrice: null,
-        #                 bankruptLimitDownPrice: null,
-        #                 bankruptLimitUpPrice: null,
-        #                 prevTotalVolume: 1989881049026,
-        #                 totalVolume: 1990196740950,
-        #                 volume: 315691924,
-        #                 volume24h: 4491824765,
-        #                 prevTotalTurnover: 27865497128425564,
-        #                 totalTurnover: 27868891594857150,
-        #                 turnover: 3394466431587,
-        #                 turnover24h: 48863390064843,
-        #                 homeNotional24h: 488633.9006484273,
-        #                 foreignNotional24h: 4491824765,
-        #                 prevPrice24h: 9091,
-        #                 vwap: 9192.8663,
-        #                 highPrice: 9440,
-        #                 lowPrice: 8886,
-        #                 lastPrice: 9287,
-        #                 lastPriceProtected: 9287,
-        #                 lastTickDirection: 'PlusTick',
-        #                 lastChangePcnt: 0.0216,
-        #                 bidPrice: 9286,
-        #                 midPrice: 9286.25,
-        #                 askPrice: 9286.5,
-        #                 impactBidPrice: 9285.9133,
-        #                 impactMidPrice: 9286.75,
-        #                 impactAskPrice: 9287.6382,
-        #                 hasLiquidity: True,
-        #                 openInterest: 967826984,
-        #                 openValue: 10432207060536,
-        #                 fairMethod: 'FundingRate',
-        #                 fairBasisRate: 0.6537149999999999,
-        #                 fairBasis: 0.33,
-        #                 fairPrice: 9277.2,
-        #                 markMethod: 'FairPrice',
-        #                 markPrice: 9277.2,
-        #                 indicativeTaxRate: 0,
-        #                 indicativeSettlePrice: 9276.87,
-        #                 optionUnderlyingPrice: null,
-        #                 settledPrice: null,
-        #                 timestamp: '2020-01-29T11:31:37.114Z'
+        #                 "symbol": "XBTUSD",
+        #                 "rootSymbol": "XBT",
+        #                 "state": "Open",
+        #                 "typ": "FFWCSX",
+        #                 "listing": "2016-05-13T12:00:00.000Z",
+        #                 "front": "2016-05-13T12:00:00.000Z",
+        #                 "expiry": null,
+        #                 "settle": null,
+        #                 "relistInterval": null,
+        #                 "inverseLeg": '',
+        #                 "sellLeg": '',
+        #                 "buyLeg": '',
+        #                 "optionStrikePcnt": null,
+        #                 "optionStrikeRound": null,
+        #                 "optionStrikePrice": null,
+        #                 "optionMultiplier": null,
+        #                 "positionCurrency": "USD",
+        #                 "underlying": "XBT",
+        #                 "quoteCurrency": "USD",
+        #                 "underlyingSymbol": "XBT=",
+        #                 "reference": "BMEX",
+        #                 "referenceSymbol": ".BXBT",
+        #                 "calcInterval": null,
+        #                 "publishInterval": null,
+        #                 "publishTime": null,
+        #                 "maxOrderQty": 10000000,
+        #                 "maxPrice": 1000000,
+        #                 "lotSize": 1,
+        #                 "tickSize": 0.5,
+        #                 "multiplier": -100000000,
+        #                 "settlCurrency": "XBt",
+        #                 "underlyingToPositionMultiplier": null,
+        #                 "underlyingToSettleMultiplier": -100000000,
+        #                 "quoteToSettleMultiplier": null,
+        #                 "isQuanto": False,
+        #                 "isInverse": True,
+        #                 "initMargin": 0.01,
+        #                 "maintMargin": 0.005,
+        #                 "riskLimit": 20000000000,
+        #                 "riskStep": 10000000000,
+        #                 "limit": null,
+        #                 "capped": False,
+        #                 "taxed": True,
+        #                 "deleverage": True,
+        #                 "makerFee": -0.00025,
+        #                 "takerFee": 0.00075,
+        #                 "settlementFee": 0,
+        #                 "insuranceFee": 0,
+        #                 "fundingBaseSymbol": ".XBTBON8H",
+        #                 "fundingQuoteSymbol": ".USDBON8H",
+        #                 "fundingPremiumSymbol": ".XBTUSDPI8H",
+        #                 "fundingTimestamp": "2020-01-29T12:00:00.000Z",
+        #                 "fundingInterval": "2000-01-01T08:00:00.000Z",
+        #                 "fundingRate": 0.000597,
+        #                 "indicativeFundingRate": 0.000652,
+        #                 "rebalanceTimestamp": null,
+        #                 "rebalanceInterval": null,
+        #                 "openingTimestamp": "2020-01-29T11:00:00.000Z",
+        #                 "closingTimestamp": "2020-01-29T12:00:00.000Z",
+        #                 "sessionInterval": "2000-01-01T01:00:00.000Z",
+        #                 "prevClosePrice": 9063.96,
+        #                 "limitDownPrice": null,
+        #                 "limitUpPrice": null,
+        #                 "bankruptLimitDownPrice": null,
+        #                 "bankruptLimitUpPrice": null,
+        #                 "prevTotalVolume": 1989881049026,
+        #                 "totalVolume": 1990196740950,
+        #                 "volume": 315691924,
+        #                 "volume24h": 4491824765,
+        #                 "prevTotalTurnover": 27865497128425564,
+        #                 "totalTurnover": 27868891594857150,
+        #                 "turnover": 3394466431587,
+        #                 "turnover24h": 48863390064843,
+        #                 "homeNotional24h": 488633.9006484273,
+        #                 "foreignNotional24h": 4491824765,
+        #                 "prevPrice24h": 9091,
+        #                 "vwap": 9192.8663,
+        #                 "highPrice": 9440,
+        #                 "lowPrice": 8886,
+        #                 "lastPrice": 9287,
+        #                 "lastPriceProtected": 9287,
+        #                 "lastTickDirection": "PlusTick",
+        #                 "lastChangePcnt": 0.0216,
+        #                 "bidPrice": 9286,
+        #                 "midPrice": 9286.25,
+        #                 "askPrice": 9286.5,
+        #                 "impactBidPrice": 9285.9133,
+        #                 "impactMidPrice": 9286.75,
+        #                 "impactAskPrice": 9287.6382,
+        #                 "hasLiquidity": True,
+        #                 "openInterest": 967826984,
+        #                 "openValue": 10432207060536,
+        #                 "fairMethod": "FundingRate",
+        #                 "fairBasisRate": 0.6537149999999999,
+        #                 "fairBasis": 0.33,
+        #                 "fairPrice": 9277.2,
+        #                 "markMethod": "FairPrice",
+        #                 "markPrice": 9277.2,
+        #                 "indicativeTaxRate": 0,
+        #                 "indicativeSettlePrice": 9276.87,
+        #                 "optionUnderlyingPrice": null,
+        #                 "settledPrice": null,
+        #                 "timestamp": "2020-01-29T11:31:37.114Z"
         #             }
         #         ]
         #     }
@@ -319,9 +322,9 @@ class bitmex(ccxt.async_support.bitmex):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -338,98 +341,98 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_balance(self, client: Client, message):
         #
         #     {
-        #         table: 'margin',
-        #         action: 'partial',
-        #         keys: ['account'],
-        #         types: {
-        #             account: 'long',
-        #             currency: 'symbol',
-        #             riskLimit: 'long',
-        #             prevState: 'symbol',
-        #             state: 'symbol',
-        #             action: 'symbol',
-        #             amount: 'long',
-        #             pendingCredit: 'long',
-        #             pendingDebit: 'long',
-        #             confirmedDebit: 'long',
-        #             prevRealisedPnl: 'long',
-        #             prevUnrealisedPnl: 'long',
-        #             grossComm: 'long',
-        #             grossOpenCost: 'long',
-        #             grossOpenPremium: 'long',
-        #             grossExecCost: 'long',
-        #             grossMarkValue: 'long',
-        #             riskValue: 'long',
-        #             taxableMargin: 'long',
-        #             initMargin: 'long',
-        #             maintMargin: 'long',
-        #             sessionMargin: 'long',
-        #             targetExcessMargin: 'long',
-        #             varMargin: 'long',
-        #             realisedPnl: 'long',
-        #             unrealisedPnl: 'long',
-        #             indicativeTax: 'long',
-        #             unrealisedProfit: 'long',
-        #             syntheticMargin: 'long',
-        #             walletBalance: 'long',
-        #             marginBalance: 'long',
-        #             marginBalancePcnt: 'float',
-        #             marginLeverage: 'float',
-        #             marginUsedPcnt: 'float',
-        #             excessMargin: 'long',
-        #             excessMarginPcnt: 'float',
-        #             availableMargin: 'long',
-        #             withdrawableMargin: 'long',
-        #             timestamp: 'timestamp',
-        #             grossLastValue: 'long',
-        #             commission: 'float'
+        #         "table": "margin",
+        #         "action": "partial",
+        #         "keys": ["account"],
+        #         "types": {
+        #             "account": "long",
+        #             "currency": "symbol",
+        #             "riskLimit": "long",
+        #             "prevState": "symbol",
+        #             "state": "symbol",
+        #             "action": "symbol",
+        #             "amount": "long",
+        #             "pendingCredit": "long",
+        #             "pendingDebit": "long",
+        #             "confirmedDebit": "long",
+        #             "prevRealisedPnl": "long",
+        #             "prevUnrealisedPnl": "long",
+        #             "grossComm": "long",
+        #             "grossOpenCost": "long",
+        #             "grossOpenPremium": "long",
+        #             "grossExecCost": "long",
+        #             "grossMarkValue": "long",
+        #             "riskValue": "long",
+        #             "taxableMargin": "long",
+        #             "initMargin": "long",
+        #             "maintMargin": "long",
+        #             "sessionMargin": "long",
+        #             "targetExcessMargin": "long",
+        #             "varMargin": "long",
+        #             "realisedPnl": "long",
+        #             "unrealisedPnl": "long",
+        #             "indicativeTax": "long",
+        #             "unrealisedProfit": "long",
+        #             "syntheticMargin": "long",
+        #             "walletBalance": "long",
+        #             "marginBalance": "long",
+        #             "marginBalancePcnt": "float",
+        #             "marginLeverage": "float",
+        #             "marginUsedPcnt": "float",
+        #             "excessMargin": "long",
+        #             "excessMarginPcnt": "float",
+        #             "availableMargin": "long",
+        #             "withdrawableMargin": "long",
+        #             "timestamp": "timestamp",
+        #             "grossLastValue": "long",
+        #             "commission": "float"
         #         },
-        #         foreignKeys: {},
-        #         attributes: {account: 'sorted'},
-        #         filter: {account: 1455728},
-        #         data: [
+        #         "foreignKeys": {},
+        #         "attributes": {account: "sorted"},
+        #         "filter": {account: 1455728},
+        #         "data": [
         #             {
-        #                 account: 1455728,
-        #                 currency: 'XBt',
-        #                 riskLimit: 1000000000000,
-        #                 prevState: '',
-        #                 state: '',
-        #                 action: '',
-        #                 amount: 263542,
-        #                 pendingCredit: 0,
-        #                 pendingDebit: 0,
-        #                 confirmedDebit: 0,
-        #                 prevRealisedPnl: 0,
-        #                 prevUnrealisedPnl: 0,
-        #                 grossComm: 0,
-        #                 grossOpenCost: 0,
-        #                 grossOpenPremium: 0,
-        #                 grossExecCost: 0,
-        #                 grossMarkValue: 0,
-        #                 riskValue: 0,
-        #                 taxableMargin: 0,
-        #                 initMargin: 0,
-        #                 maintMargin: 0,
-        #                 sessionMargin: 0,
-        #                 targetExcessMargin: 0,
-        #                 varMargin: 0,
-        #                 realisedPnl: 0,
-        #                 unrealisedPnl: 0,
-        #                 indicativeTax: 0,
-        #                 unrealisedProfit: 0,
-        #                 syntheticMargin: null,
-        #                 walletBalance: 263542,
-        #                 marginBalance: 263542,
-        #                 marginBalancePcnt: 1,
-        #                 marginLeverage: 0,
-        #                 marginUsedPcnt: 0,
-        #                 excessMargin: 263542,
-        #                 excessMarginPcnt: 1,
-        #                 availableMargin: 263542,
-        #                 withdrawableMargin: 263542,
-        #                 timestamp: '2020-08-03T12:01:01.246Z',
-        #                 grossLastValue: 0,
-        #                 commission: null
+        #                 "account": 1455728,
+        #                 "currency": "XBt",
+        #                 "riskLimit": 1000000000000,
+        #                 "prevState": '',
+        #                 "state": '',
+        #                 "action": '',
+        #                 "amount": 263542,
+        #                 "pendingCredit": 0,
+        #                 "pendingDebit": 0,
+        #                 "confirmedDebit": 0,
+        #                 "prevRealisedPnl": 0,
+        #                 "prevUnrealisedPnl": 0,
+        #                 "grossComm": 0,
+        #                 "grossOpenCost": 0,
+        #                 "grossOpenPremium": 0,
+        #                 "grossExecCost": 0,
+        #                 "grossMarkValue": 0,
+        #                 "riskValue": 0,
+        #                 "taxableMargin": 0,
+        #                 "initMargin": 0,
+        #                 "maintMargin": 0,
+        #                 "sessionMargin": 0,
+        #                 "targetExcessMargin": 0,
+        #                 "varMargin": 0,
+        #                 "realisedPnl": 0,
+        #                 "unrealisedPnl": 0,
+        #                 "indicativeTax": 0,
+        #                 "unrealisedProfit": 0,
+        #                 "syntheticMargin": null,
+        #                 "walletBalance": 263542,
+        #                 "marginBalance": 263542,
+        #                 "marginBalancePcnt": 1,
+        #                 "marginLeverage": 0,
+        #                 "marginUsedPcnt": 0,
+        #                 "excessMargin": 263542,
+        #                 "excessMarginPcnt": 1,
+        #                 "availableMargin": 263542,
+        #                 "withdrawableMargin": 263542,
+        #                 "timestamp": "2020-08-03T12:01:01.246Z",
+        #                 "grossLastValue": 0,
+        #                 "commission": null
         #             }
         #         ]
         #     }
@@ -445,36 +448,36 @@ class bitmex(ccxt.async_support.bitmex):
         # initial snapshot
         #
         #     {
-        #         table: 'trade',
-        #         action: 'partial',
-        #         keys: [],
-        #         types: {
-        #             timestamp: 'timestamp',
-        #             symbol: 'symbol',
-        #             side: 'symbol',
-        #             size: 'long',
-        #             price: 'float',
-        #             tickDirection: 'symbol',
-        #             trdMatchID: 'guid',
-        #             grossValue: 'long',
-        #             homeNotional: 'float',
-        #             foreignNotional: 'float'
+        #         "table": "trade",
+        #         "action": "partial",
+        #         "keys": [],
+        #         "types": {
+        #             "timestamp": "timestamp",
+        #             "symbol": "symbol",
+        #             "side": "symbol",
+        #             "size": "long",
+        #             "price": "float",
+        #             "tickDirection": "symbol",
+        #             "trdMatchID": "guid",
+        #             "grossValue": "long",
+        #             "homeNotional": "float",
+        #             "foreignNotional": "float"
         #         },
-        #         foreignKeys: {symbol: 'instrument', side: 'side'},
-        #         attributes: {timestamp: 'sorted', symbol: 'grouped'},
-        #         filter: {symbol: 'XBTUSD'},
-        #         data: [
+        #         "foreignKeys": {symbol: "instrument", side: "side"},
+        #         "attributes": {timestamp: "sorted", symbol: "grouped"},
+        #         "filter": {symbol: "XBTUSD"},
+        #         "data": [
         #             {
-        #                 timestamp: '2020-01-30T17:03:07.854Z',
-        #                 symbol: 'XBTUSD',
-        #                 side: 'Buy',
-        #                 size: 15000,
-        #                 price: 9378,
-        #                 tickDirection: 'ZeroPlusTick',
-        #                 trdMatchID: '5b426e7f-83d1-2c80-295d-ee995b8ceb4a',
-        #                 grossValue: 159945000,
-        #                 homeNotional: 1.59945,
-        #                 foreignNotional: 15000
+        #                 "timestamp": "2020-01-30T17:03:07.854Z",
+        #                 "symbol": "XBTUSD",
+        #                 "side": "Buy",
+        #                 "size": 15000,
+        #                 "price": 9378,
+        #                 "tickDirection": "ZeroPlusTick",
+        #                 "trdMatchID": "5b426e7f-83d1-2c80-295d-ee995b8ceb4a",
+        #                 "grossValue": 159945000,
+        #                 "homeNotional": 1.59945,
+        #                 "foreignNotional": 15000
         #             }
         #         ]
         #     }
@@ -482,20 +485,20 @@ class bitmex(ccxt.async_support.bitmex):
         # updates
         #
         #     {
-        #         table: 'trade',
-        #         action: 'insert',
-        #         data: [
+        #         "table": "trade",
+        #         "action": "insert",
+        #         "data": [
         #             {
-        #                 timestamp: '2020-01-30T17:31:40.160Z',
-        #                 symbol: 'XBTUSD',
-        #                 side: 'Sell',
-        #                 size: 37412,
-        #                 price: 9521.5,
-        #                 tickDirection: 'ZeroMinusTick',
-        #                 trdMatchID: 'a4bfc6bc-6cf1-1a11-622e-270eef8ca5c7',
-        #                 grossValue: 392938236,
-        #                 homeNotional: 3.92938236,
-        #                 foreignNotional: 37412
+        #                 "timestamp": "2020-01-30T17:31:40.160Z",
+        #                 "symbol": "XBTUSD",
+        #                 "side": "Sell",
+        #                 "size": 37412,
+        #                 "price": 9521.5,
+        #                 "tickDirection": "ZeroMinusTick",
+        #                 "trdMatchID": "a4bfc6bc-6cf1-1a11-622e-270eef8ca5c7",
+        #                 "grossValue": 392938236,
+        #                 "homeNotional": 3.92938236,
+        #                 "foreignNotional": 37412
         #             }
         #         ]
         #     }
@@ -518,15 +521,16 @@ class bitmex(ccxt.async_support.bitmex):
             for j in range(0, len(trades)):
                 stored.append(trades[j])
             client.resolve(stored, messageHash)
+            self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, stored)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -545,12 +549,13 @@ class bitmex(ccxt.async_support.bitmex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def authenticate(self, params={}):
+    async def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             self.check_required_credentials()
             timestamp = self.milliseconds()
             payload = 'GET' + '/realtime' + str(timestamp)
@@ -564,8 +569,7 @@ class bitmex(ccxt.async_support.bitmex):
                 ],
             }
             message = self.extend(request, params)
-            future = self.watch(url, messageHash, message)
-            client.subscriptions[messageHash] = future
+            self.watch(url, messageHash, message, messageHash)
         return future
 
     def handle_authentication_message(self, client: Client, message):
@@ -573,7 +577,8 @@ class bitmex(ccxt.async_support.bitmex):
         messageHash = 'authenticated'
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.json(message))
             client.reject(error, messageHash)
@@ -583,11 +588,11 @@ class bitmex(ccxt.async_support.bitmex):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -607,134 +612,134 @@ class bitmex(ccxt.async_support.bitmex):
         orders = await self.watch(url, messageHash, request, subscriptionHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message):
         #
         #     {
-        #         table: 'order',
-        #         action: 'partial',
-        #         keys: ['orderID'],
-        #         types: {
-        #             orderID: 'guid',
-        #             clOrdID: 'string',
-        #             clOrdLinkID: 'symbol',
-        #             account: 'long',
-        #             symbol: 'symbol',
-        #             side: 'symbol',
-        #             simpleOrderQty: 'float',
-        #             orderQty: 'long',
-        #             price: 'float',
-        #             displayQty: 'long',
-        #             stopPx: 'float',
-        #             pegOffsetValue: 'float',
-        #             pegPriceType: 'symbol',
-        #             currency: 'symbol',
-        #             settlCurrency: 'symbol',
-        #             ordType: 'symbol',
-        #             timeInForce: 'symbol',
-        #             execInst: 'symbol',
-        #             contingencyType: 'symbol',
-        #             exDestination: 'symbol',
-        #             ordStatus: 'symbol',
-        #             triggered: 'symbol',
-        #             workingIndicator: 'boolean',
-        #             ordRejReason: 'symbol',
-        #             simpleLeavesQty: 'float',
-        #             leavesQty: 'long',
-        #             simpleCumQty: 'float',
-        #             cumQty: 'long',
-        #             avgPx: 'float',
-        #             multiLegReportingType: 'symbol',
-        #             text: 'string',
-        #             transactTime: 'timestamp',
-        #             timestamp: 'timestamp'
+        #         "table": "order",
+        #         "action": "partial",
+        #         "keys": ["orderID"],
+        #         "types": {
+        #             "orderID": "guid",
+        #             "clOrdID": "string",
+        #             "clOrdLinkID": "symbol",
+        #             "account": "long",
+        #             "symbol": "symbol",
+        #             "side": "symbol",
+        #             "simpleOrderQty": "float",
+        #             "orderQty": "long",
+        #             "price": "float",
+        #             "displayQty": "long",
+        #             "stopPx": "float",
+        #             "pegOffsetValue": "float",
+        #             "pegPriceType": "symbol",
+        #             "currency": "symbol",
+        #             "settlCurrency": "symbol",
+        #             "ordType": "symbol",
+        #             "timeInForce": "symbol",
+        #             "execInst": "symbol",
+        #             "contingencyType": "symbol",
+        #             "exDestination": "symbol",
+        #             "ordStatus": "symbol",
+        #             "triggered": "symbol",
+        #             "workingIndicator": "boolean",
+        #             "ordRejReason": "symbol",
+        #             "simpleLeavesQty": "float",
+        #             "leavesQty": "long",
+        #             "simpleCumQty": "float",
+        #             "cumQty": "long",
+        #             "avgPx": "float",
+        #             "multiLegReportingType": "symbol",
+        #             "text": "string",
+        #             "transactTime": "timestamp",
+        #             "timestamp": "timestamp"
         #         },
-        #         foreignKeys: {symbol: 'instrument', side: 'side', ordStatus: 'ordStatus'},
-        #         attributes: {
-        #             orderID: 'grouped',
-        #             account: 'grouped',
-        #             ordStatus: 'grouped',
-        #             workingIndicator: 'grouped'
+        #         "foreignKeys": {symbol: 'instrument', side: "side", ordStatus: "ordStatus"},
+        #         "attributes": {
+        #             "orderID": "grouped",
+        #             "account": "grouped",
+        #             "ordStatus": "grouped",
+        #             "workingIndicator": "grouped"
         #         },
-        #         filter: {account: 1455728},
-        #         data: [
+        #         "filter": {account: 1455728},
+        #         "data": [
         #             {
-        #                 orderID: '56222c7a-9956-413a-82cf-99f4812c214b',
-        #                 clOrdID: '',
-        #                 clOrdLinkID: '',
-        #                 account: 1455728,
-        #                 symbol: 'XBTUSD',
-        #                 side: 'Sell',
-        #                 simpleOrderQty: null,
-        #                 orderQty: 1,
-        #                 price: 40000,
-        #                 displayQty: null,
-        #                 stopPx: null,
-        #                 pegOffsetValue: null,
-        #                 pegPriceType: '',
-        #                 currency: 'USD',
-        #                 settlCurrency: 'XBt',
-        #                 ordType: 'Limit',
-        #                 timeInForce: 'GoodTillCancel',
-        #                 execInst: '',
-        #                 contingencyType: '',
-        #                 exDestination: 'XBME',
-        #                 ordStatus: 'New',
-        #                 triggered: '',
-        #                 workingIndicator: True,
-        #                 ordRejReason: '',
-        #                 simpleLeavesQty: null,
-        #                 leavesQty: 1,
-        #                 simpleCumQty: null,
-        #                 cumQty: 0,
-        #                 avgPx: null,
-        #                 multiLegReportingType: 'SingleSecurity',
-        #                 text: 'Submitted via API.',
-        #                 transactTime: '2021-01-02T21:38:49.246Z',
-        #                 timestamp: '2021-01-02T21:38:49.246Z'
+        #                 "orderID": "56222c7a-9956-413a-82cf-99f4812c214b",
+        #                 "clOrdID": '',
+        #                 "clOrdLinkID": '',
+        #                 "account": 1455728,
+        #                 "symbol": "XBTUSD",
+        #                 "side": "Sell",
+        #                 "simpleOrderQty": null,
+        #                 "orderQty": 1,
+        #                 "price": 40000,
+        #                 "displayQty": null,
+        #                 "stopPx": null,
+        #                 "pegOffsetValue": null,
+        #                 "pegPriceType": '',
+        #                 "currency": "USD",
+        #                 "settlCurrency": "XBt",
+        #                 "ordType": "Limit",
+        #                 "timeInForce": "GoodTillCancel",
+        #                 "execInst": '',
+        #                 "contingencyType": '',
+        #                 "exDestination": "XBME",
+        #                 "ordStatus": "New",
+        #                 "triggered": '',
+        #                 "workingIndicator": True,
+        #                 "ordRejReason": '',
+        #                 "simpleLeavesQty": null,
+        #                 "leavesQty": 1,
+        #                 "simpleCumQty": null,
+        #                 "cumQty": 0,
+        #                 "avgPx": null,
+        #                 "multiLegReportingType": "SingleSecurity",
+        #                 "text": "Submitted via API.",
+        #                 "transactTime": "2021-01-02T21:38:49.246Z",
+        #                 "timestamp": "2021-01-02T21:38:49.246Z"
         #             }
         #         ]
         #     }
         #
         #     {
-        #         table: 'order',
-        #         action: 'insert',
-        #         data: [
+        #         "table": "order",
+        #         "action": "insert",
+        #         "data": [
         #             {
-        #                 orderID: 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
-        #                 clOrdID: '',
-        #                 clOrdLinkID: '',
-        #                 account: 1455728,
-        #                 symbol: 'XBTUSD',
-        #                 side: 'Sell',
-        #                 simpleOrderQty: null,
-        #                 orderQty: 1,
-        #                 price: 40000,
-        #                 displayQty: null,
-        #                 stopPx: null,
-        #                 pegOffsetValue: null,
-        #                 pegPriceType: '',
-        #                 currency: 'USD',
-        #                 settlCurrency: 'XBt',
-        #                 ordType: 'Limit',
-        #                 timeInForce: 'GoodTillCancel',
-        #                 execInst: '',
-        #                 contingencyType: '',
-        #                 exDestination: 'XBME',
-        #                 ordStatus: 'New',
-        #                 triggered: '',
-        #                 workingIndicator: True,
-        #                 ordRejReason: '',
-        #                 simpleLeavesQty: null,
-        #                 leavesQty: 1,
-        #                 simpleCumQty: null,
-        #                 cumQty: 0,
-        #                 avgPx: null,
-        #                 multiLegReportingType: 'SingleSecurity',
-        #                 text: 'Submitted via API.',
-        #                 transactTime: '2021-01-02T23:49:02.286Z',
-        #                 timestamp: '2021-01-02T23:49:02.286Z'
+        #                 "orderID": "fa993d8e-f7e4-46ed-8097-04f8e9393585",
+        #                 "clOrdID": '',
+        #                 "clOrdLinkID": '',
+        #                 "account": 1455728,
+        #                 "symbol": "XBTUSD",
+        #                 "side": "Sell",
+        #                 "simpleOrderQty": null,
+        #                 "orderQty": 1,
+        #                 "price": 40000,
+        #                 "displayQty": null,
+        #                 "stopPx": null,
+        #                 "pegOffsetValue": null,
+        #                 "pegPriceType": '',
+        #                 "currency": "USD",
+        #                 "settlCurrency": "XBt",
+        #                 "ordType": "Limit",
+        #                 "timeInForce": "GoodTillCancel",
+        #                 "execInst": '',
+        #                 "contingencyType": '',
+        #                 "exDestination": "XBME",
+        #                 "ordStatus": "New",
+        #                 "triggered": '',
+        #                 "workingIndicator": True,
+        #                 "ordRejReason": '',
+        #                 "simpleLeavesQty": null,
+        #                 "leavesQty": 1,
+        #                 "simpleCumQty": null,
+        #                 "cumQty": 0,
+        #                 "avgPx": null,
+        #                 "multiLegReportingType": "SingleSecurity",
+        #                 "text": "Submitted via API.",
+        #                 "transactTime": "2021-01-02T23:49:02.286Z",
+        #                 "timestamp": "2021-01-02T23:49:02.286Z"
         #             }
         #         ]
         #     }
@@ -742,19 +747,19 @@ class bitmex(ccxt.async_support.bitmex):
         #
         #
         #     {
-        #         table: 'order',
-        #         action: 'update',
-        #         data: [
+        #         "table": "order",
+        #         "action": "update",
+        #         "data": [
         #             {
-        #                 orderID: 'fa993d8e-f7e4-46ed-8097-04f8e9393585',
-        #                 ordStatus: 'Canceled',
-        #                 workingIndicator: False,
-        #                 leavesQty: 0,
-        #                 text: 'Canceled: Canceled via API.\nSubmitted via API.',
-        #                 timestamp: '2021-01-02T23:50:51.272Z',
-        #                 clOrdID: '',
-        #                 account: 1455728,
-        #                 symbol: 'XBTUSD'
+        #                 "orderID": "fa993d8e-f7e4-46ed-8097-04f8e9393585",
+        #                 "ordStatus": "Canceled",
+        #                 "workingIndicator": False,
+        #                 "leavesQty": 0,
+        #                 "text": "Canceled: Canceled via API.\nSubmitted via API.",
+        #                 "timestamp": "2021-01-02T23:50:51.272Z",
+        #                 "clOrdID": '',
+        #                 "account": 1455728,
+        #                 "symbol": "XBTUSD"
         #             }
         #         ]
         #     }
@@ -789,11 +794,11 @@ class bitmex(ccxt.async_support.bitmex):
     async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple trades made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :param str symbol: unified market symbol of the market trades were made in
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict[]: a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         """
         await self.load_markets()
         await self.authenticate()
@@ -899,9 +904,9 @@ class bitmex(ccxt.async_support.bitmex):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         table = None
         if limit is None:
@@ -925,15 +930,49 @@ class bitmex(ccxt.async_support.bitmex):
         orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return orderbook.limit()
 
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        table = None
+        if limit is None:
+            table = self.safe_string(self.options, 'watchOrderBookLevel', 'orderBookL2')
+        elif limit == 25:
+            table = 'orderBookL2_25'
+        elif limit == 10:
+            table = 'orderBookL10'
+        else:
+            raise ExchangeError(self.id + ' watchOrderBookForSymbols limit argument must be None(L2), 25(L2) or 10(L3)')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        topics = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            currentMessageHash = table + ':' + market['id']
+            topics.append(currentMessageHash)
+        messageHash = 'multipleOrderbook::' + ','.join(symbols)
+        url = self.urls['api']['ws']
+        request = {
+            'op': 'subscribe',
+            'args': topics,
+        }
+        orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return orderbook.limit()
+
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitmex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitmex api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -955,65 +994,65 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
-        #         table: 'tradeBin1m',
-        #         action: 'partial',
-        #         keys: [],
-        #         types: {
-        #             timestamp: 'timestamp',
-        #             symbol: 'symbol',
-        #             open: 'float',
-        #             high: 'float',
-        #             low: 'float',
-        #             close: 'float',
-        #             trades: 'long',
-        #             volume: 'long',
-        #             vwap: 'float',
-        #             lastSize: 'long',
-        #             turnover: 'long',
-        #             homeNotional: 'float',
-        #             foreignNotional: 'float'
+        #         "table": "tradeBin1m",
+        #         "action": "partial",
+        #         "keys": [],
+        #         "types": {
+        #             "timestamp": "timestamp",
+        #             "symbol": "symbol",
+        #             "open": "float",
+        #             "high": "float",
+        #             "low": "float",
+        #             "close": "float",
+        #             "trades": "long",
+        #             "volume": "long",
+        #             "vwap": "float",
+        #             "lastSize": "long",
+        #             "turnover": "long",
+        #             "homeNotional": "float",
+        #             "foreignNotional": "float"
         #         },
-        #         foreignKeys: {symbol: 'instrument'},
-        #         attributes: {timestamp: 'sorted', symbol: 'grouped'},
-        #         filter: {symbol: 'XBTUSD'},
-        #         data: [
+        #         "foreignKeys": {symbol: "instrument"},
+        #         "attributes": {timestamp: "sorted", symbol: "grouped"},
+        #         "filter": {symbol: "XBTUSD"},
+        #         "data": [
         #             {
-        #                 timestamp: '2020-02-03T01:13:00.000Z',
-        #                 symbol: 'XBTUSD',
-        #                 open: 9395,
-        #                 high: 9395.5,
-        #                 low: 9394.5,
-        #                 close: 9395,
-        #                 trades: 221,
-        #                 volume: 839204,
-        #                 vwap: 9394.9643,
-        #                 lastSize: 1874,
-        #                 turnover: 8932641535,
-        #                 homeNotional: 89.32641534999999,
-        #                 foreignNotional: 839204
+        #                 "timestamp": "2020-02-03T01:13:00.000Z",
+        #                 "symbol": "XBTUSD",
+        #                 "open": 9395,
+        #                 "high": 9395.5,
+        #                 "low": 9394.5,
+        #                 "close": 9395,
+        #                 "trades": 221,
+        #                 "volume": 839204,
+        #                 "vwap": 9394.9643,
+        #                 "lastSize": 1874,
+        #                 "turnover": 8932641535,
+        #                 "homeNotional": 89.32641534999999,
+        #                 "foreignNotional": 839204
         #             }
         #         ]
         #     }
         #
         #
         #     {
-        #         table: 'tradeBin1m',
-        #         action: 'insert',
-        #         data: [
+        #         "table": "tradeBin1m",
+        #         "action": "insert",
+        #         "data": [
         #             {
-        #                 timestamp: '2020-02-03T18:28:00.000Z',
-        #                 symbol: 'XBTUSD',
-        #                 open: 9256,
-        #                 high: 9256.5,
-        #                 low: 9256,
-        #                 close: 9256,
-        #                 trades: 29,
-        #                 volume: 79057,
-        #                 vwap: 9256.688,
-        #                 lastSize: 100,
-        #                 turnover: 854077082,
-        #                 homeNotional: 8.540770820000002,
-        #                 foreignNotional: 79057
+        #                 "timestamp": "2020-02-03T18:28:00.000Z",
+        #                 "symbol": "XBTUSD",
+        #                 "open": 9256,
+        #                 "high": 9256.5,
+        #                 "low": 9256,
+        #                 "close": 9256,
+        #                 "trades": 29,
+        #                 "volume": 79057,
+        #                 "vwap": 9256.688,
+        #                 "lastSize": 100,
+        #                 "turnover": 854077082,
+        #                 "homeNotional": 8.540770820000002,
+        #                 "foreignNotional": 79057
         #             }
         #         ]
         #     }
@@ -1062,44 +1101,44 @@ class bitmex(ccxt.async_support.bitmex):
         # first snapshot
         #
         #     {
-        #         table: 'orderBookL2',
-        #         action: 'partial',
-        #         keys: ['symbol', 'id', 'side'],
-        #         types: {
-        #             symbol: 'symbol',
-        #             id: 'long',
-        #             side: 'symbol',
-        #             size: 'long',
-        #             price: 'float'
+        #         "table": "orderBookL2",
+        #         "action": "partial",
+        #         "keys": ['symbol', "id", "side"],
+        #         "types": {
+        #             "symbol": "symbol",
+        #             "id": "long",
+        #             "side": "symbol",
+        #             "size": "long",
+        #             "price": "float"
         #         },
-        #         foreignKeys: {symbol: 'instrument', side: 'side'},
-        #         attributes: {symbol: 'parted', id: 'sorted'},
-        #         filter: {symbol: 'XBTUSD'},
-        #         data: [
-        #             {symbol: 'XBTUSD', id: 8700000100, side: 'Sell', size: 1, price: 999999},
-        #             {symbol: 'XBTUSD', id: 8700000200, side: 'Sell', size: 3, price: 999998},
-        #             {symbol: 'XBTUSD', id: 8716991250, side: 'Sell', size: 26, price: 830087.5},
-        #             {symbol: 'XBTUSD', id: 8728701950, side: 'Sell', size: 1720, price: 712980.5},
+        #         "foreignKeys": {symbol: "instrument", side: "side"},
+        #         "attributes": {symbol: "parted", id: "sorted"},
+        #         "filter": {symbol: "XBTUSD"},
+        #         "data": [
+        #             {symbol: "XBTUSD", id: 8700000100, side: "Sell", size: 1, price: 999999},
+        #             {symbol: "XBTUSD", id: 8700000200, side: "Sell", size: 3, price: 999998},
+        #             {symbol: "XBTUSD", id: 8716991250, side: "Sell", size: 26, price: 830087.5},
+        #             {symbol: "XBTUSD", id: 8728701950, side: "Sell", size: 1720, price: 712980.5},
         #         ]
         #     }
         #
         # subsequent updates
         #
         #     {
-        #         table: 'orderBookL2',
-        #         action: 'update',
-        #         data: [
+        #         "table": "orderBookL2",
+        #         "action": "update",
+        #         "data": [
         #             {
-        #               table: 'orderBookL2',
-        #               action: 'insert',
-        #               data: [
+        #               "table": "orderBookL2",
+        #               "action": "insert",
+        #               "data": [
         #                 {
-        #                   symbol: 'ETH_USDT',
-        #                   id: 85499965912,
-        #                   side: 'Buy',
-        #                   size: 83000000,
-        #                   price: 1704.4,
-        #                   timestamp: '2023-03-26T22:29:00.299Z'
+        #                   "symbol": "ETH_USDT",
+        #                   "id": 85499965912,
+        #                   "side": "Buy",
+        #                   "size": 83000000,
+        #                   "price": 1704.4,
+        #                   "timestamp": "2023-03-26T22:29:00.299Z"
         #                 }
         #               ]
         #             }
@@ -1126,7 +1165,7 @@ class bitmex(ccxt.async_support.bitmex):
             orderbook['symbol'] = symbol
             for i in range(0, len(data)):
                 price = self.safe_float(data[i], 'price')
-                size = self.safe_float(data[i], 'size')
+                size = self.convertFromRawQuantity(symbol, self.safe_string(data[i], 'size'))
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
@@ -1137,6 +1176,7 @@ class bitmex(ccxt.async_support.bitmex):
                 orderbook['datetime'] = datetime
             messageHash = table + ':' + marketId
             client.resolve(orderbook, messageHash)
+            self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
         else:
             numUpdatesByMarketId = {}
             for i in range(0, len(data)):
@@ -1147,8 +1187,8 @@ class bitmex(ccxt.async_support.bitmex):
                 market = self.safe_market(marketId)
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
-                price = self.safe_float(data[i], 'price')
-                size = 0 if (action == 'delete') else self.safe_float(data[i], 'size', 0)
+                price = self.safe_number(data[i], 'price')
+                size = 0 if (action == 'delete') else self.convertFromRawQuantity(symbol, self.safe_string(data[i], 'size', '0'))
                 id = self.safe_string(data[i], 'id')
                 side = self.safe_string(data[i], 'side')
                 side = 'bids' if (side == 'Buy') else 'asks'
@@ -1165,6 +1205,7 @@ class bitmex(ccxt.async_support.bitmex):
                 symbol = market['symbol']
                 orderbook = self.orderbooks[symbol]
                 client.resolve(orderbook, messageHash)
+                self.resolve_promise_if_messagehash_matches(client, 'multipleOrderbook::', symbol, orderbook)
 
     def handle_system_status(self, client: Client, message):
         #
@@ -1173,11 +1214,11 @@ class bitmex(ccxt.async_support.bitmex):
         # involves system status and maintenance updates
         #
         #     {
-        #         info: 'Welcome to the BitMEX Realtime API.',
-        #         version: '2019-11-22T00:24:37.000Z',
-        #         timestamp: '2019-11-23T09:02:27.771Z',
-        #         docs: 'https://www.bitmex.com/app/wsAPI',
-        #         limit: {remaining: 39}
+        #         "info": "Welcome to the BitMEX Realtime API.",
+        #         "version": "2019-11-22T00:24:37.000Z",
+        #         "timestamp": "2019-11-23T09:02:27.771Z",
+        #         "docs": "https://www.bitmex.com/app/wsAPI",
+        #         "limit": {remaining: 39}
         #     }
         #
         return message
@@ -1185,9 +1226,9 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
-        #         success: True,
-        #         subscribe: 'orderBookL2:XBTUSD',
-        #         request: {op: 'subscribe', args: ['orderBookL2:XBTUSD']}
+        #         "success": True,
+        #         "subscribe": "orderBookL2:XBTUSD",
+        #         "request": {op: "subscribe", args: ["orderBookL2:XBTUSD"]}
         #     }
         #
         return message
@@ -1230,35 +1271,35 @@ class bitmex(ccxt.async_support.bitmex):
     def handle_message(self, client: Client, message):
         #
         #     {
-        #         info: 'Welcome to the BitMEX Realtime API.',
-        #         version: '2019-11-22T00:24:37.000Z',
-        #         timestamp: '2019-11-23T09:04:42.569Z',
-        #         docs: 'https://www.bitmex.com/app/wsAPI',
-        #         limit: {remaining: 38}
+        #         "info": "Welcome to the BitMEX Realtime API.",
+        #         "version": "2019-11-22T00:24:37.000Z",
+        #         "timestamp": "2019-11-23T09:04:42.569Z",
+        #         "docs": "https://www.bitmex.com/app/wsAPI",
+        #         "limit": {remaining: 38}
         #     }
         #
         #     {
-        #         success: True,
-        #         subscribe: 'orderBookL2:XBTUSD',
-        #         request: {op: 'subscribe', args: ['orderBookL2:XBTUSD']}
+        #         "success": True,
+        #         "subscribe": "orderBookL2:XBTUSD",
+        #         "request": {op: "subscribe", args: ["orderBookL2:XBTUSD"]}
         #     }
         #
         #     {
-        #         table: 'orderBookL2',
-        #         action: 'update',
-        #         data: [
-        #             {symbol: 'XBTUSD', id: 8799284800, side: 'Sell', size: 721000},
-        #             {symbol: 'XBTUSD', id: 8799285100, side: 'Sell', size: 70590},
-        #             {symbol: 'XBTUSD', id: 8799285550, side: 'Sell', size: 217652},
-        #             {symbol: 'XBTUSD', id: 8799285850, side: 'Sell', size: 105578},
-        #             {symbol: 'XBTUSD', id: 8799286350, side: 'Sell', size: 172093},
-        #             {symbol: 'XBTUSD', id: 8799286650, side: 'Sell', size: 201125},
-        #             {symbol: 'XBTUSD', id: 8799288950, side: 'Buy', size: 47552},
-        #             {symbol: 'XBTUSD', id: 8799289250, side: 'Buy', size: 78217},
-        #             {symbol: 'XBTUSD', id: 8799289700, side: 'Buy', size: 193677},
-        #             {symbol: 'XBTUSD', id: 8799290000, side: 'Buy', size: 818161},
-        #             {symbol: 'XBTUSD', id: 8799290500, side: 'Buy', size: 218806},
-        #             {symbol: 'XBTUSD', id: 8799290800, side: 'Buy', size: 102946}
+        #         "table": "orderBookL2",
+        #         "action": "update",
+        #         "data": [
+        #             {symbol: "XBTUSD", id: 8799284800, side: "Sell", size: 721000},
+        #             {symbol: "XBTUSD", id: 8799285100, side: "Sell", size: 70590},
+        #             {symbol: "XBTUSD", id: 8799285550, side: "Sell", size: 217652},
+        #             {symbol: "XBTUSD", id: 8799285850, side: "Sell", size: 105578},
+        #             {symbol: "XBTUSD", id: 8799286350, side: "Sell", size: 172093},
+        #             {symbol: "XBTUSD", id: 8799286650, side: "Sell", size: 201125},
+        #             {symbol: "XBTUSD", id: 8799288950, side: "Buy", size: 47552},
+        #             {symbol: "XBTUSD", id: 8799289250, side: "Buy", size: 78217},
+        #             {symbol: "XBTUSD", id: 8799289700, side: "Buy", size: 193677},
+        #             {symbol: "XBTUSD", id: 8799290000, side: "Buy", size: 818161},
+        #             {symbol: "XBTUSD", id: 8799290500, side: "Buy", size: 218806},
+        #             {symbol: "XBTUSD", id: 8799290800, side: "Buy", size: 102946}
         #         ]
         #     }
         #

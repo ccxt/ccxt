@@ -95,13 +95,25 @@ class BadRequest extends ExchangeError {
         this.name = 'BadRequest';
     }
 }
+class OperationRejected extends BadRequest {
+    constructor (message) {
+        super (message);
+        this.name = 'OperationRejected';
+    }
+}
 class BadSymbol extends BadRequest {
     constructor (message) {
         super (message);
         this.name = 'BadSymbol';
     }
 }
-class MarginModeAlreadySet extends BadRequest {
+class NoChange extends BadRequest {
+    constructor (message) {
+        super (message);
+        this.name = 'NoChange';
+    }
+}
+class MarginModeAlreadySet extends NoChange {
     constructor (message) {
         super (message);
         this.name = 'MarginModeAlreadySet';
@@ -141,6 +153,12 @@ class InvalidOrder extends ExchangeError {
     constructor (message) {
         super (message);
         this.name = 'InvalidOrder';
+    }
+}
+class ContractUnavailable extends InvalidOrder {
+    constructor (message) {
+        super (message);
+        this.name = 'ContractUnavailable';
     }
 }
 class OrderNotFound extends InvalidOrder {
@@ -228,6 +246,12 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
+class OperationFailed extends NetworkError {
+    constructor (message) {
+        super (message);
+        this.name = 'OperationFailed';
+    }
+}
 /*  ------------------------------------------------------------------------ */
 // export default subclass (
 //     // Root class
@@ -235,8 +259,8 @@ class RequestTimeout extends NetworkError {
 //     // Derived class hierarchy
 //     errorHierarchy
 // )
-const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed };
 
-export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending, ContractUnavailable, NoChange, OperationRejected, OperationFailed };
 
 export default errors;

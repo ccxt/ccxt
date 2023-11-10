@@ -84,10 +84,10 @@ class bitmart extends bitmart$1 {
          * @name bitmart#watchTrades
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -103,8 +103,8 @@ class bitmart extends bitmart$1 {
          * @name bitmart#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         return await this.subscribe('ticker', symbol, params);
     }
@@ -113,15 +113,13 @@ class bitmart extends bitmart$1 {
          * @method
          * @name bitmart#watchOrders
          * @description watches information on multiple orders made by the user
-         * @param {string|undefined} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol('watchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -133,29 +131,29 @@ class bitmart extends bitmart$1 {
         if (this.newUpdates) {
             limit = orders.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
     handleOrders(client, message) {
         //
         // {
         //     "data":[
         //         {
-        //             symbol: 'LTC_USDT',
-        //             notional: '',
-        //             side: 'buy',
-        //             last_fill_time: '0',
-        //             ms_t: '1646216634000',
-        //             type: 'limit',
-        //             filled_notional: '0.000000000000000000000000000000',
-        //             last_fill_price: '0',
-        //             size: '0.500000000000000000000000000000',
-        //             price: '50.000000000000000000000000000000',
-        //             last_fill_count: '0',
-        //             filled_size: '0.000000000000000000000000000000',
-        //             margin_trading: '0',
-        //             state: '8',
-        //             order_id: '24807076628',
-        //             order_type: '0'
+        //             "symbol": "LTC_USDT",
+        //             "notional": '',
+        //             "side": "buy",
+        //             "last_fill_time": "0",
+        //             "ms_t": "1646216634000",
+        //             "type": "limit",
+        //             "filled_notional": "0.000000000000000000000000000000",
+        //             "last_fill_price": "0",
+        //             "size": "0.500000000000000000000000000000",
+        //             "price": "50.000000000000000000000000000000",
+        //             "last_fill_count": "0",
+        //             "filled_size": "0.000000000000000000000000000000",
+        //             "margin_trading": "0",
+        //             "state": "8",
+        //             "order_id": "24807076628",
+        //             "order_type": "0"
         //           }
         //     ],
         //     "table":"spot/user/order"
@@ -187,22 +185,22 @@ class bitmart extends bitmart$1 {
     parseWsOrder(order, market = undefined) {
         //
         // {
-        //     symbol: 'LTC_USDT',
-        //     notional: '',
-        //     side: 'buy',
-        //     last_fill_time: '0',
-        //     ms_t: '1646216634000',
-        //     type: 'limit',
-        //     filled_notional: '0.000000000000000000000000000000',
-        //     last_fill_price: '0',
-        //     size: '0.500000000000000000000000000000',
-        //     price: '50.000000000000000000000000000000',
-        //     last_fill_count: '0',
-        //     filled_size: '0.000000000000000000000000000000',
-        //     margin_trading: '0',
-        //     state: '8',
-        //     order_id: '24807076628',
-        //     order_type: '0'
+        //     "symbol": "LTC_USDT",
+        //     "notional": '',
+        //     "side": "buy",
+        //     "last_fill_time": "0",
+        //     "ms_t": "1646216634000",
+        //     "type": "limit",
+        //     "filled_notional": "0.000000000000000000000000000000",
+        //     "last_fill_price": "0",
+        //     "size": "0.500000000000000000000000000000",
+        //     "price": "50.000000000000000000000000000000",
+        //     "last_fill_count": "0",
+        //     "filled_size": "0.000000000000000000000000000000",
+        //     "margin_trading": "0",
+        //     "state": "8",
+        //     "order_id": "24807076628",
+        //     "order_type": "0"
         //   }
         //
         const marketId = this.safeString(order, 'symbol');
@@ -246,14 +244,14 @@ class bitmart extends bitmart$1 {
     handleTrade(client, message) {
         //
         //     {
-        //         table: 'spot/trade',
-        //         data: [
+        //         "table": "spot/trade",
+        //         "data": [
         //             {
-        //                 price: '52700.50',
-        //                 s_t: 1630982050,
-        //                 side: 'buy',
-        //                 size: '0.00112',
-        //                 symbol: 'BTC_USDT'
+        //                 "price": "52700.50",
+        //                 "s_t": 1630982050,
+        //                 "side": "buy",
+        //                 "size": "0.00112",
+        //                 "symbol": "BTC_USDT"
         //             },
         //         ]
         //     }
@@ -279,18 +277,18 @@ class bitmart extends bitmart$1 {
     handleTicker(client, message) {
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
-        //                 base_volume_24h: '78615593.81',
-        //                 high_24h: '52756.97',
-        //                 last_price: '52638.31',
-        //                 low_24h: '50991.35',
-        //                 open_24h: '51692.03',
-        //                 s_t: 1630981727,
-        //                 symbol: 'BTC_USDT'
+        //                 "base_volume_24h": "78615593.81",
+        //                 "high_24h": "52756.97",
+        //                 "last_price": "52638.31",
+        //                 "low_24h": "50991.35",
+        //                 "open_24h": "51692.03",
+        //                 "s_t": 1630981727,
+        //                 "symbol": "BTC_USDT"
         //             }
         //         ],
-        //         table: 'spot/ticker'
+        //         "table": "spot/ticker"
         //     }
         //
         const table = this.safeString(message, 'table');
@@ -312,10 +310,10 @@ class bitmart extends bitmart$1 {
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -331,20 +329,20 @@ class bitmart extends bitmart$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
-        //                 candle: [
+        //                 "candle": [
         //                     1631056350,
-        //                     '46532.83',
-        //                     '46555.71',
-        //                     '46511.41',
-        //                     '46555.71',
-        //                     '0.25'
+        //                     "46532.83",
+        //                     "46555.71",
+        //                     "46511.41",
+        //                     "46555.71",
+        //                     "0.25"
         //                 ],
-        //                 symbol: 'BTC_USDT'
+        //                 "symbol": "BTC_USDT"
         //             }
         //         ],
-        //         table: 'spot/kline1m'
+        //         "table": "spot/kline1m"
         //     }
         //
         const table = this.safeString(message, 'table');
@@ -382,9 +380,9 @@ class bitmart extends bitmart$1 {
          * @name bitmart#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bitmart api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
          */
         const options = this.safeValue(this.options, 'watchOrderBook', {});
         const depth = this.safeString(options, 'depth', 'depth50');
@@ -404,22 +402,22 @@ class bitmart extends bitmart$1 {
     handleOrderBookMessage(client, message, orderbook) {
         //
         //     {
-        //         asks: [
-        //             [ '46828.38', '0.21847' ],
-        //             [ '46830.68', '0.08232' ],
-        //             [ '46832.08', '0.09285' ],
-        //             [ '46837.82', '0.02028' ],
-        //             [ '46839.43', '0.15068' ]
+        //         "asks": [
+        //             [ '46828.38', "0.21847" ],
+        //             [ '46830.68', "0.08232" ],
+        //             [ '46832.08', "0.09285" ],
+        //             [ '46837.82', "0.02028" ],
+        //             [ '46839.43', "0.15068" ]
         //         ],
-        //         bids: [
-        //             [ '46820.78', '0.00444' ],
-        //             [ '46814.33', '0.00234' ],
-        //             [ '46813.50', '0.05021' ],
-        //             [ '46808.14', '0.00217' ],
-        //             [ '46808.04', '0.00013' ]
+        //         "bids": [
+        //             [ '46820.78', "0.00444" ],
+        //             [ '46814.33', "0.00234" ],
+        //             [ '46813.50', "0.05021" ],
+        //             [ '46808.14', "0.00217" ],
+        //             [ '46808.04', "0.00013" ]
         //         ],
-        //         ms_t: 1631044962431,
-        //         symbol: 'BTC_USDT'
+        //         "ms_t": 1631044962431,
+        //         "symbol": "BTC_USDT"
         //     }
         //
         const asks = this.safeValue(message, 'asks', []);
@@ -437,27 +435,27 @@ class bitmart extends bitmart$1 {
     handleOrderBook(client, message) {
         //
         //     {
-        //         data: [
+        //         "data": [
         //             {
-        //                 asks: [
-        //                     [ '46828.38', '0.21847' ],
-        //                     [ '46830.68', '0.08232' ],
-        //                     [ '46832.08', '0.09285' ],
-        //                     [ '46837.82', '0.02028' ],
-        //                     [ '46839.43', '0.15068' ]
+        //                 "asks": [
+        //                     [ '46828.38', "0.21847" ],
+        //                     [ '46830.68', "0.08232" ],
+        //                     [ '46832.08', "0.09285" ],
+        //                     [ '46837.82', "0.02028" ],
+        //                     [ '46839.43', "0.15068" ]
         //                 ],
-        //                 bids: [
-        //                     [ '46820.78', '0.00444' ],
-        //                     [ '46814.33', '0.00234' ],
-        //                     [ '46813.50', '0.05021' ],
-        //                     [ '46808.14', '0.00217' ],
-        //                     [ '46808.04', '0.00013' ]
+        //                 "bids": [
+        //                     [ '46820.78', "0.00444" ],
+        //                     [ '46814.33', "0.00234" ],
+        //                     [ '46813.50', "0.05021" ],
+        //                     [ '46808.14', "0.00217" ],
+        //                     [ '46808.04', "0.00013" ]
         //                 ],
-        //                 ms_t: 1631044962431,
-        //                 symbol: 'BTC_USDT'
+        //                 "ms_t": 1631044962431,
+        //                 "symbol": "BTC_USDT"
         //             }
         //         ],
-        //         table: 'spot/depth5'
+        //         "table": "spot/depth5"
         //     }
         //
         const data = this.safeValue(message, 'data', []);
@@ -482,13 +480,14 @@ class bitmart extends bitmart$1 {
         }
         return message;
     }
-    authenticate(params = {}) {
+    async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.implodeHostname(this.urls['api']['ws']['private']);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds().toString();
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
@@ -504,8 +503,7 @@ class bitmart extends bitmart$1 {
                 ],
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
         return future;
     }
@@ -517,14 +515,15 @@ class bitmart extends bitmart$1 {
     }
     handleAuthenticate(client, message) {
         //
-        //     { event: 'login' }
+        //     { event: "login" }
         //
         const messageHash = 'authenticated';
-        client.resolve(message, messageHash);
+        const future = this.safeValue(client.futures, messageHash);
+        future.resolve(true);
     }
     handleErrorMessage(client, message) {
         //
-        //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
+        //     { event: "error", message: "Invalid sign", errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //
         const errorCode = this.safeString(message, 'errorCode');
@@ -558,26 +557,26 @@ class bitmart extends bitmart$1 {
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
         //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //     {
-        //         table: "spot/depth",
-        //         action: "partial",
-        //         data: [
+        //         "table": "spot/depth",
+        //         "action": "partial",
+        //         "data": [
         //             {
-        //                 instrument_id:   "BTC-USDT",
-        //                 asks: [
+        //                 "instrument_id":   "BTC-USDT",
+        //                 "asks": [
         //                     ["5301.8", "0.03763319", "1"],
         //                     ["5302.4", "0.00305", "2"],
         //                 ],
-        //                 bids: [
+        //                 "bids": [
         //                     ["5301.7", "0.58911427", "6"],
         //                     ["5301.6", "0.01222922", "4"],
         //                 ],
-        //                 timestamp: "2020-03-16T03:25:00.440Z",
-        //                 checksum: -2088736623
+        //                 "timestamp": "2020-03-16T03:25:00.440Z",
+        //                 "checksum": -2088736623
         //             }
         //         ]
         //     }
         //
-        //     { data: '', table: 'spot/user/order' }
+        //     { data: '', table: "spot/user/order" }
         //
         const table = this.safeString(message, 'table');
         if (table === undefined) {

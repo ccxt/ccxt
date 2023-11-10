@@ -5,9 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Trade
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -15,6 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
@@ -25,7 +26,10 @@ class alpaca(Exchange, ImplicitAPI):
             'id': 'alpaca',
             'name': 'Alpaca',
             'countries': ['US'],
-            'rateLimit': 333,  # 3 req per second
+            # 3 req/s for free
+            # 150 req/s for subscribers: https://alpaca.markets/data
+            # for brokers: https://alpaca.markets/docs/api-references/broker-api/#authentication-and-rate-limit
+            'rateLimit': 333,
             'hostname': 'alpaca.markets',
             'pro': True,
             'urls': {
@@ -209,6 +213,7 @@ class alpaca(Exchange, ImplicitAPI):
                     '40010001': BadRequest,  # {"code":40010001,"message":"invalid order type for crypto order"}
                     '40110000': PermissionDenied,  # {"code": 40110000, "message": "request is not authorized"}
                     '40310000': InsufficientFunds,  # {"available":"0","balance":"0","code":40310000,"message":"insufficient balance for USDT(requested: 221.63, available: 0)","symbol":"USDT"}
+                    '42910000': RateLimitExceeded,  # {"code":42910000,"message":"rate limit exceeded"}
                 },
                 'broad': {
                     'Invalid format for parameter': BadRequest,  # {"message":"Invalid format for parameter start: error parsing '0' or 2006-01-02 time: parsing time \"0\" as \"2006-01-02\": cannot parse \"0\" as \"2006\""}
@@ -220,8 +225,8 @@ class alpaca(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for alpaca
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         request = {
             'asset_class': 'crypto',
@@ -309,18 +314,19 @@ class alpaca(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': asset,
             })
         return markets
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -354,13 +360,13 @@ class alpaca(Exchange, ImplicitAPI):
         symbolTrades = self.safe_value(trades, market['id'], {})
         return self.parse_trades(symbolTrades, market, since, limit)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -411,15 +417,15 @@ class alpaca(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the alpha api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the alpha api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -466,7 +472,7 @@ class alpaca(Exchange, ImplicitAPI):
         ohlcvs = self.safe_value(bars, market['id'], {})
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     {
         #        "c":22895,
@@ -497,10 +503,10 @@ class alpaca(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit' or 'stop_limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the alpaca api endpoint
-        :param float params['triggerPrice']: The price at which a trigger order is triggered at
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -576,9 +582,9 @@ class alpaca(Exchange, ImplicitAPI):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'order_id': id,
@@ -595,9 +601,9 @@ class alpaca(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -608,14 +614,14 @@ class alpaca(Exchange, ImplicitAPI):
         market = self.safe_market(marketId)
         return self.parse_order(order, market)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the alpaca api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the alpaca api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -624,7 +630,7 @@ class alpaca(Exchange, ImplicitAPI):
         orders = await self.privateGetOrders(params)
         return self.parse_orders(orders, market, since, limit)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #    {
         #        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -723,7 +729,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",

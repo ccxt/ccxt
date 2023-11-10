@@ -5,6 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.base.types import Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
 
@@ -40,12 +41,12 @@ class luno(ccxt.async_support.luno):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://www.luno.com/en/developers/api#tag/Streaming-API
+        :see: https://www.luno.com/en/developers/api#tag/Streaming-API
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of    trades to fetch
-        :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of    trades to fetch
+        :param dict [params]: extra parameters specific to the luno api endpoint
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -68,17 +69,17 @@ class luno(ccxt.async_support.luno):
     def handle_trades(self, client: Client, message, subscription):
         #
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: {
-        #             order_id: 'BXHSYXAUMH8C2RW',
-        #             type: 'ASK',
-        #             price: '24081.09000000',
-        #             volume: '0.07780000'
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": {
+        #             "order_id": "BXHSYXAUMH8C2RW",
+        #             "type": "ASK",
+        #             "price": "24081.09000000",
+        #             "volume": "0.07780000"
         #         },
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #
         rawTrades = self.safe_value(message, 'trade_updates', [])
@@ -100,7 +101,7 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # watchTrades(public)
         #
@@ -133,10 +134,10 @@ class luno(ccxt.async_support.luno):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dictConstructor params: extra parameters specific to the luno api endpoint
-        :param str|None params['type']: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dictConstructor [params]: extra parameters specific to the luno api endpoint
+        :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.check_required_credentials()
         await self.load_markets()
@@ -174,17 +175,17 @@ class luno(ccxt.async_support.luno):
         #
         #  update
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: {
-        #             order_id: 'BXHSYXAUMH8C2RW',
-        #             type: 'ASK',
-        #             price: '24081.09000000',
-        #             volume: '0.07780000'
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": {
+        #             "order_id": "BXHSYXAUMH8C2RW",
+        #             "type": "ASK",
+        #             "price": "24081.09000000",
+        #             "volume": "0.07780000"
         #         },
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #
         symbol = subscription['symbol']
@@ -238,32 +239,32 @@ class luno(ccxt.async_support.luno):
         #
         #  create
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: {
-        #             order_id: 'BXHSYXAUMH8C2RW',
-        #             type: 'ASK',
-        #             price: '24081.09000000',
-        #             volume: '0.07780000'
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": {
+        #             "order_id": "BXHSYXAUMH8C2RW",
+        #             "type": "ASK",
+        #             "price": "24081.09000000",
+        #             "volume": "0.07780000"
         #         },
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #  del         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [],
-        #         create_update: null,
-        #         delete_update: {
+        #         "sequence": "110980825",
+        #         "trade_updates": [],
+        #         "create_update": null,
+        #         "delete_update": {
         #             "order_id": "BXMC2CJ7HNB88U4"
         #         },
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #  trade
         #     {
-        #         sequence: '110980825',
-        #         trade_updates: [
+        #         "sequence": "110980825",
+        #         "trade_updates": [
         #             {
         #                 "base": "0.1",
         #                 "counter": "5232.00",
@@ -271,22 +272,22 @@ class luno(ccxt.async_support.luno):
         #                 "taker_order_id": "BXMC2CJ7HNB88U5"
         #             }
         #         ],
-        #         create_update: null,
-        #         delete_update: null,
-        #         status_update: null,
-        #         timestamp: 1660598775360
+        #         "create_update": null,
+        #         "delete_update": null,
+        #         "status_update": null,
+        #         "timestamp": 1660598775360
         #     }
         #
         createUpdate = self.safe_value(message, 'create_update')
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
         if createUpdate is not None:
-            array = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
+            bidAskArray = self.custom_parse_bid_ask(createUpdate, 'price', 'volume', 'order_id')
             type = self.safe_string(createUpdate, 'type')
             if type == 'ASK':
-                asksOrderSide.storeArray(array)
+                asksOrderSide.storeArray(bidAskArray)
             elif type == 'BID':
-                bidsOrderSide.storeArray(array)
+                bidsOrderSide.storeArray(bidAskArray)
         deleteUpdate = self.safe_value(message, 'delete_update')
         if deleteUpdate is not None:
             orderId = self.safe_string(deleteUpdate, 'order_id')

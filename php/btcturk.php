@@ -16,6 +16,7 @@ class btcturk extends Exchange {
             'name' => 'BTCTurk',
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 100,
+            'pro' => false,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -60,6 +61,7 @@ class btcturk extends Exchange {
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'ws' => false,
             ),
             'timeframes' => array(
                 '1m' => 1,
@@ -87,6 +89,7 @@ class btcturk extends Exchange {
                         'orderbook' => 1,
                         'ticker' => 0.1,
                         'trades' => 1,   // ?last=COUNT (max 50)
+                        'ohlc' => 1,
                         'server/exchangeinfo' => 1,
                     ),
                 ),
@@ -98,6 +101,8 @@ class btcturk extends Exchange {
                         'users/transactions/trade' => 1,
                     ),
                     'post' => array(
+                        'users/transactions/crypto' => 1,
+                        'users/transactions/fiat' => 1,
                         'order' => 1,
                         'cancelOrder' => 1,
                     ),
@@ -132,8 +137,8 @@ class btcturk extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves $data on all $markets for btcturk
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market $data
+         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @return {array[]} an array of objects representing market $data
          */
         $response = $this->publicGetServerExchangeinfo ($params);
         //
@@ -253,13 +258,14 @@ class btcturk extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $entry,
             );
         }
         return $result;
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $data = $this->safe_value($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -279,11 +285,11 @@ class btcturk extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
         $this->load_markets();
         $response = $this->privateGetUsersBalances ($params);
@@ -306,13 +312,13 @@ class btcturk extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -336,7 +342,7 @@ class btcturk extends Exchange {
         return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //   {
         //     "pair" => "BTCTRY",
@@ -389,9 +395,9 @@ class btcturk extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structures}
          */
         $this->load_markets();
         $response = $this->publicGetTicker ($params);
@@ -399,19 +405,19 @@ class btcturk extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
         $this->load_markets();
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $this->safe_value($tickers, $symbol);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //     {
@@ -474,14 +480,14 @@ class btcturk extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -514,15 +520,15 @@ class btcturk extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //    {
-        //        'timestamp' => 1661990400,
-        //        'high' => 368388.0,
-        //        'open' => 368388.0,
-        //        'low' => 368388.0,
-        //        'close' => 368388.0,
-        //        'volume' => 0.00035208,
+        //        "timestamp" => 1661990400,
+        //        "high" => 368388.0,
+        //        "open" => 368388.0,
+        //        "low" => 368388.0,
+        //        "close" => 368388.0,
+        //        "volume" => 0.00035208,
         //    }
         //
         return array(
@@ -535,17 +541,17 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.btcturk.com/public-endpoints/get-kline-data
          * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
-         * @param {int|null} $limit the maximum amount of candles $to fetch
-         * @param {array} $params extra parameters specific $to the btcturk api endpoint
-         * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
-         * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+         * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$limit] the maximum amount of candles $to fetch
+         * @param {array} [$params] extra parameters specific $to the btcturk api endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -642,9 +648,9 @@ class btcturk extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -671,9 +677,9 @@ class btcturk extends Exchange {
         /**
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string|null} $symbol not used by btcturk cancelOrder ()
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @param {string} $symbol not used by btcturk cancelOrder ()
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $request = array(
             'id' => $id,
@@ -681,14 +687,14 @@ class btcturk extends Exchange {
         return $this->privateDeleteOrder (array_merge($request, $params));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $request = array();
@@ -704,14 +710,14 @@ class btcturk extends Exchange {
         return $this->parse_orders($this->array_concat($bids, $asks), $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of  orde structures to retrieve
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -760,7 +766,7 @@ class btcturk extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         // fetchOrders / fetchOpenOrders
         //     {
@@ -830,11 +836,11 @@ class btcturk extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the btcturk api endpoint
+         * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
         $this->load_markets();
         $market = null;

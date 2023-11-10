@@ -75,13 +75,13 @@ class huobi extends \ccxt\async\huobi {
                                 ),
                             ),
                             'swap' => array(
-                                'inverse' => array(
-                                    'public' => 'wss://api.hbdm.vn/swap-ws',
-                                    'private' => 'wss://api.hbdm.vn/swap-notification',
-                                ),
                                 'linear' => array(
                                     'public' => 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private' => 'wss://api.hbdm.vn/linear-swap-notification',
+                                ),
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.vn/swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/swap-notification',
                                 ),
                             ),
                         ),
@@ -92,7 +92,9 @@ class huobi extends \ccxt\async\huobi {
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
                 'api' => 'api', // or api-aws for clients hosted on AWS
-                'maxOrderBookSyncAttempts' => 3,
+                'watchOrderBook' => array(
+                    'maxRetries' => 3,
+                ),
                 'ws' => array(
                     'gunzip' => true,
                 ),
@@ -109,6 +111,7 @@ class huobi extends \ccxt\async\huobi {
                         '2001' => '\\ccxt\\BadSymbol', // array( action => 'sub', code => 2001, ch => 'orders#2ltcusdt', message => 'invalid.symbol')
                         '2011' => '\\ccxt\\BadSymbol', // array( op => 'sub', cid => '1649149285', topic => 'orders_cross.hereltc-usdt', 'err-code' => 2011, 'err-msg' => "Contract doesn't exist.", ts => 1649149287637 )
                         '2040' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1649152947', 'err-code' => 2040, 'err-msg' => 'Missing required parameter.', ts => 1649152948684 )
+                        '4007' => '\\ccxt\\BadRequest', // array( op => 'sub', cid => '1', topic => 'accounts_unify.USDT', 'err-code' => 4007, 'err-msg' => 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts => 1698419318540 )
                     ),
                 ),
             ),
@@ -126,8 +129,8 @@ class huobi extends \ccxt\async\huobi {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -145,34 +148,34 @@ class huobi extends \ccxt\async\huobi {
 
     public function handle_ticker(Client $client, $message) {
         //
-        // 'market.btcusdt.detail'
+        // "market.btcusdt.detail"
         //     {
-        //         $ch => 'market.btcusdt.detail',
-        //         ts => 1583494163784,
-        //         $tick => {
-        //             id => 209988464418,
-        //             low => 8988,
-        //             high => 9155.41,
-        //             open => 9078.91,
-        //             close => 9136.46,
-        //             vol => 237813910.5928412,
-        //             amount => 26184.202558551195,
-        //             version => 209988464418,
-        //             count => 265673
+        //         "ch" => "market.btcusdt.detail",
+        //         "ts" => 1583494163784,
+        //         "tick" => {
+        //             "id" => 209988464418,
+        //             "low" => 8988,
+        //             "high" => 9155.41,
+        //             "open" => 9078.91,
+        //             "close" => 9136.46,
+        //             "vol" => 237813910.5928412,
+        //             "amount" => 26184.202558551195,
+        //             "version" => 209988464418,
+        //             "count" => 265673
         //         }
         //     }
-        // 'market.btcusdt.bbo'
+        // "market.btcusdt.bbo"
         //     {
-        //         $ch => 'market.btcusdt.bbo',
-        //         ts => 1671941599613,
-        //         $tick => {
-        //             seqId => 161499562790,
-        //             ask => 16829.51,
-        //             askSize => 0.707776,
-        //             bid => 16829.5,
-        //             bidSize => 1.685945,
-        //             quoteTime => 1671941599612,
-        //             $symbol => 'btcusdt'
+        //         "ch" => "market.btcusdt.bbo",
+        //         "ts" => 1671941599613,
+        //         "tick" => {
+        //             "seqId" => 161499562790,
+        //             "ask" => 16829.51,
+        //             "askSize" => 0.707776,
+        //             "bid" => 16829.5,
+        //             "bidSize" => 1.685945,
+        //             "quoteTime" => 1671941599612,
+        //             "symbol" => "btcusdt"
         //         }
         //     }
         //
@@ -196,10 +199,10 @@ class huobi extends \ccxt\async\huobi {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -217,19 +220,19 @@ class huobi extends \ccxt\async\huobi {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         $ch => "market.btcusdt.trade.detail",
-        //         ts => 1583495834011,
-        //         $tick => {
-        //             id => 105004645372,
-        //             ts => 1583495833751,
-        //             $data => array(
+        //         "ch" => "market.btcusdt.trade.detail",
+        //         "ts" => 1583495834011,
+        //         "tick" => {
+        //             "id" => 105004645372,
+        //             "ts" => 1583495833751,
+        //             "data" => array(
         //                 {
-        //                     id => 1.050046453727319e+22,
-        //                     ts => 1583495833751,
-        //                     tradeId => 102090727790,
-        //                     amount => 0.003893,
-        //                     price => 9150.01,
-        //                     direction => "sell"
+        //                     "id" => 1.050046453727319e+22,
+        //                     "ts" => 1583495833751,
+        //                     "tradeId" => 102090727790,
+        //                     "amount" => 0.003893,
+        //                     "price" => 9150.01,
+        //                     "direction" => "sell"
         //                 }
         //             )
         //         }
@@ -262,10 +265,10 @@ class huobi extends \ccxt\async\huobi {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -284,17 +287,17 @@ class huobi extends \ccxt\async\huobi {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $ch => 'market.btcusdt.kline.1min',
-        //         ts => 1583501786794,
-        //         $tick => {
-        //             id => 1583501760,
-        //             open => 9094.5,
-        //             close => 9094.51,
-        //             low => 9094.5,
-        //             high => 9094.51,
-        //             amount => 0.44639786263800907,
-        //             vol => 4059.76919054,
-        //             count => 16
+        //         "ch" => "market.btcusdt.kline.1min",
+        //         "ts" => 1583501786794,
+        //         "tick" => {
+        //             "id" => 1583501760,
+        //             "open" => 9094.5,
+        //             "close" => 9094.51,
+        //             "low" => 9094.5,
+        //             "high" => 9094.51,
+        //             "amount" => 0.44639786263800907,
+        //             "vol" => 4059.76919054,
+        //             "count" => 16
         //         }
         //     }
         //
@@ -326,9 +329,9 @@ class huobi extends \ccxt\async\huobi {
              * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-depth-data
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -363,17 +366,18 @@ class huobi extends \ccxt\async\huobi {
     public function handle_order_book_snapshot(Client $client, $message, $subscription) {
         //
         //     {
-        //         $id => 1583473663565,
-        //         rep => 'market.btcusdt.mbp.150',
-        //         status => 'ok',
-        //         $data => {
-        //             seqNum => 104999417756,
-        //             bids => [
+        //         "id" => 1583473663565,
+        //         "rep" => "market.btcusdt.mbp.150",
+        //         "status" => "ok",
+        //         "ts" => 1698359289261,
+        //         "data" => {
+        //             "seqNum" => 104999417756,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -394,11 +398,14 @@ class huobi extends \ccxt\async\huobi {
             $sequence = $this->safe_integer($tick, 'seqNum');
             $nonce = $this->safe_integer($data, 'seqNum');
             $snapshot['nonce'] = $nonce;
+            $timestamp = $this->safe_integer($message, 'ts');
+            $snapshot['timestamp'] = $timestamp;
+            $snapshot['datetime'] = $this->iso8601($timestamp);
             $snapshotLimit = $this->safe_integer($subscription, 'limit');
             $snapshotOrderBook = $this->order_book($snapshot, $snapshotLimit);
             $client->resolve ($snapshotOrderBook, $id);
             if (($sequence !== null) && ($nonce < $sequence)) {
-                $maxAttempts = $this->safe_integer($this->options, 'maxOrderBookSyncAttempts', 3);
+                $maxAttempts = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $numAttempts = $this->safe_integer($subscription, 'numAttempts', 0);
                 // retry to synchronize if we have not reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
@@ -417,8 +424,7 @@ class huobi extends \ccxt\async\huobi {
                 $orderbook->reset ($snapshot);
                 // unroll the accumulated deltas
                 for ($i = 0; $i < count($messages); $i++) {
-                    $message = $messages[$i];
-                    $this->handle_order_book_message($client, $message, $orderbook);
+                    $this->handle_order_book_message($client, $messages[$i], $orderbook);
                 }
                 $this->orderbooks[$symbol] = $orderbook;
                 $client->resolve ($orderbook, $messageHash);
@@ -479,17 +485,17 @@ class huobi extends \ccxt\async\huobi {
         // spot markets
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         $tick => {
-        //             $seqNum => 104998984994,
-        //             $prevSeqNum => 104998984977,
-        //             $bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             $asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -556,6 +562,9 @@ class huobi extends \ccxt\async\huobi {
             $orderbook->reset ($snapshot);
             $orderbook['nonce'] = $seqNum;
         }
+        if ($prevSeqNum !== null && $prevSeqNum > $orderbook['nonce']) {
+            throw new InvalidNonce($this->id . ' watchOrderBook() received a mesage out of order');
+        }
         if (($prevSeqNum === null || $prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
@@ -575,17 +584,17 @@ class huobi extends \ccxt\async\huobi {
         // spot markets
         //
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         $tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -653,13 +662,14 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             $this->check_required_credentials();
+            Async\await($this->load_markets());
             $type = null;
             $marketId = '*'; // wildcard
             $market = null;
@@ -668,7 +678,6 @@ class huobi extends \ccxt\async\huobi {
             $trades = null;
             $subType = null;
             if ($symbol !== null) {
-                Async\await($this->load_markets());
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $type = $market['type'];
@@ -751,11 +760,11 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             Async\await($this->load_markets());
             $type = null;
@@ -799,102 +808,102 @@ class huobi extends \ccxt\async\huobi {
         //
         //     {
         //         "action":"push",
-        //         "ch":"orders#btcusdt", // or 'orders#*' for global subscriptions
+        //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data" => {
-        //             orderSource => 'spot-web',
-        //             orderCreateTime => 1645116048355,
-        //             accountId => 44234548,
-        //             orderPrice => '100',
-        //             orderSize => '0.05',
-        //             symbol => 'ethusdt',
-        //             type => 'buy-limit',
-        //             $orderId => '478861479986886',
-        //             $eventType => 'creation',
-        //             clientOrderId => '',
-        //             orderStatus => 'submitted'
+        //             "orderSource" => "spot-web",
+        //             "orderCreateTime" => 1645116048355,
+        //             "accountId" => 44234548,
+        //             "orderPrice" => "100",
+        //             "orderSize" => "0.05",
+        //             "symbol" => "ethusdt",
+        //             "type" => "buy-$limit",
+        //             "orderId" => "478861479986886",
+        //             "eventType" => "creation",
+        //             "clientOrderId" => '',
+        //             "orderStatus" => "submitted"
         //         }
         //     }
         //
         // spot wrapped trade
         //
         //     {
-        //         action => 'push',
-        //         ch => 'orders#ltcusdt',
-        //         $data => {
-        //             tradePrice => '130.01',
-        //             tradeVolume => '0.0385',
-        //             tradeTime => 1648714741525,
-        //             aggressor => true,
-        //             execAmt => '0.0385',
-        //             orderSource => 'spot-web',
-        //             orderSize => '0.0385',
-        //             remainAmt => '0',
-        //             tradeId => 101541578884,
-        //             symbol => 'ltcusdt',
-        //             type => 'sell-market',
-        //             $eventType => 'trade',
-        //             clientOrderId => '',
-        //             orderStatus => 'filled',
-        //             $orderId => 509835753860328
+        //         "action" => "push",
+        //         "ch" => "orders#ltcusdt",
+        //         "data" => {
+        //             "tradePrice" => "130.01",
+        //             "tradeVolume" => "0.0385",
+        //             "tradeTime" => 1648714741525,
+        //             "aggressor" => true,
+        //             "execAmt" => "0.0385",
+        //             "orderSource" => "spot-web",
+        //             "orderSize" => "0.0385",
+        //             "remainAmt" => "0",
+        //             "tradeId" => 101541578884,
+        //             "symbol" => "ltcusdt",
+        //             "type" => "sell-$market",
+        //             "eventType" => "trade",
+        //             "clientOrderId" => '',
+        //             "orderStatus" => "filled",
+        //             "orderId" => 509835753860328
         //         }
         //     }
         //
         // non spot $order
         //
         // {
-        //     contract_type => 'swap',
-        //     pair => 'LTC-USDT',
-        //     business_type => 'swap',
-        //     op => 'notify',
-        //     topic => 'orders_cross.ltc-usdt',
-        //     ts => 1650354508696,
-        //     symbol => 'LTC',
-        //     contract_code => 'LTC-USDT',
-        //     volume => 1,
-        //     price => 110.34,
-        //     order_price_type => 'lightning',
-        //     direction => 'sell',
-        //     offset => 'close',
-        //     status => 6,
-        //     lever_rate => 1,
-        //     order_id => '966002354015051776',
-        //     order_id_str => '966002354015051776',
-        //     client_order_id => null,
-        //     order_source => 'web',
-        //     order_type => 1,
-        //     created_at => 1650354508649,
-        //     trade_volume => 1,
-        //     trade_turnover => 11.072,
-        //     fee => -0.005536,
-        //     trade_avg_price => 110.72,
-        //     margin_frozen => 0,
-        //     profit => -0.045,
-        //     trade => array(
+        //     "contract_type" => "swap",
+        //     "pair" => "LTC-USDT",
+        //     "business_type" => "swap",
+        //     "op" => "notify",
+        //     "topic" => "orders_cross.ltc-usdt",
+        //     "ts" => 1650354508696,
+        //     "symbol" => "LTC",
+        //     "contract_code" => "LTC-USDT",
+        //     "volume" => 1,
+        //     "price" => 110.34,
+        //     "order_price_type" => "lightning",
+        //     "direction" => "sell",
+        //     "offset" => "close",
+        //     "status" => 6,
+        //     "lever_rate" => 1,
+        //     "order_id" => "966002354015051776",
+        //     "order_id_str" => "966002354015051776",
+        //     "client_order_id" => null,
+        //     "order_source" => "web",
+        //     "order_type" => 1,
+        //     "created_at" => 1650354508649,
+        //     "trade_volume" => 1,
+        //     "trade_turnover" => 11.072,
+        //     "fee" => -0.005536,
+        //     "trade_avg_price" => 110.72,
+        //     "margin_frozen" => 0,
+        //     "profit" => -0.045,
+        //     "trade" => array(
         //       {
-        //         trade_fee => -0.005536,
-        //         fee_asset => 'USDT',
-        //         real_profit => 0.473,
-        //         profit => -0.045,
-        //         trade_id => 86678766507,
-        //         id => '86678766507-966002354015051776-1',
-        //         trade_volume => 1,
-        //         trade_price => 110.72,
-        //         trade_turnover => 11.072,
-        //         created_at => 1650354508656,
-        //         role => 'taker'
+        //         "trade_fee" => -0.005536,
+        //         "fee_asset" => "USDT",
+        //         "real_profit" => 0.473,
+        //         "profit" => -0.045,
+        //         "trade_id" => 86678766507,
+        //         "id" => "86678766507-966002354015051776-1",
+        //         "trade_volume" => 1,
+        //         "trade_price" => 110.72,
+        //         "trade_turnover" => 11.072,
+        //         "created_at" => 1650354508656,
+        //         "role" => "taker"
         //       }
         //     ),
-        //     canceled_at => 0,
-        //     fee_asset => 'USDT',
-        //     margin_asset => 'USDT',
-        //     uid => '359305390',
-        //     liquidation_type => '0',
-        //     margin_mode => 'cross',
-        //     margin_account => 'USDT',
-        //     is_tpsl => 0,
-        //     real_profit => 0.473,
-        //     trade_partition => 'USDT',
-        //     reduce_only => 1
+        //     "canceled_at" => 0,
+        //     "fee_asset" => "USDT",
+        //     "margin_asset" => "USDT",
+        //     "uid" => "359305390",
+        //     "liquidation_type" => "0",
+        //     "margin_mode" => "cross",
+        //     "margin_account" => "USDT",
+        //     "is_tpsl" => 0,
+        //     "real_profit" => 0.473,
+        //     "trade_partition" => "USDT",
+        //     "reduce_only" => 1
         //   }
         //
         //
@@ -968,78 +977,78 @@ class huobi extends \ccxt\async\huobi {
         // spot
         //
         //     {
-        //         orderSource => 'spot-web',
-        //         orderCreateTime => 1645116048355, // creating only
-        //         accountId => 44234548,
-        //         orderPrice => '100',
-        //         orderSize => '0.05',
-        //         orderValue => '3.71676361', // $market-buy only
-        //         $symbol => 'ethusdt',
-        //         $type => 'buy-limit',
-        //         orderId => '478861479986886',
-        //         eventType => 'creation',
-        //         $clientOrderId => '',
-        //         orderStatus => 'submitted'
-        //         lastActTime:1645118621810 // except creating
-        //         execAmt:'0'
+        //         "orderSource" => "spot-web",
+        //         "orderCreateTime" => 1645116048355, // creating only
+        //         "accountId" => 44234548,
+        //         "orderPrice" => "100",
+        //         "orderSize" => "0.05",
+        //         "orderValue" => "3.71676361", // $market-buy only
+        //         "symbol" => "ethusdt",
+        //         "type" => "buy-limit",
+        //         "orderId" => "478861479986886",
+        //         "eventType" => "creation",
+        //         "clientOrderId" => '',
+        //         "orderStatus" => "submitted"
+        //         "lastActTime":1645118621810 // except creating
+        //         "execAmt":"0"
         //     }
         //
         // swap $order
         //
         //     {
-        //         contract_type => 'swap',
-        //         pair => 'LTC-USDT',
-        //         business_type => 'swap',
-        //         op => 'notify',
-        //         topic => 'orders_cross.ltc-usdt',
-        //         ts => 1648717911384,
-        //         $symbol => 'LTC',
-        //         contract_code => 'LTC-USDT',
-        //         volume => 1,
-        //         $price => 129.13,
-        //         order_price_type => 'lightning',
-        //         direction => 'sell',
-        //         offset => 'close',
-        //         $status => 6,
-        //         lever_rate => 5,
-        //         order_id => '959137967397068800',
-        //         order_id_str => '959137967397068800',
-        //         client_order_id => null,
-        //         order_source => 'web',
-        //         order_type => 1,
-        //         created_at => 1648717911344,
-        //         trade_volume => 1,
-        //         trade_turnover => 12.952,
-        //         $fee => -0.006476,
-        //         trade_avg_price => 129.52,
-        //         margin_frozen => 0,
-        //         profit => -0.005,
-        //         trade => array(
+        //         "contract_type" => "swap",
+        //         "pair" => "LTC-USDT",
+        //         "business_type" => "swap",
+        //         "op" => "notify",
+        //         "topic" => "orders_cross.ltc-usdt",
+        //         "ts" => 1648717911384,
+        //         "symbol" => "LTC",
+        //         "contract_code" => "LTC-USDT",
+        //         "volume" => 1,
+        //         "price" => 129.13,
+        //         "order_price_type" => "lightning",
+        //         "direction" => "sell",
+        //         "offset" => "close",
+        //         "status" => 6,
+        //         "lever_rate" => 5,
+        //         "order_id" => "959137967397068800",
+        //         "order_id_str" => "959137967397068800",
+        //         "client_order_id" => null,
+        //         "order_source" => "web",
+        //         "order_type" => 1,
+        //         "created_at" => 1648717911344,
+        //         "trade_volume" => 1,
+        //         "trade_turnover" => 12.952,
+        //         "fee" => -0.006476,
+        //         "trade_avg_price" => 129.52,
+        //         "margin_frozen" => 0,
+        //         "profit" => -0.005,
+        //         "trade" => array(
         //             {
-        //                 trade_fee => -0.006476,
-        //                 fee_asset => 'USDT',
-        //                 real_profit => -0.005,
-        //                 profit => -0.005,
-        //                 trade_id => 83619995370,
-        //                 $id => '83619995370-959137967397068800-1',
-        //                 trade_volume => 1,
-        //                 trade_price => 129.52,
-        //                 trade_turnover => 12.952,
-        //                 created_at => 1648717911352,
-        //                 role => 'taker'
+        //                 "trade_fee" => -0.006476,
+        //                 "fee_asset" => "USDT",
+        //                 "real_profit" => -0.005,
+        //                 "profit" => -0.005,
+        //                 "trade_id" => 83619995370,
+        //                 "id" => "83619995370-959137967397068800-1",
+        //                 "trade_volume" => 1,
+        //                 "trade_price" => 129.52,
+        //                 "trade_turnover" => 12.952,
+        //                 "created_at" => 1648717911352,
+        //                 "role" => "taker"
         //             }
         //         ),
-        //         canceled_at => 0,
-        //         fee_asset => 'USDT',
-        //         margin_asset => 'USDT',
-        //         uid => '359305390',
-        //         liquidation_type => '0',
-        //         margin_mode => 'cross',
-        //         margin_account => 'USDT',
-        //         is_tpsl => 0,
-        //         real_profit => -0.005,
-        //         trade_partition => 'USDT',
-        //         reduce_only => 1
+        //         "canceled_at" => 0,
+        //         "fee_asset" => "USDT",
+        //         "margin_asset" => "USDT",
+        //         "uid" => "359305390",
+        //         "liquidation_type" => "0",
+        //         "margin_mode" => "cross",
+        //         "margin_account" => "USDT",
+        //         "is_tpsl" => 0,
+        //         "real_profit" => -0.005,
+        //         "trade_partition" => "USDT",
+        //         "reduce_only" => 1
         //     }
         //
         //     {
@@ -1141,21 +1150,21 @@ class huobi extends \ccxt\async\huobi {
         // spot private wrapped $trade
         //
         //     {
-        //         tradePrice => '130.01',
-        //         tradeVolume => '0.0385',
-        //         tradeTime => 1648714741525,
-        //         $aggressor => true,
-        //         execAmt => '0.0385',
-        //         orderSource => 'spot-web',
-        //         orderSize => '0.0385',
-        //         remainAmt => '0',
-        //         $tradeId => 101541578884,
-        //         $symbol => 'ltcusdt',
-        //         $type => 'sell-market',
-        //         eventType => 'trade',
-        //         clientOrderId => '',
-        //         orderStatus => 'filled',
-        //         orderId => 509835753860328
+        //         "tradePrice" => "130.01",
+        //         "tradeVolume" => "0.0385",
+        //         "tradeTime" => 1648714741525,
+        //         "aggressor" => true,
+        //         "execAmt" => "0.0385",
+        //         "orderSource" => "spot-web",
+        //         "orderSize" => "0.0385",
+        //         "remainAmt" => "0",
+        //         "tradeId" => 101541578884,
+        //         "symbol" => "ltcusdt",
+        //         "type" => "sell-$market",
+        //         "eventType" => "trade",
+        //         "clientOrderId" => '',
+        //         "orderStatus" => "filled",
+        //         "orderId" => 509835753860328
         //     }
         //
         $market = $this->safe_market(null, $market);
@@ -1194,19 +1203,141 @@ class huobi extends \ccxt\async\huobi {
         ), $market);
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+             * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+             * watch all open positions. Note => huobi has one $channel for each $marginMode and $type
+             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $messageHash = '';
+            if (!$this->is_empty($symbols)) {
+                $market = $this->get_market_from_symbols($symbols);
+                $messageHash = '::' . implode(',', $symbols);
+            }
+            $type = null;
+            $subType = null;
+            if ($market !== null) {
+                $type = $market['type'];
+                $subType = $market['linear'] ? 'linear' : 'inverse';
+            } else {
+                list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
+                if ($type === 'spot') {
+                    $type = 'future';
+                }
+                list($subType, $params) = $this->handle_option_and_params($params, 'watchPositions', 'subType', $subType);
+            }
+            $symbols = $this->market_symbols($symbols);
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('watchPositions', $params, 'cross');
+            $isLinear = ($subType === 'linear');
+            $url = $this->get_url_by_market_type($type, $isLinear, true);
+            $messageHash = $marginMode . ':positions' . $messageHash;
+            $channel = ($marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+            $newPositions = Async\await($this->subscribe_private($channel, $messageHash, $type, $subType, $params));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions[$url][$marginMode], $symbols, $since, $limit, false);
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        op => 'notify',
+        //        $topic => 'positions_cross',
+        //        ts => 1696767149650,
+        //        event => 'snapshot',
+        //        data => array(
+        //          array(
+        //            contract_type => 'swap',
+        //            pair => 'BTC-USDT',
+        //            business_type => 'swap',
+        //            liquidation_price => null,
+        //            symbol => 'BTC',
+        //            contract_code => 'BTC-USDT',
+        //            volume => 1,
+        //            available => 1,
+        //            frozen => 0,
+        //            cost_open => 27802.2,
+        //            cost_hold => 27802.2,
+        //            profit_unreal => 0.0175,
+        //            profit_rate => 0.000629446590557581,
+        //            profit => 0.0175,
+        //            margin_asset => 'USDT',
+        //            position_margin => 27.8197,
+        //            lever_rate => 1,
+        //            direction => 'buy',
+        //            last_price => 27819.7,
+        //            margin_mode => 'cross',
+        //            margin_account => 'USDT',
+        //            trade_partition => 'USDT',
+        //            position_mode => 'dual_side'
+        //          ),
+        //        )
+        //    }
+        //
+        $url = $client->url;
+        $topic = $this->safe_string($message, 'topic', '');
+        $marginMode = ($topic === 'positions_cross') ? 'cross' : 'isolated';
+        if ($this->positions === null) {
+            $this->positions = array();
+        }
+        $clientPositions = $this->safe_value($this->positions, $url);
+        if ($clientPositions === null) {
+            $this->positions[$url] = array();
+        }
+        $clientMarginModePositions = $this->safe_value($clientPositions, $marginMode);
+        if ($clientMarginModePositions === null) {
+            $this->positions[$url][$marginMode] = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions[$url][$marginMode];
+        $rawPositions = $this->safe_value($message, 'data', array());
+        $newPositions = array();
+        $timestamp = $this->safe_integer($message, 'ts');
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_position($rawPosition);
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $marginMode . ':$positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, $marginMode . ':positions');
+    }
+
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the huobi api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
-            $type = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $type);
-            $subType = $this->safe_string_2($this->options, 'watchBalance', 'subType', 'linear');
-            $subType = $this->safe_string($params, 'subType', $subType);
-            $params = $this->omit($params, array( 'type', 'subType' ));
-            $params = $this->omit($params, 'type');
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params, 'linear');
+            $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
+            $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
             Async\await($this->load_markets());
             $messageHash = null;
             $channel = null;
@@ -1226,26 +1357,33 @@ class huobi extends \ccxt\async\huobi {
                 $prefix = 'accounts';
                 $messageHash = $prefix;
                 if ($subType === 'linear') {
-                    // usdt contracts account
-                    $prefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
-                    $messageHash = $prefix;
-                    if ($marginMode === 'isolated') {
-                        // isolated margin only allows filtering by symbol3
-                        if ($symbol !== null) {
-                            $messageHash .= '.' . $market['id'];
-                            $channel = $messageHash;
-                        } else {
-                            // subscribe to all
-                            $channel = $prefix . '.' . '*';
-                        }
+                    if ($isUnifiedAccount) {
+                        // usdt contracts account
+                        $prefix = 'accounts_unify';
+                        $messageHash = $prefix;
+                        $channel = $prefix . '.' . 'usdt';
                     } else {
-                        // cross margin
-                        if ($currencyCode !== null) {
-                            $channel = $prefix . '.' . $currencyCode['id'];
-                            $messageHash = $channel;
+                        // usdt contracts account
+                        $prefix = ($marginMode === 'cross') ? $prefix . '_cross' : $prefix;
+                        $messageHash = $prefix;
+                        if ($marginMode === 'isolated') {
+                            // isolated margin only allows filtering by symbol3
+                            if ($symbol !== null) {
+                                $messageHash .= '.' . $market['id'];
+                                $channel = $messageHash;
+                            } else {
+                                // subscribe to all
+                                $channel = $prefix . '.' . '*';
+                            }
                         } else {
-                            // subscribe to all
-                            $channel = $prefix . '.' . '*';
+                            // cross margin
+                            if ($currencyCode !== null) {
+                                $channel = $prefix . '.' . $currencyCode['id'];
+                                $messageHash = $channel;
+                            } else {
+                                // subscribe to all
+                                $channel = $prefix . '.' . '*';
+                            }
                         }
                     }
                 } elseif ($type === 'future') {
@@ -1330,7 +1468,7 @@ class huobi extends \ccxt\async\huobi {
         //
         //     {
         //         "op":"notify",
-        //         "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
+        //         "topic":"accounts.btc-usdt", // or "accounts" for global subscriptions
         //         "ts":1603711370689,
         //         "event":"order.open",
         //         "data":array(
@@ -1397,13 +1535,13 @@ class huobi extends \ccxt\async\huobi {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
-        $timestamp = $this->safe_integer($message, 'ts');
+        $data = $this->safe_value($message, 'data', array());
+        $timestamp = $this->safe_integer($data, 'changeTime', $this->safe_integer($message, 'ts'));
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
-        $this->balance['info'] = $this->safe_value($message, 'data');
+        $this->balance['info'] = $data;
         if ($channel !== null) {
             // spot $balance
-            $data = $this->safe_value($message, 'data', array());
             $currencyId = $this->safe_string($data, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1414,27 +1552,51 @@ class huobi extends \ccxt\async\huobi {
             $client->resolve ($this->balance, $channel);
         } else {
             // contract $balance
-            $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength === 0) {
                 return;
             }
             $first = $this->safe_value($data, 0, array());
-            $messageHash = $this->safe_string($message, 'topic');
+            $topic = $this->safe_string($message, 'topic');
+            $splitTopic = explode('.', $topic);
+            $messageHash = $this->safe_string($splitTopic, 0);
             $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if $subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the $first $data entry to find it
-                // Example => topic = 'accounts'
+                // Example => $topic = 'accounts'
                 // $client->subscription hash = 'accounts.usdt'
                 // we do 'accounts' . '.' . $data[0]]['margin_asset'] to get it
-                $marginAsset = $this->safe_string($first, 'margin_asset');
-                $messageHash .= '.' . strtolower($marginAsset);
+                $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
+                $messageHash .= '.' . strtolower($currencyId);
                 $subscription = $this->safe_value($client->subscriptions, $messageHash);
             }
             $type = $this->safe_string($subscription, 'type');
             $subType = $this->safe_string($subscription, 'subType');
-            if ($subType === 'linear') {
+            if ($topic === 'accounts_unify') {
+                // {
+                //     "margin_asset" => "USDT",
+                //     "margin_static" => 10,
+                //     "cross_margin_static" => 10,
+                //     "margin_balance" => 10,
+                //     "cross_profit_unreal" => 0,
+                //     "margin_frozen" => 0,
+                //     "withdraw_available" => 10,
+                //     "cross_risk_rate" => null,
+                //     "cross_swap" => array(),
+                //     "cross_future" => array(),
+                //     "isolated_swap" => array()
+                // }
+                $marginAsset = $this->safe_string($first, 'margin_asset');
+                $code = $this->safe_currency_code($marginAsset);
+                $marginFrozen = $this->safe_string($first, 'margin_frozen');
+                $unifiedAccount = $this->account();
+                $unifiedAccount['free'] = $this->safe_string($first, 'withdraw_available');
+                $unifiedAccount['used'] = $marginFrozen;
+                $this->balance[$code] = $unifiedAccount;
+                $this->balance = $this->safe_balance($this->balance);
+                $client->resolve ($this->balance, 'accounts_unify');
+            } elseif ($subType === 'linear') {
                 $margin = $this->safe_string($subscription, 'margin');
                 if ($margin === 'cross') {
                     $fieldName = ($type === 'future') ? 'futures_contract_detail' : 'contract_detail';
@@ -1524,8 +1686,8 @@ class huobi extends \ccxt\async\huobi {
         // involves system status and maintenance updates
         //
         //     {
-        //         id => '1578090234088', // connectId
-        //         type => 'welcome',
+        //         "id" => "1578090234088", // connectId
+        //         "type" => "welcome",
         //     }
         //
         return $message;
@@ -1534,17 +1696,17 @@ class huobi extends \ccxt\async\huobi {
     public function handle_subject(Client $client, $message) {
         // spot
         //     {
-        //         $ch => "market.btcusdt.mbp.150",
-        //         ts => 1583472025885,
-        //         tick => {
-        //             seqNum => 104998984994,
-        //             prevSeqNum => 104998984977,
-        //             bids => [
+        //         "ch" => "market.btcusdt.mbp.150",
+        //         "ts" => 1583472025885,
+        //         "tick" => {
+        //             "seqNum" => 104998984994,
+        //             "prevSeqNum" => 104998984977,
+        //             "bids" => [
         //                 [9058.27, 0],
         //                 [9058.43, 0],
         //                 [9058.99, 0],
         //             ],
-        //             asks => [
+        //             "asks" => [
         //                 [9084.27, 0.2],
         //                 [9085.69, 0],
         //                 [9085.81, 0],
@@ -1638,7 +1800,7 @@ class huobi extends \ccxt\async\huobi {
             $this->handle_my_trade($client, $message);
             return;
         }
-        if (mb_strpos($privateType, 'accounts.update') !== -1) {
+        if (mb_strpos($privateType, 'accounts.update') !== false) {
             $this->handle_balance($client, $message);
             return;
         }
@@ -1650,11 +1812,14 @@ class huobi extends \ccxt\async\huobi {
         $op = $this->safe_string($message, 'op');
         if ($op === 'notify') {
             $topic = $this->safe_string($message, 'topic', '');
-            if (mb_strpos($topic, 'orders') !== -1) {
+            if (mb_strpos($topic, 'orders') !== false) {
                 $this->handle_order($client, $message);
             }
-            if (mb_strpos($topic, 'account') !== -1) {
+            if (mb_strpos($topic, 'account') !== false) {
                 $this->handle_balance($client, $message);
+            }
+            if (mb_strpos($topic, 'positions') !== false) {
+                $this->handle_positions($client, $message);
             }
         }
     }
@@ -1663,8 +1828,8 @@ class huobi extends \ccxt\async\huobi {
         return Async\async(function () use ($client, $message) {
             //
             //     array( $ping => 1583491673714 )
-            //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
-            //     array( $op => 'ping', ts => '1645202800015' )
+            //     array( $action => "ping", $data => array( ts => 1645108204665 ) )
+            //     array( $op => "ping", ts => "1645202800015" )
             //
             try {
                 $ping = $this->safe_integer($message, 'ping');
@@ -1675,14 +1840,14 @@ class huobi extends \ccxt\async\huobi {
                 $action = $this->safe_string($message, 'action');
                 if ($action === 'ping') {
                     $data = $this->safe_value($message, 'data');
-                    $ping = $this->safe_integer($data, 'ts');
-                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping ))));
+                    $pingTs = $this->safe_integer($data, 'ts');
+                    Async\await($client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $pingTs ))));
                     return;
                 }
                 $op = $this->safe_string($message, 'op');
                 if ($op === 'ping') {
-                    $ping = $this->safe_integer($message, 'ts');
-                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $ping )));
+                    $pingTs = $this->safe_integer($message, 'ts');
+                    Async\await($client->send (array( 'op' => 'pong', 'ts' => $pingTs )));
                 }
             } catch (Exception $e) {
                 $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
@@ -1709,32 +1874,41 @@ class huobi extends \ccxt\async\huobi {
         // non spot
         //
         //    {
-        //        op => 'auth',
-        //        type => 'api',
-        //        'err-code' => 0,
-        //        ts => 1645200307319,
-        //        data => array( 'user-id' => '35930539' )
+        //        "op" => "auth",
+        //        "type" => "api",
+        //        "err-code" => 0,
+        //        "ts" => 1645200307319,
+        //        "data" => array( "user-id" => "35930539" )
         //    }
         //
-        $client->resolve ($message, 'auth');
-        return $message;
+        $promise = $client->futures['authenticated'];
+        $promise->resolve ($message);
     }
 
     public function handle_error_message(Client $client, $message) {
         //
         //     {
-        //         action => 'sub',
-        //         $code => 2002,
-        //         ch => 'accounts.update#2',
-        //         $message => 'invalid.auth.state'
+        //         "action" => "sub",
+        //         "code" => 2002,
+        //         "ch" => "accounts.update#2",
+        //         "message" => "invalid.auth.state"
         //      }
         //
         //     {
-        //         ts => 1586323747018,
-        //         $status => 'error',
-        //         'err-code' => 'bad-request',
-        //         'err-msg' => 'invalid mbp.150.symbol linkusdt',
-        //         $id => '2'
+        //         "ts" => 1586323747018,
+        //         "status" => "error",
+        //         'err-code' => "bad-request",
+        //         'err-msg' => "invalid mbp.150.symbol linkusdt",
+        //         "id" => "2"
+        //     }
+        //
+        //     {
+        //         "op" => "sub",
+        //         "cid" => "1",
+        //         "topic" => "accounts_unify.USDT",
+        //         "err-$code" => 4007,
+        //         'err-msg' => "Non - single account user is not available, please check through the cross and isolated account asset interface",
+        //         "ts" => 1698419490189
         //     }
         //
         $status = $this->safe_string($message, 'status');
@@ -1757,8 +1931,8 @@ class huobi extends \ccxt\async\huobi {
             }
             return false;
         }
-        $code = $this->safe_integer($message, 'code');
-        if ($code !== null && $code !== 200) {
+        $code = $this->safe_integer_2($message, 'code', 'err-code');
+        if ($code !== null && (($code !== 200) && ($code !== 0))) {
             $feedback = $this->id . ' ' . $this->json($message);
             try {
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
@@ -1785,7 +1959,7 @@ class huobi extends \ccxt\async\huobi {
             //
             // first ping format
             //
-            //    array('ping' => 1645106821667 )
+            //    array("ping" => 1645106821667 )
             //
             // second ping format
             //
@@ -1806,11 +1980,11 @@ class huobi extends \ccxt\async\huobi {
             // auth non spot
             //
             //    {
-            //        $op => 'auth',
-            //        type => 'api',
-            //        'err-code' => 0,
-            //        ts => 1645200307319,
-            //        data => array( 'user-id' => '35930539' )
+            //        "op" => "auth",
+            //        "type" => "api",
+            //        "err-code" => 0,
+            //        "ts" => 1645200307319,
+            //        "data" => array( "user-id" => "35930539" )
             //    }
             //
             // trade
@@ -2083,7 +2257,7 @@ class huobi extends \ccxt\async\huobi {
 
     public function subscribe_private($channel, $messageHash, $type, $subtype, $params = array (), $subscriptionParams = array ()) {
         return Async\async(function () use ($channel, $messageHash, $type, $subtype, $params, $subscriptionParams) {
-            $requestId = $this->nonce();
+            $requestId = $this->request_id();
             $subscription = array(
                 'id' => $requestId,
                 'messageHash' => $messageHash,
@@ -2120,70 +2294,74 @@ class huobi extends \ccxt\async\huobi {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->safe_string($params, 'url');
-            $hostname = $this->safe_string($params, 'hostname');
-            $type = $this->safe_string($params, 'type');
-            if ($url === null || $hostname === null || $type === null) {
-                throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
+        $url = $this->safe_string($params, 'url');
+        $hostname = $this->safe_string($params, 'hostname');
+        $type = $this->safe_string($params, 'type');
+        if ($url === null || $hostname === null || $type === null) {
+            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
+        }
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $relativePath = str_replace('wss://' . $hostname, '', $url);
+        $client = $this->client($url);
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+            $signatureParams = null;
+            if ($type === 'spot') {
+                $signatureParams = array(
+                    'accessKey' => $this->apiKey,
+                    'signatureMethod' => 'HmacSHA256',
+                    'signatureVersion' => '2.1',
+                    'timestamp' => $timestamp,
+                );
+            } else {
+                $signatureParams = array(
+                    'AccessKeyId' => $this->apiKey,
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'Timestamp' => $timestamp,
+                );
             }
-            $this->check_required_credentials();
-            $messageHash = 'auth';
-            $relativePath = str_replace('wss://' . $hostname, '', $url);
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ($messageHash);
-                $timestamp = $this->ymdhms($this->milliseconds(), 'T');
-                $signatureParams = null;
-                if ($type === 'spot') {
-                    $signatureParams = array(
-                        'accessKey' => $this->apiKey,
-                        'signatureMethod' => 'HmacSHA256',
-                        'signatureVersion' => '2.1',
-                        'timestamp' => $timestamp,
-                    );
-                } else {
-                    $signatureParams = array(
-                        'AccessKeyId' => $this->apiKey,
-                        'SignatureMethod' => 'HmacSHA256',
-                        'SignatureVersion' => '2',
-                        'Timestamp' => $timestamp,
-                    );
-                }
-                $signatureParams = $this->keysort($signatureParams);
-                $auth = $this->urlencode($signatureParams);
-                $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
-                $request = null;
-                if ($type === 'spot') {
-                    $params = array(
-                        'authType' => 'api',
-                        'accessKey' => $this->apiKey,
-                        'signatureMethod' => 'HmacSHA256',
-                        'signatureVersion' => '2.1',
-                        'timestamp' => $timestamp,
-                        'signature' => $signature,
-                    );
-                    $request = array(
-                        'params' => $params,
-                        'action' => 'req',
-                        'ch' => $messageHash,
-                    );
-                } else {
-                    $request = array(
-                        'op' => $messageHash,
-                        'type' => 'api',
-                        'AccessKeyId' => $this->apiKey,
-                        'SignatureMethod' => 'HmacSHA256',
-                        'SignatureVersion' => '2',
-                        'Timestamp' => $timestamp,
-                        'Signature' => $signature,
-                    );
-                }
-                Async\await($this->watch($url, $messageHash, $request, $messageHash, $future));
+            $signatureParams = $this->keysort($signatureParams);
+            $auth = $this->urlencode($signatureParams);
+            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+            $request = null;
+            if ($type === 'spot') {
+                $newParams = array(
+                    'authType' => 'api',
+                    'accessKey' => $this->apiKey,
+                    'signatureMethod' => 'HmacSHA256',
+                    'signatureVersion' => '2.1',
+                    'timestamp' => $timestamp,
+                    'signature' => $signature,
+                );
+                $request = array(
+                    'params' => $newParams,
+                    'action' => 'req',
+                    'ch' => 'auth',
+                );
+            } else {
+                $request = array(
+                    'op' => 'auth',
+                    'type' => 'api',
+                    'AccessKeyId' => $this->apiKey,
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'Timestamp' => $timestamp,
+                    'Signature' => $signature,
+                );
             }
-            return Async\await($future);
-        }) ();
+            $requestId = $this->request_id();
+            $subscription = array(
+                'id' => $requestId,
+                'messageHash' => $messageHash,
+                'params' => $params,
+            );
+            $this->watch($url, $messageHash, $request, $messageHash, $subscription);
+        }
+        return $future;
     }
 }

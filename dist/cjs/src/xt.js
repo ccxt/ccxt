@@ -3361,13 +3361,15 @@ class xt extends xt$1 {
         const amount = (marketType === 'spot') ? quantity : Precise["default"].stringMul(this.numberToString(quantity), this.numberToString(market['contractSize']));
         const filledQuantity = this.safeNumber(order, 'executedQty');
         const filled = (marketType === 'spot') ? filledQuantity : Precise["default"].stringMul(this.numberToString(filledQuantity), this.numberToString(market['contractSize']));
+        const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
         return this.safeOrder({
             'info': order,
             'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': this.safeInteger(order, 'updatedTime'),
+            'lastTradeTimestamp': lastUpdatedTimestamp,
+            'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
             'type': this.safeStringLower2(order, 'type', 'orderType'),
             'timeInForce': this.safeString(order, 'timeInForce'),

@@ -2,6 +2,7 @@ declare function logTemplate(exchange: any, method: any, entry: any): string;
 declare function assertType(exchange: any, skippedProperties: any, entry: any, key: any, format: any): boolean;
 declare function assertStructure(exchange: any, skippedProperties: any, method: any, entry: any, format: any, emptyAllowedFor?: any[]): void;
 declare function assertTimestamp(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: any, keyNameOrIndex?: any): void;
+declare function assertTimestampAndDatetime(exchange: any, skippedProperties: any, method: any, entry: any, nowToCheck?: any, keyNameOrIndex?: any): void;
 declare function assertCurrencyCode(exchange: any, skippedProperties: any, method: any, entry: any, actualCode: any, expectedCode?: any): void;
 declare function assertValidCurrencyIdAndCode(exchange: any, skippedProperties: any, method: any, entry: any, currencyId: any, currencyCode: any): void;
 declare function assertSymbol(exchange: any, skippedProperties: any, method: any, entry: any, key: any, expectedSymbol?: any): void;
@@ -19,6 +20,7 @@ declare function checkPrecisionAccuracy(exchange: any, skippedProperties: any, m
 declare const _default: {
     logTemplate: typeof logTemplate;
     assertTimestamp: typeof assertTimestamp;
+    assertTimestampAndDatetime: typeof assertTimestampAndDatetime;
     assertStructure: typeof assertStructure;
     assertSymbol: typeof assertSymbol;
     assertCurrencyCode: typeof assertCurrencyCode;
