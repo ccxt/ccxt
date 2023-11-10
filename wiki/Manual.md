@@ -3834,6 +3834,22 @@ Some fields from the returned order structure may be `undefined / None / null` i
 }
 ```
 
+- There is a common error that happens when creating orders for contract markets:
+
+```
+"must be greater than minimum amount precision of 1"
+```
+
+This error happens when the exchange is expecting the number of contracts in the `amount` argument of `createOrder`. The [market structure](#market-structure) has a key called `contractSize`. Each contract is worth a certain amount of the base asset that is determined by the `contractSize`. The number of contracts multiplied by the `contractSize` is equal to the base amount. `Base amount = (contracts * contractSize)`.
+
+Here is an example of finding the `contractSize`:
+```python
+await exchange.loadMarkets()
+symbol = 'BTC/USDT:USDT'
+market = exchange.market(symbol)
+print(market['contractSize'])
+```
+
 #### Limit Orders
 
 Limit orders placed on the order book of the exchange for a price specified by the trader. They are fullfilled(closed) when there are no orders in the same market at a better price, and another trader creates a [market order](market-orders) or an opposite order for a price that matches or exceeds the price of the limit order.
