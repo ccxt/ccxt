@@ -2256,13 +2256,13 @@ export default class bitmart extends Exchange {
         }
         if (side === 'buy') {
             if (reduceOnly) {
-                request['side'] = 3; // sell close long
+                request['side'] = 2; // sell close long
             } else {
                 request['side'] = 1; // buy open long
             }
         } else if (side === 'sell') {
             if (reduceOnly) {
-                request['side'] = 2; // buy close short
+                request['side'] = 3; // sell close long
             } else {
                 request['side'] = 4; // sell open short
             }
