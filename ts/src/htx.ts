@@ -1830,9 +1830,12 @@ export default class htx extends Exchange {
             }
             let maker = undefined;
             let taker = undefined;
-            if (spot) {
-                maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
-                taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+            if (contract) {
+                maker = this.parseNumber ('0.0002');
+                taker = this.parseNumber ('0.0005');
+            } else {
+                maker = this.parseNumber ('0.002');
+                taker = this.parseNumber ('0.002');
             }
             let active = undefined;
             if (spot) {

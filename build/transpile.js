@@ -913,8 +913,8 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances:/, /-> Order:/, /-> OrderBook:/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker:/, /-> Tickers:/, /-> MarginMode:/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/ ]
-        const objects = [ 'Balances', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Tickers', 'MarginMode', 'Trade', 'Transaction' ]
+        const matchAgainst = [ /-> Balances:/, /-> Market:/, /-> Order:/, /-> OrderBook:/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker:/, /-> Tickers:/, /-> MarginMode:/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/ ]
+        const objects = [ 'Balances', 'Market', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Tickers', 'MarginMode', 'Trade', 'Transaction' ]
         const matches = []
         let match
         const listRegex = /: List\[(\w+)\]/g
@@ -1560,7 +1560,7 @@ class Transpiler {
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /^(?:object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
