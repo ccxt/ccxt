@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.idex import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -324,7 +323,7 @@ class idex(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -338,20 +337,20 @@ class idex(Exchange, ImplicitAPI):
         }
         # [
         #   {
-        #     market: 'DIL-ETH',
-        #     time: 1598367493008,
-        #     open: '0.09695361',
-        #     high: '0.10245881',
-        #     low: '0.09572507',
-        #     close: '0.09917079',
-        #     closeQuantity: '0.71320950',
-        #     baseVolume: '309.17380612',
-        #     quoteVolume: '30.57633981',
-        #     percentChange: '2.28',
-        #     numTrades: 205,
-        #     ask: '0.09910476',
-        #     bid: '0.09688340',
-        #     sequence: 3902
+        #     "market": "DIL-ETH",
+        #     "time": 1598367493008,
+        #     "open": "0.09695361",
+        #     "high": "0.10245881",
+        #     "low": "0.09572507",
+        #     "close": "0.09917079",
+        #     "closeQuantity": "0.71320950",
+        #     "baseVolume": "309.17380612",
+        #     "quoteVolume": "30.57633981",
+        #     "percentChange": "2.28",
+        #     "numTrades": 205,
+        #     "ask": "0.09910476",
+        #     "bid": "0.09688340",
+        #     "sequence": 3902
         #   }
         # ]
         response = await self.publicGetTickers(self.extend(request, params))
@@ -368,41 +367,41 @@ class idex(Exchange, ImplicitAPI):
         await self.load_markets()
         # [
         #   {
-        #     market: 'DIL-ETH',
-        #     time: 1598367493008,
-        #     open: '0.09695361',
-        #     high: '0.10245881',
-        #     low: '0.09572507',
-        #     close: '0.09917079',
-        #     closeQuantity: '0.71320950',
-        #     baseVolume: '309.17380612',
-        #     quoteVolume: '30.57633981',
-        #     percentChange: '2.28',
-        #     numTrades: 205,
-        #     ask: '0.09910476',
-        #     bid: '0.09688340',
-        #     sequence: 3902
+        #     "market": "DIL-ETH",
+        #     "time": 1598367493008,
+        #     "open": "0.09695361",
+        #     "high": "0.10245881",
+        #     "low": "0.09572507",
+        #     "close": "0.09917079",
+        #     "closeQuantity": "0.71320950",
+        #     "baseVolume": "309.17380612",
+        #     "quoteVolume": "30.57633981",
+        #     "percentChange": "2.28",
+        #     "numTrades": 205,
+        #     "ask": "0.09910476",
+        #     "bid": "0.09688340",
+        #     "sequence": 3902
         #   }, ...
         # ]
         response = await self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         # {
-        #   market: 'DIL-ETH',
-        #   time: 1598367493008,
-        #   open: '0.09695361',
-        #   high: '0.10245881',
-        #   low: '0.09572507',
-        #   close: '0.09917079',
-        #   closeQuantity: '0.71320950',
-        #   baseVolume: '309.17380612',
-        #   quoteVolume: '30.57633981',
-        #   percentChange: '2.28',
-        #   numTrades: 205,
-        #   ask: '0.09910476',
-        #   bid: '0.09688340',
-        #   sequence: 3902
+        #   "market": "DIL-ETH",
+        #   "time": 1598367493008,
+        #   "open": "0.09695361",
+        #   "high": "0.10245881",
+        #   "low": "0.09572507",
+        #   "close": "0.09917079",
+        #   "closeQuantity": "0.71320950",
+        #   "baseVolume": "309.17380612",
+        #   "quoteVolume": "30.57633981",
+        #   "percentChange": "2.28",
+        #   "numTrades": 205,
+        #   "ask": "0.09910476",
+        #   "bid": "0.09688340",
+        #   "sequence": 3902
         # }
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, market, '-')
@@ -432,7 +431,7 @@ class idex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -456,13 +455,13 @@ class idex(Exchange, ImplicitAPI):
         if isinstance(response, list):
             # [
             #   {
-            #     start: 1598345580000,
-            #     open: '0.09771286',
-            #     high: '0.09771286',
-            #     low: '0.09771286',
-            #     close: '0.09771286',
-            #     volume: '1.45340410',
-            #     sequence: 3853
+            #     "start": 1598345580000,
+            #     "open": "0.09771286",
+            #     "high": "0.09771286",
+            #     "low": "0.09771286",
+            #     "close": "0.09771286",
+            #     "volume": "1.45340410",
+            #     "sequence": 3853
             #   }, ...
             # ]
             return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -470,15 +469,15 @@ class idex(Exchange, ImplicitAPI):
             #  {"nextTime":1595536440000}
             return []
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         # {
-        #   start: 1598345580000,
-        #   open: '0.09771286',
-        #   high: '0.09771286',
-        #   low: '0.09771286',
-        #   close: '0.09771286',
-        #   volume: '1.45340410',
-        #   sequence: 3853
+        #   "start": 1598345580000,
+        #   "open": "0.09771286",
+        #   "high": "0.09771286",
+        #   "low": "0.09771286",
+        #   "close": "0.09771286",
+        #   "volume": "1.45340410",
+        #   "sequence": 3853
         # }
         timestamp = self.safe_integer(ohlcv, 'start')
         open = self.safe_number(ohlcv, 'open')
@@ -488,7 +487,7 @@ class idex(Exchange, ImplicitAPI):
         volume = self.safe_number(ohlcv, 'volume')
         return [timestamp, open, high, low, close, volume]
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -508,19 +507,19 @@ class idex(Exchange, ImplicitAPI):
             request['limit'] = min(limit, 1000)
         # [
         #   {
-        #     fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        #     price: '0.09771286',
-        #     quantity: '1.45340410',
-        #     quoteQuantity: '0.14201627',
-        #     time: 1598345638994,
-        #     makerSide: 'buy',
-        #     sequence: 3853
+        #     "fillId": "b5467d00-b13e-3fa9-8216-dd66735550fc",
+        #     "price": "0.09771286",
+        #     "quantity": "1.45340410",
+        #     "quoteQuantity": "0.14201627",
+        #     "time": 1598345638994,
+        #     "makerSide": "buy",
+        #     "sequence": 3853
         #   }, ...
         # ]
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public trades
         #  {
@@ -612,15 +611,15 @@ class idex(Exchange, ImplicitAPI):
         response = await self.privateGetUser(self.extend(request, params))
         #
         #     {
-        #         depositEnabled: True,
-        #         orderEnabled: True,
-        #         cancelEnabled: True,
-        #         withdrawEnabled: True,
-        #         totalPortfolioValueUsd: '0.00',
-        #         makerFeeRate: '0.0000',
-        #         takerFeeRate: '0.0025',
-        #         takerIdexFeeRate: '0.0005',
-        #         takerLiquidityProviderFeeRate: '0.0020'
+        #         "depositEnabled": True,
+        #         "orderEnabled": True,
+        #         "cancelEnabled": True,
+        #         "withdrawEnabled": True,
+        #         "totalPortfolioValueUsd": "0.00",
+        #         "makerFeeRate": "0.0000",
+        #         "takerFeeRate": "0.0025",
+        #         "takerIdexFeeRate": "0.0005",
+        #         "takerLiquidityProviderFeeRate": "0.0020"
         #     }
         #
         maker = self.safe_number(response, 'makerFeeRate')
@@ -638,7 +637,7 @@ class idex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -655,23 +654,23 @@ class idex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         # {
-        #   sequence: 36416753,
-        #   bids: [
-        #     ['0.09672815', '8.22284267', 1],
-        #     ['0.09672814', '1.83685554', 1],
-        #     ['0.09672143', '4.10962617', 1],
-        #     ['0.09658884', '4.03863759', 1],
-        #     ['0.09653781', '3.35730684', 1],
-        #     ['0.09624660', '2.54163586', 1],
-        #     ['0.09617490', '1.93065030', 1]
+        #   "sequence": 36416753,
+        #   "bids": [
+        #     ['0.09672815', "8.22284267", 1],
+        #     ['0.09672814', "1.83685554", 1],
+        #     ['0.09672143', "4.10962617", 1],
+        #     ['0.09658884', "4.03863759", 1],
+        #     ['0.09653781', "3.35730684", 1],
+        #     ['0.09624660', "2.54163586", 1],
+        #     ['0.09617490', "1.93065030", 1]
         #   ],
-        #   asks: [
-        #     ['0.09910476', '3.22840154', 1],
-        #     ['0.09940587', '3.39796593', 1],
-        #     ['0.09948189', '4.25088898', 1],
-        #     ['0.09958362', '2.42195784', 1],
-        #     ['0.09974393', '4.25234367', 1],
-        #     ['0.09995250', '3.40192141', 1]
+        #   "asks": [
+        #     ['0.09910476', "3.22840154", 1],
+        #     ['0.09940587', "3.39796593", 1],
+        #     ['0.09948189', "4.25088898", 1],
+        #     ['0.09958362', "2.42195784", 1],
+        #     ['0.09974393', "4.25234367", 1],
+        #     ['0.09995250', "3.40192141", 1]
         #   ]
         # }
         response = await self.publicGetOrderbook(self.extend(request, params))
@@ -741,7 +740,7 @@ class idex(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -758,7 +757,7 @@ class idex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the idex api endpoint
@@ -773,11 +772,11 @@ class idex(Exchange, ImplicitAPI):
         }
         # [
         #   {
-        #     asset: 'DIL',
-        #     quantity: '0.00000000',
-        #     availableForTrade: '0.00000000',
-        #     locked: '0.00000000',
-        #     usdValue: null
+        #     "asset": "DIL",
+        #     "quantity": "0.00000000",
+        #     "availableForTrade": "0.00000000",
+        #     "locked": "0.00000000",
+        #     "usdValue": null
         #   }, ...
         # ]
         extendedRequest = self.extend(request, params)
@@ -820,22 +819,22 @@ class idex(Exchange, ImplicitAPI):
             request['limit'] = limit
         # [
         #   {
-        #     fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        #     price: '0.09905990',
-        #     quantity: '0.40000000',
-        #     quoteQuantity: '0.03962396',
-        #     time: 1598873478762,
-        #     makerSide: 'sell',
-        #     sequence: 5053,
-        #     market: 'DIL-ETH',
-        #     orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        #     side: 'buy',
-        #     fee: '0.00080000',
-        #     feeAsset: 'DIL',
-        #     gas: '0.00857497',
-        #     liquidity: 'taker',
-        #     txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        #     txStatus: 'mined'
+        #     "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        #     "price": "0.09905990",
+        #     "quantity": "0.40000000",
+        #     "quoteQuantity": "0.03962396",
+        #     "time": 1598873478762,
+        #     "makerSide": "sell",
+        #     "sequence": 5053,
+        #     "market": "DIL-ETH",
+        #     "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        #     "side": "buy",
+        #     "fee": "0.00080000",
+        #     "feeAsset": "DIL",
+        #     "gas": "0.00857497",
+        #     "liquidity": "taker",
+        #     "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        #     "txStatus": "mined"
         #   }
         # ]
         extendedRequest = self.extend(request, params)
@@ -865,7 +864,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders_helper(symbol, None, None, self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -879,7 +878,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return await self.fetch_orders_helper(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -943,32 +942,32 @@ class idex(Exchange, ImplicitAPI):
         #   }
         # ]
         # fetchOrder
-        # {market: 'DIL-ETH',
-        #   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        #   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        #   time: 1598873478650,
-        #   status: 'filled',
-        #   type: 'limit',
-        #   side: 'buy',
-        #   originalQuantity: '0.40000000',
-        #   executedQuantity: '0.40000000',
-        #   cumulativeQuoteQuantity: '0.03962396',
-        #   avgExecutionPrice: '0.09905990',
-        #   price: '1.00000000',
-        #   fills:
-        #    [{fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        #        price: '0.09905990',
-        #        quantity: '0.40000000',
-        #        quoteQuantity: '0.03962396',
-        #        time: 1598873478650,
-        #        makerSide: 'sell',
-        #        sequence: 5053,
-        #        fee: '0.00080000',
-        #        feeAsset: 'DIL',
-        #        gas: '0.00857497',
-        #        liquidity: 'taker',
-        #        txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        #        txStatus: 'mined'}]}
+        # {market: "DIL-ETH",
+        #   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        #   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        #   "time": 1598873478650,
+        #   "status": "filled",
+        #   "type": "limit",
+        #   "side": "buy",
+        #   "originalQuantity": "0.40000000",
+        #   "executedQuantity": "0.40000000",
+        #   "cumulativeQuoteQuantity": "0.03962396",
+        #   "avgExecutionPrice": "0.09905990",
+        #   "price": "1.00000000",
+        #   "fills":
+        #    [{fillId: "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        #        "price": "0.09905990",
+        #        "quantity": "0.40000000",
+        #        "quoteQuantity": "0.03962396",
+        #        "time": 1598873478650,
+        #        "makerSide": "sell",
+        #        "sequence": 5053,
+        #        "fee": "0.00080000",
+        #        "feeAsset": "DIL",
+        #        "gas": "0.00857497",
+        #        "liquidity": "taker",
+        #        "txId": "0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65",
+        #        "txStatus": "mined"}]}
         if isinstance(response, list):
             return self.parse_orders(response, market, since, limit)
         else:
@@ -984,7 +983,7 @@ class idex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "market": "DIL-ETH",
@@ -1069,9 +1068,9 @@ class idex(Exchange, ImplicitAPI):
         hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         # {
-        #   address: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        #   totalPortfolioValueUsd: '0.00',
-        #   time: 1598468353626
+        #   "address": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        #   "totalPortfolioValueUsd": "0.00",
+        #   "time": 1598468353626
         # }
         request = {
             'parameters': {
@@ -1225,34 +1224,34 @@ class idex(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['parameters']['clientOrderId'] = clientOrderId
         # {
-        #   market: 'DIL-ETH',
-        #   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        #   wallet: '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        #   time: 1598873478650,
-        #   status: 'filled',
-        #   type: 'limit',
-        #   side: 'buy',
-        #   originalQuantity: '0.40000000',
-        #   executedQuantity: '0.40000000',
-        #   cumulativeQuoteQuantity: '0.03962396',
-        #   price: '1.00000000',
-        #   fills: [
+        #   "market": "DIL-ETH",
+        #   "orderId": "7cdc8e90-eb7d-11ea-9e60-4118569f6e63",
+        #   "wallet": "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        #   "time": 1598873478650,
+        #   "status": "filled",
+        #   "type": "limit",
+        #   "side": "buy",
+        #   "originalQuantity": "0.40000000",
+        #   "executedQuantity": "0.40000000",
+        #   "cumulativeQuoteQuantity": "0.03962396",
+        #   "price": "1.00000000",
+        #   "fills": [
         #     {
-        #       fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        #       price: '0.09905990',
-        #       quantity: '0.40000000',
-        #       quoteQuantity: '0.03962396',
-        #       time: 1598873478650,
-        #       makerSide: 'sell',
-        #       sequence: 5053,
-        #       fee: '0.00080000',
-        #       feeAsset: 'DIL',
-        #       gas: '0.00857497',
-        #       liquidity: 'taker',
-        #       txStatus: 'pending'
+        #       "fillId": "48582d10-b9bb-3c4b-94d3-e67537cf2472",
+        #       "price": "0.09905990",
+        #       "quantity": "0.40000000",
+        #       "quoteQuantity": "0.03962396",
+        #       "time": 1598873478650,
+        #       "makerSide": "sell",
+        #       "sequence": 5053,
+        #       "fee": "0.00080000",
+        #       "feeAsset": "DIL",
+        #       "gas": "0.00857497",
+        #       "liquidity": "taker",
+        #       "txStatus": "pending"
         #     }
         #   ],
-        #   avgExecutionPrice: '0.09905990'
+        #   "avgExecutionPrice": "0.09905990"
         # }
         # we don't use self.extend here because it is a signed endpoint
         response = await self.privatePostOrders(request)
@@ -1297,14 +1296,14 @@ class idex(Exchange, ImplicitAPI):
         response = await self.privatePostWithdrawals(request)
         #
         #     {
-        #         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        #         asset: 'ETH',
-        #         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        #         quantity: '0.20000000',
-        #         time: 1598962883190,
-        #         fee: '0.00024000',
-        #         txStatus: 'pending',
-        #         txId: null
+        #         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        #         "asset": "ETH",
+        #         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        #         "quantity": "0.20000000",
+        #         "time": 1598962883190,
+        #         "fee": "0.00024000",
+        #         "txStatus": "pending",
+        #         "txId": null
         #     }
         #
         return self.parse_transaction(response, currency)
@@ -1340,7 +1339,7 @@ class idex(Exchange, ImplicitAPI):
         hash = self.hash(binary, 'keccak', 'hex')
         signature = self.sign_message_string(hash, self.privateKey)
         request['signature'] = signature
-        # [{orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e'}]
+        # [{orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e"}]
         response = await self.privateDeleteOrders(self.extend(request, params))
         return self.parse_orders(response, market)
 
@@ -1375,7 +1374,7 @@ class idex(Exchange, ImplicitAPI):
             },
             'signature': signature,
         }
-        # [{orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e'}]
+        # [{orderId: "688336f0-ec50-11ea-9842-b332f8a34d0e"}]
         response = await self.privateDeleteOrders(self.extend(request, params))
         canceledOrder = self.safe_value(response, 0)
         return self.parse_order(canceledOrder, market)
@@ -1408,7 +1407,7 @@ class idex(Exchange, ImplicitAPI):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1430,7 +1429,7 @@ class idex(Exchange, ImplicitAPI):
         """
         response = await self.publicGetTime(params)
         #
-        #    {serverTime: '1655258263236'}
+        #    {serverTime: "1655258263236"}
         #
         return self.safe_integer(response, 'serverTime')
 
@@ -1452,7 +1451,7 @@ class idex(Exchange, ImplicitAPI):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transaction(response, code)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1483,12 +1482,12 @@ class idex(Exchange, ImplicitAPI):
             request['limit'] = limit
         # [
         #   {
-        #     depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e',
-        #     asset: 'ETH',
-        #     quantity: '1.00000000',
-        #     txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        #     txTime: 1598865853000,
-        #     confirmationTime: 1598865930231
+        #     "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98e",
+        #     "asset": "ETH",
+        #     "quantity": "1.00000000",
+        #     "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        #     "txTime": 1598865853000,
+        #     "confirmationTime": 1598865930231
         #   }
         # ]
         method = params['method']
@@ -1502,43 +1501,43 @@ class idex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
         #     {
-        #         depositId: 'e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f',
-        #         asset: 'ETH',
-        #         quantity: '1.00000000',
-        #         txId: '0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142',
-        #         txTime: 1598865853000,
-        #         confirmationTime: 1598865930231
+        #         "depositId": "e9970cc0-eb6b-11ea-9e89-09a5ebc1f98f",
+        #         "asset": "ETH",
+        #         "quantity": "1.00000000",
+        #         "txId": "0xcd4aac3171d7131cc9e795568c67938675185ac17641553ef54c8a7c294c8142",
+        #         "txTime": 1598865853000,
+        #         "confirmationTime": 1598865930231
         #     }
         #
         # fetchWithdrwalas
         #
         #     {
-        #         withdrawalId: 'a62d8760-ec4d-11ea-9fa6-47904c19499b',
-        #         asset: 'ETH',
-        #         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        #         quantity: '0.20000000',
-        #         time: 1598962883288,
-        #         fee: '0.00024000',
-        #         txId: '0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce',
-        #         txStatus: 'mined'
+        #         "withdrawalId": "a62d8760-ec4d-11ea-9fa6-47904c19499b",
+        #         "asset": "ETH",
+        #         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        #         "quantity": "0.20000000",
+        #         "time": 1598962883288,
+        #         "fee": "0.00024000",
+        #         "txId": "0x305e9cdbaa85ad029f50578d13d31d777c085de573ed5334d95c19116d8c03ce",
+        #         "txStatus": "mined"
         #     }
         #
         # withdraw
         #
         #     {
-        #         withdrawalId: 'a61dcff0-ec4d-11ea-8b83-c78a6ecb3180',
-        #         asset: 'ETH',
-        #         assetContractAddress: '0x0000000000000000000000000000000000000000',
-        #         quantity: '0.20000000',
-        #         time: 1598962883190,
-        #         fee: '0.00024000',
-        #         txStatus: 'pending',
-        #         txId: null
+        #         "withdrawalId": "a61dcff0-ec4d-11ea-8b83-c78a6ecb3180",
+        #         "asset": "ETH",
+        #         "assetContractAddress": "0x0000000000000000000000000000000000000000",
+        #         "quantity": "0.20000000",
+        #         "time": 1598962883190,
+        #         "fee": "0.00024000",
+        #         "txStatus": "pending",
+        #         "txId": null
         #     }
         #
         type = None

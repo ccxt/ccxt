@@ -648,8 +648,8 @@ class wazirx extends wazirx$1 {
         //             "a": 114144050,
         //             "b": 114144121,
         //             "f": "0.2",
-        //             "ga": '0.0',
-        //             "gc": 'usdt',
+        //             "ga": "0.0",
+        //             "gc": "usdt",
         //             "m": true,
         //             "o": 26946170,
         //             "p": "5.0",
@@ -679,10 +679,10 @@ class wazirx extends wazirx$1 {
     handleConnected(client, message) {
         //
         //     {
-        //         data: {
-        //             timeout_duration: 1800
+        //         "data": {
+        //             "timeout_duration": 1800
         //         },
-        //         event: 'connected'
+        //         "event": "connected"
         //     }
         //
         return message;
@@ -690,11 +690,11 @@ class wazirx extends wazirx$1 {
     handleSubscribed(client, message) {
         //
         //     {
-        //         data: {
-        //             streams: ['!ticker@arr']
+        //         "data": {
+        //             "streams": ["!ticker@arr"]
         //         },
-        //         event: 'subscribed',
-        //         id: 0
+        //         "event": "subscribed",
+        //         "id": 0
         //     }
         //
         return message;
@@ -711,8 +711,8 @@ class wazirx extends wazirx$1 {
         //     }
         //
         //     {
-        //         message: 'HeartBeat message not received, closing the connection',
-        //         status: 'error'
+        //         "message": "HeartBeat message not received, closing the connection",
+        //         "status": "error"
         //     }
         //
         throw new errors.ExchangeError(this.id + ' ' + this.json(message));

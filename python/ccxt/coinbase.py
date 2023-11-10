@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -327,6 +326,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
         :param dict [params]: extra parameters specific to the coinbase api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a dictionary of `account structures <https://github.com/ccxt/ccxt/wiki/Manual#account-structure>` indexed by the account type
         """
         method = self.safe_string(self.options, 'fetchAccounts', 'fetchAccountsV3')
@@ -336,6 +336,10 @@ class coinbase(Exchange, ImplicitAPI):
 
     def fetch_accounts_v2(self, params={}):
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'next_starting_after', 'starting_after', None, 100)
         request = {
             'limit': 100,
         }
@@ -385,10 +389,22 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        pagination = self.safe_value(response, 'pagination', {})
+        cursor = self.safe_string(pagination, 'next_starting_after')
+        accounts = self.safe_value(response, 'data', [])
+        lastIndex = len(accounts) - 1
+        last = self.safe_value(accounts, lastIndex)
+        if (cursor is not None) and (cursor != ''):
+            last['next_starting_after'] = cursor
+            accounts[lastIndex] = last
         return self.parse_accounts(data, params)
 
     def fetch_accounts_v3(self, params={}):
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchAccounts', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchAccounts', None, None, None, params, 'cursor', 'cursor', None, 100)
         request = {
             'limit': 100,
         }
@@ -423,8 +439,14 @@ class coinbase(Exchange, ImplicitAPI):
         #         "size": 9
         #     }
         #
-        data = self.safe_value(response, 'accounts', [])
-        return self.parse_accounts(data, params)
+        accounts = self.safe_value(response, 'accounts', [])
+        lastIndex = len(accounts) - 1
+        last = self.safe_value(accounts, lastIndex)
+        cursor = self.safe_string(response, 'cursor')
+        if (cursor is not None) and (cursor != ''):
+            last['cursor'] = cursor
+            accounts[lastIndex] = last
+        return self.parse_accounts(accounts, params)
 
     def parse_account(self, account):
         #
@@ -603,7 +625,7 @@ class coinbase(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_transactions(response['data'], None, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -615,7 +637,7 @@ class coinbase(Exchange, ImplicitAPI):
         # fiat only, for crypto transactions use fetchLedger
         return self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -740,7 +762,7 @@ class coinbase(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchMyBuys, fetchMySells
         #
@@ -1196,7 +1218,7 @@ class coinbase(Exchange, ImplicitAPI):
         response = self.v3PrivateGetBrokerageProducts(params)
         #
         #     {
-        #         'products': [
+        #         "products": [
         #             {
         #                 "product_id": "TONE-USD",
         #                 "price": "0.01523",
@@ -1241,7 +1263,7 @@ class coinbase(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1313,7 +1335,7 @@ class coinbase(Exchange, ImplicitAPI):
         ticker['ask'] = self.safe_number(response, 'best_ask')
         return ticker
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTickerV2
         #
@@ -1456,7 +1478,7 @@ class coinbase(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coinbase api endpoint
@@ -1555,242 +1577,242 @@ class coinbase(Exchange, ImplicitAPI):
         # crypto deposit transaction
         #
         #     {
-        #         id: '34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        #         type: 'send',
-        #         status: 'completed',
-        #         amount: {amount: '28.31976528', currency: 'BCH'},
-        #         native_amount: {amount: '2799.65', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-02-28T12:35:20Z',
-        #         updated_at: '2019-02-28T12:43:24Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        #         instant_exchange: False,
-        #         network: {
-        #             status: 'confirmed',
-        #             hash: '56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701',
-        #             transaction_url: 'https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701'
+        #         "id": "34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        #         "type": "send",
+        #         "status": "completed",
+        #         "amount": {amount: "28.31976528", currency: "BCH"},
+        #         "native_amount": {amount: "2799.65", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-02-28T12:35:20Z",
+        #         "updated_at": "2019-02-28T12:43:24Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490",
+        #         "instant_exchange": False,
+        #         "network": {
+        #             "status": "confirmed",
+        #             "hash": "56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701",
+        #             "transaction_url": "https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701"
         #         },
-        #         from: {resource: 'bitcoin_cash_network', currency: 'BCH'},
-        #         details: {title: 'Received Bitcoin Cash', subtitle: 'From Bitcoin Cash address'}
+        #         "from": {resource: "bitcoin_cash_network", currency: "BCH"},
+        #         "details": {title: 'Received Bitcoin Cash', subtitle: "From Bitcoin Cash address"}
         #     }
         #
         # crypto withdrawal transaction
         #
         #     {
-        #         id: '459aad99-2c41-5698-ac71-b6b81a05196c',
-        #         type: 'send',
-        #         status: 'completed',
-        #         amount: {amount: '-0.36775642', currency: 'BTC'},
-        #         native_amount: {amount: '-1111.65', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-03-20T08:37:07Z',
-        #         updated_at: '2019-03-20T08:49:33Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c',
-        #         instant_exchange: False,
-        #         network: {
-        #             status: 'confirmed',
-        #             hash: '2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        #             transaction_url: 'https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        #             transaction_fee: {amount: '0.00000000', currency: 'BTC'},
-        #             transaction_amount: {amount: '0.36775642', currency: 'BTC'},
-        #             confirmations: 15682
+        #         "id": "459aad99-2c41-5698-ac71-b6b81a05196c",
+        #         "type": "send",
+        #         "status": "completed",
+        #         "amount": {amount: "-0.36775642", currency: "BTC"},
+        #         "native_amount": {amount: "-1111.65", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-03-20T08:37:07Z",
+        #         "updated_at": "2019-03-20T08:49:33Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c",
+        #         "instant_exchange": False,
+        #         "network": {
+        #             "status": "confirmed",
+        #             "hash": "2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        #             "transaction_url": "https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b",
+        #             "transaction_fee": {amount: "0.00000000", currency: "BTC"},
+        #             "transaction_amount": {amount: "0.36775642", currency: "BTC"},
+        #             "confirmations": 15682
         #         },
-        #         to: {
-        #             resource: 'bitcoin_address',
-        #             address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        #             currency: 'BTC',
-        #             address_info: {address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX'}
+        #         "to": {
+        #             "resource": "bitcoin_address",
+        #             "address": "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX",
+        #             "currency": "BTC",
+        #             "address_info": {address: "1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX"}
         #         },
-        #         idem: 'da0a2f14-a2af-4c5a-a37e-d4484caf582bsend',
-        #         application: {
-        #             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        #             resource: 'application',
-        #             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        #         "idem": "da0a2f14-a2af-4c5a-a37e-d4484caf582bsend",
+        #         "application": {
+        #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        #             "resource": "application",
+        #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         details: {title: 'Sent Bitcoin', subtitle: 'To Bitcoin address'}
+        #         "details": {title: 'Sent Bitcoin', subtitle: "To Bitcoin address"}
         #     }
         #
         # withdrawal transaction from coinbase to coinbasepro
         #
         #     {
-        #         id: '5b1b9fb8-5007-5393-b923-02903b973fdc',
-        #         type: 'pro_deposit',
-        #         status: 'completed',
-        #         amount: {amount: '-0.00001111', currency: 'BCH'},
-        #         native_amount: {amount: '0.00', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-02-28T13:31:58Z',
-        #         updated_at: '2019-02-28T13:31:58Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc',
-        #         instant_exchange: False,
-        #         application: {
-        #             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        #             resource: 'application',
-        #             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        #         "id": "5b1b9fb8-5007-5393-b923-02903b973fdc",
+        #         "type": "pro_deposit",
+        #         "status": "completed",
+        #         "amount": {amount: "-0.00001111", currency: "BCH"},
+        #         "native_amount": {amount: "0.00", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-02-28T13:31:58Z",
+        #         "updated_at": "2019-02-28T13:31:58Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc",
+        #         "instant_exchange": False,
+        #         "application": {
+        #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        #             "resource": "application",
+        #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         details: {title: 'Transferred Bitcoin Cash', subtitle: 'To Coinbase Pro'}
+        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To Coinbase Pro"}
         #     }
         #
         # withdrawal transaction from coinbase to gdax
         #
         #     {
-        #         id: 'badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        #         type: 'exchange_deposit',
-        #         status: 'completed',
-        #         amount: {amount: '-0.43704149', currency: 'BCH'},
-        #         native_amount: {amount: '-51.90', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-03-19T10:30:40Z',
-        #         updated_at: '2019-03-19T10:30:40Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        #         instant_exchange: False,
-        #         details: {title: 'Transferred Bitcoin Cash', subtitle: 'To GDAX'}
+        #         "id": "badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        #         "type": "exchange_deposit",
+        #         "status": "completed",
+        #         "amount": {amount: "-0.43704149", currency: "BCH"},
+        #         "native_amount": {amount: "-51.90", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-03-19T10:30:40Z",
+        #         "updated_at": "2019-03-19T10:30:40Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1",
+        #         "instant_exchange": False,
+        #         "details": {title: 'Transferred Bitcoin Cash', subtitle: "To GDAX"}
         #     }
         #
         # deposit transaction from gdax to coinbase
         #
         #     {
-        #         id: '9c4b642c-8688-58bf-8962-13cef64097de',
-        #         type: 'exchange_withdrawal',
-        #         status: 'completed',
-        #         amount: {amount: '0.57729420', currency: 'BTC'},
-        #         native_amount: {amount: '4418.72', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2018-02-17T11:33:33Z',
-        #         updated_at: '2018-02-17T11:33:33Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de',
-        #         instant_exchange: False,
-        #         details: {title: 'Transferred Bitcoin', subtitle: 'From GDAX'}
+        #         "id": "9c4b642c-8688-58bf-8962-13cef64097de",
+        #         "type": "exchange_withdrawal",
+        #         "status": "completed",
+        #         "amount": {amount: "0.57729420", currency: "BTC"},
+        #         "native_amount": {amount: "4418.72", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2018-02-17T11:33:33Z",
+        #         "updated_at": "2018-02-17T11:33:33Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de",
+        #         "instant_exchange": False,
+        #         "details": {title: 'Transferred Bitcoin', subtitle: "From GDAX"}
         #     }
         #
         # deposit transaction from coinbasepro to coinbase
         #
         #     {
-        #         id: '8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        #         type: 'pro_withdrawal',
-        #         status: 'completed',
-        #         amount: {amount: '0.40555386', currency: 'BTC'},
-        #         native_amount: {amount: '1140.27', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2019-03-04T19:41:58Z',
-        #         updated_at: '2019-03-04T19:41:58Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        #         instant_exchange: False,
-        #         application: {
-        #             id: '5756ab6e-836b-553b-8950-5e389451225d',
-        #             resource: 'application',
-        #             resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d'
+        #         "id": "8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        #         "type": "pro_withdrawal",
+        #         "status": "completed",
+        #         "amount": {amount: "0.40555386", currency: "BTC"},
+        #         "native_amount": {amount: "1140.27", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2019-03-04T19:41:58Z",
+        #         "updated_at": "2019-03-04T19:41:58Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81",
+        #         "instant_exchange": False,
+        #         "application": {
+        #             "id": "5756ab6e-836b-553b-8950-5e389451225d",
+        #             "resource": "application",
+        #             "resource_path": "/v2/applications/5756ab6e-836b-553b-8950-5e389451225d"
         #         },
-        #         details: {title: 'Transferred Bitcoin', subtitle: 'From Coinbase Pro'}
+        #         "details": {title: 'Transferred Bitcoin', subtitle: "From Coinbase Pro"}
         #     }
         #
         # sell trade
         #
         #     {
-        #         id: 'a9409207-df64-585b-97ab-a50780d2149e',
-        #         type: 'sell',
-        #         status: 'completed',
-        #         amount: {amount: '-9.09922880', currency: 'BTC'},
-        #         native_amount: {amount: '-7285.73', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-03-27T15:38:34Z',
-        #         updated_at: '2017-03-27T15:38:34Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e',
-        #         instant_exchange: False,
-        #         sell: {
-        #             id: 'e3550b4d-8ae6-5de3-95fe-1fb01ba83051',
-        #             resource: 'sell',
-        #             resource_path: '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051'
+        #         "id": "a9409207-df64-585b-97ab-a50780d2149e",
+        #         "type": "sell",
+        #         "status": "completed",
+        #         "amount": {amount: "-9.09922880", currency: "BTC"},
+        #         "native_amount": {amount: "-7285.73", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-03-27T15:38:34Z",
+        #         "updated_at": "2017-03-27T15:38:34Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e",
+        #         "instant_exchange": False,
+        #         "sell": {
+        #             "id": "e3550b4d-8ae6-5de3-95fe-1fb01ba83051",
+        #             "resource": "sell",
+        #             "resource_path": "/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051"
         #         },
-        #         details: {
-        #             title: 'Sold Bitcoin',
-        #             subtitle: 'Using EUR Wallet',
-        #             payment_method_name: 'EUR Wallet'
+        #         "details": {
+        #             "title": "Sold Bitcoin",
+        #             "subtitle": "Using EUR Wallet",
+        #             "payment_method_name": "EUR Wallet"
         #         }
         #     }
         #
         # buy trade
         #
         #     {
-        #         id: '63eeed67-9396-5912-86e9-73c4f10fe147',
-        #         type: 'buy',
-        #         status: 'completed',
-        #         amount: {amount: '2.39605772', currency: 'ETH'},
-        #         native_amount: {amount: '98.31', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-03-27T09:07:56Z',
-        #         updated_at: '2017-03-27T09:07:57Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147',
-        #         instant_exchange: False,
-        #         buy: {
-        #             id: '20b25b36-76c6-5353-aa57-b06a29a39d82',
-        #             resource: 'buy',
-        #             resource_path: '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82'
+        #         "id": "63eeed67-9396-5912-86e9-73c4f10fe147",
+        #         "type": "buy",
+        #         "status": "completed",
+        #         "amount": {amount: "2.39605772", currency: "ETH"},
+        #         "native_amount": {amount: "98.31", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-03-27T09:07:56Z",
+        #         "updated_at": "2017-03-27T09:07:57Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147",
+        #         "instant_exchange": False,
+        #         "buy": {
+        #             "id": "20b25b36-76c6-5353-aa57-b06a29a39d82",
+        #             "resource": "buy",
+        #             "resource_path": "/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82"
         #         },
-        #         details: {
-        #             title: 'Bought Ethereum',
-        #             subtitle: 'Using EUR Wallet',
-        #             payment_method_name: 'EUR Wallet'
+        #         "details": {
+        #             "title": "Bought Ethereum",
+        #             "subtitle": "Using EUR Wallet",
+        #             "payment_method_name": "EUR Wallet"
         #         }
         #     }
         #
         # fiat deposit transaction
         #
         #     {
-        #         id: '04ed4113-3732-5b0c-af86-b1d2146977d0',
-        #         type: 'fiat_deposit',
-        #         status: 'completed',
-        #         amount: {amount: '114.02', currency: 'EUR'},
-        #         native_amount: {amount: '97.23', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-02-09T07:01:21Z',
-        #         updated_at: '2017-02-09T07:01:22Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0',
-        #         instant_exchange: False,
-        #         fiat_deposit: {
-        #             id: 'f34c19f3-b730-5e3d-9f72-96520448677a',
-        #             resource: 'fiat_deposit',
-        #             resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a'
+        #         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        #         "type": "fiat_deposit",
+        #         "status": "completed",
+        #         "amount": {amount: "114.02", currency: "EUR"},
+        #         "native_amount": {amount: "97.23", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-02-09T07:01:21Z",
+        #         "updated_at": "2017-02-09T07:01:22Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0",
+        #         "instant_exchange": False,
+        #         "fiat_deposit": {
+        #             "id": "f34c19f3-b730-5e3d-9f72-96520448677a",
+        #             "resource": "fiat_deposit",
+        #             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a"
         #         },
-        #         details: {
-        #             title: 'Deposited funds',
-        #             subtitle: 'From SEPA Transfer(GB47 BARC 20..., reference CBADVI)',
-        #             payment_method_name: 'SEPA Transfer(GB47 BARC 20..., reference CBADVI)'
+        #         "details": {
+        #             "title": "Deposited funds",
+        #             "subtitle": "From SEPA Transfer(GB47 BARC 20..., reference CBADVI)",
+        #             "payment_method_name": "SEPA Transfer(GB47 BARC 20..., reference CBADVI)"
         #         }
         #     }
         #
         # fiat withdrawal transaction
         #
         #     {
-        #         id: '957d98e2-f80e-5e2f-a28e-02945aa93079',
-        #         type: 'fiat_withdrawal',
-        #         status: 'completed',
-        #         amount: {amount: '-11000.00', currency: 'EUR'},
-        #         native_amount: {amount: '-9698.22', currency: 'GBP'},
-        #         description: null,
-        #         created_at: '2017-12-06T13:19:19Z',
-        #         updated_at: '2017-12-06T13:19:19Z',
-        #         resource: 'transaction',
-        #         resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079',
-        #         instant_exchange: False,
-        #         fiat_withdrawal: {
-        #             id: 'f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7',
-        #             resource: 'fiat_withdrawal',
-        #             resource_path: '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7'
+        #         "id": "957d98e2-f80e-5e2f-a28e-02945aa93079",
+        #         "type": "fiat_withdrawal",
+        #         "status": "completed",
+        #         "amount": {amount: "-11000.00", currency: "EUR"},
+        #         "native_amount": {amount: "-9698.22", currency: "GBP"},
+        #         "description": null,
+        #         "created_at": "2017-12-06T13:19:19Z",
+        #         "updated_at": "2017-12-06T13:19:19Z",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079",
+        #         "instant_exchange": False,
+        #         "fiat_withdrawal": {
+        #             "id": "f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7",
+        #             "resource": "fiat_withdrawal",
+        #             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7"
         #         },
-        #         details: {
-        #             title: 'Withdrew funds',
-        #             subtitle: 'To HSBC BANK PLC(GB74 MIDL...)',
-        #             payment_method_name: 'HSBC BANK PLC(GB74 MIDL...)'
+        #         "details": {
+        #             "title": "Withdrew funds",
+        #             "subtitle": "To HSBC BANK PLC(GB74 MIDL...)",
+        #             "payment_method_name": "HSBC BANK PLC(GB74 MIDL...)"
         #         }
         #     }
         #
@@ -2038,7 +2060,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'success_response', {})
         return self.parse_order(data, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # createOrder
         #
@@ -2292,7 +2314,7 @@ class coinbase(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'order', {})
         return self.parse_order(order, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2444,7 +2466,7 @@ class coinbase(Exchange, ImplicitAPI):
             orders[0] = first
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on all currently open orders
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2463,7 +2485,7 @@ class coinbase(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, 'cursor', 'cursor', None, 100)
         return self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
@@ -2494,7 +2516,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('CANCELLED', symbol, since, limit, params)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
@@ -2551,7 +2573,7 @@ class coinbase(Exchange, ImplicitAPI):
         candles = self.safe_value(response, 'candles', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         {
@@ -2573,7 +2595,7 @@ class coinbase(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
@@ -2673,7 +2695,7 @@ class coinbase(Exchange, ImplicitAPI):
             trades[0] = first
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproductbook

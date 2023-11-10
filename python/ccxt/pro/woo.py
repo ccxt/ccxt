@@ -92,17 +92,17 @@ class woo(ccxt.async_support.woo):
     def handle_order_book(self, client: Client, message):
         #
         #     {
-        #         topic: 'PERP_BTC_USDT@orderbook',
-        #         ts: 1650121915308,
-        #         data: {
-        #             symbol: 'PERP_BTC_USDT',
-        #             bids: [
+        #         "topic": "PERP_BTC_USDT@orderbook",
+        #         "ts": 1650121915308,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "bids": [
         #                 [
         #                     0.30891,
         #                     2469.98
         #                 ]
         #             ],
-        #             asks: [
+        #             "asks": [
         #                 [
         #                     0.31075,
         #                     2379.63
@@ -139,14 +139,14 @@ class woo(ccxt.async_support.woo):
     def parse_ws_ticker(self, ticker, market=None):
         #
         #     {
-        #         symbol: 'PERP_BTC_USDT',
-        #         open: 19441.5,
-        #         close: 20147.07,
-        #         high: 20761.87,
-        #         low: 19320.54,
-        #         volume: 2481.103,
-        #         amount: 50037935.0286,
-        #         count: 3689
+        #         "symbol": "PERP_BTC_USDT",
+        #         "open": 19441.5,
+        #         "close": 20147.07,
+        #         "high": 20761.87,
+        #         "low": 19320.54,
+        #         "volume": 2481.103,
+        #         "amount": 50037935.0286,
+        #         "count": 3689
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
@@ -176,17 +176,17 @@ class woo(ccxt.async_support.woo):
     def handle_ticker(self, client: Client, message):
         #
         #     {
-        #         topic: 'PERP_BTC_USDT@ticker',
-        #         ts: 1657120017000,
-        #         data: {
-        #             symbol: 'PERP_BTC_USDT',
-        #             open: 19441.5,
-        #             close: 20147.07,
-        #             high: 20761.87,
-        #             low: 19320.54,
-        #             volume: 2481.103,
-        #             amount: 50037935.0286,
-        #             count: 3689
+        #         "topic": "PERP_BTC_USDT@ticker",
+        #         "ts": 1657120017000,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "open": 19441.5,
+        #             "close": 20147.07,
+        #             "high": 20761.87,
+        #             "low": 19320.54,
+        #             "volume": 2481.103,
+        #             "amount": 50037935.0286,
+        #             "count": 3689
         #         }
         #     }
         #
@@ -458,27 +458,27 @@ class woo(ccxt.async_support.woo):
     def parse_ws_order(self, order, market=None):
         #
         #     {
-        #         symbol: 'PERP_BTC_USDT',
-        #         clientOrderId: 0,
-        #         orderId: 52952826,
-        #         type: 'LIMIT',
-        #         side: 'SELL',
-        #         quantity: 0.01,
-        #         price: 22000,
-        #         tradeId: 0,
-        #         executedPrice: 0,
-        #         executedQuantity: 0,
-        #         fee: 0,
-        #         feeAsset: 'USDT',
-        #         totalExecutedQuantity: 0,
-        #         status: 'NEW',
-        #         reason: '',
-        #         orderTag: 'default',
-        #         totalFee: 0,
-        #         visible: 0.01,
-        #         timestamp: 1657515556799,
-        #         reduceOnly: False,
-        #         maker: False
+        #         "symbol": "PERP_BTC_USDT",
+        #         "clientOrderId": 0,
+        #         "orderId": 52952826,
+        #         "type": "LIMIT",
+        #         "side": "SELL",
+        #         "quantity": 0.01,
+        #         "price": 22000,
+        #         "tradeId": 0,
+        #         "executedPrice": 0,
+        #         "executedQuantity": 0,
+        #         "fee": 0,
+        #         "feeAsset": "USDT",
+        #         "totalExecutedQuantity": 0,
+        #         "status": "NEW",
+        #         "reason": '',
+        #         "orderTag": "default",
+        #         "totalFee": 0,
+        #         "visible": 0.01,
+        #         "timestamp": 1657515556799,
+        #         "reduceOnly": False,
+        #         "maker": False
         #     }
         #
         orderId = self.safe_string(order, 'orderId')
@@ -534,30 +534,30 @@ class woo(ccxt.async_support.woo):
     def handle_order_update(self, client: Client, message):
         #
         #     {
-        #         topic: 'executionreport',
-        #         ts: 1657515556799,
-        #         data: {
-        #             symbol: 'PERP_BTC_USDT',
-        #             clientOrderId: 0,
-        #             orderId: 52952826,
-        #             type: 'LIMIT',
-        #             side: 'SELL',
-        #             quantity: 0.01,
-        #             price: 22000,
-        #             tradeId: 0,
-        #             executedPrice: 0,
-        #             executedQuantity: 0,
-        #             fee: 0,
-        #             feeAsset: 'USDT',
-        #             totalExecutedQuantity: 0,
-        #             status: 'NEW',
-        #             reason: '',
-        #             orderTag: 'default',
-        #             totalFee: 0,
-        #             visible: 0.01,
-        #             timestamp: 1657515556799,
-        #             reduceOnly: False,
-        #             maker: False
+        #         "topic": "executionreport",
+        #         "ts": 1657515556799,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDT",
+        #             "clientOrderId": 0,
+        #             "orderId": 52952826,
+        #             "type": "LIMIT",
+        #             "side": "SELL",
+        #             "quantity": 0.01,
+        #             "price": 22000,
+        #             "tradeId": 0,
+        #             "executedPrice": 0,
+        #             "executedQuantity": 0,
+        #             "fee": 0,
+        #             "feeAsset": "USDT",
+        #             "totalExecutedQuantity": 0,
+        #             "status": "NEW",
+        #             "reason": '',
+        #             "orderTag": "default",
+        #             "totalFee": 0,
+        #             "visible": 0.01,
+        #             "timestamp": 1657515556799,
+        #             "reduceOnly": False,
+        #             "maker": False
         #         }
         #     }
         #
@@ -649,8 +649,11 @@ class woo(ccxt.async_support.woo):
             value = balances[key]
             code = self.safe_currency_code(key)
             account = self.balance[code] if (code in self.balance) else self.account()
-            account['total'] = self.safe_string(value, 'holding')
-            account['used'] = self.safe_string(value, 'frozen')
+            total = self.safe_string(value, 'holding')
+            used = self.safe_string(value, 'frozen')
+            account['total'] = total
+            account['used'] = used
+            account['free'] = Precise.string_sub(total, used)
             self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
@@ -701,7 +704,7 @@ class woo(ccxt.async_support.woo):
 
     def handle_pong(self, client: Client, message):
         #
-        # {event: 'pong', ts: 1657117026090}
+        # {event: "pong", ts: 1657117026090}
         #
         client.lastPong = self.milliseconds()
         return message
@@ -709,10 +712,10 @@ class woo(ccxt.async_support.woo):
     def handle_subscribe(self, client: Client, message):
         #
         #     {
-        #         id: '666888',
-        #         event: 'subscribe',
-        #         success: True,
-        #         ts: 1657117712212
+        #         "id": "666888",
+        #         "event": "subscribe",
+        #         "success": True,
+        #         "ts": 1657117712212
         #     }
         #
         return message
@@ -720,9 +723,9 @@ class woo(ccxt.async_support.woo):
     def handle_auth(self, client: Client, message):
         #
         #     {
-        #         event: 'auth',
-        #         success: True,
-        #         ts: 1657463158812
+        #         "event": "auth",
+        #         "success": True,
+        #         "ts": 1657463158812
         #     }
         #
         messageHash = 'authenticated'

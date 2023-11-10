@@ -92,18 +92,18 @@ class hitbtc(ccxt.async_support.hitbtc):
             self.watch(url, messageHash, request, messageHash)
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        result: True
+            #        "jsonrpc": "2.0",
+            #        "result": True
             #    }
             #
             #    # Failure to return results
             #
             #    {
-            #        jsonrpc: '2.0',
-            #        error: {
-            #            code: 1002,
-            #            message: 'Authorization is required or has been failed',
-            #            description: 'invalid signature format'
+            #        "jsonrpc": "2.0",
+            #        "error": {
+            #            "code": 1002,
+            #            "message": "Authorization is required or has been failed",
+            #            "description": "invalid signature format"
             #        }
             #    }
             #
@@ -113,9 +113,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
          * @ignore
         :param str name: websocket endpoint name
-        :param [str] [symbols]: unified CCXT symbol(s)
+        :param str[] [symbols]: unified CCXT symbol(s)
         :param dict [params]: extra parameters specific to the hitbtc api
-         * @returns
         """
         await self.load_markets()
         url = self.urls['api']['ws']['public']
@@ -136,7 +135,6 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str name: websocket endpoint name
         :param str [symbol]: unified CCXT symbol
         :param dict [params]: extra parameters specific to the hitbtc api
-         * @returns
         """
         await self.load_markets()
         await self.authenticate()
@@ -559,7 +557,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int [since]: not used by hitbtc watchOHLCV
         :param int [limit]: 0 – 1000, default value = 0(no history returned)
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
@@ -633,7 +631,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(stored, messageHash)
         return message
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "t": 1626860340000,             # Message timestamp
@@ -664,7 +662,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int [since]: timestamp in ms of the earliest order to fetch
         :param int [limit]: the maximum amount of orders to fetch
         :param dict [params]: extra parameters specific to the hitbtc api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         marketType = None
@@ -887,7 +885,7 @@ class hitbtc(ccxt.async_support.hitbtc):
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.mode]: 'updates' or 'batches'(default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-        :returns [dict]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
@@ -928,7 +926,7 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def handle_notification(self, client: Client, message):
         #
-        #     {jsonrpc: '2.0', result: True, id: null}
+        #     {jsonrpc: "2.0", result: True, id: null}
         #
         return message
 
@@ -962,8 +960,8 @@ class hitbtc(ccxt.async_support.hitbtc):
     def handle_authenticate(self, client: Client, message):
         #
         #    {
-        #        jsonrpc: '2.0',
-        #        result: True
+        #        "jsonrpc": "2.0",
+        #        "result": True
         #    }
         #
         success = self.safe_value(message, 'result')

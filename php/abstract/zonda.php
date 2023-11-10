@@ -121,6 +121,12 @@ abstract class zonda extends \ccxt\Exchange {
     public function v1_01private_post_fiat_cantor_exchange($params = array()) {
         return $this->request('fiat_cantor/exchange', 'v1_01Private', 'POST', $params, null, null, array());
     }
+    public function v1_01private_post_api_payments_withdrawals_crypto($params = array()) {
+        return $this->request('api_payments/withdrawals/crypto', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01private_post_api_payments_withdrawals_fiat($params = array()) {
+        return $this->request('api_payments/withdrawals/fiat', 'v1_01Private', 'POST', $params, null, null, array());
+    }
     public function v1_01private_delete_trading_offer_symbol_id_side_price($params = array()) {
         return $this->request('trading/offer/{symbol}/{id}/{side}/{price}', 'v1_01Private', 'DELETE', $params, null, null, array());
     }
@@ -243,6 +249,12 @@ abstract class zonda extends \ccxt\Exchange {
     }
     public function v1_01PrivatePostFiatCantorExchange($params = array()) {
         return $this->request('fiat_cantor/exchange', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01PrivatePostApiPaymentsWithdrawalsCrypto($params = array()) {
+        return $this->request('api_payments/withdrawals/crypto', 'v1_01Private', 'POST', $params, null, null, array());
+    }
+    public function v1_01PrivatePostApiPaymentsWithdrawalsFiat($params = array()) {
+        return $this->request('api_payments/withdrawals/fiat', 'v1_01Private', 'POST', $params, null, null, array());
     }
     public function v1_01PrivateDeleteTradingOfferSymbolIdSidePrice($params = array()) {
         return $this->request('trading/offer/{symbol}/{id}/{side}/{price}', 'v1_01Private', 'DELETE', $params, null, null, array());

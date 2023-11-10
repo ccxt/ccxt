@@ -95,22 +95,22 @@ class idex extends \ccxt\async\idex {
     }
 
     public function handle_ticker(Client $client, $message) {
-        // { $type => 'tickers',
-        //   $data:
-        //    { m => 'DIL-ETH',
-        //      t => 1599213946045,
-        //      o => '0.09699020',
-        //      h => '0.10301548',
-        //      l => '0.09577222',
-        //      c => '0.09907311',
-        //      Q => '1.32723120',
-        //      v => '297.80667468',
-        //      q => '29.52142669',
-        //      P => '2.14',
-        //      n => 197,
-        //      a => '0.09912245',
-        //      b => '0.09686980',
-        //      u => 5870 } }
+        // { $type => "tickers",
+        //   "data":
+        //    { m => "DIL-ETH",
+        //      "t" => 1599213946045,
+        //      "o" => "0.09699020",
+        //      "h" => "0.10301548",
+        //      "l" => "0.09577222",
+        //      "c" => "0.09907311",
+        //      "Q" => "1.32723120",
+        //      "v" => "297.80667468",
+        //      "q" => "29.52142669",
+        //      "P" => "2.14",
+        //      "n" => 197,
+        //      "a" => "0.09912245",
+        //      "b" => "0.09686980",
+        //      "u" => 5870 } }
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
@@ -194,27 +194,27 @@ class idex extends \ccxt\async\idex {
 
     public function parse_ws_trade($trade, $market = null) {
         // public trades
-        // { m => 'DIL-ETH',
-        //   i => '897ecae6-4b75-368a-ac00-be555e6ad65f',
-        //   p => '0.09696995',
-        //   q => '2.00000000',
-        //   Q => '0.19393990',
-        //   t => 1599504616247,
-        //   s => 'buy',
-        //   u => 6620 }
+        // { m => "DIL-ETH",
+        //   "i" => "897ecae6-4b75-368a-ac00-be555e6ad65f",
+        //   "p" => "0.09696995",
+        //   "q" => "2.00000000",
+        //   "Q" => "0.19393990",
+        //   "t" => 1599504616247,
+        //   "s" => "buy",
+        //   "u" => 6620 }
         // private trades
-        // { i => 'ee253d78-88be-37ed-a61c-a36395c2ce48',
-        //   p => '0.09925382',
-        //   q => '0.15000000',
-        //   Q => '0.01488807',
-        //   t => 1599499129369,
-        //   s => 'sell',
-        //   u => 6603,
-        //   f => '0.00030000',
-        //   a => 'DIL',
-        //   g => '0.00856110',
-        //   l => 'maker',
-        //   S => 'pending' }
+        // { i => "ee253d78-88be-37ed-a61c-a36395c2ce48",
+        //   "p" => "0.09925382",
+        //   "q" => "0.15000000",
+        //   "Q" => "0.01488807",
+        //   "t" => 1599499129369,
+        //   "s" => "sell",
+        //   "u" => 6603,
+        //   "f" => "0.00030000",
+        //   "a" => "DIL",
+        //   "g" => "0.00856110",
+        //   "l" => "maker",
+        //   "S" => "pending" }
         $marketId = $this->safe_string($trade, 'm');
         $symbol = $this->safe_symbol($marketId);
         $id = $this->safe_string($trade, 'i');
@@ -276,20 +276,20 @@ class idex extends \ccxt\async\idex {
     }
 
     public function handle_ohlcv(Client $client, $message) {
-        // { $type => 'candles',
-        //   $data:
-        //    { m => 'DIL-ETH',
-        //      t => 1599477340109,
-        //      i => '1m',
-        //      s => 1599477300000,
-        //      e => 1599477360000,
-        //      o => '0.09911040',
-        //      h => '0.09911040',
-        //      l => '0.09911040',
-        //      c => '0.09911040',
-        //      v => '0.15000000',
-        //      n => 1,
-        //      u => 6531 } }
+        // { $type => "candles",
+        //   "data":
+        //    { m => "DIL-ETH",
+        //      "t" => 1599477340109,
+        //      "i" => "1m",
+        //      "s" => 1599477300000,
+        //      "e" => 1599477360000,
+        //      "o" => "0.09911040",
+        //      "h" => "0.09911040",
+        //      "l" => "0.09911040",
+        //      "c" => "0.09911040",
+        //      "v" => "0.15000000",
+        //      "n" => 1,
+        //      "u" => 6531 } }
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $marketId = $this->safe_string($data, 'm');
@@ -681,14 +681,14 @@ class idex extends \ccxt\async\idex {
 
     public function handle_transaction(Client $client, $message) {
         // Update Speed => Real time, updates on any deposit or withdrawal of the wallet
-        // { $type => 'balances',
-        //   $data:
-        //    { w => '0x0AB991497116f7F5532a4c2f4f7B1784488628e1',
-        //      a => 'ETH',
-        //      q => '0.11198667',
-        //      f => '0.11198667',
-        //      l => '0.00000000',
-        //      d => '0.00' } }
+        // { $type => "balances",
+        //   "data":
+        //    { w => "0x0AB991497116f7F5532a4c2f4f7B1784488628e1",
+        //      "a" => "ETH",
+        //      "q" => "0.11198667",
+        //      "f" => "0.11198667",
+        //      "l" => "0.00000000",
+        //      "d" => "0.00" } }
         $type = $this->safe_string($message, 'type');
         $data = $this->safe_value($message, 'data');
         $currencyId = $this->safe_string($data, 'a');

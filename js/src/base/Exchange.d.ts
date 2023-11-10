@@ -72,7 +72,7 @@ export default class Exchange {
     transactions: {};
     ohlcvs: any;
     myTrades: any;
-    positions: {};
+    positions: any;
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -96,6 +96,9 @@ export default class Exchange {
     last_json_response: any;
     last_response_headers: any;
     last_request_headers: any;
+    last_request_body: any;
+    last_request_url: any;
+    last_request_path: any;
     id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated'>;
@@ -566,13 +569,14 @@ export default class Exchange {
     parseWsTrade(trade: any, market?: any): Trade;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderTrade(trade: any, market?: any): Trade;
-    parseWsOHLCV(ohlcv: any, market?: any): any;
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     createDepositAddress(code: string, params?: {}): Promise<DepositAddressResponse>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
     parseToInt(number: any): number;
+    parseToNumeric(number: any): number;
     afterConstruct(): void;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {
@@ -617,6 +621,7 @@ export default class Exchange {
         rate: number;
         cost: number;
     };
+    safeLiquidation(liquidation: object, market?: object): Liquidation;
     safeTrade(trade: object, market?: object): Trade;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
@@ -632,7 +637,7 @@ export default class Exchange {
     parseBidsAsks(bidasks: any, priceKey?: IndexType, amountKey?: IndexType): any[];
     fetchL2OrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     filterBySymbol(objects: any, symbol?: string): any;
-    parseOHLCV(ohlcv: any, market?: any): any;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
     networkCodeToId(networkCode: any, currencyCode?: any): string;
     networkIdToCode(networkId: any, currencyCode?: any): string;
     handleNetworkCodeAndParams(params: any): any[];
@@ -670,6 +675,9 @@ export default class Exchange {
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    watchPosition(symbol?: string, params?: {}): Promise<Position>;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositionForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
@@ -778,6 +786,7 @@ export default class Exchange {
     safeCurrencyCode(currencyId?: string, currency?: any): any;
     filterBySymbolSinceLimit(array: any, symbol?: string, since?: Int, limit?: Int, tail?: boolean): any;
     filterByCurrencySinceLimit(array: any, code?: any, since?: Int, limit?: Int, tail?: boolean): any;
+    filterBySymbolsSinceLimit(array: any, symbols?: string[], since?: Int, limit?: Int, tail?: boolean): any;
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): any;
     parseTickers(tickers: any, symbols?: string[], params?: {}): Dictionary<Ticker>;
     parseDepositAddresses(addresses: any, codes?: string[], indexed?: boolean, params?: {}): {};

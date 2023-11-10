@@ -90,18 +90,18 @@ class hitbtc extends \ccxt\async\hitbtc {
             $this->watch($url, $messageHash, $request, $messageHash);
             //
             //    {
-            //        jsonrpc => '2.0',
-            //        result => true
+            //        "jsonrpc" => "2.0",
+            //        "result" => true
             //    }
             //
             //    # Failure to return results
             //
             //    {
-            //        jsonrpc => '2.0',
-            //        error => {
-            //            code => 1002,
-            //            message => 'Authorization is required or has been failed',
-            //            description => 'invalid $signature format'
+            //        "jsonrpc" => "2.0",
+            //        "error" => {
+            //            "code" => 1002,
+            //            "message" => "Authorization is required or has been failed",
+            //            "description" => "invalid $signature format"
             //        }
             //    }
             //
@@ -114,9 +114,8 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
-             * @param {[string]} [$symbols] unified CCXT symbol(s)
+             * @param {string[]} [$symbols] unified CCXT symbol(s)
              * @param {array} [$params] extra parameters specific to the hitbtc api
-             * @return
              */
             Async\await($this->load_markets());
             $url = $this->urls['api']['ws']['public'];
@@ -141,7 +140,6 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $name websocket endpoint $name
              * @param {string} [$symbol] unified CCXT $symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api
-             * @return
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -604,7 +602,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int} [$since] not used by hitbtc watchOHLCV
              * @param {int} [$limit] 0 – 1000, default value = 0 (no history returned)
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candles/' . $period;
@@ -686,7 +684,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $message;
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //    {
         //        "t" => 1626860340000,             // Message timestamp
@@ -719,7 +717,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum amount of $orders to fetch
              * @param {array} [$params] extra parameters specific to the hitbtc api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
             $marketType = null;
@@ -955,7 +953,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=balance-structure balance structures~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -999,7 +997,7 @@ class hitbtc extends \ccxt\async\hitbtc {
 
     public function handle_notification(Client $client, $message) {
         //
-        //     array( jsonrpc => '2.0', result => true, id => null )
+        //     array( jsonrpc => "2.0", result => true, id => null )
         //
         return $message;
     }
@@ -1038,8 +1036,8 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_authenticate(Client $client, $message) {
         //
         //    {
-        //        jsonrpc => '2.0',
-        //        result => true
+        //        "jsonrpc" => "2.0",
+        //        "result" => true
         //    }
         //
         $success = $this->safe_value($message, 'result');

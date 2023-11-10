@@ -9,6 +9,11 @@ export default class kucoinfutures extends kucoinfuturesRest {
     subscribe(url: any, messageHash: any, subscriptionHash: any, subscription: any, params?: {}): Promise<any>;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): any;
+    watchPosition(symbol?: string, params?: {}): Promise<any>;
+    getCurrentPosition(symbol: any): any;
+    setPositionCache(client: Client, symbol: string): void;
+    loadPositionSnapshot(client: any, messageHash: any, symbol: any): Promise<void>;
+    handlePosition(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): any;
