@@ -1727,13 +1727,19 @@ export default class bitrue extends Exchange {
 
     parseOrder (order, market = undefined): Order {
         //
-        // createOrder
+        // createOrder - spot
         //
         //     {
         //         "symbol":"USDCUSDT",
         //         "orderId":2878854881,
         //         "clientOrderId":"",
         //         "transactTime":1635551031276
+        //     }
+        //
+        // createOrder - future
+        //
+        //     {
+        //         "orderId":1690615676032452985,
         //     }
         //
         // fetchOpenOrders
@@ -2060,25 +2066,41 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
-        const request = {
-            'symbol': market['id'],
-            // "orderId": id,
-            // "origClientOrderId": id,
-            // "newClientOrderId": id,
-        };
+        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
         if (origClientOrderId === undefined) {
             request['orderId'] = id;
         } else {
-            request['origClientOrderId'] = origClientOrderId;
+            if (market['future']) {
+                request['clientOrderId'] = origClientOrderId;
+            } else {
+                request['origClientOrderId'] = origClientOrderId;
+            }
         }
-        const query = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId' ]);
-        const response = await this.spotV1PrivateDeleteOrder (this.extend (request, query));
+        if (market['future']) {
+            request['contractName'] = market['id'];
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV2PrivatePostCancel (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV2PrivatePostCancel (this.extend (request, params));
+            }
+            data = this.safeValue (response, 'data');
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
+            data = response;
+        }
+        //
+        // spot
         //
         //     {
         //         "symbol": "LTCBTC",
@@ -2087,7 +2109,17 @@ export default class bitrue extends Exchange {
         //         "clientOrderId": "cancelMyOrder1"
         //     }
         //
-        return this.parseOrder (response, market);
+        // future
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Success",
+        //         "data": {
+        //             "orderId": 1690615847831143159
+        //         }
+        //     }
+        //
+        return this.parseOrder (data, market);
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
