@@ -1627,6 +1627,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchSettlementHistory (symbol, since, limit, params)`
 - `fetchLiquidations (symbol, since, limit, params)`
 - `fetchMyLiquidations (symbol, since, limit, params)`
+- `fetchGreeks (symbol, params)`
 - ...
 
 ```text
@@ -1980,6 +1981,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Volatility History](#volatility-history)
 - [Underlying Assets](#underlying-assets)
 - [Liquidations](#liquidations)
+- [Greeks](#greeks)
 
 ## Order Book
 
@@ -3111,6 +3113,51 @@ Returns
     },
     ...
 ]
+```
+
+## Greeks
+
+*option only*
+
+Use the `fetchGreeks` method to get the public greeks and implied volatility of an options trading pair from the exchange.
+
+```javascript
+fetchGreeks (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USD:BTC-240927-40000-C"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "options"}`)
+
+Returns
+
+- A [greeks structure](#greeks-structure)
+
+### Greeks Structure
+
+```javascript
+{
+    'symbol': 'BTC/USD:BTC-240927-40000-C',     // unified CCXT market symbol
+    'timestamp': 1699593511632,                 // unix timestamp in milliseconds
+    'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
+    'delta': 0.59833,                           // measures the change in the options price due to the change in the underlying price
+    'gamma': 0.00002,                           // measures the rate of change in the options delta over time
+    'theta': -13.4441,                          // measures the rate of decline in the price of an option over time
+    'vega': 142.30124,                          // measures the amount that an options price changes with a 1% change in the implied volatility
+    'rho': 131.82621,                           // measures the change in an options price per 1% change in interest rates
+    'bidSize': 2.2,                             // the options bid amount
+    'askSize': 9,                               // the options ask amount
+    'bidImpliedVolatility': 60.06,              // the implied volatility of the bid
+    'askImpliedVolatility': 61.85,              // the implied volatility of the ask
+    'markImpliedVolatility': 60.86,             // the implied volatility of the mark
+    'bidPrice': 0.214,                          // the bid price of the option
+    'askPrice': 0.2205,                         // the ask price of the option
+    'markPrice': 0.2169,                        // the mark price of the option
+    'lastPrice': 0.215,                         // the last price of the option
+    'underlyingPrice': 39165.86,                // the price of the underlying asset
+    'info': { ... },                            // the original decoded JSON as is
+}
 ```
 
 # Private API
