@@ -1992,6 +1992,12 @@ export default class bitmart extends Exchange {
         //         "order_id": 2707217580
         //     }
         //
+        // swap
+        //   "data": {
+        //       "order_id": 231116359426639,
+        //       "price": "market price"
+        //    },
+        //
         // cancelOrder
         //
         //     "2707217580" // order id
@@ -2074,6 +2080,10 @@ export default class bitmart extends Exchange {
             type = 'limit';
             timeInForce = 'IOC';
         }
+        let priceString = this.safeString (order, 'price');
+        if (priceString === 'market price') {
+            priceString = undefined;
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'client_order_id'),
@@ -2086,7 +2096,7 @@ export default class bitmart extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
-            'price': this.omitZero (this.safeString (order, 'price')),
+            'price': this.omitZero (priceString),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': this.omitZero (this.safeString (order, 'size')),
@@ -2184,6 +2194,9 @@ export default class bitmart extends Exchange {
         //             "order_id": 2707217580
         //         }
         //     }
+        //
+        // swap
+        // {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
         //
         const data = this.safeValue (response, 'data', {});
         const order = this.parseOrder (data, market);
