@@ -204,6 +204,16 @@ class Ticker(TypedDict):
     quoteVolume: Numeric
     baseVolume: Numeric
 
+
+Tickers = Dict[str, Ticker]
+
+
+class MarginMode(TypedDict):
+    info: Dict[str, Any]
+    symbol: str
+    marginMode: str
+
+
 class Greeks(TypedDict):
     symbol: str
     timestamp: int

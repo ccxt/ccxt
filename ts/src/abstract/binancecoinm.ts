@@ -636,7 +636,9 @@ interface binance {
     papiGetUmAdlQuantile (params?: {}): Promise<implicitReturnType>;
     papiGetCmAdlQuantile (params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder (params?: {}): Promise<implicitReturnType>;
+    papiPostUmConditionalOrder (params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder (params?: {}): Promise<implicitReturnType>;
+    papiPostCmConditionalOrder (params?: {}): Promise<implicitReturnType>;
     papiPostMarginOrder (params?: {}): Promise<implicitReturnType>;
     papiPostMarginLoan (params?: {}): Promise<implicitReturnType>;
     papiPostRepayLoan (params?: {}): Promise<implicitReturnType>;
@@ -653,8 +655,10 @@ interface binance {
     papiPostAssetCollection (params?: {}): Promise<implicitReturnType>;
     papiPutListenKey (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder (params?: {}): Promise<implicitReturnType>;
+    papiDeleteUmConditionalOrder (params?: {}): Promise<implicitReturnType>;
     papiDeleteUmAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     papiDeleteCmOrder (params?: {}): Promise<implicitReturnType>;
+    papiDeleteCmConditionalOrder (params?: {}): Promise<implicitReturnType>;
     papiDeleteCmAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrder (params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginAllOpenOrders (params?: {}): Promise<implicitReturnType>;

@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker, OrderBook, Greeks } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker, OrderBook, Tickers, Greeks } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -963,7 +963,9 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'um/order': 1, // 0
+                        'um/conditional/order': 1,
                         'cm/order': 1, // 0
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133, // Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
                         'marginLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
                         'repayLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
@@ -984,9 +986,13 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'um/order': 1, // 1
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1, // 1
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1, // 1
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1, // 1
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5, // 5
                         'margin/orderList': 2, // 2
@@ -3188,7 +3194,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name binance#fetchTickers
