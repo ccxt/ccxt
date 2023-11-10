@@ -1086,7 +1086,7 @@ export default class bitrue extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrderBook', market, params);
         let response = undefined;
         if (market['future']) {
             const request = {
@@ -1227,9 +1227,9 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTicker', market, params);
         let response = undefined;
         let data = undefined;
         if (market['future']) {
@@ -1306,9 +1306,9 @@ export default class bitrue extends Exchange {
         const market = this.market (symbol);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOHLCV', market, params);
         let response = undefined;
         let data = undefined;
         if (market['future']) {
@@ -1437,9 +1437,9 @@ export default class bitrue extends Exchange {
             market = this.market (first);
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         let response = undefined;
         if (market['future']) {
             const request = {
@@ -1503,9 +1503,9 @@ export default class bitrue extends Exchange {
             const first = this.safeString (symbols, 0);
             const market = this.market (first);
             let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
             let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
             if (market['future']) {
                 request['contractName'] = market['id'];
                 if (this.isLinear (type, subType)) {
@@ -1742,7 +1742,7 @@ export default class bitrue extends Exchange {
         //         "orderId":1690615676032452985,
         //     }
         //
-        // fetchOpenOrders
+        // fetchOrders - spot
         //
         //     {
         //         "symbol":"USDCUSDT",
@@ -1761,6 +1761,23 @@ export default class bitrue extends Exchange {
         //         "time":1635551031000,
         //         "updateTime":1635551031000,
         //         "isWorking":false
+        //     }
+        //
+        // fetchOrders - future
+        //
+        //     {
+        //         "orderId":1917641,
+        //         "price":100,
+        //         "origQty":10,
+        //         "origAmount":10,
+        //         "executedQty":1,
+        //         "avgPrice":10000,
+        //         "status":"INIT",
+        //         "type":"LIMIT",
+        //         "side":"BUY",
+        //         "action":"OPEN",
+        //         "transactTime":1686716571425
+        //         "clientOrderId":4949299210
         //     }
         //
         const status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
@@ -1850,9 +1867,9 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('createOrder', market, params);
         let response = undefined;
         let data = undefined;
         const uppercaseType = type.toUpperCase ();
@@ -1937,23 +1954,83 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['origClientOrderId'] = clientOrderId;
-        } else {
+        const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
+        if (origClientOrderId === undefined) {
             request['orderId'] = id;
+        } else {
+            if (market['future']) {
+                request['clientOrderId'] = origClientOrderId;
+            } else {
+                request['origClientOrderId'] = origClientOrderId;
+            }
         }
-        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        const response = await this.spotV1PrivateGetOrder (this.extend (request, query));
-        return this.parseOrder (response, market);
+        if (market['future']) {
+            request['contractName'] = market['id'];
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV2PrivateGetOrder (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV2PrivateGetOrder (this.extend (request, params));
+            }
+            data = this.safeValue (response, 'data');
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.spotV1PrivateGetOrder (this.extend (request, params));
+            data = response;
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "symbol": "LTCBTC",
+        //         "orderId": 1,
+        //         "clientOrderId": "myOrder1",
+        //         "price": "0.1",
+        //         "origQty": "1.0",
+        //         "executedQty": "0.0",
+        //         "cummulativeQuoteQty": "0.0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": 1499827319559,
+        //         "updateTime": 1499827319559,
+        //         "isWorking": true
+        //     }
+        //
+        // future
+        //
+        //     {
+        //         "code":0,
+        //         "msg":"success",
+        //         "data":{
+        //             "orderId":1917641,
+        //             "price":100,
+        //             "origQty":10,
+        //             "origAmount":10,
+        //             "executedQty":1,
+        //             "avgPrice":10000,
+        //             "status":"INIT",
+        //             "type":"LIMIT",
+        //             "side":"BUY",
+        //             "action":"OPEN",
+        //             "transactTime":1686716571425
+        //             "clientOrderId":4949299210
+        //         }
+        //     }
+        //
+        return this.parseOrder (data, market);
     }
 
     async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2071,9 +2148,9 @@ export default class bitrue extends Exchange {
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId' ]);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
         let response = undefined;
         let data = undefined;
         const request = {};
@@ -2136,9 +2213,9 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
         let response = undefined;
         let data = undefined;
         const request = {};
