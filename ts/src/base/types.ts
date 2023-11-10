@@ -280,6 +280,7 @@ export interface FundingHistory {
 }
 
 export interface MarginMode {
+    infp: any;
     symbol: string;
     marginMode: 'isolated' | 'cross' | string;
 }

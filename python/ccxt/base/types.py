@@ -203,3 +203,8 @@ class Ticker(TypedDict):
     average: Numeric
     quoteVolume: Numeric
     baseVolume: Numeric
+
+class MarginMode(TypedDict):
+    info: Dict[str, Any]
+    symbol: str
+    marginMode: str
