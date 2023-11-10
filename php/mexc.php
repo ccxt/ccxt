@@ -3484,7 +3484,7 @@ class mexc extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
@@ -4277,7 +4277,7 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
@@ -4336,7 +4336,7 @@ class mexc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network

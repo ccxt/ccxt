@@ -757,10 +757,10 @@ class bitget extends bitget$1 {
          * @name bitget#watchPositions
          * @description watch all open positions
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.instType Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl: USDC margin Perpetual Contract Private Channel
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets();
         let market = undefined;

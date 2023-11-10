@@ -211,9 +211,9 @@ class krakenfutures extends krakenfutures$1 {
          * @name krakenfutures#watchPositions
          * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
          * @description watch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the krakenfutures api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets();
         let messageHash = '';

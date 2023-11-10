@@ -683,7 +683,7 @@ class novadax extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://doc.novadax.com/en-US/#get-account-balance
@@ -1238,7 +1238,7 @@ class novadax extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
@@ -1254,7 +1254,7 @@ class novadax extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws
@@ -1270,7 +1270,7 @@ class novadax extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @see https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws

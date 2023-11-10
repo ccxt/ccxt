@@ -636,7 +636,7 @@ export default class wazirx extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name wazirx#fetchBalance

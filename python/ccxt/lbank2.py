@@ -1118,7 +1118,7 @@ class lbank2(Exchange, ImplicitAPI):
             return self.safe_balance(result)
         return None
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://www.lbank.info/en-US/docs/index.html#asset-information
@@ -2008,7 +2008,7 @@ class lbank2(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://www.lbank.info/en-US/docs/index.html#get-recharge-history
@@ -2057,7 +2057,7 @@ class lbank2(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history

@@ -857,9 +857,9 @@ class okx extends okx$1 {
          * @name okx#watchPositions
          * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
          * @description watch all open positions
-         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the okx api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         if (this.isEmpty(symbols)) {
             throw new errors.ArgumentsRequired(this.id + ' watchPositions requires a list of symbols');

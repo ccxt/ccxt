@@ -717,9 +717,9 @@ class gate(ccxt.async_support.gate):
         :see: https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
         :see: https://www.gate.io/docs/developers/options/ws/en/#positions-channel
         watch all open positions
-        :param [str]|None symbols: list of unified market symbols
+        :param str[]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
         market = None

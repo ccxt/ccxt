@@ -479,9 +479,9 @@ class cryptocom extends \ccxt\async\cryptocom {
             /**
              * watch all open positions
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());

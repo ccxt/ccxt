@@ -993,9 +993,9 @@ class bybit extends \ccxt\async\bybit {
             /**
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
              * watch all open positions
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
             $method = 'watchPositions';

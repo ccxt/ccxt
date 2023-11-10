@@ -913,7 +913,7 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances/, /-> Order:/, /-> OrderBook/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
+        const matchAgainst = [ /-> Balances/, /-> Order:/, /-> OrderBook/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/ ]
         const objects = [ 'Balances', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Trade', 'Transaction' ]
         const matches = []
         let match

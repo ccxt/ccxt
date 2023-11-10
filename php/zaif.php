@@ -267,7 +267,7 @@ class zaif extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
          * query for balance and get the amount of funds available for trading or funds locked in orders

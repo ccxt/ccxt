@@ -539,11 +539,9 @@ In **throttling mode** CCXT Pro will receive and manage the data in the backgrou
 
 The obvious downside of the throttling mode is being less reactive or responsive to updates. When a trading algorithm has to wait some number milliseconds before being executed – an update or two may arrive sooner than that time expires. In throttling mode the user will only check for those updates upon next wakeup (loop iteration), so the reaction lag may vary within some number of milliseconds over time.
 
-### Public Methods
+## Public Methods
 
-#### Market Data
-
-##### watchOrderBook
+### watchOrderBook
 
 The `watchOrderBook`'s interface is identical to [fetchOrderBook](https://github.com/ccxt/ccxt/wiki/Manual#order-book). It accepts three arguments:
 
@@ -641,7 +639,7 @@ if exchange.has['watchOrderBookForSymbols']:
 ```
 
 
-##### watchTicker
+### watchTicker
 Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in `exchange.options['watchTicker']['name']`
 ```javascript
 // JavaScript
@@ -688,7 +686,7 @@ if ($exchange->has['watchTicker']) {
 }
 ```
 
-##### watchTickers
+### watchTickers
 
 ```javascript
 // JavaScript
@@ -735,7 +733,7 @@ if ($exchange->has['watchTickers']) {
 }
 ```
 
-##### watchOHLCV
+### watchOHLCV
 
 A very common misconception about WebSockets is that WS OHLCV streams can somehow speed up a trading strategy.
 If the purpose of your app is to implement OHLCV-trading or a speculative algorithmic strategy, **consider the following carefully**.
@@ -822,7 +820,7 @@ if ($exchange->has['watchOHLCV']) {
 ```
 
 
-##### watchOHLCVForSymbols
+### watchOHLCVForSymbols
 
 Similar to `watchOHLCV` but allows multiple subscriptions of symbols and timeframes
 
@@ -865,7 +863,7 @@ if exchange.has['watchOHLCVForSymbols']:
             # raise e
 ```
 
-##### watchTrades
+### watchTrades
 
 ```javascript
 // JavaScript
@@ -911,7 +909,7 @@ if ($exchange->has['watchTrades']) {
     });
 }
 ```
-##### watchTradesForSymbols
+### watchTradesForSymbols
 
 Similar to `watchTrades` but allows subscribing to multiple symbols in a single call.
 
@@ -945,15 +943,11 @@ if exchange.has['watchTradesForSymbols']:
 ```
 
 
-### Private Methods
-
-#### Authentication
+## Private Methods
 
 In most cases the authentication logic is borrowed from CCXT since the exchanges use the same keypairs and signing algorithms for REST APIs and WebSocket APIs. See [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup) for more details.
 
-#### Trading
-
-##### watchBalance
+### watchBalance
 
 ```javascript
 // JavaScript
@@ -1000,7 +994,7 @@ if ($exchange->has['watchBalance']) {
 }
 ```
 
-##### watchOrders
+### watchOrders
 
 ```javascript
 // JavaScript
@@ -1017,7 +1011,7 @@ watch_orders(symbol=None, since=None, limit=None, params={})
 watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
 
-##### watchMyTrades
+### watchMyTrades
 
 ```javascript
 // JavaScript
@@ -1034,7 +1028,7 @@ watch_my_trades(symbol=None, since=None, limit=None, params={})
 watch_my_trades($symbol = null, $since = null, $lmit = null, $params = array());
 ```
 
-##### watchPositions
+### watchPositions
 watch all open positions and returns a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
 ```javascript
@@ -1052,8 +1046,7 @@ watch_positions(symbols=None, since=None, limit=None, params={})
 watch_positions($symbols = null, $since = null, $lmit = null, $params = array());
 ```
 
-#### Trading
-##### createOrderWs
+### createOrderWs
 
 ```typescript
 // JavaScript
@@ -1070,7 +1063,7 @@ create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: flo
 create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
 ```
 
-##### editOrderWs
+### editOrderWs
 
 ```typescript
 // JavaScript
@@ -1086,7 +1079,7 @@ edit_order_ws(self, id, symbol: str, type: OrderType, side: OrderSide, amount: f
 // PHP
 edit_order_ws(string id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ())
 ```
-##### cancelOrderWs
+### cancelOrderWs
 
 ```typescript
 // JavaScript
@@ -1103,7 +1096,7 @@ cancel_order_ws(self, id, symbol: str, params={})
 cancel_order_ws(string $id, string $symbol, $params = array ())
 ```
 
-##### cancelOrdersWs
+### cancelOrdersWs
 
 ```typescript
 // JavaScript
@@ -1119,7 +1112,7 @@ cancel_orders_ws(self, ids, symbol: str, params={})
 // PHP
 cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 ```
-##### cancelAllOrdersWs
+### cancelAllOrdersWs
 
 ```typescript
 // JavaScript
@@ -1136,9 +1129,7 @@ cancel_all_orders_ws(self, symbol: str, params={})
 cancel_all_orders_ws(string $symbol, $params = array ())
 ```
 
-#### Funding
-
-##### watchTransactions
+### watchTransactions
 
 ```diff
 - this method is a work in progress now (may be unavailable)
@@ -1146,4 +1137,4 @@ cancel_all_orders_ws(string $symbol, $params = array ())
 
 ### Error Handling
 
-In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling) for more details.
+In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/README?id=error-handling) for more details.

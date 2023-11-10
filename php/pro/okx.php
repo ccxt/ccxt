@@ -886,9 +886,9 @@ class okx extends \ccxt\async\okx {
             /**
              * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-$channel
              * watch all open positions
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the okx api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             if ($this->is_empty($symbols)) {
                 throw new ArgumentsRequired($this->id . ' watchPositions requires a list of symbols');

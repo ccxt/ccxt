@@ -770,10 +770,10 @@ class bitget extends \ccxt\async\bitget {
             /**
              * watch all open positions
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
-             * @param {[string]|null} $symbols list of unified $market $symbols
+             * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @param {string} $params->instType Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl => USDC margin Perpetual Contract Private Channel
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
             $market = null;

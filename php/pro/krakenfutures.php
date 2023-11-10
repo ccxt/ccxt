@@ -224,9 +224,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
              * watch all open positions
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} $params extra parameters specific to the krakenfutures api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
             $messageHash = '';

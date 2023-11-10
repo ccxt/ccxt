@@ -2457,7 +2457,7 @@ class binance(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return result if isolated else self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  # spot
@@ -5171,7 +5171,7 @@ class binance(Exchange, ImplicitAPI):
             'info': trade,
         }
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         fetch all deposits made to an account
@@ -5272,7 +5272,7 @@ class binance(Exchange, ImplicitAPI):
             response[i]['type'] = 'deposit'
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data

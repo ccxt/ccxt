@@ -1056,7 +1056,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
@@ -1783,7 +1783,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger

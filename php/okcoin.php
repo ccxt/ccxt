@@ -1164,7 +1164,7 @@ class okcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the okcoin api endpoint
@@ -2393,7 +2393,7 @@ class okcoin extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * fetch all deposits made to an account
@@ -2466,7 +2466,7 @@ class okcoin extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * fetch all withdrawals made from an account
