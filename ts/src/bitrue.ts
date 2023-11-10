@@ -1713,6 +1713,7 @@ export default class bitrue extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'INIT': 'open',
             'PENDING_CREATE': 'open',
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1900,7 +1901,7 @@ export default class bitrue extends Exchange {
             } else if (this.isInverse (marketType, subType)) {
                 response = await this.dapiV2PrivatePostOrder (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data');
+            data = this.safeValue (response, 'data', '{}');
         } else {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -1981,7 +1982,7 @@ export default class bitrue extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 response = await this.dapiV2PrivateGetOrder (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data');
+            data = this.safeValue (response, 'data', {});
         } else {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOrder (this.extend (request, params));
@@ -2044,11 +2045,11 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + 'fetchTrades only support spot markets');
+        }
         const request = {
             'symbol': market['id'],
             // 'orderId': 123445, // long
@@ -2099,15 +2100,30 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        let response = undefined;
+        let data = undefined;
+        const request = {};
+        if (market['future']) {
+            request['contractName'] = market['id'];
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV2PrivateGetOpenOrders (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV2PrivateGetOpenOrders (this.extend (request, params));
+            }
+            data = this.safeValue (response, 'data', []);
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
+            data = response;
+        }
+        //
+        // spot
         //
         //     [
         //         {
@@ -2130,7 +2146,29 @@ export default class bitrue extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        // future
+        //
+        //      {
+        //          "code": "0",
+        //          "msg": "Success",
+        //          "data": [{
+        //                  "orderId": 1917641,
+        //                  "clientOrderId": "2488514315",
+        //                  "price": 100,
+        //                  "origQty": 10,
+        //                  "origAmount": 10,
+        //                  "executedQty": 1,
+        //                  "avgPrice": 12451,
+        //                  "status": "INIT",
+        //                  "type": "LIMIT",
+        //                  "side": "BUY",
+        //                  "action": "OPEN",
+        //                  "transactTime": 1686717303975
+        //              }
+        //          ]
+        //      }
+        //
+        return this.parseOrders (data, market, since, limit);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -2170,7 +2208,7 @@ export default class bitrue extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 response = await this.dapiV2PrivatePostCancel (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data');
+            data = this.safeValue (response, 'data', {});
         } else {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
@@ -2235,7 +2273,7 @@ export default class bitrue extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 response = await this.dapiV2PrivateGetMyTrades (this.extend (request, params));
             }
-            data = this.safeValue (response, 'data');
+            data = this.safeValue (response, 'data', []);
         } else {
             request['symbol'] = market['id'];
             response = await this.spotV2PrivateGetMyTrades (this.extend (request, params));
@@ -2610,7 +2648,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         return this.parseTransaction (data, currency);
     }
 
