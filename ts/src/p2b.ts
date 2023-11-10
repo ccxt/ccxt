@@ -1,6 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
+import { Precise } from '../ccxt.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -279,6 +280,8 @@ export default class p2b extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const precision = this.safeValue (market, 'precision');
             const limits = this.safeValue (market, 'limits');
+            const maxAmount = this.safeString (limits, 'max_amount');
+            const maxPrice = this.safeString (limits, 'max_price');
             const entry = this.safeMarketStructure ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -316,11 +319,11 @@ export default class p2b extends Exchange {
                     },
                     'amount': {
                         'min': this.safeString (limits, 'min_amount'),
-                        'max': this.safeString (limits, 'max_amount'),
+                        'max': Precise.stringEq (maxAmount, '0') ? undefined : maxAmount,
                     },
                     'price': {
                         'min': this.safeString (limits, 'min_price'),
-                        'max': this.safeString (limits, 'max_price'),
+                        'max': Precise.stringEq (maxPrice, '0') ? undefined : maxPrice,
                     },
                     'cost': {
                         'min': undefined,
