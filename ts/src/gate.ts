@@ -6284,14 +6284,14 @@ export default class gate extends Exchange {
     async fetchRawRecords (methodName: string, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
+            return await this.fetchPaginatedCallDynamic (methodName, code, since, limit, params);
         }
         let type = undefined;
         let currency = undefined;
         let response = undefined;
-        const request = {};
+        let request = {};
         [ type, params ] = this.handleMarketTypeAndParams (methodName, undefined, params);
         if ((type === 'spot') || (type === 'margin')) {
             if (code !== undefined) {
@@ -6389,6 +6389,7 @@ export default class gate extends Exchange {
          * @param {object} params extra parameters specific to the api endpoint
          * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
+        params['type'] = 'deposit';
         const response = await this.fetchRawRecords ('fetchTransfers', code, since, limit, params);
         const currency = (code === undefined) ? undefined : this.currency (code);
         return this.parseTransfers (response, currency, since, limit);
