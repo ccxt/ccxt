@@ -2437,6 +2437,7 @@ export default class hitbtc extends Exchange {
             const marketId = this.safeString (data, 'symbol');
             const marketInner = this.safeMarket (marketId);
             marginModes.push ({
+                'info': data,
                 'symbol': this.safeString (marketInner, 'symbol'),
                 'marginMode': this.safeStringLower (data, 'margin_mode'),
             });
