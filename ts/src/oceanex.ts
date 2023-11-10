@@ -989,13 +989,13 @@ export default class oceanex extends Exchange {
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         //     {"code":1011,"message":"This IP 'x.x.x.x' is not allowed","data":{}}
-        //     {"code":-2,"message":"{\"error\":{\"code\":2002,\"message\":\"Failed to create order. #\\u003cAccount::AccountError: Cannot lock funds (amount: 0.1).\\u003e\"}}","data":{}} 
+        //     {"code":-2,"message":"{\"error\":{\"code\":2002,\"message\":\"Failed to create order. #\\u003cAccount::AccountError: Cannot lock funds (amount: 0.1).\\u003e\"}}","data":{}}
         //
         if (response === undefined) {
             return undefined;
         }
         let errorCode = this.safeString (response, 'code');
-        let message = this.safeString (response, 'message');
+        let message = this.safeString (response, 'mess©age');
         if ((errorCode !== undefined) && (errorCode !== '0')) {
             if (Precise.stringLt (errorCode, '0')) {
                 const messageBlock = this.safeValue (response, 'message');
