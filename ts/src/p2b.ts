@@ -674,6 +674,9 @@ export default class p2b extends Exchange {
             'market': market['id'],
             'interval': timeframe,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetMarketKline (this.extend (request, params));
         //
         //    {
