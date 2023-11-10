@@ -203,3 +203,24 @@ class Ticker(TypedDict):
     average: Numeric
     quoteVolume: Numeric
     baseVolume: Numeric
+
+class Greeks(TypedDict):
+    symbol: str
+    timestamp: int
+    datetime: str
+    delta: Numeric
+    gamma: Numeric
+    theta: Numeric
+    vega: Numeric
+    rho: Numeric
+    bidSize: Numeric
+    askSize: Numeric
+    bidImpliedVolatility: Numeric
+    askImpliedVolatility: Numeric
+    markImpliedVolatility: Numeric
+    bidPrice: Numeric
+    askPrice: Numeric
+    markPrice: Numeric
+    lastPrice: Numeric
+    underlyingPrice: Numeric
+    info: Dict[str, Any]
