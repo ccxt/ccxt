@@ -70,7 +70,7 @@ function generateImplicitMethodNames(id, api, paths = []){
                 let camelCasePath = result.map(capitalize).join('');
                 camelCasePath = lowercaseFirstLetter(camelCasePath);
                 storedCamelCaseMethods[id].push (camelCasePath)
-                let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
+                let underscorePath = result.map ((x, i) => i === 0 ? x : x.toLowerCase ()).join ('_')
                 storedUnderscoreMethods[id].push (underscorePath)
                 let config = undefined
                 if (Array.isArray (value)) {
