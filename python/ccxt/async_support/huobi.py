@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.huobi import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -3012,7 +3012,7 @@ class huobi(Exchange, ImplicitAPI):
             networkTitle = super(huobi, self).network_code_to_id(networkCode)
             return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
         :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -5261,7 +5261,7 @@ class huobi(Exchange, ImplicitAPI):
                 addresses.append(address)
         return addresses
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -5314,7 +5314,7 @@ class huobi(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -6473,8 +6473,7 @@ class huobi(Exchange, ImplicitAPI):
             first = self.safe_string(symbols, 0)
             market = self.market(first)
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
-        marginMode = 'cross' if (marginMode is None) else marginMode
+        marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params, 'cross')
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         marketType = None

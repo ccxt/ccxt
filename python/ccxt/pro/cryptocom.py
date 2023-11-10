@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.types import OrderSide, OrderType
 from ccxt.async_support.base.ws.client import Client
@@ -30,6 +30,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchOHLCV': True,
+                'watchPositions': True,
                 'createOrderWs': True,
                 'cancelOrderWs': True,
                 'cancelAllOrders': True,
@@ -47,6 +48,10 @@ class cryptocom(ccxt.async_support.cryptocom):
                 },
             },
             'options': {
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
             },
@@ -420,6 +425,115 @@ class cryptocom(ccxt.async_support.cryptocom):
             client.resolve(stored, channel)  # channel might have a symbol-specific suffix
             client.resolve(stored, 'user.order')
 
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watch all open positions
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the cryptocom api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['private']
+        id = self.nonce()
+        request = {
+            'method': 'subscribe',
+            'params': {
+                'channels': ['user.position_balance'],
+            },
+            'nonce': id,
+        }
+        messageHash = 'positions'
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            messageHash = '::' + ','.join(symbols)
+        client = self.client(url)
+        self.set_positions_cache(client, symbols)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
+            snapshot = await client.future('fetchPositionsSnapshot')
+            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+        newPositions = await self.watch(url, messageHash, self.extend(request, params))
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, type, symbols: Optional[List[str]] = None):
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if fetchPositionsSnapshot:
+            messageHash = 'fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash)
+        else:
+            self.positions = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash):
+        positions = await self.fetch_positions()
+        self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        for i in range(0, len(positions)):
+            position = positions[i]
+            contracts = self.safe_number(position, 'contracts', 0)
+            if contracts > 0:
+                cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, 'positions')
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        subscription: "user.position_balance",
+        #        channel: "user.position_balance",
+        #        data: [{
+        #            balances: [{
+        #                instrument_name: "USD",
+        #                quantity: "8.9979961950886",
+        #                update_timestamp_ms: 1695598760597,
+        #            }],
+        #            positions: [{
+        #                account_id: "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        #                instrument_name: "LTCUSD-PERP",
+        #                type: "PERPETUAL_SWAP",
+        #                quantity: "1.8",
+        #                cost: "114.766",
+        #                open_position_pnl: "-0.0216206",
+        #                session_pnl: "0.00962994",
+        #                update_timestamp_ms: 1695598760597,
+        #                open_pos_cost: "114.766",
+        #            }],
+        #        }],
+        #    }
+        #
+        # each account is connected to a different endpoint
+        # and has exactly one subscriptionhash which is the account type
+        data = self.safe_value(message, 'data', [])
+        firstData = self.safe_value(data, 0, {})
+        rawPositions = self.safe_value(firstData, 'positions', [])
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        newPositions = []
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, 'positions')
+
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
@@ -669,6 +783,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'user.order': self.handle_orders,
             'user.trade': self.handle_trades,
             'user.balance': self.handle_balance,
+            'user.position_balance': self.handle_positions,
         }
         result = self.safe_value_2(message, 'result', 'info')
         channel = self.safe_string(result, 'channel')

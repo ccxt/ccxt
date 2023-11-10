@@ -2434,83 +2434,8 @@ class bybit(Exchange, ImplicitAPI):
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def parse_trade(self, trade, market=None) -> Trade:
-        isSpotTrade = ('isBuyerMaker' in trade) or ('feeTokenId' in trade)
-        if isSpotTrade:
-            return self.parse_spot_trade(trade, market)
-        else:
-            return self.parse_contract_trade(trade, market)
-
-    def parse_spot_trade(self, trade, market=None):
         #
-        #   public:
-        #     {
-        #        "price": "39548.68",
-        #        "time": "1651748717850",
-        #        "qty": "0.166872",
-        #        "isBuyerMaker": 0
-        #     }
-        #
-        #   private:
-        #     {
-        #         "orderPrice": "82.5",
-        #         "creatTime": "1666702226326",
-        #         "orderQty": "0.016",
-        #         "isBuyer": "0",
-        #         "isMaker": "0",
-        #         "symbol": "AAVEUSDT",
-        #         "id": "1274785101965716992",
-        #         "orderId": "1274784252359089664",
-        #         "tradeId": "2270000000031365639",
-        #         "execFee": "0",
-        #         "feeTokenId": "AAVE",
-        #         "matchOrderId": "1274785101865076224",
-        #         "makerRebate": "0",
-        #         "executionTime": "1666702226335"
-        #     }
-        #
-        timestamp = self.safe_integer_n(trade, ['time', 'creatTime'])
-        takerOrMaker = None
-        side = None
-        isBuyerMaker = self.safe_integer(trade, 'isBuyerMaker')
-        if isBuyerMaker is not None:
-            # if public response
-            side = 'buy' if (isBuyerMaker == 1) else 'sell'
-        else:
-            # if private response
-            isBuyer = self.safe_integer(trade, 'isBuyer')
-            isMaker = self.safe_integer(trade, 'isMaker')
-            takerOrMaker = 'maker' if (isMaker == 0) else 'taker'
-            side = 'buy' if (isBuyer == 0) else 'sell'
-        marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market, None, 'spot')
-        fee = None
-        feeCost = self.safe_string(trade, 'execFee')
-        if feeCost is not None:
-            feeToken = self.safe_string(trade, 'feeTokenId')
-            feeCurrency = self.safe_currency_code(feeToken)
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            }
-        return self.safe_trade({
-            'id': self.safe_string(trade, 'tradeId'),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'order': self.safe_string(trade, 'orderId'),
-            'type': None,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': self.safe_string_2(trade, 'price', 'orderPrice'),
-            'amount': self.safe_string_2(trade, 'qty', 'orderQty'),
-            'cost': None,
-            'fee': fee,
-        }, market)
-
-    def parse_contract_trade(self, trade, market=None):
-        #
-        # public contract
+        # public https://bybit-exchange.github.io/docs/v5/market/recent-trade
         #
         #     {
         #         "execId": "666042b4-50c6-58f3-bd9c-89b2088663ff",
@@ -2522,59 +2447,66 @@ class bybit(Exchange, ImplicitAPI):
         #         "isBlockTrade": False
         #     }
         #
-        # public unified margin
+        # private trades classic spot https://bybit-exchange.github.io/docs/v5/position/execution
         #
         #     {
-        #         "execId": "da66abbc-f358-5864-8d34-84ef7274d853",
-        #         "symbol": "BTCUSDT",
-        #         "price": "20802.50",
-        #         "size": "0.200",
-        #         "side": "Sell",
-        #         "time": "1657870316630"
-        #     }
-        #
-        # private contract trades
-        #
-        #     {
-        #         "symbol": "ETHUSD",
-        #         "execFee": "0.00005484",
-        #         "execId": "acf78206-d464-589b-b888-51bd130821c1",
-        #         "execPrice": "1367.80",
-        #         "execQty": "100",
-        #         "execType": "Trade",
-        #         "execValue": "0.0731101",
-        #         "feeRate": "0.00075",
-        #         "lastLiquidityInd": "RemovedLiquidity",
-        #         "leavesQty": "0",
-        #         "orderId": "fdc584c3-be5d-41ff-8f54-5be7649b1d1c",
+        #         "symbol": "QNTUSDT",
+        #         "orderId": "1538686353240339712",
         #         "orderLinkId": "",
-        #         "orderPrice": "1299.50",
-        #         "orderQty": "100",
-        #         "orderType": "Market",
-        #         "stopOrderType": "UNKNOWN",
         #         "side": "Sell",
-        #         "execTime": "1611528105547",
-        #         "closedSize": "100"
+        #         "orderPrice": "",
+        #         "orderQty": "",
+        #         "leavesQty": "",
+        #         "orderType": "Limit",
+        #         "stopOrderType": "",
+        #         "execFee": "0.040919",
+        #         "execId": "2210000000097330907",
+        #         "execPrice": "98.6",
+        #         "execQty": "0.415",
+        #         "execType": "",
+        #         "execValue": "",
+        #         "execTime": "1698161716634",
+        #         "isMaker": True,
+        #         "feeRate": "",
+        #         "tradeIv": "",
+        #         "markIv": "",
+        #         "markPrice": "",
+        #         "indexPrice": "",
+        #         "underlyingPrice": "",
+        #         "blockTradeId": ""
         #     }
         #
-        # private unified margin
+        # private trades unified https://bybit-exchange.github.io/docs/v5/position/execution
         #
         #     {
-        #         "symbol": "AAVEUSDT",
-        #         "id": "1274785101965716991",
-        #         "orderId": "1274784252359089664",
-        #         "tradeId": "2270000000031365639",
-        #         "orderPrice": "82.5",
-        #         "orderQty": "0.016",
-        #         "execFee": "0",
-        #         "feeTokenId": "AAVE",
-        #         "creatTime": "1666702226326",
-        #         "isBuyer": "0",
-        #         "isMaker": "0",
-        #         "matchOrderId": "1274785101865076224",
-        #         "makerRebate": "0",
-        #         "executionTime": "1666702226335"
-        #     }
+        #         "symbol": "QNTUSDT",
+        #         "orderType": "Limit",
+        #         "underlyingPrice": "",
+        #         "orderLinkId": "1549452573428424449",
+        #         "orderId": "1549452573428424448",
+        #         "stopOrderType": "",
+        #         "execTime": "1699445151998",
+        #         "feeRate": "0.00025",
+        #         "tradeIv": "",
+        #         "blockTradeId": "",
+        #         "markPrice": "",
+        #         "execPrice": "102.8",
+        #         "markIv": "",
+        #         "orderQty": "3.652",
+        #         "orderPrice": "102.8",
+        #         "execValue": "1.028",
+        #         "closedSize": "",
+        #         "execType": "Trade",
+        #         "seq": "19157444346",
+        #         "side": "Buy",
+        #         "indexPrice": "",
+        #         "leavesQty": "3.642",
+        #         "isMaker": True,
+        #         "execFee": "0.0000025",
+        #         "execId": "2210000000101610464",
+        #         "execQty": "0.01",
+        #         "nextPageCursor": "267951%3A0%2C38567%3A0"
+        #     },
         #
         # private USDC settled trades
         #
@@ -2634,14 +2566,25 @@ class bybit(Exchange, ImplicitAPI):
         feeCostString = self.safe_string(trade, 'execFee')
         fee = None
         if feeCostString is not None:
+            feeRateString = self.safe_string(trade, 'feeRate')
             feeCurrencyCode = None
             if market['spot']:
-                feeCurrencyCode = self.safe_string(trade, 'commissionAsset')
+                if Precise.string_gt(feeCostString, '0'):
+                    if side == 'buy':
+                        feeCurrencyCode = market['base']
+                    else:
+                        feeCurrencyCode = market['quote']
+                else:
+                    if side == 'buy':
+                        feeCurrencyCode = market['quote']
+                    else:
+                        feeCurrencyCode = market['base']
             else:
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
+                'rate': feeRateString,
             }
         return self.safe_trade({
             'id': id,
@@ -2925,7 +2868,7 @@ class bybit(Exchange, ImplicitAPI):
                     result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
@@ -4684,7 +4627,7 @@ class bybit(Exchange, ImplicitAPI):
         addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
         return self.parse_deposit_address(addressObject, currency)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/deposit-record
@@ -4749,7 +4692,7 @@ class bybit(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
@@ -5395,11 +5338,16 @@ class bybit(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchPositions() not support spot market')
         if type == 'linear' or type == 'inverse':
             baseCoin = self.safe_string(params, 'baseCoin')
-            if symbol is None and baseCoin is None:
-                defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
-                settleCoin = self.safe_string(params, 'settleCoin', defaultSettle)
-                request['settleCoin'] = settleCoin
-                isUsdcSettled = (settleCoin == 'USDC')
+            if type == 'linear':
+                if symbol is None and baseCoin is None:
+                    defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
+                    settleCoin = self.safe_string(params, 'settleCoin', defaultSettle)
+                    request['settleCoin'] = settleCoin
+                    isUsdcSettled = (settleCoin == 'USDC')
+            else:
+                # inverse
+                if symbol is None and baseCoin is None:
+                    request['category'] = 'inverse'
         if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
             return await self.fetch_usdc_positions(symbols, params)
         params = self.omit(params, ['type'])

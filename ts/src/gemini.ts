@@ -1057,7 +1057,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name gemini#fetchBalance
@@ -1546,7 +1546,7 @@ export default class gemini extends Exchange {
         return this.seconds ();
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name gemini#fetchDepositsWithdrawals

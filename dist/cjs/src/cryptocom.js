@@ -3167,7 +3167,7 @@ class cryptocom extends cryptocom$1 {
             'datetime': this.iso8601(timestamp),
             'hedged': undefined,
             'side': undefined,
-            'contracts': undefined,
+            'contracts': this.safeNumber(position, 'quantity'),
             'contractSize': market['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,

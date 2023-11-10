@@ -1073,7 +1073,7 @@ class coinlist extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
@@ -1849,7 +1849,7 @@ class coinlist extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger

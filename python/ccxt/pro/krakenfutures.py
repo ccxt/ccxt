@@ -29,6 +29,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 # 'watchStatus': True,  # https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
                 'watchOrders': True,
                 'watchMyTrades': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -193,6 +194,125 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         """
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
+
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the krakenfutures api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        messageHash = ''
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            messageHash = '::' + ','.join(symbols)
+        messageHash = 'positions' + messageHash
+        newPositions = await self.subscribe_private('open_positions', messageHash, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        feed: 'open_positions',
+        #        account: '3b111acc-4fcc-45be-a622-57e611fe9f7f',
+        #        positions: [
+        #            {
+        #                instrument: 'PF_LTCUSD',
+        #                balance: 0.5,
+        #                pnl: -0.8628305877699987,
+        #                entry_price: 70.53,
+        #                mark_price: 68.80433882446,
+        #                index_price: 68.8091,
+        #                liquidation_threshold: 0,
+        #                effective_leverage: 0.007028866753648637,
+        #                return_on_equity: -1.2233525985679834,
+        #                unrealized_funding: 0.0000690610530935388,
+        #                initial_margin: 0.7053,
+        #                initial_margin_with_orders: 0.7053,
+        #                maintenance_margin: 0.35265,
+        #                pnl_currency: 'USD'
+        #            }
+        #        ],
+        #        seq: 0,
+        #        timestamp: 1698608414910
+        #    }
+        #
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolById()
+        cache = self.positions
+        rawPositions = self.safe_value(message, 'positions', [])
+        newPositions = []
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_ws_position(rawPosition)
+            timestamp = self.safe_integer(message, 'timestamp')
+            position['timestamp'] = timestamp
+            position['datetime'] = self.iso8601(timestamp)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, 'positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, 'positions')
+
+    def parse_ws_position(self, position, market=None):
+        #
+        #        {
+        #            instrument: 'PF_LTCUSD',
+        #            balance: 0.5,
+        #            pnl: -0.8628305877699987,
+        #            entry_price: 70.53,
+        #            mark_price: 68.80433882446,
+        #            index_price: 68.8091,
+        #            liquidation_threshold: 0,
+        #            effective_leverage: 0.007028866753648637,
+        #            return_on_equity: -1.2233525985679834,
+        #            unrealized_funding: 0.0000690610530935388,
+        #            initial_margin: 0.7053,
+        #            initial_margin_with_orders: 0.7053,
+        #            maintenance_margin: 0.35265,
+        #            pnl_currency: 'USD'
+        #        }
+        #
+        marketId = self.safe_string(position, 'instrument')
+        hedged = 'both'
+        balance = self.safe_number(position, 'balance')
+        side = 'long' if (balance > 0) else 'short'
+        return self.safe_position({
+            'info': position,
+            'id': None,
+            'symbol': self.safe_symbol(marketId),
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_threshold'),
+            'entryPrice': self.safe_number(position, 'entry_price'),
+            'unrealizedPnl': self.safe_number(position, 'pnl'),
+            'percentage': self.safe_number(position, 'return_on_equity'),
+            'contracts': self.parse_number(Precise.string_abs(self.number_to_string(balance))),
+            'contractSize': None,
+            'markPrice': self.safe_number(position, 'mark_price'),
+            'side': side,
+            'hedged': hedged,
+            'timestamp': None,
+            'datetime': None,
+            'maintenanceMargin': self.safe_number(position, 'maintenance_margin'),
+            'maintenanceMarginPercentage': None,
+            'collateral': None,
+            'initialMargin': self.safe_number(position, 'initial_margin'),
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+        })
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1216,6 +1336,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 'open_orders_snapshot': self.handle_order_snapshot,
                 'balances': self.handle_balance,
                 'balances_snapshot': self.handle_balance,
+                'open_positions': self.handle_positions,
             }
             method = self.safe_value(methods, feed)
             if method is not None:

@@ -1572,7 +1572,7 @@ class krakenfutures extends Exchange {
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$account-information-get-wallets

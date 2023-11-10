@@ -319,8 +319,8 @@ export default class bitvavo extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy (currencies, 'symbol');
+        const currencies = await this.fetchCurrencies ();
+        const currenciesById = this.indexBy (currencies, 'id');
         //
         //     [
         //         {
@@ -345,7 +345,8 @@ export default class bitvavo extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
             const baseCurrency = this.safeValue (currenciesById, baseId);
-            result.push ({
+            const basePrecision = this.safeInteger (baseCurrency, 'precision');
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -370,7 +371,7 @@ export default class bitvavo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (baseCurrency, 'decimals', 8),
+                    'amount': this.safeInteger (baseCurrency, 'decimals', basePrecision),
                     'price': this.safeInteger (market, 'pricePrecision'),
                 },
                 'limits': {
@@ -393,7 +394,7 @@ export default class bitvavo extends Exchange {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -941,7 +942,7 @@ export default class bitvavo extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitvavo#fetchBalance
@@ -1614,7 +1615,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitvavo#fetchWithdrawals
@@ -1661,7 +1662,7 @@ export default class bitvavo extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitvavo#fetchDeposits

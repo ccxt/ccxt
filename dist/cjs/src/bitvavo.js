@@ -312,8 +312,8 @@ class bitvavo extends bitvavo$1 {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy(currencies, 'symbol');
+        const currencies = await this.fetchCurrencies();
+        const currenciesById = this.indexBy(currencies, 'id');
         //
         //     [
         //         {
@@ -338,7 +338,8 @@ class bitvavo extends bitvavo$1 {
             const quote = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
             const baseCurrency = this.safeValue(currenciesById, baseId);
-            result.push({
+            const basePrecision = this.safeInteger(baseCurrency, 'precision');
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -363,7 +364,7 @@ class bitvavo extends bitvavo$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger(baseCurrency, 'decimals', 8),
+                    'amount': this.safeInteger(baseCurrency, 'decimals', basePrecision),
                     'price': this.safeInteger(market, 'pricePrecision'),
                 },
                 'limits': {
@@ -386,7 +387,7 @@ class bitvavo extends bitvavo$1 {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }

@@ -4,10 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -78,13 +79,13 @@ class huobi(ccxt.async_support.huobi):
                                 },
                             },
                             'swap': {
-                                'inverse': {
-                                    'public': 'wss://api.hbdm.vn/swap-ws',
-                                    'private': 'wss://api.hbdm.vn/swap-notification',
-                                },
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                             },
                         },
@@ -1123,6 +1124,114 @@ class huobi(ccxt.async_support.huobi):
             'fee': None,
         }, market)
 
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        :see: https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+        :see: https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+        :see: https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+        :see: https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+        watch all open positions. Note: huobi has one channel for each marginMode and type
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        market = None
+        messageHash = ''
+        if not self.is_empty(symbols):
+            market = self.get_market_from_symbols(symbols)
+            messageHash = '::' + ','.join(symbols)
+        type = None
+        subType = None
+        if market is not None:
+            type = market['type']
+            subType = 'linear' if market['linear'] else 'inverse'
+        else:
+            type, params = self.handle_market_type_and_params('watchPositions', market, params)
+            if type == 'spot':
+                type = 'future'
+            subType, params = self.handle_option_and_params(params, 'watchPositions', 'subType', subType)
+        symbols = self.market_symbols(symbols)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('watchPositions', params, 'cross')
+        isLinear = (subType == 'linear')
+        url = self.get_url_by_market_type(type, isLinear, True)
+        messageHash = marginMode + ':positions' + messageHash
+        channel = 'positions_cross.*' if (marginMode == 'cross') else 'positions.*'
+        newPositions = await self.subscribe_private(channel, messageHash, type, subType, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions[url][marginMode], symbols, since, limit, False)
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        op: 'notify',
+        #        topic: 'positions_cross',
+        #        ts: 1696767149650,
+        #        event: 'snapshot',
+        #        data: [
+        #          {
+        #            contract_type: 'swap',
+        #            pair: 'BTC-USDT',
+        #            business_type: 'swap',
+        #            liquidation_price: null,
+        #            symbol: 'BTC',
+        #            contract_code: 'BTC-USDT',
+        #            volume: 1,
+        #            available: 1,
+        #            frozen: 0,
+        #            cost_open: 27802.2,
+        #            cost_hold: 27802.2,
+        #            profit_unreal: 0.0175,
+        #            profit_rate: 0.000629446590557581,
+        #            profit: 0.0175,
+        #            margin_asset: 'USDT',
+        #            position_margin: 27.8197,
+        #            lever_rate: 1,
+        #            direction: 'buy',
+        #            last_price: 27819.7,
+        #            margin_mode: 'cross',
+        #            margin_account: 'USDT',
+        #            trade_partition: 'USDT',
+        #            position_mode: 'dual_side'
+        #          },
+        #        ]
+        #    }
+        #
+        url = client.url
+        topic = self.safe_string(message, 'topic', '')
+        marginMode = 'cross' if (topic == 'positions_cross') else 'isolated'
+        if self.positions is None:
+            self.positions = {}
+        clientPositions = self.safe_value(self.positions, url)
+        if clientPositions is None:
+            self.positions[url] = {}
+        clientMarginModePositions = self.safe_value(clientPositions, marginMode)
+        if clientMarginModePositions is None:
+            self.positions[url][marginMode] = ArrayCacheBySymbolBySide()
+        cache = self.positions[url][marginMode]
+        rawPositions = self.safe_value(message, 'data', [])
+        newPositions = []
+        timestamp = self.safe_integer(message, 'ts')
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_position(rawPosition)
+            position['timestamp'] = timestamp
+            position['datetime'] = self.iso8601(timestamp)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, marginMode + ':positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, marginMode + ':positions')
+
     async def watch_balance(self, params={}):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
@@ -1582,6 +1691,8 @@ class huobi(ccxt.async_support.huobi):
                 self.handle_order(client, message)
             if topic.find('account') >= 0:
                 self.handle_balance(client, message)
+            if topic.find('positions') >= 0:
+                self.handle_positions(client, message)
 
     async def pong(self, client, message):
         #

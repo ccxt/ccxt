@@ -31,6 +31,7 @@ class bitget extends \ccxt\async\bitget {
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -764,6 +765,187 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch all open positions
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
+             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {string} $params->instType Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl => USDC margin Perpetual Contract Private Channel
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $messageHash = '';
+            $subscriptionHash = 'positions';
+            $instType = 'umcbl';
+            $symbols = $this->market_symbols($symbols);
+            if (!$this->is_empty($symbols)) {
+                $instType = 'dmcbl';
+                $market = $this->get_market_from_symbols($symbols);
+                $messageHash = '::' . implode(',', $symbols);
+                if ($market['settle'] === 'USDT') {
+                    $instType = 'umcbl';
+                } elseif ($market['settle'] === 'USDC') {
+                    $instType = 'cmcbl';
+                }
+            }
+            list($instType, $params) = $this->handle_option_and_params($params, 'watchPositions', 'instType', $instType);
+            $messageHash = $instType . ':positions' . $messageHash;
+            $args = array(
+                'instType' => $instType,
+                'channel' => 'positions',
+                'instId' => 'default',
+            );
+            $newPositions = Async\await($this->watch_private($messageHash, $subscriptionHash, $args, $params));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($newPositions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_positions(Client $client, $message) {
+        //
+        //    {
+        //        action => 'snapshot',
+        //        $arg => array(
+        //            $instType => 'umcbl',
+        //            channel => 'positions',
+        //            instId => 'default'
+        //        ),
+        //        data => [array(
+        //                posId => '926036334386778112',
+        //                instId => 'LTCUSDT_UMCBL',
+        //                instName => 'LTCUSDT',
+        //                marginCoin => 'USDT',
+        //                margin => '9.667',
+        //                marginMode => 'crossed',
+        //                holdSide => 'long',
+        //                holdMode => 'double_hold',
+        //                total => '0.3',
+        //                available => '0.3',
+        //                locked => '0',
+        //                averageOpenPrice => '64.44',
+        //                leverage => 2,
+        //                achievedProfits => '0',
+        //                upl => '0.0759',
+        //                uplRate => '0.0078',
+        //                liqPx => '-153.32',
+        //                keepMarginRate => '0.010',
+        //                marginRate => '0.005910309637',
+        //                cTime => '1656510187717',
+        //                uTime => '1694880005480',
+        //                markPrice => '64.7',
+        //                autoMargin => 'off'
+        //            ),
+        //            ...
+        //        ]
+        //    }
+        //
+        $arg = $this->safe_value($message, 'arg', array());
+        $instType = $this->safe_string($arg, 'instType', '');
+        if ($this->positions === null) {
+            $this->positions = array();
+        }
+        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions))) {
+            $this->positions[$instType] = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions[$instType];
+        $rawPositions = $this->safe_value($message, 'data', array());
+        $dataLength = count($rawPositions);
+        if ($dataLength === 0) {
+            return;
+        }
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_ws_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $instType . ':$positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, $instType . ':positions');
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        //
+        //    {
+        //        posId => '926036334386778112',
+        //        instId => 'LTCUSDT_UMCBL',
+        //        instName => 'LTCUSDT',
+        //        marginCoin => 'USDT',
+        //        margin => '9.667',
+        //        $marginMode => 'crossed',
+        //        holdSide => 'long',
+        //        holdMode => 'double_hold',
+        //        total => '0.3',
+        //        available => '0.3',
+        //        locked => '0',
+        //        averageOpenPrice => '64.44',
+        //        leverage => 2,
+        //        achievedProfits => '0',
+        //        upl => '0.0759',
+        //        uplRate => '0.0078',
+        //        liqPx => '-153.32',
+        //        keepMarginRate => '0.010',
+        //        marginRate => '0.005910309637',
+        //        cTime => '1656510187717',
+        //        uTime => '1694880005480',
+        //        markPrice => '64.7',
+        //        autoMargin => 'off'
+        //    }
+        //
+        $marketId = $this->safe_string($position, 'instId');
+        $marginModeId = $this->safe_string($position, 'marginMode');
+        $marginMode = $this->get_supported_mapping($marginModeId, array(
+            'crossed' => 'cross',
+            'fixed' => 'isolated',
+        ));
+        $hedgedId = $this->safe_string($position, 'holdMode');
+        $hedged = $this->get_supported_mapping($hedgedId, array(
+            'double_hold' => true,
+            'single_hold' => false,
+        ));
+        $timestamp = $this->safe_integer_2($position, 'uTime', 'cTime');
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => $this->safe_string($position, 'posId'),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'notional' => null,
+            'marginMode' => $marginMode,
+            'liquidationPrice' => null,
+            'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
+            'unrealizedPnl' => $this->safe_number($position, 'upl'),
+            'percentage' => $this->safe_number($position, 'uplRate'),
+            'contracts' => $this->safe_number($position, 'total'),
+            'contractSize' => null,
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'side' => $this->safe_string($position, 'holdSide'),
+            'hedged' => $hedged,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'keepMarginRate'),
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'marginRatio' => $this->safe_number($position, 'marginRate'),
+        ));
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -1494,6 +1676,7 @@ class bitget extends \ccxt\async\bitget {
             'orders' => array($this, 'handle_order'),
             'ordersAlgo' => array($this, 'handle_order'),
             'account' => array($this, 'handle_balance'),
+            'positions' => array($this, 'handle_positions'),
         );
         $arg = $this->safe_value($message, 'arg', array());
         $topic = $this->safe_value($arg, 'channel', '');

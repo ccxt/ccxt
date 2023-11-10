@@ -1539,7 +1539,7 @@ class krakenfutures extends Exchange {
         return $this->parse_trades($response['fills'], $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$account-information-get-wallets
          * Fetch the $balance for a sub-$account, all sub-$account balances are inside 'info' in the $response

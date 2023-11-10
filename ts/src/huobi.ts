@@ -3152,7 +3152,7 @@ export default class huobi extends Exchange {
         }
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name huobi#fetchBalance
@@ -5591,7 +5591,7 @@ export default class huobi extends Exchange {
         return addresses;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name huobi#fetchDeposits
@@ -5651,7 +5651,7 @@ export default class huobi extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name huobi#fetchWithdrawals
@@ -6913,8 +6913,7 @@ export default class huobi extends Exchange {
             market = this.market (first);
         }
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
-        marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params, 'cross');
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         let marketType = undefined;

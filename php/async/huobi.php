@@ -3170,7 +3170,7 @@ class huobi extends Exchange {
         }
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
@@ -5621,7 +5621,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -5681,7 +5681,7 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -6942,8 +6942,7 @@ class huobi extends Exchange {
                 $market = $this->market($first);
             }
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
-            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params, 'cross');
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
             $marketType = null;

@@ -28,6 +28,7 @@ class okx extends \ccxt\async\okx {
                 'watchOHLCV' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
+                'watchPositions' => true,
                 'createOrderWs' => true,
                 'editOrderWs' => true,
                 'cancelOrderWs' => true,
@@ -880,6 +881,127 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-$channel
+             * watch all open positions
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            if ($this->is_empty($symbols)) {
+                throw new ArgumentsRequired($this->id . ' watchPositions requires a list of symbols');
+            }
+            Async\await($this->load_markets());
+            Async\await($this->authenticate($params));
+            $symbols = $this->market_symbols($symbols);
+            $request = array(
+                'instType' => 'ANY',
+            );
+            $channel = 'positions';
+            $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, array_merge($request, $params)));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        $arg => array(
+        //            $channel => 'positions',
+        //            instType => 'ANY',
+        //            instId => 'XRP-USDT-SWAP',
+        //            uid => '464737184507959869'
+        //        ),
+        //        $data => [array(
+        //            adl => '1',
+        //            availPos => '',
+        //            avgPx => '0.52668',
+        //            baseBal => '',
+        //            baseBorrowed => '',
+        //            baseInterest => '',
+        //            bizRefId => '',
+        //            bizRefType => '',
+        //            cTime => '1693151444408',
+        //            ccy => 'USDT',
+        //            closeOrderAlgo => array(),
+        //            deltaBS => '',
+        //            deltaPA => '',
+        //            gammaBS => '',
+        //            gammaPA => '',
+        //            idxPx => '0.52683',
+        //            imr => '17.564000000000004',
+        //            instId => 'XRP-USDT-SWAP',
+        //            instType => 'SWAP',
+        //            interest => '',
+        //            last => '0.52691',
+        //            lever => '3',
+        //            liab => '',
+        //            liabCcy => '',
+        //            liqPx => '0.3287514731020614',
+        //            margin => '',
+        //            markPx => '0.52692',
+        //            mgnMode => 'cross',
+        //            mgnRatio => '69.00363001456147',
+        //            mmr => '0.26346',
+        //            notionalUsd => '52.68620388000001',
+        //            optVal => '',
+        //            pTime => '1693151906023',
+        //            pendingCloseOrdLiabVal => '',
+        //            pos => '1',
+        //            posCcy => '',
+        //            posId => '616057041198907393',
+        //            posSide => 'net',
+        //            quoteBal => '',
+        //            quoteBorrowed => '',
+        //            quoteInterest => '',
+        //            spotInUseAmt => '',
+        //            spotInUseCcy => '',
+        //            thetaBS => '',
+        //            thetaPA => '',
+        //            tradeId => '138745402',
+        //            uTime => '1693151444408',
+        //            upl => '0.0240000000000018',
+        //            uplLastPx => '0.0229999999999952',
+        //            uplRatio => '0.0013670539986328',
+        //            uplRatioLastPx => '0.001310093415356',
+        //            usdPx => '',
+        //            vegaBS => '',
+        //            vegaPA => ''
+        //        )]
+        //    }
+        //
+        $arg = $this->safe_value($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel', '');
+        $data = $this->safe_value($message, 'data', array());
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $newPositions = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $rawPosition = $data[$i];
+            $position = $this->parse_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $channel . '::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -1462,6 +1584,7 @@ class okx extends \ccxt\async\okx {
                 'books50-l2-tbt' => array($this, 'handle_order_book'), // only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt' => array($this, 'handle_order_book'), // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers' => array($this, 'handle_ticker'),
+                'positions' => array($this, 'handle_positions'),
                 'index-tickers' => array($this, 'handle_ticker'),
                 'sprd-tickers' => array($this, 'handle_ticker'),
                 'block-tickers' => array($this, 'handle_ticker'),

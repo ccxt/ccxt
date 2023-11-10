@@ -1527,7 +1527,7 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://developer-pro.bitmart.com/en/spot/#get-latest-k-line-v3
+             * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
              * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1586,7 +1586,7 @@ class bitmart extends Exchange {
             if ($market['swap']) {
                 $response = Async\await($this->publicGetContractPublicKline (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetSpotQuotationV3LiteKlines (array_merge($request, $params)));
+                $response = Async\await($this->publicGetSpotQuotationV3Klines (array_merge($request, $params)));
             }
             //
             // spot
@@ -1813,7 +1813,7 @@ class bitmart extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2911,7 +2911,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2967,7 +2967,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account

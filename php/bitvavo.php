@@ -310,8 +310,8 @@ class bitvavo extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetMarkets ($params);
-        $currencies = $this->currencies;
-        $currenciesById = $this->index_by($currencies, 'symbol');
+        $currencies = $this->fetch_currencies();
+        $currenciesById = $this->index_by($currencies, 'id');
         //
         //     array(
         //         {
@@ -336,7 +336,8 @@ class bitvavo extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $baseCurrency = $this->safe_value($currenciesById, $baseId);
-            $result[] = array(
+            $basePrecision = $this->safe_integer($baseCurrency, 'precision');
+            $result[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -361,7 +362,7 @@ class bitvavo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($baseCurrency, 'decimals', 8),
+                    'amount' => $this->safe_integer($baseCurrency, 'decimals', $basePrecision),
                     'price' => $this->safe_integer($market, 'pricePrecision'),
                 ),
                 'limits' => array(
@@ -384,7 +385,7 @@ class bitvavo extends Exchange {
                 ),
                 'created' => null,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -918,7 +919,7 @@ class bitvavo extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
@@ -1571,7 +1572,7 @@ class bitvavo extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1616,7 +1617,7 @@ class bitvavo extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code

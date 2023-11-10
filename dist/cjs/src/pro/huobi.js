@@ -67,13 +67,13 @@ class huobi extends huobi$1 {
                                 },
                             },
                             'swap': {
-                                'inverse': {
-                                    'public': 'wss://api.hbdm.vn/swap-ws',
-                                    'private': 'wss://api.hbdm.vn/swap-notification',
-                                },
                                 'linear': {
                                     'public': 'wss://api.hbdm.vn/linear-swap-ws',
                                     'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                             },
                         },
@@ -1187,6 +1187,127 @@ class huobi extends huobi$1 {
             'fee': undefined,
         }, market);
     }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchPositions
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
+         * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
+         * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        let messageHash = '';
+        if (!this.isEmpty(symbols)) {
+            market = this.getMarketFromSymbols(symbols);
+            messageHash = '::' + symbols.join(',');
+        }
+        let type = undefined;
+        let subType = undefined;
+        if (market !== undefined) {
+            type = market['type'];
+            subType = market['linear'] ? 'linear' : 'inverse';
+        }
+        else {
+            [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
+            if (type === 'spot') {
+                type = 'future';
+            }
+            [subType, params] = this.handleOptionAndParams(params, 'watchPositions', 'subType', subType);
+        }
+        symbols = this.marketSymbols(symbols);
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('watchPositions', params, 'cross');
+        const isLinear = (subType === 'linear');
+        const url = this.getUrlByMarketType(type, isLinear, true);
+        messageHash = marginMode + ':positions' + messageHash;
+        const channel = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
+        const newPositions = await this.subscribePrivate(channel, messageHash, type, subType, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions[url][marginMode], symbols, since, limit, false);
+    }
+    handlePositions(client, message) {
+        //
+        //    {
+        //        op: 'notify',
+        //        topic: 'positions_cross',
+        //        ts: 1696767149650,
+        //        event: 'snapshot',
+        //        data: [
+        //          {
+        //            contract_type: 'swap',
+        //            pair: 'BTC-USDT',
+        //            business_type: 'swap',
+        //            liquidation_price: null,
+        //            symbol: 'BTC',
+        //            contract_code: 'BTC-USDT',
+        //            volume: 1,
+        //            available: 1,
+        //            frozen: 0,
+        //            cost_open: 27802.2,
+        //            cost_hold: 27802.2,
+        //            profit_unreal: 0.0175,
+        //            profit_rate: 0.000629446590557581,
+        //            profit: 0.0175,
+        //            margin_asset: 'USDT',
+        //            position_margin: 27.8197,
+        //            lever_rate: 1,
+        //            direction: 'buy',
+        //            last_price: 27819.7,
+        //            margin_mode: 'cross',
+        //            margin_account: 'USDT',
+        //            trade_partition: 'USDT',
+        //            position_mode: 'dual_side'
+        //          },
+        //        ]
+        //    }
+        //
+        const url = client.url;
+        const topic = this.safeString(message, 'topic', '');
+        const marginMode = (topic === 'positions_cross') ? 'cross' : 'isolated';
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        const clientPositions = this.safeValue(this.positions, url);
+        if (clientPositions === undefined) {
+            this.positions[url] = {};
+        }
+        const clientMarginModePositions = this.safeValue(clientPositions, marginMode);
+        if (clientMarginModePositions === undefined) {
+            this.positions[url][marginMode] = new Cache.ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions[url][marginMode];
+        const rawPositions = this.safeValue(message, 'data', []);
+        const newPositions = [];
+        const timestamp = this.safeInteger(message, 'ts');
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parsePosition(rawPosition);
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601(timestamp);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(newPositions, marginMode + ':positions');
+    }
     async watchBalance(params = {}) {
         /**
          * @method
@@ -1689,6 +1810,9 @@ class huobi extends huobi$1 {
             }
             if (topic.indexOf('account') >= 0) {
                 this.handleBalance(client, message);
+            }
+            if (topic.indexOf('positions') >= 0) {
+                this.handlePositions(client, message);
             }
         }
     }
