@@ -70,7 +70,7 @@ export default class bitrue extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -2565,23 +2565,96 @@ export default class bitrue extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
+        //     fetchTransfers
+        //
         //     {
-        //         'code': '0',
-        //         'msg': 'Success',
-        //         'data': None
+        //         'transferType': 'wallet_to_contract',
+        //         'symbol': 'USDT',
+        //         'amount': 1.0,
+        //         'status': 1,
+        //         'ctime': 1685404575000
         //     }
         //
+        //     transfer
+        //
+        //     {}
+        //
+        const transferType = this.safeString (transfer, 'transferType');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (transferType !== undefined) {
+            const accountSplit = transferType.split ('_to_');
+            fromAccount = this.safeString (accountSplit, 0);
+            toAccount = this.safeString (accountSplit, 1);
+        }
+        const timestamp = this.safeInteger (transfer, 'ctime');
         return {
             'info': transfer,
             'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'currency': this.safeString (currency, 'code'),
-            'amount': undefined,
-            'fromAccount': undefined,
-            'toAccount': undefined,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': 'ok',
         };
+    }
+
+    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for
+         * @param {int} [limit] the maximum number of transfers structures to retrieve
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for
+         * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const type = this.safeString2 (params, 'type', 'transferType');
+        const request = {
+            'transferType': type,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coinSymbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['beginTime'] = since;
+        }
+        if (limit !== undefined) {
+            if (limit > 200) {
+                limit = 200;
+            }
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['endTime'] = until;
+        }
+        const response = await this.fapiV2PrivateGetFuturesTransferHistory (this.extend (request, params));
+        //
+        //     {
+        //         'code': '0',
+        //         'msg': 'Success',
+        //         'data': [{
+        //             'transferType': 'wallet_to_contract',
+        //             'symbol': 'USDT',
+        //             'amount': 1.0,
+        //             'status': 1,
+        //             'ctime': 1685404575000
+        //         }]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfers (data, currency, since, limit);
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {
@@ -2612,10 +2685,11 @@ export default class bitrue extends Exchange {
         //     {
         //         'code': '0',
         //         'msg': 'Success',
-        //         'data': None
+        //         'data': null
         //     }
         //
-        return this.parseTransfer (response, currency);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTransfer (data, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
