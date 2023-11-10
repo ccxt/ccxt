@@ -863,6 +863,7 @@ export default class protondex extends Exchange {
         let feeCost = undefined;
         const fee = {};
         let market = undefined;
+        let askTokenPrecision = 0;
         if (ordinalID !== undefined) {
             const ordinalId = this.safeString (data[0], 'ordinal_order_id');
             const account = this.safeString (data[0], 'account_name');
@@ -888,8 +889,8 @@ export default class protondex extends Exchange {
             }
             fee['cost'] = feeCost;
             fee['currency'] = currency;
+            askTokenPrecision = this.parseToInt (market.info.ask_token.precision);
         }
-        const askTokenPrecision = this.parseToInt (market.info.ask_token.precision);
         data[0]['avgPrice'] = avgPrice.toFixed (askTokenPrecision);
         data[0]['fee'] = fee;
         data[0]['cost'] = cost.toFixed (askTokenPrecision);
