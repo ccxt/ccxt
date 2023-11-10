@@ -90,6 +90,10 @@ try {
         exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
     }
 
+    if (exchange === undefined) {
+        process.exit ()
+    }
+
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';
     } else if (isSwap) {
@@ -342,7 +346,8 @@ async function run () {
                     if (debug) {
                         const keys = Object.keys (httpsAgent.freeSockets)
                         const firstKey = keys[0]
-                        log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                        let httpAgent = httpsAgent.freeSockets[firstKey];
+                        log (firstKey, httpAgent.length)
                     }
 
                     if (!poll && !isWsMethod){
