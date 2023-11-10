@@ -1033,8 +1033,8 @@ export default class p2b extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'startTime': since / 1000,
-            'endTime': until / 1000,
+            'startTime': this.parseToInt (since / 1000),
+            'endTime': this.parseToInt (until / 1000),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
