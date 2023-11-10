@@ -204,6 +204,10 @@ class Ticker(TypedDict):
     quoteVolume: Numeric
     baseVolume: Numeric
 
+
+Tickers = Dict[str, Ticker]
+
+
 class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: str
