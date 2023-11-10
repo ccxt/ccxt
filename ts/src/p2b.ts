@@ -1237,7 +1237,7 @@ export default class p2b extends Exchange {
                 'Content-Type': 'application/json',
                 'X-TXC-APIKEY': this.apiKey,
                 'X-TXC-PAYLOAD': payload,
-                'X-TXC-SIGNATURE': this.hmac (payload, this.encode (this.secret), sha512),
+                'X-TXC-SIGNATURE': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
             };
             body = this.json (params);
         }
