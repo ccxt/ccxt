@@ -16,7 +16,32 @@
                     50
                 ],
                 "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"limit\",\"size\":\"0.1\",\"price\":\"50\"}"
-            }
+            },
+            {
+                "description": "Spot market buy",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "buy",
+                  1,
+                  5
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"5\"}"
+              },
+              {
+                "description": "Spot market sell",
+                "method": "createOrder",
+                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "input": [
+                  "LTC/USDT",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"sell\",\"type\":\"market\",\"size\":\"0.1\"}"
+              }
         ],
         "fetchMyTrades": [
             {
