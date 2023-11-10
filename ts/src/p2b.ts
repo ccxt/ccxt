@@ -1149,7 +1149,7 @@ export default class p2b extends Exchange {
         return orders;
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //
