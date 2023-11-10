@@ -369,7 +369,7 @@ class Exchange(BaseExchange):
 
     def set_client_session_proxy(self, url):
         final_proxy = None  # set default
-        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url)
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
         if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
