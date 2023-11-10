@@ -156,7 +156,7 @@ class krakenfutures extends krakenfutures$1 {
             'exceptions': {
                 'exact': {
                     'apiLimitExceeded': errors.RateLimitExceeded,
-                    'marketUnavailable': errors.ExchangeNotAvailable,
+                    'marketUnavailable': errors.ContractUnavailable,
                     'requiredArgumentMissing': errors.BadRequest,
                     'unavailable': errors.ExchangeNotAvailable,
                     'authenticationError': errors.AuthenticationError,
@@ -165,7 +165,14 @@ class krakenfutures extends krakenfutures$1 {
                     'invalidAmount': errors.BadRequest,
                     'insufficientFunds': errors.InsufficientFunds,
                     'Bad Request': errors.BadRequest,
-                    'Unavailable': errors.InsufficientFunds, // Insufficient funds in Futures account [withdraw]
+                    'Unavailable': errors.InsufficientFunds,
+                    'invalidUnit': errors.BadRequest,
+                    'Json Parse Error': errors.ExchangeError,
+                    'nonceBelowThreshold': errors.InvalidNonce,
+                    'nonceDuplicate': errors.InvalidNonce,
+                    'notFound': errors.BadRequest,
+                    'Server Error': errors.ExchangeError,
+                    'unknownError': errors.ExchangeError,
                 },
                 'broad': {
                     'invalidArgument': errors.BadRequest,
@@ -2305,7 +2312,10 @@ class krakenfutures extends krakenfutures$1 {
         if (code === 429) {
             throw new errors.DDoSProtection(this.id + ' ' + body);
         }
-        const message = this.safeString(response, 'error');
+        const errors$1 = this.safeValue(response, 'errors');
+        const firstError = this.safeValue(errors$1, 0);
+        const firtErrorMessage = this.safeString(firstError, 'message');
+        const message = this.safeString(response, 'error', firtErrorMessage);
         if (message === undefined) {
             return undefined;
         }

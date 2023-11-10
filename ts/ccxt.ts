@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.46';
+const version = '4.1.47';
 
 (Exchange as any).ccxtVersion = version
 
@@ -464,6 +464,7 @@ export {
     FundingRateHistory,
     Liquidation,
     FundingHistory,
+    MarginMode,
     ace,
     alpaca,
     ascendex,

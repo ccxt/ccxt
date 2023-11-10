@@ -1345,6 +1345,9 @@ export default class Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+    }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {

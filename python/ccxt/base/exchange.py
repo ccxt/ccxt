@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.46'
+__version__ = '4.1.47'
 
 # -----------------------------------------------------------------------------
 
@@ -1889,6 +1889,9 @@ class Exchange(object):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
+
+    def fetch_margin_mode(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)

@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -159,7 +159,7 @@ export default class krakenfutures extends Exchange {
             'exceptions': {
                 'exact': {
                     'apiLimitExceeded': RateLimitExceeded,
-                    'marketUnavailable': ExchangeNotAvailable,
+                    'marketUnavailable': ContractUnavailable,
                     'requiredArgumentMissing': BadRequest,
                     'unavailable': ExchangeNotAvailable,
                     'authenticationError': AuthenticationError,
@@ -168,7 +168,14 @@ export default class krakenfutures extends Exchange {
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,
-                    'Unavailable': InsufficientFunds, // Insufficient funds in Futures account [withdraw]
+                    'Unavailable': InsufficientFunds,
+                    'invalidUnit': BadRequest,
+                    'Json Parse Error': ExchangeError,
+                    'nonceBelowThreshold': InvalidNonce,
+                    'nonceDuplicate': InvalidNonce,
+                    'notFound': BadRequest,
+                    'Server Error': ExchangeError,
+                    'unknownError': ExchangeError,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
@@ -2308,7 +2315,10 @@ export default class krakenfutures extends Exchange {
         if (code === 429) {
             throw new DDoSProtection(this.id + ' ' + body);
         }
-        const message = this.safeString(response, 'error');
+        const errors = this.safeValue(response, 'errors');
+        const firstError = this.safeValue(errors, 0);
+        const firtErrorMessage = this.safeString(firstError, 'message');
+        const message = this.safeString(response, 'error', firtErrorMessage);
         if (message === undefined) {
             return undefined;
         }

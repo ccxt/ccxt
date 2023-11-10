@@ -23,6 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ContractUnavailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -171,7 +172,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'apiLimitExceeded': RateLimitExceeded,
-                    'marketUnavailable': ExchangeNotAvailable,
+                    'marketUnavailable': ContractUnavailable,
                     'requiredArgumentMissing': BadRequest,
                     'unavailable': ExchangeNotAvailable,
                     'authenticationError': AuthenticationError,
@@ -181,6 +182,13 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,                     # The URL contains invalid characters.(Please encode the json URL parameter)
                     'Unavailable': InsufficientFunds,              # Insufficient funds in Futures account [withdraw]
+                    'invalidUnit': BadRequest,
+                    'Json Parse Error': ExchangeError,
+                    'nonceBelowThreshold': InvalidNonce,
+                    'nonceDuplicate': InvalidNonce,
+                    'notFound': BadRequest,
+                    'Server Error': ExchangeError,
+                    'unknownError': ExchangeError,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
@@ -2170,7 +2178,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
-        message = self.safe_string(response, 'error')
+        errors = self.safe_value(response, 'errors')
+        firstError = self.safe_value(errors, 0)
+        firtErrorMessage = self.safe_string(firstError, 'message')
+        message = self.safe_string(response, 'error', firtErrorMessage)
         if message is None:
             return None
         feedback = self.id + ' ' + body

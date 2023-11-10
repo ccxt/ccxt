@@ -960,7 +960,9 @@ class binance extends binance$1 {
                     },
                     'post': {
                         'um/order': 1,
+                        'um/conditional/order': 1,
                         'cm/order': 1,
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133,
                         'marginLoan': 0.1333,
                         'repayLoan': 0.1333,
@@ -981,8 +983,10 @@ class binance extends binance$1 {
                     },
                     'delete': {
                         'um/order': 1,
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1,
                         'cm/order': 1,
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,
                         'margin/order': 1,
                         'margin/allOpenOrders': 5,
