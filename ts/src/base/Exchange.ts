@@ -181,6 +181,10 @@ export default class Exchange {
     socks_proxy_callback: any;
     userAgent: { 'User-Agent': string } | false = undefined;
     user_agent: { 'User-Agent': string } | false = undefined;
+    wsProxy: string;
+    ws_proxy: string;
+    wssProxy: string;
+    wss_proxy: string;
     //
     userAgents: any = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -1240,8 +1244,9 @@ export default class Exchange {
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {});
             // proxy agents
-            const [ httpProxy, httpsProxy, socksProxy ] = this.checkProxySettings (url);
-            this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
+            const [ httpProxy, httpsProxy, socksProxy ] = this.checkWsProxySettings ();
+            const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
+            const finalAgent = chosenAgent ? chosenAgent : this.agent;
             //
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
@@ -1250,7 +1255,7 @@ export default class Exchange {
                 'throttler': new Throttler (this.tokenBucket),
                 // add support for proxies
                 'options': {
-                    'agent': this.agent,
+                    'agent': finalAgent,
                 }
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
@@ -1604,6 +1609,37 @@ export default class Exchange {
             throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback');
         }
         return [ httpProxy, httpsProxy, socksProxy ];
+    }
+
+    checkWsProxySettings () {
+        const usedProxies = [];
+        let wsProxy = undefined;
+        let wssProxy = undefined;
+        // wsProxy
+        if (this.wsProxy !== undefined) {
+            usedProxies.push ('wsProxy');
+            wsProxy = this.wsProxy;
+        }
+        if (this.ws_proxy !== undefined) {
+            usedProxies.push ('ws_proxy');
+            wsProxy = this.ws_proxy;
+        }
+        // wsProxy
+        if (this.wssProxy !== undefined) {
+            usedProxies.push ('wssProxy');
+            wssProxy = this.wssProxy;
+        }
+        if (this.wss_proxy !== undefined) {
+            usedProxies.push ('wss_proxy');
+            wssProxy = this.wss_proxy;
+        }
+        // check
+        const length = usedProxies.length;
+        if (length > 1) {
+            const joinedProxyNames = usedProxies.join (',');
+            throw new ExchangeError (this.id + ' you have multiple conflicting settings (' + joinedProxyNames + '), please use only one from: wsProxy, wssProxy');
+        }
+        return [ wsProxy, wssProxy ];
     }
 
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
