@@ -97,17 +97,17 @@ class woo extends \ccxt\async\woo {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         $topic => 'PERP_BTC_USDT@orderbook',
-        //         ts => 1650121915308,
-        //         $data => {
-        //             $symbol => 'PERP_BTC_USDT',
-        //             bids => array(
+        //         "topic" => "PERP_BTC_USDT@$orderbook",
+        //         "ts" => 1650121915308,
+        //         "data" => {
+        //             "symbol" => "PERP_BTC_USDT",
+        //             "bids" => array(
         //                 array(
         //                     0.30891,
         //                     2469.98
         //                 )
         //             ),
-        //             asks => array(
+        //             "asks" => array(
         //                 array(
         //                     0.31075,
         //                     2379.63
@@ -149,14 +149,14 @@ class woo extends \ccxt\async\woo {
     public function parse_ws_ticker($ticker, $market = null) {
         //
         //     {
-        //         symbol => 'PERP_BTC_USDT',
-        //         open => 19441.5,
-        //         close => 20147.07,
-        //         high => 20761.87,
-        //         low => 19320.54,
-        //         volume => 2481.103,
-        //         amount => 50037935.0286,
-        //         count => 3689
+        //         "symbol" => "PERP_BTC_USDT",
+        //         "open" => 19441.5,
+        //         "close" => 20147.07,
+        //         "high" => 20761.87,
+        //         "low" => 19320.54,
+        //         "volume" => 2481.103,
+        //         "amount" => 50037935.0286,
+        //         "count" => 3689
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
@@ -187,17 +187,17 @@ class woo extends \ccxt\async\woo {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $topic => 'PERP_BTC_USDT@ticker',
-        //         ts => 1657120017000,
-        //         $data => {
-        //             symbol => 'PERP_BTC_USDT',
-        //             open => 19441.5,
-        //             close => 20147.07,
-        //             high => 20761.87,
-        //             low => 19320.54,
-        //             volume => 2481.103,
-        //             amount => 50037935.0286,
-        //             count => 3689
+        //         "topic" => "PERP_BTC_USDT@$ticker",
+        //         "ts" => 1657120017000,
+        //         "data" => {
+        //             "symbol" => "PERP_BTC_USDT",
+        //             "open" => 19441.5,
+        //             "close" => 20147.07,
+        //             "high" => 20761.87,
+        //             "low" => 19320.54,
+        //             "volume" => 2481.103,
+        //             "amount" => 50037935.0286,
+        //             "count" => 3689
         //         }
         //     }
         //
@@ -502,27 +502,27 @@ class woo extends \ccxt\async\woo {
     public function parse_ws_order($order, $market = null) {
         //
         //     {
-        //         $symbol => 'PERP_BTC_USDT',
-        //         $clientOrderId => 0,
-        //         $orderId => 52952826,
-        //         $type => 'LIMIT',
-        //         $side => 'SELL',
-        //         quantity => 0.01,
-        //         $price => 22000,
-        //         tradeId => 0,
-        //         executedPrice => 0,
-        //         executedQuantity => 0,
-        //         $fee => 0,
-        //         feeAsset => 'USDT',
-        //         totalExecutedQuantity => 0,
-        //         $status => 'NEW',
-        //         reason => '',
-        //         orderTag => 'default',
-        //         totalFee => 0,
-        //         visible => 0.01,
-        //         $timestamp => 1657515556799,
-        //         reduceOnly => false,
-        //         maker => false
+        //         "symbol" => "PERP_BTC_USDT",
+        //         "clientOrderId" => 0,
+        //         "orderId" => 52952826,
+        //         "type" => "LIMIT",
+        //         "side" => "SELL",
+        //         "quantity" => 0.01,
+        //         "price" => 22000,
+        //         "tradeId" => 0,
+        //         "executedPrice" => 0,
+        //         "executedQuantity" => 0,
+        //         "fee" => 0,
+        //         "feeAsset" => "USDT",
+        //         "totalExecutedQuantity" => 0,
+        //         "status" => "NEW",
+        //         "reason" => '',
+        //         "orderTag" => "default",
+        //         "totalFee" => 0,
+        //         "visible" => 0.01,
+        //         "timestamp" => 1657515556799,
+        //         "reduceOnly" => false,
+        //         "maker" => false
         //     }
         //
         $orderId = $this->safe_string($order, 'orderId');
@@ -581,30 +581,30 @@ class woo extends \ccxt\async\woo {
     public function handle_order_update(Client $client, $message) {
         //
         //     {
-        //         topic => 'executionreport',
-        //         ts => 1657515556799,
-        //         data => {
-        //             symbol => 'PERP_BTC_USDT',
-        //             clientOrderId => 0,
-        //             orderId => 52952826,
-        //             type => 'LIMIT',
-        //             side => 'SELL',
-        //             quantity => 0.01,
-        //             price => 22000,
-        //             tradeId => 0,
-        //             executedPrice => 0,
-        //             executedQuantity => 0,
-        //             fee => 0,
-        //             feeAsset => 'USDT',
-        //             totalExecutedQuantity => 0,
-        //             status => 'NEW',
-        //             reason => '',
-        //             orderTag => 'default',
-        //             totalFee => 0,
-        //             visible => 0.01,
-        //             timestamp => 1657515556799,
-        //             reduceOnly => false,
-        //             maker => false
+        //         "topic" => "executionreport",
+        //         "ts" => 1657515556799,
+        //         "data" => {
+        //             "symbol" => "PERP_BTC_USDT",
+        //             "clientOrderId" => 0,
+        //             "orderId" => 52952826,
+        //             "type" => "LIMIT",
+        //             "side" => "SELL",
+        //             "quantity" => 0.01,
+        //             "price" => 22000,
+        //             "tradeId" => 0,
+        //             "executedPrice" => 0,
+        //             "executedQuantity" => 0,
+        //             "fee" => 0,
+        //             "feeAsset" => "USDT",
+        //             "totalExecutedQuantity" => 0,
+        //             "status" => "NEW",
+        //             "reason" => '',
+        //             "orderTag" => "default",
+        //             "totalFee" => 0,
+        //             "visible" => 0.01,
+        //             "timestamp" => 1657515556799,
+        //             "reduceOnly" => false,
+        //             "maker" => false
         //         }
         //     }
         //
@@ -706,8 +706,11 @@ class woo extends \ccxt\async\woo {
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
             $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
-            $account['total'] = $this->safe_string($value, 'holding');
-            $account['used'] = $this->safe_string($value, 'frozen');
+            $total = $this->safe_string($value, 'holding');
+            $used = $this->safe_string($value, 'frozen');
+            $account['total'] = $total;
+            $account['used'] = $used;
+            $account['free'] = Precise::string_sub($total, $used);
             $this->balance[$code] = $account;
         }
         $this->balance = $this->safe_balance($this->balance);
@@ -770,7 +773,7 @@ class woo extends \ccxt\async\woo {
 
     public function handle_pong(Client $client, $message) {
         //
-        // array( event => 'pong', ts => 1657117026090 )
+        // array( event => "pong", ts => 1657117026090 )
         //
         $client->lastPong = $this->milliseconds();
         return $message;
@@ -779,10 +782,10 @@ class woo extends \ccxt\async\woo {
     public function handle_subscribe(Client $client, $message) {
         //
         //     {
-        //         id => '666888',
-        //         event => 'subscribe',
-        //         success => true,
-        //         ts => 1657117712212
+        //         "id" => "666888",
+        //         "event" => "subscribe",
+        //         "success" => true,
+        //         "ts" => 1657117712212
         //     }
         //
         return $message;
@@ -791,9 +794,9 @@ class woo extends \ccxt\async\woo {
     public function handle_auth(Client $client, $message) {
         //
         //     {
-        //         event => 'auth',
-        //         $success => true,
-        //         ts => 1657463158812
+        //         "event" => "auth",
+        //         "success" => true,
+        //         "ts" => 1657463158812
         //     }
         //
         $messageHash = 'authenticated';

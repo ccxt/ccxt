@@ -6,12 +6,10 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinfalcon import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -223,7 +221,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "name":"ETH-BTC",
@@ -266,7 +264,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -314,7 +312,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -332,7 +330,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -399,8 +397,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the coinfalcon api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -432,7 +429,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -475,10 +472,10 @@ class coinfalcon(Exchange, ImplicitAPI):
         response = self.privateGetUserFees(params)
         #
         #    {
-        #        data: {
-        #            maker_fee: '0.0',
-        #            taker_fee: '0.2',
-        #            btc_volume_30d: '0.0'
+        #        "data": {
+        #            "maker_fee": "0.0",
+        #            "taker_fee": "0.2",
+        #            "btc_volume_30d": "0.0"
         #        }
         #    }
         #
@@ -500,7 +497,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         balances = self.safe_value(response, 'data', [])
         for i in range(0, len(balances)):
@@ -514,7 +511,7 @@ class coinfalcon(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coinfalcon api endpoint
@@ -557,9 +554,9 @@ class coinfalcon(Exchange, ImplicitAPI):
         response = self.privateGetAccountDepositAddress(self.extend(request, params))
         #
         #     {
-        #         data: {
-        #             address: '0x9918987bbe865a1a9301dc736cf6cf3205956694',
-        #             tag:null
+        #         "data": {
+        #             "address": "0x9918987bbe865a1a9301dc736cf6cf3205956694",
+        #             "tag":null
         #         }
         #     }
         #
@@ -576,7 +573,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         #     {
         #         "id":"8bdd79f4-8414-40a2-90c3-e9f4d6d1eef4"
@@ -691,7 +688,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -714,7 +711,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         orders = self.filter_by_array(data, 'status', ['pending', 'open', 'partially_filled'], False)
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -739,16 +736,16 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['since_time'] = self.iso8601(since)
         response = self.privateGetAccountDeposits(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        #             amount: '0.1',
-        #             status: 'completed',
-        #             currency_code: 'eth',
-        #             txid: '0xxxx',
-        #             address: '0xxxx',
-        #             tag: null,
-        #             type: 'deposit'
+        #             "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        #             "amount": "0.1",
+        #             "status": "completed",
+        #             "currency_code": "eth",
+        #             "txid": "0xxxx",
+        #             "address": "0xxxx",
+        #             "tag": null,
+        #             "type": "deposit"
         #         },
         #     ]
         #
@@ -756,7 +753,7 @@ class coinfalcon(Exchange, ImplicitAPI):
         transactions.reverse()  # no timestamp but in reversed order
         return self.parse_transactions(transactions, currency, None, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -781,17 +778,17 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['since_time'] = self.iso8601(since)
         response = self.privateGetAccountWithdrawals(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '25f6f144-3666-xxx-xxx-xxx',
-        #             amount: '0.01',
-        #             status: 'completed',
-        #             fee: '0.0005',
-        #             currency_code: 'btc',
-        #             txid: '4xxx',
-        #             address: 'bc1xxx',
-        #             tag: null,
-        #             type: 'withdraw'
+        #             "id": "25f6f144-3666-xxx-xxx-xxx",
+        #             "amount": "0.01",
+        #             "status": "completed",
+        #             "fee": "0.0005",
+        #             "currency_code": "btc",
+        #             "txid": "4xxx",
+        #             "address": "bc1xxx",
+        #             "tag": null,
+        #             "type": "withdraw"
         #         },
         #     ]
         #
@@ -823,17 +820,17 @@ class coinfalcon(Exchange, ImplicitAPI):
             request['tag'] = tag
         response = self.privatePostAccountWithdraw(self.extend(request, params))
         #
-        #     data: [
+        #     "data": [
         #         {
-        #             id: '25f6f144-3666-xxx-xxx-xxx',
-        #             amount: '0.01',
-        #             status: 'approval_pending',
-        #             fee: '0.0005',
-        #             currency_code: 'btc',
-        #             txid: null,
-        #             address: 'bc1xxx',
-        #             tag: null,
-        #             type: 'withdraw'
+        #             "id": "25f6f144-3666-xxx-xxx-xxx",
+        #             "amount": "0.01",
+        #             "status": "approval_pending",
+        #             "fee": "0.0005",
+        #             "currency_code": "btc",
+        #             "txid": null,
+        #             "address": "bc1xxx",
+        #             "tag": null,
+        #             "type": "withdraw"
         #         },
         #     ]
         #
@@ -848,33 +845,33 @@ class coinfalcon(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals, withdraw
         #
         #     {
-        #         id: '25f6f144-3666-xxx-xxx-xxx',
-        #         amount: '0.01',
-        #         status: 'completed',
-        #         fee: '0.0005',
-        #         currency_code: 'btc',
-        #         txid: '4xxx',
-        #         address: 'bc1xxx',
-        #         tag: null,
-        #         type: 'withdraw'
+        #         "id": "25f6f144-3666-xxx-xxx-xxx",
+        #         "amount": "0.01",
+        #         "status": "completed",
+        #         "fee": "0.0005",
+        #         "currency_code": "btc",
+        #         "txid": "4xxx",
+        #         "address": "bc1xxx",
+        #         "tag": null,
+        #         "type": "withdraw"
         #     },
         #
         # fetchDeposits
         #
         #     {
-        #         id: '6e2f18b5-f80e-xxx-xxx-xxx',
-        #         amount: '0.1',
-        #         status: 'completed',
-        #         currency_code: 'eth',
-        #         txid: '0xxxx',
-        #         address: '0xxxx',
-        #         tag: null,
-        #         type: 'deposit'
+        #         "id": "6e2f18b5-f80e-xxx-xxx-xxx",
+        #         "amount": "0.1",
+        #         "status": "completed",
+        #         "currency_code": "eth",
+        #         "txid": "0xxxx",
+        #         "address": "0xxxx",
+        #         "tag": null,
+        #         "type": "deposit"
         #     },
         #
         id = self.safe_string(transaction, 'id')

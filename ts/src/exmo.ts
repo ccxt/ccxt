@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook } from './base/types.js';
+import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Transaction, Ticker } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -323,28 +323,28 @@ export default class exmo extends Exchange {
         const response = await this.privatePostMarginPairList (params);
         //
         //     {
-        //         pairs: [{
-        //             name: 'EXM_USD',
-        //             buy_price: '0.02728391',
-        //             sell_price: '0.0276',
-        //             last_trade_price: '0.0276',
-        //             ticker_updated: '1646956050056696046',
-        //             is_fair_price: true,
-        //             max_price_precision: '8',
-        //             min_order_quantity: '1',
-        //             max_order_quantity: '50000',
-        //             min_order_price: '0.00000001',
-        //             max_order_price: '1000',
-        //             max_position_quantity: '50000',
-        //             trade_taker_fee: '0.05',
-        //             trade_maker_fee: '0',
-        //             liquidation_fee: '0.5',
-        //             max_leverage: '3',
-        //             default_leverage: '3',
-        //             liquidation_level: '5',
-        //             margin_call_level: '7.5',
-        //             position: '1',
-        //             updated: '1638976144797807397'
+        //         "pairs": [{
+        //             "name": "EXM_USD",
+        //             "buy_price": "0.02728391",
+        //             "sell_price": "0.0276",
+        //             "last_trade_price": "0.0276",
+        //             "ticker_updated": "1646956050056696046",
+        //             "is_fair_price": true,
+        //             "max_price_precision": "8",
+        //             "min_order_quantity": "1",
+        //             "max_order_quantity": "50000",
+        //             "min_order_price": "0.00000001",
+        //             "max_order_price": "1000",
+        //             "max_position_quantity": "50000",
+        //             "trade_taker_fee": "0.05",
+        //             "trade_maker_fee": "0",
+        //             "liquidation_fee": "0.5",
+        //             "max_leverage": "3",
+        //             "default_leverage": "3",
+        //             "liquidation_level": "5",
+        //             "margin_call_level": "7.5",
+        //             "position": "1",
+        //             "updated": "1638976144797807397"
         //         }
         //         ...
         //         ]
@@ -377,16 +377,16 @@ export default class exmo extends Exchange {
         const response = await this.publicGetPairSettings (params);
         //
         //     {
-        //         BTC_USD: {
-        //             min_quantity: '0.00002',
-        //             max_quantity: '1000',
-        //             min_price: '1',
-        //             max_price: '150000',
-        //             max_amount: '500000',
-        //             min_amount: '1',
-        //             price_precision: '2',
-        //             commission_taker_percent: '0.3',
-        //             commission_maker_percent: '0.3'
+        //         "BTC_USD": {
+        //             "min_quantity": "0.00002",
+        //             "max_quantity": "1000",
+        //             "min_price": "1",
+        //             "max_price": "150000",
+        //             "max_amount": "500000",
+        //             "min_amount": "1",
+        //             "price_precision": "2",
+        //             "commission_taker_percent": "0.3",
+        //             "commission_maker_percent": "0.3"
         //         },
         //     }
         //
@@ -843,7 +843,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name exmo#fetchOHLCV
@@ -900,7 +900,7 @@ export default class exmo extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
+    parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
         //         "t":1584057600000,
@@ -921,7 +921,7 @@ export default class exmo extends Exchange {
         ];
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = { 'info': response };
         const wallets = this.safeValue (response, 'wallets');
         if (wallets !== undefined) {
@@ -956,7 +956,7 @@ export default class exmo extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name exmo#fetchBalance
@@ -1003,7 +1003,7 @@ export default class exmo extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name exmo#fetchOrderBook
@@ -1066,7 +1066,7 @@ export default class exmo extends Exchange {
         return result as Dictionary<OrderBook>;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "buy_price":"0.00002996",
@@ -1146,7 +1146,7 @@ export default class exmo extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name exmo#fetchTicker
@@ -1161,7 +1161,7 @@ export default class exmo extends Exchange {
         return this.parseTicker (response[market['id']], market);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1252,7 +1252,7 @@ export default class exmo extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name exmo#fetchTrades
@@ -1545,8 +1545,8 @@ export default class exmo extends Exchange {
                 response = await this.privatePostOrderCancel (this.extend (request, params));
                 //
                 //    {
-                //        'error': '',
-                //        'result': True
+                //        "error": '',
+                //        "result": True
                 //    }
                 //
             }
@@ -1673,7 +1673,7 @@ export default class exmo extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name exmo#fetchOpenOrders
@@ -1798,7 +1798,7 @@ export default class exmo extends Exchange {
         return this.safeString (side, orderType, orderType);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined): Order {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
@@ -2175,7 +2175,7 @@ export default class exmo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDepositsWithdrawals
         //
@@ -2228,9 +2228,9 @@ export default class exmo extends Exchange {
         //    }
         //
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
-        let amount = this.safeString (transaction, 'amount');
-        if (amount !== undefined) {
-            amount = Precise.stringAbs (amount);
+        let amountString = this.safeString (transaction, 'amount');
+        if (amountString !== undefined) {
+            amountString = Precise.stringAbs (amountString);
         }
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
@@ -2281,7 +2281,7 @@ export default class exmo extends Exchange {
             if (feeCost !== undefined) {
                 // withdrawal amount includes the fee
                 if (type === 'withdrawal') {
-                    amount = Precise.stringSub (amount, feeCost);
+                    amountString = Precise.stringSub (amountString, feeCost);
                 }
                 fee['cost'] = this.parseNumber (feeCost);
                 fee['currency'] = code;
@@ -2294,7 +2294,7 @@ export default class exmo extends Exchange {
             'type': type,
             'currency': code,
             'network': this.safeString (transaction, 'provider'),
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             'status': this.parseTransactionStatus (this.safeStringLower (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2310,7 +2310,7 @@ export default class exmo extends Exchange {
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name exmo#fetchDepositsWithdrawals
@@ -2364,7 +2364,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (response['history'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name exmo#fetchWithdrawals
@@ -2522,7 +2522,7 @@ export default class exmo extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name exmo#fetchDeposits
@@ -2609,8 +2609,8 @@ export default class exmo extends Exchange {
         }
         if (('error' in response) && !('result' in response)) {
             // error: {
-            //     code: '140434',
-            //     msg: "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by '2.5 USDT'."
+            //     "code": "140434",
+            //     "msg": "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
             // }
             //
             const errorCode = this.safeValue (response, 'error', {});

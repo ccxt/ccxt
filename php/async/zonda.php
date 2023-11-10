@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class zonda extends Exchange {
 
@@ -102,7 +103,7 @@ class zonda extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
-            'hostname' => 'zonda.exchange',
+            'hostname' => 'zondacrypto.exchange',
             'urls' => array(
                 'referral' => 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
@@ -114,7 +115,7 @@ class zonda extends Exchange {
                     'v1_01Private' => 'https://api.{hostname}/rest',
                 ),
                 'doc' => array(
-                    'https://docs.zonda.exchange/',
+                    'https://docs.zondacrypto.exchange/',
                     'https://github.com/BitBayNet/API',
                 ),
                 'support' => 'https://zondaglobal.com/en/helpdesk/zonda-exchange',
@@ -175,6 +176,8 @@ class zonda extends Exchange {
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
                         'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
                     ),
                     'delete' => array(
                         'trading/offer/{symbol}/{id}/{side}/{price}',
@@ -283,6 +286,10 @@ class zonda extends Exchange {
                 'REQUEST_TIMESTAMP_TOO_OLD' => '\\ccxt\\InvalidNonce',
                 'PERMISSIONS_NOT_SUFFICIENT' => '\\ccxt\\PermissionDenied',
                 'INVALID_STOP_RATE' => '\\ccxt\\InvalidOrder',
+                'TIMEOUT' => '\\ccxt\\ExchangeError',
+                'RESPONSE_TIMEOUT' => '\\ccxt\\ExchangeError',
+                'ACTION_BLOCKED' => '\\ccxt\\PermissionDenied',
+                'INVALID_HASH_SIGNATURE' => '\\ccxt\\AuthenticationError',
             ),
             'commonCurrencies' => array(
                 'GGC' => 'Global Game Coin',
@@ -293,7 +300,7 @@ class zonda extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * @see https://docs.zonda.exchange/reference/ticker-1
+             * @see https://docs.zondacrypto.exchange/reference/ticker-1
              * retrieves data on all markets for zonda
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing $market data
@@ -302,19 +309,19 @@ class zonda extends Exchange {
             $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
             //
             //     {
-            //         status => 'Ok',
-            //         $items => array(
-            //             'BSV-USD' => array(
-            //                 $market => array(
-            //                     code => 'BSV-USD',
-            //                     $first => array( currency => 'BSV', minOffer => '0.00035', scale => 8 ),
-            //                     $second => array( currency => 'USD', minOffer => '5', scale => 2 )
+            //         "status" => "Ok",
+            //         "items" => array(
+            //             "BSV-USD" => array(
+            //                 "market" => array(
+            //                     "code" => "BSV-USD",
+            //                     "first" => array( currency => "BSV", minOffer => "0.00035", scale => 8 ),
+            //                     "second" => array( currency => "USD", minOffer => "5", scale => 2 )
             //                 ),
-            //                 time => '1557569762154',
-            //                 highestBid => '52.31',
-            //                 lowestAsk => '62.99',
-            //                 rate => '63',
-            //                 previousRate => '51.21',
+            //                 "time" => "1557569762154",
+            //                 "highestBid" => "52.31",
+            //                 "lowestAsk" => "62.99",
+            //                 "rate" => "63",
+            //                 "previousRate" => "51.21",
             //             ),
             //         ),
             //     }
@@ -394,10 +401,10 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/active-orders
+             * @see https://docs.zondacrypto.exchange/reference/active-orders
              * fetch all unfilled currently open orders
              * @param {string} $symbol not used by zonda fetchOpenOrders
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -413,23 +420,23 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, $market = null) {
+    public function parse_order($order, $market = null): array {
         //
         //     {
-        //         $market => 'ETH-EUR',
-        //         offerType => 'Sell',
-        //         id => '93d3657b-d616-11e9-9248-0242ac110005',
-        //         currentAmount => '0.04',
-        //         lockedAmount => '0.04',
-        //         rate => '280',
-        //         startAmount => '0.04',
-        //         time => '1568372806924',
-        //         $postOnly => false,
-        //         hidden => false,
-        //         mode => 'limit',
-        //         receivedAmount => '0.0',
-        //         firstBalanceId => '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        //         secondBalanceId => 'ab43023b-4079-414c-b340-056e3430a3af'
+        //         "market" => "ETH-EUR",
+        //         "offerType" => "Sell",
+        //         "id" => "93d3657b-d616-11e9-9248-0242ac110005",
+        //         "currentAmount" => "0.04",
+        //         "lockedAmount" => "0.04",
+        //         "rate" => "280",
+        //         "startAmount" => "0.04",
+        //         "time" => "1568372806924",
+        //         "postOnly" => false,
+        //         "hidden" => false,
+        //         "mode" => "limit",
+        //         "receivedAmount" => "0.0",
+        //         "firstBalanceId" => "5b816c3e-437c-4e43-9bef-47814ae7ebfc",
+        //         "secondBalanceId" => "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
         $marketId = $this->safe_string($order, 'market');
@@ -467,7 +474,7 @@ class zonda extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/transactions-history
+             * @see https://docs.zondacrypto.exchange/reference/transactions-history
              * fetch all trades made by the user
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -486,20 +493,20 @@ class zonda extends Exchange {
             $response = Async\await($this->v1_01PrivateGetTradingHistoryTransactions ($query));
             //
             //     {
-            //         status => 'Ok',
-            //         totalRows => '67',
-            //         $items => array(
+            //         "status" => "Ok",
+            //         "totalRows" => "67",
+            //         "items" => array(
             //             array(
-            //                 id => 'b54659a0-51b5-42a0-80eb-2ac5357ccee2',
-            //                 market => 'BTC-EUR',
-            //                 time => '1541697096247',
-            //                 amount => '0.00003',
-            //                 rate => '4341.44',
-            //                 initializedBy => 'Sell',
-            //                 wasTaker => false,
-            //                 userAction => 'Buy',
-            //                 offerId => 'bd19804a-6f89-4a69-adb8-eb078900d006',
-            //                 commissionValue => null
+            //                 "id" => "b54659a0-51b5-42a0-80eb-2ac5357ccee2",
+            //                 "market" => "BTC-EUR",
+            //                 "time" => "1541697096247",
+            //                 "amount" => "0.00003",
+            //                 "rate" => "4341.44",
+            //                 "initializedBy" => "Sell",
+            //                 "wasTaker" => false,
+            //                 "userAction" => "Buy",
+            //                 "offerId" => "bd19804a-6f89-4a69-adb8-eb078900d006",
+            //                 "commissionValue" => null
             //             ),
             //         )
             //     }
@@ -513,7 +520,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json($response));
@@ -531,10 +538,10 @@ class zonda extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * @see https://docs.zonda.exchange/reference/list-of-wallets
+             * @see https://docs.zondacrypto.exchange/reference/list-of-wallets
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the zonda api endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
@@ -545,10 +552,10 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/orderbook-2
+             * @see https://docs.zondacrypto.exchange/reference/orderbook-2
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -592,42 +599,42 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // version 1
         //
         //    {
-        //        m => 'ETH-PLN',
-        //        h => '13485.13',
-        //        l => '13100.01',
-        //        v => '126.10710939',
-        //        r24h => '13332.72'
+        //        "m" => "ETH-PLN",
+        //        "h" => "13485.13",
+        //        "l" => "13100.01",
+        //        "v" => "126.10710939",
+        //        "r24h" => "13332.72"
         //    }
         //
         // version 2
         //
         //    {
-        //        $market => array(
-        //            code => 'ADA-USDT',
-        //            first => array(
-        //                currency => 'ADA',
-        //                minOffer => '0.2',
-        //                scale => '6'
+        //        "market" => array(
+        //            "code" => "ADA-USDT",
+        //            "first" => array(
+        //                "currency" => "ADA",
+        //                "minOffer" => "0.2",
+        //                "scale" => "6"
         //            ),
-        //            second => array(
-        //                currency => 'USDT',
-        //                minOffer => '0.099',
-        //                scale => '6'
+        //            "second" => array(
+        //                "currency" => "USDT",
+        //                "minOffer" => "0.099",
+        //                "scale" => "6"
         //            ),
-        //            amountPrecision => '6',
-        //            pricePrecision => '6',
-        //            ratePrecision => '6'
+        //            "amountPrecision" => "6",
+        //            "pricePrecision" => "6",
+        //            "ratePrecision" => "6"
         //        ),
-        //        time => '1655812661202',
-        //        highestBid => '0.492',
-        //        lowestAsk => '0.499389',
-        //        $rate => '0.50588',
-        //        previousRate => '0.504981'
+        //        "time" => "1655812661202",
+        //        "highestBid" => "0.492",
+        //        "lowestAsk" => "0.499389",
+        //        "rate" => "0.50588",
+        //        "previousRate" => "0.504981"
         //    }
         //
         $tickerMarket = $this->safe_value($ticker, 'market');
@@ -663,7 +670,7 @@ class zonda extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * v1_01PublicGetTradingTickerSymbol retrieves timestamp, datetime, bid, ask, close, last, previousClose, v1_01PublicGetTradingStatsSymbol retrieves high, low, volume and opening price of an asset
-             * @see https://docs.zonda.exchange/reference/market-statistics
+             * @see https://docs.zondacrypto.exchange/reference/market-statistics
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the zonda api endpoint
              * @param {string} [$params->method] v1_01PublicGetTradingTickerSymbol (default) or v1_01PublicGetTradingStatsSymbol
@@ -735,7 +742,7 @@ class zonda extends Exchange {
             /**
              * @ignore
              * v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
-             * @see https://docs.zonda.exchange/reference/market-statistics
+             * @see https://docs.zondacrypto.exchange/reference/market-statistics
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the zonda api endpoint
              * @param {string} [$params->method] v1_01PublicGetTradingTicker (default) or v1_01PublicGetTradingStats
@@ -783,14 +790,14 @@ class zonda extends Exchange {
                 $response = Async\await($this->v1_01PublicGetTradingStats ($params));
                 //
                 //     {
-                //         status => 'Ok',
-                //         $items => {
-                //             'DAI-PLN' => array(
-                //                 m => 'DAI-PLN',
-                //                 h => '4.41',
-                //                 l => '4.37',
-                //                 v => '8.71068087',
-                //                 r24h => '4.36'
+                //         "status" => "Ok",
+                //         "items" => {
+                //             "DAI-PLN" => array(
+                //                 "m" => "DAI-PLN",
+                //                 "h" => "4.41",
+                //                 "l" => "4.37",
+                //                 "v" => "8.71068087",
+                //                 "r24h" => "4.36"
                 //             ),
                 //             ...
                 //         }
@@ -807,7 +814,7 @@ class zonda extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/operations-history
+             * @see https://docs.zondacrypto.exchange/reference/operations-history
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -1157,17 +1164,17 @@ class zonda extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ohlcv($ohlcv, $market = null) {
+    public function parse_ohlcv($ohlcv, $market = null): array {
         //
         //     array(
-        //         '1582399800000',
+        //         "1582399800000",
         //         {
-        //             o => '0.0001428',
-        //             c => '0.0001428',
-        //             h => '0.0001428',
-        //             l => '0.0001428',
-        //             v => '4',
-        //             co => '1'
+        //             "o" => "0.0001428",
+        //             "c" => "0.0001428",
+        //             "h" => "0.0001428",
+        //             "l" => "0.0001428",
+        //             "v" => "4",
+        //             "co" => "1"
         //         }
         //     )
         //
@@ -1182,10 +1189,10 @@ class zonda extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/candles-chart
+             * @see https://docs.zondacrypto.exchange/reference/candles-chart
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1231,7 +1238,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // createOrder trades
         //
@@ -1243,26 +1250,26 @@ class zonda extends Exchange {
         // fetchMyTrades (private)
         //
         //     {
-        //         amount => "0.29285199",
-        //         commissionValue => "0.00125927",
-        //         id => "11c8203a-a267-11e9-b698-0242ac110007",
-        //         initializedBy => "Buy",
-        //         $market => "ETH-EUR",
-        //         offerId => "11c82038-a267-11e9-b698-0242ac110007",
-        //         rate => "277",
-        //         time => "1562689917517",
-        //         userAction => "Buy",
-        //         $wasTaker => true,
+        //         "amount" => "0.29285199",
+        //         "commissionValue" => "0.00125927",
+        //         "id" => "11c8203a-a267-11e9-b698-0242ac110007",
+        //         "initializedBy" => "Buy",
+        //         "market" => "ETH-EUR",
+        //         "offerId" => "11c82038-a267-11e9-b698-0242ac110007",
+        //         "rate" => "277",
+        //         "time" => "1562689917517",
+        //         "userAction" => "Buy",
+        //         "wasTaker" => true,
         //     }
         //
         // fetchTrades (public)
         //
         //     {
-        //          id => 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        //          t => '1570108958831',
-        //          a => '0.04776653',
-        //          r => '0.02145854',
-        //          ty => 'Sell'
+        //          "id" => "df00b0da-e5e0-11e9-8c19-0242ac11000a",
+        //          "t" => "1570108958831",
+        //          "a" => "0.04776653",
+        //          "r" => "0.02145854",
+        //          "ty" => "Sell"
         //     }
         //
         $timestamp = $this->safe_integer_2($trade, 'time', 't');
@@ -1309,10 +1316,10 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/last-transactions
+             * @see https://docs.zondacrypto.exchange/reference/last-transactions
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1366,7 +1373,6 @@ class zonda extends Exchange {
             $isStopLimit = ($type === 'stop-limit') || ($isLimitOrder && $isStopLossPrice);
             $isStopMarket = $type === 'stop-market' || ($isMarketOrder && $isStopLossPrice);
             $isStopOrder = $isStopLimit || $isStopMarket;
-            $method = $isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
             if ($isLimitOrder || $isStopLimit) {
                 $request['rate'] = $this->price_to_precision($symbol, $price);
                 $request['mode'] = $isStopLimit ? 'stop-limit' : 'limit';
@@ -1375,22 +1381,25 @@ class zonda extends Exchange {
             } else {
                 throw new ExchangeError($this->id . ' createOrder() invalid type');
             }
+            $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice' ));
+            $response = null;
             if ($isStopOrder) {
                 if (!$isStopLossPrice) {
                     throw new ExchangeError($this->id . ' createOrder() zonda requires `triggerPrice` or `stopPrice` parameter for stop-limit or stop-$market orders');
                 }
                 $request['stopRate'] = $this->price_to_precision($symbol, $stopLossPrice);
+                $response = Async\await($this->v1_01PrivatePostTradingStopOfferSymbol (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->v1_01PrivatePostTradingOfferSymbol (array_merge($request, $params)));
             }
-            $params = $this->omit($params, array( 'stopPrice', 'stopLossPrice' ));
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // unfilled (open order)
             //
             //     {
-            //         $status => 'Ok',
-            //         $completed => false, // can deduce $status from here
-            //         offerId => 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-            //         $transactions => array(), // can deduce order info from here
+            //         "status" => "Ok",
+            //         "completed" => false, // can deduce $status from here
+            //         "offerId" => "ce9cc72e-d61c-11e9-9248-0242ac110005",
+            //         "transactions" => array(), // can deduce order info from here
             //     }
             //
             // filled (closed order)
@@ -1467,7 +1476,7 @@ class zonda extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/cancel-order
+             * @see https://docs.zondacrypto.exchange/reference/cancel-order
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1491,8 +1500,8 @@ class zonda extends Exchange {
                 'side' => $side,
                 'price' => $price,
             );
-            // array( status => 'Fail', errors => array( 'NOT_RECOGNIZED_OFFER_TYPE' ) )  -- if required $params are missing
-            // array( status => 'Ok', errors => array() )
+            // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
+            // array( status => "Ok", errors => array() )
             return Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge($request, $params)));
         }) ();
     }
@@ -1531,7 +1540,7 @@ class zonda extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+             * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
              * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the zonda api endpoint
@@ -1566,7 +1575,7 @@ class zonda extends Exchange {
     public function fetch_deposit_addresses($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/deposit-addresses-for-crypto
+             * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
              * fetch deposit addresses for multiple currencies and chain types
              * @param {string[]|null} $codes zonda does not support filtering filtering by multiple $codes and will ignore this parameter.
              * @param {array} [$params] extra parameters specific to the zonda api endpoint
@@ -1595,7 +1604,7 @@ class zonda extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/internal-$transfer
+             * @see https://docs.zondacrypto.exchange/reference/internal-$transfer
              * $transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to $transfer
@@ -1710,7 +1719,7 @@ class zonda extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
-             * @see https://docs.zonda.exchange/reference/crypto-withdrawal-1
+             * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
              * make a withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
@@ -1722,25 +1731,23 @@ class zonda extends Exchange {
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
             Async\await($this->load_markets());
-            $method = null;
+            $response = null;
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
-                'quantity' => $amount,
+                'amount' => $amount,
+                'address' => $address,
+                // $request['balanceId'] = $params['balanceId']; // Wallet id used for withdrawal. If not provided, any BITBAY wallet with sufficient funds is used. If BITBAYPAY wallet should be used parameter must be explicitly specified.
             );
             if ($this->is_fiat($code)) {
-                $method = 'privatePostWithdraw';
-                // $request['account'] = $params['account']; // they demand an account number
-                // $request['express'] = $params['express']; // whatever it means, they don't explain
-                // $request['bic'] = '';
+                // $request['swift'] = $params['swift']; // Bank identifier, if required.
+                $response = Async\await($this->v1_01PrivatePostApiPaymentsWithdrawalsFiat (array_merge($request, $params)));
             } else {
-                $method = 'privatePostTransfer';
                 if ($tag !== null) {
-                    $address .= '?dt=' . (string) $tag;
+                    $request['tag'] = $tag;
                 }
-                $request['address'] = $address;
+                $response = Async\await($this->v1_01PrivatePostApiPaymentsWithdrawalsCrypto (array_merge($request, $params)));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "status" => "Ok",
@@ -1754,7 +1761,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //
@@ -1843,12 +1850,12 @@ class zonda extends Exchange {
         }
         if (is_array($response) && array_key_exists('code', $response)) {
             //
-            // bitbay returns the integer 'success' => 1 key from their private API
-            // or an integer 'code' value from 0 to 510 and an $error message
+            // bitbay returns the integer "success" => 1 key from their private API
+            // or an integer "code" value from 0 to 510 and an $error message
             //
-            //      array( 'success' => 1, ... )
-            //      array( 'code' => 502, 'message' => 'Invalid sign' )
-            //      array( 'code' => 0, 'message' => 'offer funds not exceeding minimums' )
+            //      array( "success" => 1, ... )
+            //      array( 'code' => 502, "message" => "Invalid sign" )
+            //      array( 'code' => 0, "message" => "offer funds not exceeding minimums" )
             //
             //      400 At least one parameter wasn't set
             //      401 Invalid order type

@@ -428,7 +428,7 @@ class wazirx(ccxt.async_support.wazirx):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
         #        "E":1631683058904,      Event time
@@ -628,8 +628,8 @@ class wazirx(ccxt.async_support.wazirx):
         #             "a": 114144050,
         #             "b": 114144121,
         #             "f": "0.2",
-        #             "ga": '0.0',
-        #             "gc": 'usdt',
+        #             "ga": "0.0",
+        #             "gc": "usdt",
         #             "m": True,
         #             "o": 26946170,
         #             "p": "5.0",
@@ -657,10 +657,10 @@ class wazirx(ccxt.async_support.wazirx):
     def handle_connected(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             timeout_duration: 1800
+        #         "data": {
+        #             "timeout_duration": 1800
         #         },
-        #         event: 'connected'
+        #         "event": "connected"
         #     }
         #
         return message
@@ -668,11 +668,11 @@ class wazirx(ccxt.async_support.wazirx):
     def handle_subscribed(self, client: Client, message):
         #
         #     {
-        #         data: {
-        #             streams: ['not ticker@arr']
+        #         "data": {
+        #             "streams": ["not ticker@arr"]
         #         },
-        #         event: 'subscribed',
-        #         id: 0
+        #         "event": "subscribed",
+        #         "id": 0
         #     }
         #
         return message
@@ -689,8 +689,8 @@ class wazirx(ccxt.async_support.wazirx):
         #     }
         #
         #     {
-        #         message: 'HeartBeat message not received, closing the connection',
-        #         status: 'error'
+        #         "message": "HeartBeat message not received, closing the connection",
+        #         "status": "error"
         #     }
         #
         raise ExchangeError(self.id + ' ' + self.json(message))
