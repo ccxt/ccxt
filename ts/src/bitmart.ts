@@ -577,6 +577,7 @@ export default class bitmart extends Exchange {
                     'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
+                'brokerId': 'CCXTxBitmart000',
             },
         });
     }
@@ -4093,9 +4094,11 @@ export default class bitmart extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
+            const brokerId = this.safeString (this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
+                'X-BM-BROKER-ID': brokerId,
                 'Content-Type': 'application/json',
             };
             if (!getOrDelete) {
