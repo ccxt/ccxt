@@ -146,7 +146,6 @@ export interface Transaction {
     internal?: boolean;
 }
 export interface Tickers extends Dictionary<Ticker> {
-    info: any;
 }
 export interface Currency {
     id: string;

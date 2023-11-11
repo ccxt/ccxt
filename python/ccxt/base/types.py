@@ -56,10 +56,10 @@ class Fee(TypedDict):
 
 
 class Trade(TypedDict):
+    info: Dict[str, Any]
     amount: Numeric
     datetime: str
     id: str
-    info: None
     order: str
     price: Numeric
     timestamp: int
@@ -72,6 +72,7 @@ class Trade(TypedDict):
 
 
 class Position(TypedDict):
+    info: Dict[str, Any]
     symbol: str
     id: str
     timestamp: int
@@ -98,7 +99,6 @@ class Position(TypedDict):
     percentage: Numeric
     stopLossPrice: Numeric
     takeProfitPrice: Numeric
-    info: Dict[str, Any]
 
 
 class OrderRequest(TypedDict):
@@ -111,6 +111,7 @@ class OrderRequest(TypedDict):
 
 
 class Order(TypedDict):
+    info: Dict[str, Any]
     id: str
     clientOrderId: str
     datetime: str
@@ -133,7 +134,6 @@ class Order(TypedDict):
     cost: Numeric
     trades: List[Trade]
     fee: Fee
-    info: Dict[str, Any]
 
 
 class FundingHistory(TypedDict):
@@ -183,8 +183,8 @@ class Transaction(TypedDict):
 
 
 class Ticker(TypedDict):
-    symbol: str
     info: Dict[str, Any]
+    symbol: str
     timestamp: int
     datetime: str
     high: Numeric
@@ -234,3 +234,37 @@ class Greeks(TypedDict):
     lastPrice: Numeric
     underlyingPrice: Numeric
     info: Dict[str, Any]
+
+class Market(TypedDict):
+    info: Dict[str, Any]
+    id: str
+    symbol: str
+    base: str
+    quote: str
+    baseId: str
+    quoteId: str
+    active: Optional[bool]
+    type: Optional[str]
+    spot: Optional[bool]
+    margin: Optional[bool]
+    swap: Optional[bool]
+    future: Optional[bool]
+    option: Optional[bool]
+    contract: Optional[bool]
+    settle: Optional[str]
+    settleId: Optional[str]
+    contractSize: Optional[Numeric]
+    linear: Optional[bool]
+    inverse: Optional[bool]
+    expiry: Optional[Numeric]
+    expiryDatetime: Optional[str]
+    strike: Optional[Numeric]
+    optionType: Optional[str]
+    taker: Optional[Numeric]
+    maker: Optional[Numeric]
+    percentage: Optional[bool]
+    tierBased: Optional[bool]
+    feeSide: Optional[str]
+    precision: Any
+    limits: Any
+    created: Optional[int]

@@ -1760,32 +1760,28 @@ export default class htx extends Exchange {
             let settleId = undefined;
             let id = undefined;
             let lowercaseId = undefined;
-            let lowercaseBaseId = undefined;
             if (contract) {
                 id = this.safeString (market, 'contract_code');
                 lowercaseId = id.toLowerCase ();
                 if (swap) {
                     const parts = id.split ('-');
-                    baseId = this.safeString (market, 'symbol');
-                    lowercaseBaseId = baseId.toLowerCase ();
+                    baseId = this.safeStringLower (market, 'symbol');
                     quoteId = this.safeStringLower (parts, 1);
                     settleId = inverse ? baseId : quoteId;
                 } else if (future) {
-                    baseId = this.safeString (market, 'symbol');
-                    lowercaseBaseId = baseId.toLowerCase ();
+                    baseId = this.safeStringLower (market, 'symbol');
                     if (inverse) {
                         quoteId = 'USD';
                         settleId = baseId;
                     } else {
                         const pair = this.safeString (market, 'pair');
                         const parts = pair.split ('-');
-                        quoteId = this.safeString (parts, 1);
+                        quoteId = this.safeStringLower (parts, 1);
                         settleId = quoteId;
                     }
                 }
             } else {
                 baseId = this.safeString (market, 'base-currency');
-                lowercaseBaseId = baseId.toLowerCase ();
                 quoteId = this.safeString (market, 'quote-currency');
                 id = baseId + quoteId;
                 lowercaseId = id.toLowerCase ();
@@ -1820,25 +1816,22 @@ export default class htx extends Exchange {
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
+            let maker = undefined;
+            let taker = undefined;
+            let active = undefined;
             if (spot) {
                 pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'price-precision')));
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'amount-precision')));
                 costPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'value-precision')));
+                maker = this.parseNumber ('0.002');
+                taker = this.parseNumber ('0.002');
+                const state = this.safeString (market, 'state');
+                active = (state === 'online');
             } else {
                 pricePrecision = this.safeNumber (market, 'price_tick');
                 amountPrecision = this.parseNumber ('1'); // other markets have step size of 1 contract
-            }
-            let maker = undefined;
-            let taker = undefined;
-            if (spot) {
-                maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
-                taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
-            }
-            let active = undefined;
-            if (spot) {
-                const state = this.safeString (market, 'state');
-                active = (state === 'online');
-            } else if (contract) {
+                maker = this.parseNumber ('0.0002');
+                taker = this.parseNumber ('0.0005');
                 const contractStatus = this.safeInteger (market, 'contract_status');
                 active = (contractStatus === 1);
             }
@@ -1870,7 +1863,6 @@ export default class htx extends Exchange {
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
-                'lowercaseBaseId': lowercaseBaseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,

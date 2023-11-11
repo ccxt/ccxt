@@ -798,7 +798,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1002,7 +1002,6 @@ class kraken extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
              * @param {string} $code unified $currency $code, default is null
@@ -1986,7 +1985,6 @@ class kraken extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
              * fetch all unfilled currently open $orders
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
              * @param {string} $symbol unified $market $symbol
@@ -2020,7 +2018,6 @@ class kraken extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * fetches information on multiple closed $orders made by the user
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
@@ -2225,7 +2222,6 @@ class kraken extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
              * fetch all deposits made to an account
              * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
              * @param {string} $code unified $currency $code

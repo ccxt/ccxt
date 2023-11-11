@@ -989,7 +989,8 @@ class testMainClass(baseMainTestClass):
             self.test_bitget(),
             self.test_mexc(),
             self.test_huobi(),
-            self.test_woo()
+            self.test_woo(),
+            self.test_bitmart()
         ]
         await asyncio.gather(*promises)
         successMessage = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
@@ -1169,6 +1170,19 @@ class testMainClass(baseMainTestClass):
         clientOrderIdSpot = stopOrderRequest['brokerId']
         assert clientOrderIdSpot.startswith(id), 'brokerId does not start with id'
         await close(woo)
+
+    async def test_bitmart(self):
+        bitmart = self.init_offline_exchange('bitmart')
+        reqHeaders = None
+        id = 'CCXTxBitmart000'
+        assert bitmart.options['brokerId'] == id, 'id not in options'
+        await bitmart.load_markets()
+        try:
+            await bitmart.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            reqHeaders = bitmart.last_request_headers
+        assert reqHeaders['X-BM-BROKER-ID'] == id, 'id not in headers'
+        await close(bitmart)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
