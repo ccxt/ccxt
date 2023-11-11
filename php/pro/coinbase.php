@@ -532,11 +532,11 @@ class coinbase extends \ccxt\async\coinbase {
     public function handle_subscription_status($client, $message) {
         //
         //     {
-        //         type => 'subscriptions',
-        //         channels => array(
+        //         "type" => "subscriptions",
+        //         "channels" => array(
         //             {
-        //                 name => 'level2',
-        //                 product_ids => array( 'ETH-BTC' )
+        //                 "name" => "level2",
+        //                 "product_ids" => array( "ETH-BTC" )
         //             }
         //         )
         //     }

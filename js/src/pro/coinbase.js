@@ -512,11 +512,11 @@ export default class coinbase extends coinbaseRest {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         type: 'subscriptions',
-        //         channels: [
+        //         "type": "subscriptions",
+        //         "channels": [
         //             {
-        //                 name: 'level2',
-        //                 product_ids: [ 'ETH-BTC' ]
+        //                 "name": "level2",
+        //                 "product_ids": [ "ETH-BTC" ]
         //             }
         //         ]
         //     }

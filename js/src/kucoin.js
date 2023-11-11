@@ -1181,23 +1181,23 @@ export default class kucoin extends Exchange {
         const response = await this.privateGetAccounts(params);
         //
         //     {
-        //         code: "200000",
-        //         data: [
+        //         "code": "200000",
+        //         "data": [
         //             {
-        //                 balance: "0.00009788",
-        //                 available: "0.00009788",
-        //                 holds: "0",
-        //                 currency: "BTC",
-        //                 id: "5c6a4fd399a1d81c4f9cc4d0",
-        //                 type: "trade"
+        //                 "balance": "0.00009788",
+        //                 "available": "0.00009788",
+        //                 "holds": "0",
+        //                 "currency": "BTC",
+        //                 "id": "5c6a4fd399a1d81c4f9cc4d0",
+        //                 "type": "trade"
         //             },
         //             {
-        //                 balance: "0.00000001",
-        //                 available: "0.00000001",
-        //                 holds: "0",
-        //                 currency: "ETH",
-        //                 id: "5c6a49ec99a1d819392e8e9f",
-        //                 type: "trade"
+        //                 "balance": "0.00000001",
+        //                 "available": "0.00000001",
+        //                 "holds": "0",
+        //                 "currency": "ETH",
+        //                 "id": "5c6a49ec99a1d819392e8e9f",
+        //                 "type": "trade"
         //             }
         //         ]
         //     }
@@ -1403,14 +1403,14 @@ export default class kucoin extends Exchange {
         // market/ticker ws subscription
         //
         //     {
-        //         bestAsk: '62258.9',
-        //         bestAskSize: '0.38579986',
-        //         bestBid: '62258.8',
-        //         bestBidSize: '0.0078381',
-        //         price: '62260.7',
-        //         sequence: '1621383297064',
-        //         size: '0.00002841',
-        //         time: 1634641777363
+        //         "bestAsk": "62258.9",
+        //         "bestAskSize": "0.38579986",
+        //         "bestBid": "62258.8",
+        //         "bestBidSize": "0.0078381",
+        //         "price": "62260.7",
+        //         "sequence": "1621383297064",
+        //         "size": "0.00002841",
+        //         "time": 1634641777363
         //     }
         //
         let percentage = this.safeString(ticker, 'changeRate');
@@ -1913,8 +1913,8 @@ export default class kucoin extends Exchange {
         }
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "orderId": "5bd6e9286d99522a52e458de"
         //         }
         //    }
@@ -2294,8 +2294,8 @@ export default class kucoin extends Exchange {
         const response = await this[method](this.extend(request, query));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 1,
         //             "totalNum": 153408,
@@ -2849,16 +2849,16 @@ export default class kucoin extends Exchange {
         //     }
         //
         //     {
-        //         sequence: '1568787654360',
-        //         symbol: 'BTC-USDT',
-        //         side: 'buy',
-        //         size: '0.00536577',
-        //         price: '9345',
-        //         takerOrderId: '5e356c4a9f1a790008f8d921',
-        //         time: '1580559434436443257',
-        //         type: 'match',
-        //         makerOrderId: '5e356bffedf0010008fa5d7f',
-        //         tradeId: '5e356c4aeefabd62c62a1ece'
+        //         "sequence": "1568787654360",
+        //         "symbol": "BTC-USDT",
+        //         "side": "buy",
+        //         "size": "0.00536577",
+        //         "price": "9345",
+        //         "takerOrderId": "5e356c4a9f1a790008f8d921",
+        //         "time": "1580559434436443257",
+        //         "type": "match",
+        //         "makerOrderId": "5e356bffedf0010008fa5d7f",
+        //         "tradeId": "5e356c4aeefabd62c62a1ece"
         //     }
         //
         // fetchMyTrades (private) v2
@@ -2885,19 +2885,19 @@ export default class kucoin extends Exchange {
         // fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
         //
         //     {
-        //         symbol: "OPEN-BTC",
-        //         forceTaker:  false,
-        //         orderId: "5ce36420054b4663b1fff2c9",
-        //         fee: "0",
-        //         feeCurrency: "",
-        //         type: "",
-        //         feeRate: "0",
-        //         createdAt: 1558417615000,
-        //         size: "12.8206",
-        //         stop: "",
-        //         price: "0",
-        //         funds: "0",
-        //         tradeId: "5ce390cf6e0db23b861c6e80"
+        //         "symbol": "OPEN-BTC",
+        //         "forceTaker":  false,
+        //         "orderId": "5ce36420054b4663b1fff2c9",
+        //         "fee": "0",
+        //         "feeCurrency": "",
+        //         "type": "",
+        //         "feeRate": "0",
+        //         "createdAt": 1558417615000,
+        //         "size": "12.8206",
+        //         "stop": "",
+        //         "price": "0",
+        //         "funds": "0",
+        //         "tradeId": "5ce390cf6e0db23b861c6e80"
         //     }
         //
         // fetchMyTrades (private) v1 (historical)
@@ -2985,12 +2985,12 @@ export default class kucoin extends Exchange {
         const response = await this.privateGetTradeFees(this.extend(request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: [
+        //         "code": "200000",
+        //         "data": [
         //           {
-        //             symbol: 'BTC-USDT',
-        //             takerFeeRate: '0.001',
-        //             makerFeeRate: '0.001'
+        //             "symbol": "BTC-USDT",
+        //             "takerFeeRate": "0.001",
+        //             "makerFeeRate": "0.001"
         //           }
         //         ]
         //     }
@@ -3227,8 +3227,8 @@ export default class kucoin extends Exchange {
         const response = await this[method](this.extend(request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 5,
         //             "totalNum": 2,
@@ -3311,8 +3311,8 @@ export default class kucoin extends Exchange {
         const response = await this[method](this.extend(request, params));
         //
         //     {
-        //         code: '200000',
-        //         data: {
+        //         "code": "200000",
+        //         "data": {
         //             "currentPage": 1,
         //             "pageSize": 5,
         //             "totalNum": 2,
@@ -3425,32 +3425,32 @@ export default class kucoin extends Exchange {
         // Isolated
         //
         //    {
-        //        code: '200000',
-        //        data: {
-        //            totalConversionBalance: '0',
-        //            liabilityConversionBalance: '0',
-        //            assets: [
+        //        "code": "200000",
+        //        "data": {
+        //            "totalConversionBalance": "0",
+        //            "liabilityConversionBalance": "0",
+        //            "assets": [
         //                {
-        //                    symbol: 'MANA-USDT',
-        //                    status: 'CLEAR',
-        //                    debtRatio: '0',
-        //                    baseAsset: {
-        //                        currency: 'MANA',
-        //                        totalBalance: '0',
-        //                        holdBalance: '0',
-        //                        availableBalance: '0',
-        //                        liability: '0',
-        //                        interest: '0',
-        //                        borrowableAmount: '0'
+        //                    "symbol": "MANA-USDT",
+        //                    "status": "CLEAR",
+        //                    "debtRatio": "0",
+        //                    "baseAsset": {
+        //                        "currency": "MANA",
+        //                        "totalBalance": "0",
+        //                        "holdBalance": "0",
+        //                        "availableBalance": "0",
+        //                        "liability": "0",
+        //                        "interest": "0",
+        //                        "borrowableAmount": "0"
         //                    },
-        //                    quoteAsset: {
-        //                        currency: 'USDT',
-        //                        totalBalance: '0',
-        //                        holdBalance: '0',
-        //                        availableBalance: '0',
-        //                        liability: '0',
-        //                        interest: '0',
-        //                        borrowableAmount: '0'
+        //                    "quoteAsset": {
+        //                        "currency": "USDT",
+        //                        "totalBalance": "0",
+        //                        "holdBalance": "0",
+        //                        "availableBalance": "0",
+        //                        "liability": "0",
+        //                        "interest": "0",
+        //                        "borrowableAmount": "0"
         //                    }
         //                },
         //                ...
@@ -3544,25 +3544,25 @@ export default class kucoin extends Exchange {
             const response = await this.futuresPrivatePostTransferOut(this.extend(request, params));
             //
             //     {
-            //         'code': '200000',
-            //         'data': {
-            //             'applyId': '605a87217dff1500063d485d',
-            //             'bizNo': 'bcd6e5e1291f4905af84dc',
-            //             'payAccountType': 'CONTRACT',
-            //             'payTag': 'DEFAULT',
-            //             'remark': '',
-            //             'recAccountType': 'MAIN',
-            //             'recTag': 'DEFAULT',
-            //             'recRemark': '',
-            //             'recSystem': 'KUCOIN',
-            //             'status': 'PROCESSING',
-            //             'currency': 'XBT',
-            //             'amount': '0.00001',
-            //             'fee': '0',
-            //             'sn': '573688685663948',
-            //             'reason': '',
-            //             'createdAt': 1616545569000,
-            //             'updatedAt': 1616545569000
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "605a87217dff1500063d485d",
+            //             "bizNo": "bcd6e5e1291f4905af84dc",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": '',
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": '',
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "XBT",
+            //             "amount": "0.00001",
+            //             "fee": "0",
+            //             "sn": "573688685663948",
+            //             "reason": '',
+            //             "createdAt": 1616545569000,
+            //             "updatedAt": 1616545569000
             //         }
             //     }
             //
@@ -3592,9 +3592,9 @@ export default class kucoin extends Exchange {
             const response = await this.privatePostAccountsInnerTransfer(this.extend(request, params));
             //
             //     {
-            //         'code': '200000',
-            //         'data': {
-            //              'orderId': '605a6211e657f00006ad0ad6'
+            //         "code": "200000",
+            //         "data": {
+            //              "orderId": "605a6211e657f00006ad0ad6"
             //         }
             //     }
             //
@@ -3607,7 +3607,7 @@ export default class kucoin extends Exchange {
         // transfer (spot)
         //
         //    {
-        //        'orderId': '605a6211e657f00006ad0ad6'
+        //        "orderId": "605a6211e657f00006ad0ad6"
         //    }
         //
         //    {
@@ -3618,23 +3618,23 @@ export default class kucoin extends Exchange {
         // transfer (futures)
         //
         //     {
-        //         'applyId': '605a87217dff1500063d485d',
-        //         'bizNo': 'bcd6e5e1291f4905af84dc',
-        //         'payAccountType': 'CONTRACT',
-        //         'payTag': 'DEFAULT',
-        //         'remark': '',
-        //         'recAccountType': 'MAIN',
-        //         'recTag': 'DEFAULT',
-        //         'recRemark': '',
-        //         'recSystem': 'KUCOIN',
-        //         'status': 'PROCESSING',
-        //         'currency': 'XBT',
-        //         'amount': '0.00001',
-        //         'fee': '0',
-        //         'sn': '573688685663948',
-        //         'reason': '',
-        //         'createdAt': 1616545569000,
-        //         'updatedAt': 1616545569000
+        //         "applyId": "605a87217dff1500063d485d",
+        //         "bizNo": "bcd6e5e1291f4905af84dc",
+        //         "payAccountType": "CONTRACT",
+        //         "payTag": "DEFAULT",
+        //         "remark": '',
+        //         "recAccountType": "MAIN",
+        //         "recTag": "DEFAULT",
+        //         "recRemark": '',
+        //         "recSystem": "KUCOIN",
+        //         "status": "PROCESSING",
+        //         "currency": "XBT",
+        //         "amount": "0.00001",
+        //         "fee": "0",
+        //         "sn": "573688685663948",
+        //         "reason": '',
+        //         "createdAt": 1616545569000,
+        //         "updatedAt": 1616545569000
         //     }
         //
         const timestamp = this.safeInteger(transfer, 'createdAt');

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hollaex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
@@ -221,46 +221,46 @@ class hollaex(Exchange, ImplicitAPI):
         response = self.publicGetConstants(params)
         #
         #     {
-        #         coins: {
-        #             xmr: {
-        #                 id: 7,
-        #                 fullname: "Monero",
-        #                 symbol: "xmr",
-        #                 active: True,
-        #                 allow_deposit: True,
-        #                 allow_withdrawal: True,
-        #                 withdrawal_fee: 0.02,
-        #                 min: 0.001,
-        #                 max: 100000,
-        #                 increment_unit: 0.001,
-        #                 deposit_limits: {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0},
-        #                 withdrawal_limits: {'1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, '9': 500, '10': -1},
-        #                 created_at: "2019-12-09T07:14:02.720Z",
-        #                 updated_at: "2020-01-16T12:12:53.162Z"
+        #         "coins": {
+        #             "xmr": {
+        #                 "id": 7,
+        #                 "fullname": "Monero",
+        #                 "symbol": "xmr",
+        #                 "active": True,
+        #                 "allow_deposit": True,
+        #                 "allow_withdrawal": True,
+        #                 "withdrawal_fee": 0.02,
+        #                 "min": 0.001,
+        #                 "max": 100000,
+        #                 "increment_unit": 0.001,
+        #                 "deposit_limits": {'1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0},
+        #                 "withdrawal_limits": {'1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1},
+        #                 "created_at": "2019-12-09T07:14:02.720Z",
+        #                 "updated_at": "2020-01-16T12:12:53.162Z"
         #             },
         #             # ...
         #         },
-        #         pairs: {
-        #             'btc-usdt': {
-        #                 id: 2,
-        #                 name: "btc-usdt",
-        #                 pair_base: "btc",
-        #                 pair_2: "usdt",
-        #                 taker_fees: {'1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, '9': 0.04, '10': 0},
-        #                 maker_fees: {'1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0},
-        #                 min_size: 0.0001,
-        #                 max_size: 1000,
-        #                 min_price: 100,
-        #                 max_price: 100000,
-        #                 increment_size: 0.0001,
-        #                 increment_price: 0.05,
-        #                 active: True,
-        #                 created_at: "2019-12-09T07:15:54.537Z",
-        #                 updated_at: "2019-12-09T07:15:54.537Z"
+        #         "pairs": {
+        #             "btc-usdt": {
+        #                 "id": 2,
+        #                 "name": "btc-usdt",
+        #                 "pair_base": "btc",
+        #                 "pair_2": "usdt",
+        #                 "taker_fees": {'1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0},
+        #                 "maker_fees": {'1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0},
+        #                 "min_size": 0.0001,
+        #                 "max_size": 1000,
+        #                 "min_price": 100,
+        #                 "max_price": 100000,
+        #                 "increment_size": 0.0001,
+        #                 "increment_price": 0.05,
+        #                 "active": True,
+        #                 "created_at": "2019-12-09T07:15:54.537Z",
+        #                 "updated_at": "2019-12-09T07:15:54.537Z"
         #             },
         #         },
-        #         config: {tiers: 10},
-        #         status: True
+        #         "config": {tiers: 10},
+        #         "status": True
         #     }
         #
         pairs = self.safe_value(response, 'pairs', {})
@@ -428,7 +428,7 @@ class hollaex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -465,7 +465,7 @@ class hollaex(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
         return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -480,13 +480,13 @@ class hollaex(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         #     {
-        #         open: 8615.55,
-        #         close: 8841.05,
-        #         high: 8921.1,
-        #         low: 8607,
-        #         last: 8841.05,
-        #         volume: 20.2802,
-        #         timestamp: '2020-03-03T03:11:18.964Z'
+        #         "open": 8615.55,
+        #         "close": 8841.05,
+        #         "high": 8921.1,
+        #         "low": 8607,
+        #         "last": 8841.05,
+        #         "volume": 20.2802,
+        #         "timestamp": "2020-03-03T03:11:18.964Z"
         #     }
         #
         return self.parse_ticker(response, market)
@@ -530,18 +530,18 @@ class hollaex(Exchange, ImplicitAPI):
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
         #     {
-        #         open: 8615.55,
-        #         close: 8841.05,
-        #         high: 8921.1,
-        #         low: 8607,
-        #         last: 8841.05,
-        #         volume: 20.2802,
-        #         timestamp: '2020-03-03T03:11:18.964Z',
+        #         "open": 8615.55,
+        #         "close": 8841.05,
+        #         "high": 8921.1,
+        #         "low": 8607,
+        #         "last": 8841.05,
+        #         "volume": 20.2802,
+        #         "timestamp": "2020-03-03T03:11:18.964Z",
         #     }
         #
         # fetchTickers
@@ -585,7 +585,7 @@ class hollaex(Exchange, ImplicitAPI):
             'quoteVolume': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -616,7 +616,7 @@ class hollaex(Exchange, ImplicitAPI):
         trades = self.safe_value(response, market['id'], [])
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -680,28 +680,28 @@ class hollaex(Exchange, ImplicitAPI):
         response = self.publicGetTiers(params)
         #
         #     {
-        #         '1': {
-        #             id: '1',
-        #             name: 'Silver',
-        #             icon: '',
-        #             description: 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
-        #             deposit_limit: '0',
-        #             withdrawal_limit: '1000',
-        #             fees: {
-        #                 maker: {
-        #                     'eth-btc': '0.1',
-        #                     'ada-usdt': '0.1',
+        #         "1": {
+        #             "id": "1",
+        #             "name": "Silver",
+        #             "icon": '',
+        #             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+        #             "deposit_limit": "0",
+        #             "withdrawal_limit": "1000",
+        #             "fees": {
+        #                 "maker": {
+        #                     'eth-btc': "0.1",
+        #                     'ada-usdt': "0.1",
         #                     ...
         #                 },
-        #                 taker: {
-        #                     'eth-btc': '0.1',
-        #                     'ada-usdt': '0.1',
+        #                 "taker": {
+        #                     'eth-btc': "0.1",
+        #                     'ada-usdt': "0.1",
         #                     ...
         #                 }
         #             },
-        #             note: '<ul>\n<li>Login and verify email</li>\n</ul>\n',
-        #             created_at: '2021-03-22T03:51:39.129Z',
-        #             updated_at: '2021-11-01T02:51:56.214Z'
+        #             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+        #             "created_at": "2021-03-22T03:51:39.129Z",
+        #             "updated_at": "2021-11-01T02:51:56.214Z"
         #         },
         #         ...
         #     }
@@ -726,7 +726,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -795,7 +795,7 @@ class hollaex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         timestamp = self.parse8601(self.safe_string(response, 'updated_at'))
         result = {
             'info': response,
@@ -812,7 +812,7 @@ class hollaex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the hollaex api endpoint
@@ -873,7 +873,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -887,7 +887,7 @@ class hollaex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -940,7 +940,7 @@ class hollaex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id)
         return self.parse_order(order)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1177,8 +1177,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the hollaex api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a 'symbol' argument")
+        self.check_required_symbol('cancelAllOrders', symbol)
         self.load_markets()
         request = {}
         market = None
@@ -1337,7 +1336,7 @@ class hollaex(Exchange, ImplicitAPI):
         addresses = wallet if (network is None) else self.filter_by(wallet, 'network', network)
         return self.parse_deposit_addresses(addresses, codes)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1435,7 +1434,7 @@ class hollaex(Exchange, ImplicitAPI):
         transaction = self.safe_value(data, 0, {})
         return self.parse_transaction(transaction, currency)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1489,7 +1488,7 @@ class hollaex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals, fetchDeposits
         #
@@ -1513,12 +1512,12 @@ class hollaex(Exchange, ImplicitAPI):
         # withdraw
         #
         #     {
-        #         message: 'Withdrawal request is in the queue and will be processed.',
-        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        #         amount: 1,
-        #         currency: 'xht',
-        #         fee: 0,
-        #         fee_coin: 'xht'
+        #         "message": "Withdrawal request is in the queue and will be processed.",
+        #         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        #         "amount": 1,
+        #         "currency": "xht",
+        #         "fee": 0,
+        #         "fee_coin": "xht"
         #     }
         #
         id = self.safe_string(transaction, 'id')
@@ -1611,12 +1610,12 @@ class hollaex(Exchange, ImplicitAPI):
         response = self.privatePostUserWithdrawal(self.extend(request, params))
         #
         #     {
-        #         message: 'Withdrawal request is in the queue and will be processed.',
-        #         transaction_id: '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
-        #         amount: 1,
-        #         currency: 'xht',
-        #         fee: 0,
-        #         fee_coin: 'xht'
+        #         "message": "Withdrawal request is in the queue and will be processed.",
+        #         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+        #         "amount": 1,
+        #         "currency": "xht",
+        #         "fee": 0,
+        #         "fee_coin": "xht"
         #     }
         #
         return self.parse_transaction(response, currency)

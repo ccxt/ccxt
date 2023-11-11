@@ -407,12 +407,12 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetTime(params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: 1583922446019,
-        //         usIn: 1583922446019955,
-        //         usOut: 1583922446019956,
-        //         usDiff: 1,
-        //         testnet: false
+        //         "jsonrpc": "2.0",
+        //         "result": 1583922446019,
+        //         "usIn": 1583922446019955,
+        //         "usOut": 1583922446019956,
+        //         "usDiff": 1,
+        //         "testnet": false
         //     }
         //
         return this.safeInteger(response, 'result');
@@ -535,36 +535,36 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetSubaccounts(params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: [{
-        //                 username: 'someusername',
-        //                 type: 'main',
-        //                 system_name: 'someusername',
-        //                 security_keys_enabled: false,
-        //                 security_keys_assignments: [],
-        //                 receive_notifications: false,
-        //                 login_enabled: true,
-        //                 is_password: true,
-        //                 id: '238216',
-        //                 email: 'pablo@abcdef.com'
+        //         "jsonrpc": "2.0",
+        //         "result": [{
+        //                 "username": "someusername",
+        //                 "type": "main",
+        //                 "system_name": "someusername",
+        //                 "security_keys_enabled": false,
+        //                 "security_keys_assignments": [],
+        //                 "receive_notifications": false,
+        //                 "login_enabled": true,
+        //                 "is_password": true,
+        //                 "id": "238216",
+        //                 "email": "pablo@abcdef.com"
         //             },
         //             {
-        //                 username: 'someusername_1',
-        //                 type: 'subaccount',
-        //                 system_name: 'someusername_1',
-        //                 security_keys_enabled: false,
-        //                 security_keys_assignments: [],
-        //                 receive_notifications: false,
-        //                 login_enabled: false,
-        //                 is_password: false,
-        //                 id: '245499',
-        //                 email: 'pablo@abcdef.com'
+        //                 "username": "someusername_1",
+        //                 "type": "subaccount",
+        //                 "system_name": "someusername_1",
+        //                 "security_keys_enabled": false,
+        //                 "security_keys_assignments": [],
+        //                 "receive_notifications": false,
+        //                 "login_enabled": false,
+        //                 "is_password": false,
+        //                 "id": "245499",
+        //                 "email": "pablo@abcdef.com"
         //             }
         //         ],
-        //         usIn: '1652736468292006',
-        //         usOut: '1652736468292377',
-        //         usDiff: '371',
-        //         testnet: false
+        //         "usIn": "1652736468292006",
+        //         "usOut": "1652736468292377",
+        //         "usDiff": "371",
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', []);
@@ -573,16 +573,16 @@ export default class deribit extends Exchange {
     parseAccount(account, currency = undefined) {
         //
         //      {
-        //          username: 'someusername_1',
-        //          type: 'subaccount',
-        //          system_name: 'someusername_1',
-        //          security_keys_enabled: false,
-        //          security_keys_assignments: [],
-        //          receive_notifications: false,
-        //          login_enabled: false,
-        //          is_password: false,
-        //          id: '245499',
-        //          email: 'pablo@abcdef.com'
+        //          "username": "someusername_1",
+        //          "type": "subaccount",
+        //          "system_name": "someusername_1",
+        //          "security_keys_enabled": false,
+        //          "security_keys_assignments": [],
+        //          "receive_notifications": false,
+        //          "login_enabled": false,
+        //          "is_password": false,
+        //          "id": "245499",
+        //          "email": "pablo@abcdef.com"
         //      }
         //
         return {
@@ -603,26 +603,26 @@ export default class deribit extends Exchange {
         const currenciesResponse = await this.publicGetGetCurrencies(params);
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: [
+        //         "jsonrpc": "2.0",
+        //         "result": [
         //             {
-        //                 withdrawal_priorities: [
-        //                     { value: 0.15, name: 'very_low' },
-        //                     { value: 1.5, name: 'very_high' },
+        //                 "withdrawal_priorities": [
+        //                     { value: 0.15, name: "very_low" },
+        //                     { value: 1.5, name: "very_high" },
         //                 ],
-        //                 withdrawal_fee: 0.0005,
-        //                 min_withdrawal_fee: 0.0005,
-        //                 min_confirmations: 1,
-        //                 fee_precision: 4,
-        //                 currency_long: 'Bitcoin',
-        //                 currency: 'BTC',
-        //                 coin_type: 'BITCOIN'
+        //                 "withdrawal_fee": 0.0005,
+        //                 "min_withdrawal_fee": 0.0005,
+        //                 "min_confirmations": 1,
+        //                 "fee_precision": 4,
+        //                 "currency_long": "Bitcoin",
+        //                 "currency": "BTC",
+        //                 "coin_type": "BITCOIN"
         //             }
         //         ],
-        //         usIn: 1583761588590479,
-        //         usOut: 1583761588590544,
-        //         usDiff: 65,
-        //         testnet: false
+        //         "usIn": 1583761588590479,
+        //         "usOut": 1583761588590544,
+        //         "usDiff": 65,
+        //         "testnet": false
         //     }
         //
         const parsedMarkets = {};
@@ -845,44 +845,44 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetAccountSummary(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             total_pl: 0,
-        //             session_upl: 0,
-        //             session_rpl: 0,
-        //             session_funding: 0,
-        //             portfolio_margining_enabled: false,
-        //             options_vega: 0,
-        //             options_theta: 0,
-        //             options_session_upl: 0,
-        //             options_session_rpl: 0,
-        //             options_pl: 0,
-        //             options_gamma: 0,
-        //             options_delta: 0,
-        //             margin_balance: 0.00062359,
-        //             maintenance_margin: 0,
-        //             limits: {
-        //                 non_matching_engine_burst: 300,
-        //                 non_matching_engine: 200,
-        //                 matching_engine_burst: 20,
-        //                 matching_engine: 2
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "total_pl": 0,
+        //             "session_upl": 0,
+        //             "session_rpl": 0,
+        //             "session_funding": 0,
+        //             "portfolio_margining_enabled": false,
+        //             "options_vega": 0,
+        //             "options_theta": 0,
+        //             "options_session_upl": 0,
+        //             "options_session_rpl": 0,
+        //             "options_pl": 0,
+        //             "options_gamma": 0,
+        //             "options_delta": 0,
+        //             "margin_balance": 0.00062359,
+        //             "maintenance_margin": 0,
+        //             "limits": {
+        //                 "non_matching_engine_burst": 300,
+        //                 "non_matching_engine": 200,
+        //                 "matching_engine_burst": 20,
+        //                 "matching_engine": 2
         //             },
-        //             initial_margin: 0,
-        //             futures_session_upl: 0,
-        //             futures_session_rpl: 0,
-        //             futures_pl: 0,
-        //             equity: 0.00062359,
-        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total: 0,
-        //             currency: 'BTC',
-        //             balance: 0.00062359,
-        //             available_withdrawal_funds: 0.00062359,
-        //             available_funds: 0.00062359
+        //             "initial_margin": 0,
+        //             "futures_session_upl": 0,
+        //             "futures_session_rpl": 0,
+        //             "futures_pl": 0,
+        //             "equity": 0.00062359,
+        //             "deposit_address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "delta_total": 0,
+        //             "currency": "BTC",
+        //             "balance": 0.00062359,
+        //             "available_withdrawal_funds": 0.00062359,
+        //             "available_funds": 0.00062359
         //         },
-        //         usIn: 1583775838115975,
-        //         usOut: 1583775838116520,
-        //         usDiff: 545,
-        //         testnet: false
+        //         "usIn": 1583775838115975,
+        //         "usOut": 1583775838116520,
+        //         "usDiff": 545,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -905,13 +905,13 @@ export default class deribit extends Exchange {
         const response = await this.privateGetCreateDepositAddress(this.extend(request, params));
         //
         //     {
-        //         'jsonrpc': '2.0',
-        //         'id': 7538,
-        //         'result': {
-        //             'address': '2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB',
-        //             'creation_timestamp': 1550575165170,
-        //             'currency': 'BTC',
-        //             'type': 'deposit'
+        //         "jsonrpc": "2.0",
+        //         "id": 7538,
+        //         "result": {
+        //             "address": "2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB",
+        //             "creation_timestamp": 1550575165170,
+        //             "currency": "BTC",
+        //             "type": "deposit"
         //         }
         //     }
         //
@@ -942,19 +942,19 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetCurrentDepositAddress(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             type: 'deposit',
-        //             status: 'ready',
-        //             requires_confirmation: true,
-        //             currency: 'BTC',
-        //             creation_timestamp: 1514694684651,
-        //             address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw'
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "type": "deposit",
+        //             "status": "ready",
+        //             "requires_confirmation": true,
+        //             "currency": "BTC",
+        //             "creation_timestamp": 1514694684651,
+        //             "address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw"
         //         },
-        //         usIn: 1583785137274288,
-        //         usOut: 1583785137274454,
-        //         usDiff: 166,
-        //         testnet: false
+        //         "usIn": 1583785137274288,
+        //         "usOut": 1583785137274454,
+        //         "usDiff": 166,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -973,46 +973,46 @@ export default class deribit extends Exchange {
         // fetchTicker /public/ticker
         //
         //     {
-        //         timestamp: 1583778859480,
-        //         stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
-        //         state: 'open',
-        //         settlement_price: 7903.21,
-        //         open_interest: 111543850,
-        //         min_price: 7634,
-        //         max_price: 7866.51,
-        //         mark_price: 7750.02,
-        //         last_price: 7750.5,
-        //         instrument_name: 'BTC-PERPETUAL',
-        //         index_price: 7748.01,
-        //         funding_8h: 0.0000026,
-        //         current_funding: 0,
-        //         best_bid_price: 7750,
-        //         best_bid_amount: 19470,
-        //         best_ask_price: 7750.5,
-        //         best_ask_amount: 343280
+        //         "timestamp": 1583778859480,
+        //         "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
+        //         "state": "open",
+        //         "settlement_price": 7903.21,
+        //         "open_interest": 111543850,
+        //         "min_price": 7634,
+        //         "max_price": 7866.51,
+        //         "mark_price": 7750.02,
+        //         "last_price": 7750.5,
+        //         "instrument_name": "BTC-PERPETUAL",
+        //         "index_price": 7748.01,
+        //         "funding_8h": 0.0000026,
+        //         "current_funding": 0,
+        //         "best_bid_price": 7750,
+        //         "best_bid_amount": 19470,
+        //         "best_ask_price": 7750.5,
+        //         "best_ask_amount": 343280
         //     }
         //
         // fetchTicker /public/get_book_summary_by_instrument
         // fetchTickers /public/get_book_summary_by_currency
         //
         //     {
-        //         volume: 124.1,
-        //         underlying_price: 7856.445926872601,
-        //         underlying_index: 'SYN.BTC-10MAR20',
-        //         quote_currency: 'USD',
-        //         open_interest: 121.8,
-        //         mid_price: 0.01975,
-        //         mark_price: 0.01984559,
-        //         low: 0.0095,
-        //         last: 0.0205,
-        //         interest_rate: 0,
-        //         instrument_name: 'BTC-10MAR20-7750-C',
-        //         high: 0.0295,
-        //         estimated_delivery_price: 7856.29,
-        //         creation_timestamp: 1583783678366,
-        //         bid_price: 0.0185,
-        //         base_currency: 'BTC',
-        //         ask_price: 0.021
+        //         "volume": 124.1,
+        //         "underlying_price": 7856.445926872601,
+        //         "underlying_index": "SYN.BTC-10MAR20",
+        //         "quote_currency": "USD",
+        //         "open_interest": 121.8,
+        //         "mid_price": 0.01975,
+        //         "mark_price": 0.01984559,
+        //         "low": 0.0095,
+        //         "last": 0.0205,
+        //         "interest_rate": 0,
+        //         "instrument_name": "BTC-10MAR20-7750-C",
+        //         "high": 0.0295,
+        //         "estimated_delivery_price": 7856.29,
+        //         "creation_timestamp": 1583783678366,
+        //         "bid_price": 0.0185,
+        //         "base_currency": "BTC",
+        //         "ask_price": 0.021
         //     },
         //
         const timestamp = this.safeInteger2(ticker, 'timestamp', 'creation_timestamp');
@@ -1060,30 +1060,30 @@ export default class deribit extends Exchange {
         const response = await this.publicGetTicker(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             timestamp: 1583778859480,
-        //             stats: { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
-        //             state: 'open',
-        //             settlement_price: 7903.21,
-        //             open_interest: 111543850,
-        //             min_price: 7634,
-        //             max_price: 7866.51,
-        //             mark_price: 7750.02,
-        //             last_price: 7750.5,
-        //             instrument_name: 'BTC-PERPETUAL',
-        //             index_price: 7748.01,
-        //             funding_8h: 0.0000026,
-        //             current_funding: 0,
-        //             best_bid_price: 7750,
-        //             best_bid_amount: 19470,
-        //             best_ask_price: 7750.5,
-        //             best_ask_amount: 343280
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "timestamp": 1583778859480,
+        //             "stats": { volume: 60627.57263769, low: 7631.5, high: 8311.5 },
+        //             "state": "open",
+        //             "settlement_price": 7903.21,
+        //             "open_interest": 111543850,
+        //             "min_price": 7634,
+        //             "max_price": 7866.51,
+        //             "mark_price": 7750.02,
+        //             "last_price": 7750.5,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "index_price": 7748.01,
+        //             "funding_8h": 0.0000026,
+        //             "current_funding": 0,
+        //             "best_bid_price": 7750,
+        //             "best_bid_amount": 19470,
+        //             "best_ask_price": 7750.5,
+        //             "best_ask_amount": 343280
         //         },
-        //         usIn: 1583778859483941,
-        //         usOut: 1583778859484075,
-        //         usDiff: 134,
-        //         testnet: false
+        //         "usIn": 1583778859483941,
+        //         "usOut": 1583778859484075,
+        //         "usDiff": 134,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result');
@@ -1108,32 +1108,32 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: [
+        //         "jsonrpc": "2.0",
+        //         "result": [
         //             {
-        //                 volume: 124.1,
-        //                 underlying_price: 7856.445926872601,
-        //                 underlying_index: 'SYN.BTC-10MAR20',
-        //                 quote_currency: 'USD',
-        //                 open_interest: 121.8,
-        //                 mid_price: 0.01975,
-        //                 mark_price: 0.01984559,
-        //                 low: 0.0095,
-        //                 last: 0.0205,
-        //                 interest_rate: 0,
-        //                 instrument_name: 'BTC-10MAR20-7750-C',
-        //                 high: 0.0295,
-        //                 estimated_delivery_price: 7856.29,
-        //                 creation_timestamp: 1583783678366,
-        //                 bid_price: 0.0185,
-        //                 base_currency: 'BTC',
-        //                 ask_price: 0.021
+        //                 "volume": 124.1,
+        //                 "underlying_price": 7856.445926872601,
+        //                 "underlying_index": "SYN.BTC-10MAR20",
+        //                 "quote_currency": "USD",
+        //                 "open_interest": 121.8,
+        //                 "mid_price": 0.01975,
+        //                 "mark_price": 0.01984559,
+        //                 "low": 0.0095,
+        //                 "last": 0.0205,
+        //                 "interest_rate": 0,
+        //                 "instrument_name": "BTC-10MAR20-7750-C",
+        //                 "high": 0.0295,
+        //                 "estimated_delivery_price": 7856.29,
+        //                 "creation_timestamp": 1583783678366,
+        //                 "bid_price": 0.0185,
+        //                 "base_currency": "BTC",
+        //                 "ask_price": 0.021
         //             },
         //         ],
-        //         usIn: 1583783678361966,
-        //         usOut: 1583783678372069,
-        //         usDiff: 10103,
-        //         testnet: false
+        //         "usIn": 1583783678361966,
+        //         "usOut": 1583783678372069,
+        //         "usDiff": 10103,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', []);
@@ -1184,21 +1184,21 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetTradingviewChartData(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             volume: [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
-        //             ticks: [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
-        //             status: 'ok',
-        //             open: [ 7834, 7839, 7833.5, 7833 ],
-        //             low: [ 7834, 7833.5, 7832.5, 7833 ],
-        //             high: [ 7839.5, 7839, 7833.5, 7833 ],
-        //             cost: [ 28740, 177740, 23590, 0 ],
-        //             close: [ 7839.5, 7833.5, 7833, 7833 ]
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "volume": [ 3.6680847969999992, 22.682721123, 3.011587939, 0 ],
+        //             "ticks": [ 1583916960000, 1583917020000, 1583917080000, 1583917140000 ],
+        //             "status": "ok",
+        //             "open": [ 7834, 7839, 7833.5, 7833 ],
+        //             "low": [ 7834, 7833.5, 7832.5, 7833 ],
+        //             "high": [ 7839.5, 7839, 7833.5, 7833 ],
+        //             "cost": [ 28740, 177740, 23590, 0 ],
+        //             "close": [ 7839.5, 7833.5, 7833, 7833 ]
         //         },
-        //         usIn: 1583917166709801,
-        //         usOut: 1583917166710175,
-        //         usDiff: 374,
-        //         testnet: false
+        //         "usIn": 1583917166709801,
+        //         "usOut": 1583917166710175,
+        //         "usDiff": 374,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -1367,51 +1367,51 @@ export default class deribit extends Exchange {
         const response = await this.privateGetGetAccountSummary(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             total_pl: 0,
-        //             session_upl: 0,
-        //             session_rpl: 0,
-        //             session_funding: 0,
-        //             portfolio_margining_enabled: false,
-        //             options_vega: 0,
-        //             options_theta: 0,
-        //             options_session_upl: 0,
-        //             options_session_rpl: 0,
-        //             options_pl: 0,
-        //             options_gamma: 0,
-        //             options_delta: 0,
-        //             margin_balance: 0.00062359,
-        //             maintenance_margin: 0,
-        //             limits: {
-        //                 non_matching_engine_burst: 300,
-        //                 non_matching_engine: 200,
-        //                 matching_engine_burst: 20,
-        //                 matching_engine: 2
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "total_pl": 0,
+        //             "session_upl": 0,
+        //             "session_rpl": 0,
+        //             "session_funding": 0,
+        //             "portfolio_margining_enabled": false,
+        //             "options_vega": 0,
+        //             "options_theta": 0,
+        //             "options_session_upl": 0,
+        //             "options_session_rpl": 0,
+        //             "options_pl": 0,
+        //             "options_gamma": 0,
+        //             "options_delta": 0,
+        //             "margin_balance": 0.00062359,
+        //             "maintenance_margin": 0,
+        //             "limits": {
+        //                 "non_matching_engine_burst": 300,
+        //                 "non_matching_engine": 200,
+        //                 "matching_engine_burst": 20,
+        //                 "matching_engine": 2
         //             },
-        //             initial_margin: 0,
-        //             futures_session_upl: 0,
-        //             futures_session_rpl: 0,
-        //             futures_pl: 0,
-        //             equity: 0.00062359,
-        //             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        //             delta_total: 0,
-        //             currency: 'BTC',
-        //             balance: 0.00062359,
-        //             available_withdrawal_funds: 0.00062359,
-        //             available_funds: 0.00062359,
-        //             fees: [
-        //                 currency: '',
-        //                 instrument_type: 'perpetual',
-        //                 fee_type: 'relative',
-        //                 maker_fee: 0,
-        //                 taker_fee: 0,
+        //             "initial_margin": 0,
+        //             "futures_session_upl": 0,
+        //             "futures_session_rpl": 0,
+        //             "futures_pl": 0,
+        //             "equity": 0.00062359,
+        //             "deposit_address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "delta_total": 0,
+        //             "currency": "BTC",
+        //             "balance": 0.00062359,
+        //             "available_withdrawal_funds": 0.00062359,
+        //             "available_funds": 0.00062359,
+        //             "fees": [
+        //                 "currency": '',
+        //                 "instrument_type": "perpetual",
+        //                 "fee_type": "relative",
+        //                 "maker_fee": 0,
+        //                 "taker_fee": 0,
         //             ],
         //         },
-        //         usIn: 1583775838115975,
-        //         usOut: 1583775838116520,
-        //         usDiff: 545,
-        //         testnet: false
+        //         "usIn": 1583775838115975,
+        //         "usOut": 1583775838116520,
+        //         "usDiff": 545,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -1490,41 +1490,41 @@ export default class deribit extends Exchange {
         const response = await this.publicGetGetOrderBook(this.extend(request, params));
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         result: {
-        //             timestamp: 1583781354740,
-        //             stats: { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
-        //             state: 'open',
-        //             settlement_price: 7903.21,
-        //             open_interest: 111536690,
-        //             min_price: 7695.13,
-        //             max_price: 7929.49,
-        //             mark_price: 7813.06,
-        //             last_price: 7814.5,
-        //             instrument_name: 'BTC-PERPETUAL',
-        //             index_price: 7810.12,
-        //             funding_8h: 0.0000031,
-        //             current_funding: 0,
-        //             change_id: 17538025952,
-        //             bids: [
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "timestamp": 1583781354740,
+        //             "stats": { volume: 61249.66735634, low: 7631.5, high: 8311.5 },
+        //             "state": "open",
+        //             "settlement_price": 7903.21,
+        //             "open_interest": 111536690,
+        //             "min_price": 7695.13,
+        //             "max_price": 7929.49,
+        //             "mark_price": 7813.06,
+        //             "last_price": 7814.5,
+        //             "instrument_name": "BTC-PERPETUAL",
+        //             "index_price": 7810.12,
+        //             "funding_8h": 0.0000031,
+        //             "current_funding": 0,
+        //             "change_id": 17538025952,
+        //             "bids": [
         //                 [7814, 351820],
         //                 [7813.5, 207490],
         //                 [7813, 32160],
         //             ],
-        //             best_bid_price: 7814,
-        //             best_bid_amount: 351820,
-        //             best_ask_price: 7814.5,
-        //             best_ask_amount: 11880,
-        //             asks: [
+        //             "best_bid_price": 7814,
+        //             "best_bid_amount": 351820,
+        //             "best_ask_price": 7814.5,
+        //             "best_ask_amount": 11880,
+        //             "asks": [
         //                 [7814.5, 11880],
         //                 [7815, 18100],
         //                 [7815.5, 2640],
         //             ],
         //         },
-        //         usIn: 1583781354745804,
-        //         usOut: 1583781354745932,
-        //         usDiff: 128,
-        //         testnet: false
+        //         "usIn": 1583781354745804,
+        //         "usOut": 1583781354745932,
+        //         "usDiff": 128,
+        //         "testnet": false
         //     }
         //
         const result = this.safeValue(response, 'result', {});
@@ -2307,6 +2307,7 @@ export default class deribit extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'network': undefined,
             'fee': fee,
         };
     }
@@ -3109,16 +3110,16 @@ export default class deribit extends Exchange {
         }
         //
         //     {
-        //         jsonrpc: '2.0',
-        //         error: {
-        //             message: 'Invalid params',
-        //             data: { reason: 'invalid currency', param: 'currency' },
-        //             code: -32602
+        //         "jsonrpc": "2.0",
+        //         "error": {
+        //             "message": "Invalid params",
+        //             "data": { reason: "invalid currency", param: "currency" },
+        //             "code": -32602
         //         },
-        //         testnet: false,
-        //         usIn: 1583763842150374,
-        //         usOut: 1583763842150410,
-        //         usDiff: 36
+        //         "testnet": false,
+        //         "usIn": 1583763842150374,
+        //         "usOut": 1583763842150410,
+        //         "usDiff": 36
         //     }
         //
         const error = this.safeValue(response, 'error');

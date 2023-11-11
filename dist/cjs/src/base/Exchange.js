@@ -70,7 +70,6 @@ class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.positions = {};
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.enableLastJsonResponse = true;
@@ -264,7 +263,7 @@ class Exchange {
         this.transactions = {};
         this.ohlcvs = {};
         this.myTrades = undefined;
-        this.positions = {};
+        this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
@@ -1350,6 +1349,9 @@ class Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+    }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
@@ -1449,6 +1451,17 @@ class Exchange {
         const stringifiedNumber = number.toString();
         const convertedNumber = parseFloat(stringifiedNumber);
         return parseInt(convertedNumber);
+    }
+    parseToNumeric(number) {
+        const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        // keep this in mind:
+        // in JS: 1 == 1.0 is true
+        // in Python: 1 == 1.0 is true
+        // in PHP 1 == 1.0 is false
+        if (stringVersion.indexOf('.') > 0) {
+            return parseFloat(stringVersion);
+        }
+        return parseInt(stringVersion);
     }
     afterConstruct() {
         this.createNetworksByIdObject();
@@ -2738,7 +2751,7 @@ class Exchange {
         const symbol = this.safeString(position, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.safeValue(this.markets, symbol);
         }
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber(market, 'contractSize');
@@ -2958,6 +2971,15 @@ class Exchange {
     }
     async fetchPosition(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPosition() is not supported yet');
+    }
+    async watchPosition(symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchPosition() is not supported yet');
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' watchPositions() is not supported yet');
+    }
+    async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.watchPositions(symbols, since, limit, params);
     }
     async fetchPositionsBySymbol(symbol, params = {}) {
         /**
@@ -4431,7 +4453,13 @@ class Exchange {
                     }
                     params[cursorSent] = cursorValue;
                 }
-                const response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                let response = undefined;
+                if (method === 'fetchAccounts') {
+                    response = await this[method](params);
+                }
+                else {
+                    response = await this[method](symbol, since, maxEntriesPerRequest, params);
+                }
                 errors = 0;
                 const responseLength = response.length;
                 if (this.verbose) {

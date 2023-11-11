@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Transaction, Balances } from './base/types.js';
 /**
  * @class coinbase
  * @extends Exchange
@@ -7,9 +7,9 @@ import { Int, OrderSide, OrderType, Order, Trade, OHLCV } from './base/types.js'
 export default class coinbase extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchAccounts(params?: {}): Promise<any[]>;
-    fetchAccountsV2(params?: {}): Promise<any[]>;
-    fetchAccountsV3(params?: {}): Promise<any[]>;
+    fetchAccounts(params?: {}): Promise<any>;
+    fetchAccountsV2(params?: {}): Promise<any>;
+    fetchAccountsV3(params?: {}): Promise<any>;
     parseAccount(account: any): {
         id: string;
         type: string;
@@ -25,8 +25,8 @@ export default class coinbase extends Exchange {
     fetchMySells(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyBuys(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTransactionsWithMethod(method: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, market?: any): {
         info: any;
@@ -57,6 +57,7 @@ export default class coinbase extends Exchange {
     fetchMarketsV3(params?: {}): Promise<any[]>;
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
+<<<<<<< HEAD
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
@@ -66,6 +67,17 @@ export default class coinbase extends Exchange {
     parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
     parseBalanceCustom(response: any, params?: {}): import("./base/types.js").Balances;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+=======
+    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerV2(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickerV3(symbol: string, params?: {}): Promise<Ticker>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    parseBalance(response: any, params?: {}): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+>>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
@@ -110,8 +122,8 @@ export default class coinbase extends Exchange {
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

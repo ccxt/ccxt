@@ -27,6 +27,9 @@ export default class bitget extends bitgetRest {
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    handlePositions(client: Client, message: any): void;
+    parseWsPosition(position: any, market?: any): import("../base/types.js").Position;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;

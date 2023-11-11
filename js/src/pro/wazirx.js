@@ -645,8 +645,8 @@ export default class wazirx extends wazirxRest {
         //             "a": 114144050,
         //             "b": 114144121,
         //             "f": "0.2",
-        //             "ga": '0.0',
-        //             "gc": 'usdt',
+        //             "ga": "0.0",
+        //             "gc": "usdt",
         //             "m": true,
         //             "o": 26946170,
         //             "p": "5.0",
@@ -676,10 +676,10 @@ export default class wazirx extends wazirxRest {
     handleConnected(client, message) {
         //
         //     {
-        //         data: {
-        //             timeout_duration: 1800
+        //         "data": {
+        //             "timeout_duration": 1800
         //         },
-        //         event: 'connected'
+        //         "event": "connected"
         //     }
         //
         return message;
@@ -687,11 +687,11 @@ export default class wazirx extends wazirxRest {
     handleSubscribed(client, message) {
         //
         //     {
-        //         data: {
-        //             streams: ['!ticker@arr']
+        //         "data": {
+        //             "streams": ["!ticker@arr"]
         //         },
-        //         event: 'subscribed',
-        //         id: 0
+        //         "event": "subscribed",
+        //         "id": 0
         //     }
         //
         return message;
@@ -708,8 +708,8 @@ export default class wazirx extends wazirxRest {
         //     }
         //
         //     {
-        //         message: 'HeartBeat message not received, closing the connection',
-        //         status: 'error'
+        //         "message": "HeartBeat message not received, closing the connection",
+        //         "status": "error"
         //     }
         //
         throw new ExchangeError(this.id + ' ' + this.json(message));

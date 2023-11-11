@@ -67,8 +67,8 @@ abstract class okex5 extends \ccxt\okex {
     public function public_get_market_block_ticker($params = array()) {
         return $this->request('market/block-ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_market_block_trades($params = array()) {
-        return $this->request('market/block-trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_public_block_trades($params = array()) {
+        return $this->request('public/block-trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_public_instruments($params = array()) {
         return $this->request('public/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -183,6 +183,9 @@ abstract class okex5 extends \ccxt\okex {
     }
     public function public_get_asset_exchange_list($params = array()) {
         return $this->request('asset/exchange-list', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function public_get_finance_staking_defi_eth_apy_history($params = array()) {
+        return $this->request('finance/staking-defi/eth/apy-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function public_get_finance_savings_lending_rate_summary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
@@ -475,6 +478,12 @@ abstract class okex5 extends \ccxt\okex {
     public function private_get_finance_staking_defi_orders_history($params = array()) {
         return $this->request('finance/staking-defi/orders-history', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function private_get_finance_staking_defi_eth_balance($params = array()) {
+        return $this->request('finance/staking-defi/eth/balance', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_finance_staking_defi_eth_purchase_redeem_history($params = array()) {
+        return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
     public function private_get_copytrading_current_subpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -751,6 +760,12 @@ abstract class okex5 extends \ccxt\okex {
     public function private_post_finance_staking_defi_cancel($params = array()) {
         return $this->request('finance/staking-defi/cancel', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_finance_staking_defi_eth_purchase($params = array()) {
+        return $this->request('finance/staking-defi/eth/purchase', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_finance_staking_defi_eth_redeem($params = array()) {
+        return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_copytrading_algo_order($params = array()) {
         return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
@@ -865,8 +880,8 @@ abstract class okex5 extends \ccxt\okex {
     public function publicGetMarketBlockTicker($params = array()) {
         return $this->request('market/block-ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetMarketBlockTrades($params = array()) {
-        return $this->request('market/block-trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetPublicBlockTrades($params = array()) {
+        return $this->request('public/block-trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetPublicInstruments($params = array()) {
         return $this->request('public/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -981,6 +996,9 @@ abstract class okex5 extends \ccxt\okex {
     }
     public function publicGetAssetExchangeList($params = array()) {
         return $this->request('asset/exchange-list', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function publicGetFinanceStakingDefiEthApyHistory($params = array()) {
+        return $this->request('finance/staking-defi/eth/apy-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
     public function publicGetFinanceSavingsLendingRateSummary($params = array()) {
         return $this->request('finance/savings/lending-rate-summary', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
@@ -1273,6 +1291,12 @@ abstract class okex5 extends \ccxt\okex {
     public function privateGetFinanceStakingDefiOrdersHistory($params = array()) {
         return $this->request('finance/staking-defi/orders-history', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function privateGetFinanceStakingDefiEthBalance($params = array()) {
+        return $this->request('finance/staking-defi/eth/balance', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetFinanceStakingDefiEthPurchaseRedeemHistory($params = array()) {
+        return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1548,6 +1572,12 @@ abstract class okex5 extends \ccxt\okex {
     }
     public function privatePostFinanceStakingDefiCancel($params = array()) {
         return $this->request('finance/staking-defi/cancel', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostFinanceStakingDefiEthPurchase($params = array()) {
+        return $this->request('finance/staking-defi/eth/purchase', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostFinanceStakingDefiEthRedeem($params = array()) {
+        return $this->request('finance/staking-defi/eth/redeem', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostCopytradingAlgoOrder($params = array()) {
         return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 20));

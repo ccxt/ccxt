@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitso
  * @extends Exchange
@@ -26,17 +26,17 @@ export default class bitso extends Exchange {
         info: object;
     };
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any[]>;
@@ -45,6 +45,7 @@ export default class bitso extends Exchange {
     parseOrder(order: any, market?: any): Order;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: number, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+<<<<<<< HEAD
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
     fetchDeposit(id: string, code?: string, params?: {}): Promise<{
         id: string;
@@ -68,6 +69,11 @@ export default class bitso extends Exchange {
         info: any;
     }>;
     fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+=======
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+>>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -78,6 +84,7 @@ export default class bitso extends Exchange {
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
+<<<<<<< HEAD
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: string;
         txid: string;
@@ -121,6 +128,11 @@ export default class bitso extends Exchange {
         fee: any;
         info: any;
     };
+=======
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    safeNetwork(networkId: any): string;
+    parseTransaction(transaction: any, currency?: any): Transaction;
+>>>>>>> 1a5931741ea069834b52aa71871d9b8ccba70afe
     parseTransactionStatus(status: any): string;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
