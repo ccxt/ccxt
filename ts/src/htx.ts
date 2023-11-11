@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Transaction, Ticker, OrderBook, Tickers, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ export default class htx extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
                 'createOrder': true,
+                'createOrders': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -634,7 +635,7 @@ export default class htx extends Exchange {
                             // Future Trade Interface
                             'api/v1/contract-cancel-after': 1,
                             'api/v1/contract_order': 1,
-                            'v1/contract_batchorder': 1,
+                            'api/v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
                             'api/v1/contract_cancelall': 1,
                             'api/v1/contract_switch_lever_rate': 1,
@@ -4645,7 +4646,41 @@ export default class htx extends Exchange {
         //         "trade_partition": "USDT"
         //     }
         //
-        const id = this.safeString2 (order, 'id', 'order_id_str');
+        // spot: createOrders
+        //
+        //     [
+        //         {
+        //             "order-id": 936847569789079,
+        //             "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //         },
+        //         {
+        //             "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //             "err-code": "account-frozen-balance-insufficient-error",
+        //             "err-msg": "trade account balance is not enough, left: `89`"
+        //         }
+        //     ]
+        //
+        // swap and future: createOrders
+        //
+        //     [
+        //         {
+        //             "index": 2,
+        //             "err_code": 1047,
+        //             "err_msg": "Insufficient margin available."
+        //         },
+        //         {
+        //             "order_id": 1172923090632953857,
+        //             "index": 1,
+        //             "order_id_str": "1172923090632953857"
+        //         }
+        //     ]
+        //
+        const rejectedCreateOrders = this.safeString2 (order, 'err_code', 'err-code');
+        let status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
+        if (rejectedCreateOrders !== undefined) {
+            status = 'rejected';
+        }
+        const id = this.safeStringN (order, [ 'id', 'order_id_str', 'order-id' ]);
         let side = this.safeString (order, 'direction');
         let type = this.safeString (order, 'order_price_type');
         if ('type' in order) {
@@ -4653,7 +4688,6 @@ export default class htx extends Exchange {
             side = orderType[0];
             type = orderType[1];
         }
-        const status = this.parseOrderStatus (this.safeString2 (order, 'state', 'status'));
         const marketId = this.safeString2 (order, 'contract_code', 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerN (order, [ 'created_at', 'created-at', 'create_date' ]);
@@ -4693,7 +4727,10 @@ export default class htx extends Exchange {
         const average = this.safeString (order, 'trade_avg_price');
         const trades = this.safeValue (order, 'trades');
         const reduceOnlyInteger = this.safeInteger (order, 'reduce_only');
-        const reduceOnly = (reduceOnlyInteger === 0) ? false : true;
+        let reduceOnly = undefined;
+        if (reduceOnlyInteger !== undefined) {
+            reduceOnly = (reduceOnlyInteger === 0) ? false : true;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -4721,61 +4758,20 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+    async createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name huobi#createOrder
-         * @description create a trade order
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the huobi api endpoint
-         * @param {float} [params.stopPrice] the price a trigger order is triggered at
-         * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
-         * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
-         * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
-         * @param {string} [params.operator] *spot and margin only* gte or lte, trigger price condition
-         * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
-         * @param {bool} [params.postOnly] *contract only* true or false
-         * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
-         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        if (marketType === 'spot') {
-            return await this.createSpotOrder (symbol, type, side, amount, price, query);
-        } else {
-            return await this.createContractOrder (symbol, type, side, amount, price, query);
-        }
-    }
-
-    async createSpotOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
-        /**
          * @ignore
-         * @method
-         * @name huobi#createSpotOrder
-         * @description create a spot trade order
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+         * @name htx#createSpotOrderRequest
+         * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the huobi api endpoint
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @param {object} [params] extra parameters specific to the htx api endpoint
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @returns {object} request to be sent to the exchange
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -4868,53 +4864,23 @@ export default class htx extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         params = this.omit (params, [ 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ]);
-        const response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
-        //
-        // spot
-        //
-        //     {"status":"ok","data":"438398393065481"}
-        //
-        const id = this.safeString (response, 'data');
-        return this.safeOrder ({
-            'info': response,
-            'id': id,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
-            'symbol': undefined,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'cost': undefined,
-            'trades': undefined,
-            'fee': undefined,
-            'clientOrderId': undefined,
-            'average': undefined,
-        }, market);
+        return this.extend (request, params);
     }
 
-    async createContractOrder (symbol: string, type, side, amount, price = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
         /**
-         * @ignore
          * @method
-         * @name huobi#createContractOrder
-         * @description create a contract trade order
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+         * @ignore
+         * @name htx#createContractOrderRequest
+         * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {object} [params] extra parameters specific to the htx api endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
-         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
         const request = {
@@ -4982,51 +4948,105 @@ export default class htx extends Exchange {
             request['lever_rate'] = leverRate;
             request['order_price_type'] = type;
         }
-        params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ]);
         const broker = this.safeValue (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
+        params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ]);
+        return this.extend (request, params);
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#createOrder
+         * @description create a trade order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the huobi api endpoint
+         * @param {float} [params.stopPrice] the price a trigger order is triggered at
+         * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
+         * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
+         * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
+         * @param {string} [params.operator] *spot and margin only* gte or lte, trigger price condition
+         * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {bool} [params.postOnly] *contract only* true or false
+         * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
+        const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
+        const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
+        const isStop = triggerPrice !== undefined;
+        const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
+        const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
-        if (market['linear']) {
-            let marginMode = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-            marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-            if (marginMode === 'isolated') {
-                if (isStop) {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (this.extend (request, params));
-                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (this.extend (request, params));
-                } else {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (this.extend (request, params));
+        if (market['spot']) {
+            const request = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+        } else {
+            const request = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            if (market['linear']) {
+                let marginMode = undefined;
+                [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    if (isStop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (this.extend (request, params));
+                    } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (this.extend (request, params));
+                    }
+                } else if (marginMode === 'cross') {
+                    if (isStop) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (this.extend (request, params));
+                    } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder (this.extend (request, params));
+                    }
                 }
-            } else if (marginMode === 'cross') {
-                if (isStop) {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (this.extend (request, params));
-                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (this.extend (request, params));
-                } else {
-                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder (this.extend (request, params));
-                }
-            }
-        } else if (market['inverse']) {
-            if (market['swap']) {
-                if (isStop) {
-                    response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (this.extend (request, params));
-                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                    response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (this.extend (request, params));
-                } else {
-                    response = await this.contractPrivatePostSwapApiV1SwapOrder (this.extend (request, params));
-                }
-            } else if (market['future']) {
-                if (isStop) {
-                    response = await this.contractPrivatePostApiV1ContractTriggerOrder (this.extend (request, params));
-                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                    response = await this.contractPrivatePostApiV1ContractTpslOrder (this.extend (request, params));
-                } else {
-                    response = await this.contractPrivatePostApiV1ContractOrder (this.extend (request, params));
+            } else if (market['inverse']) {
+                if (market['swap']) {
+                    if (isStop) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (this.extend (request, params));
+                    } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                        response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostSwapApiV1SwapOrder (this.extend (request, params));
+                    }
+                } else if (market['future']) {
+                    if (isStop) {
+                        response = await this.contractPrivatePostApiV1ContractTriggerOrder (this.extend (request, params));
+                    } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
+                        response = await this.contractPrivatePostApiV1ContractTpslOrder (this.extend (request, params));
+                    } else {
+                        response = await this.contractPrivatePostApiV1ContractOrder (this.extend (request, params));
+                    }
                 }
             }
         }
+        //
+        // spot
+        //
+        //     {"status":"ok","data":"438398393065481"}
+        //
+        // swap and future
         //
         //     {
         //         "status": "ok",
@@ -5053,7 +5073,28 @@ export default class htx extends Exchange {
         //
         let data = undefined;
         let result = undefined;
-        if (isStopLossTriggerOrder) {
+        if (market['spot']) {
+            return this.safeOrder ({
+                'info': response,
+                'id': this.safeString (response, 'data'),
+                'timestamp': undefined,
+                'datetime': undefined,
+                'lastTradeTimestamp': undefined,
+                'status': undefined,
+                'symbol': undefined,
+                'type': type,
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'filled': undefined,
+                'remaining': undefined,
+                'cost': undefined,
+                'trades': undefined,
+                'fee': undefined,
+                'clientOrderId': undefined,
+                'average': undefined,
+            }, market);
+        } else if (isStopLossTriggerOrder) {
             data = this.safeValue (response, 'data', {});
             result = this.safeValue (data, 'sl_order', {});
         } else if (isTakeProfitTriggerOrder) {
@@ -5063,6 +5104,135 @@ export default class htx extends Exchange {
             result = this.safeValue (response, 'data', {});
         }
         return this.parseOrder (result, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name htx#createOrders
+         * @description create a list of trade orders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+         * @param {array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the htx api endpoint
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        let symbol = undefined;
+        let market = undefined;
+        let marginMode = undefined;
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const marketId = this.safeString (rawOrder, 'symbol');
+            if (symbol === undefined) {
+                symbol = marketId;
+            } else {
+                if (symbol !== marketId) {
+                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
+                }
+            }
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
+            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
+            const currentMarginMode = marginResult[0];
+            if (currentMarginMode !== undefined) {
+                if (marginMode === undefined) {
+                    marginMode = currentMarginMode;
+                } else {
+                    if (marginMode !== currentMarginMode) {
+                        throw new BadRequest (this.id + ' createOrders() requires all orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            market = this.market (symbol);
+            let orderRequest = undefined;
+            if (market['spot']) {
+                orderRequest = await this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
+            } else {
+                orderRequest = this.createContractOrderRequest (marketId, type, side, amount, price, orderParams);
+            }
+            orderRequest = this.omit (orderRequest, 'marginMode');
+            ordersRequests.push (orderRequest);
+        }
+        const request = {};
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privatePostOrderBatchOrders (ordersRequests);
+        } else {
+            request['orders_data'] = ordersRequests;
+            if (market['linear']) {
+                marginMode = (marginMode === undefined) ? 'cross' : marginMode;
+                if (marginMode === 'isolated') {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapBatchorder (request);
+                } else if (marginMode === 'cross') {
+                    response = await this.contractPrivatePostLinearSwapApiV1SwapCrossBatchorder (request);
+                }
+            } else if (market['inverse']) {
+                if (market['swap']) {
+                    response = await this.contractPrivatePostSwapApiV1SwapBatchorder (request);
+                } else if (market['future']) {
+                    response = await this.contractPrivatePostV1ContractBatchorder (request);
+                }
+            }
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "order-id": 936847569789079,
+        //                 "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //             },
+        //             {
+        //                 "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //                 "err-code": "account-frozen-balance-insufficient-error",
+        //                 "err-msg": "trade account balance is not enough, left: `89`"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "errors": [
+        //                 {
+        //                     "index": 2,
+        //                     "err_code": 1047,
+        //                     "err_msg": "Insufficient margin available."
+        //                 }
+        //             ],
+        //             "success": [
+        //                 {
+        //                     "order_id": 1172923090632953857,
+        //                     "index": 1,
+        //                     "order_id_str": "1172923090632953857"
+        //                 }
+        //             ]
+        //         },
+        //         "ts": 1699688256671
+        //     }
+        //
+        let result = undefined;
+        if (market['spot']) {
+            result = this.safeValue (response, 'data', []);
+        } else {
+            const data = this.safeValue (response, 'data', {});
+            const success = this.safeValue (data, 'success', []);
+            const errors = this.safeValue (data, 'errors', []);
+            result = this.arrayConcat (success, errors);
+        }
+        return this.parseOrders (result, market);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
