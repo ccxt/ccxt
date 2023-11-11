@@ -384,5 +384,7 @@ public partial class Exchange
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;
         this.name = SafeString(extendedProperties, "name");
+        this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
+        this.httpProxy = SafeString(extendedProperties, "httpProxy");
     }
 }
