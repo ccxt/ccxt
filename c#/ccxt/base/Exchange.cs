@@ -11,8 +11,9 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
-    public Exchange(dict userConfig = null)
+    public Exchange(object userConfig2 = null)
     {
+        var userConfig = (dict)userConfig2;
         this.initializeProperties(userConfig);
         var empty = new List<string>();
         transformApiNew(this.api);
@@ -31,6 +32,11 @@ public partial class Exchange
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
+            this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+        }
+        else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
+        {
+            var proxy = new WebProxy(this.httpsProxy.ToString());
             this.client = new HttpClient(new HttpClientHandler { Proxy = proxy });
         }
         else
