@@ -4989,7 +4989,7 @@ export default class mexc extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -5004,7 +5004,7 @@ export default class mexc extends Exchange {
         }
         if (network !== undefined) {
             request['network'] = network;
-            params = this.omit (params, 'network');
+            params = this.omit (params, [ 'network', 'chain' ]);
         }
         const response = await this.spotPrivatePostCapitalWithdrawApply (this.extend (request, params));
         //
