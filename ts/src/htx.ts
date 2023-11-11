@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Transaction, Ticker, OrderBook, Tickers, BorrowRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6117,7 +6117,7 @@ export default class htx extends Exchange {
                 };
             }
         }
-        return rates;
+        return rates as BorrowRate[];
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
