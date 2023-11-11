@@ -208,11 +208,9 @@ function initializeAllExchanges () {
         }, result);
     })
 
-    const table = table (results)
+    const tableResults = table (results)
 
-    console.log (table)
-
-    log (table)
+    log (tableResults)
 
     log.green ('Currencies:', currencies)
 

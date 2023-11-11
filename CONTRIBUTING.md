@@ -43,6 +43,8 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
   **↑ This is the most important rule of all!!!**
 
+- **BEFORE ANY PUSH MAKE SURE YOU RUN THIS COMMAND LOCALLY: `git config core.hooksPath .git-templates/hooks`**
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/build/*` (these are generated automatically)
@@ -140,6 +142,7 @@ This way you can keep the build tools and processes isolated, not having to work
 - [Python](https://www.python.org/downloads/) 3.5.3+
   - requests (`pip install requests`)
   - [aiohttp](https://docs.aiohttp.org/) (`pip install aiohttp`)
+  - [ruff](https://docs.astral.sh/ruff/) (`pip install ruff`)
   - [tox](https://tox.readthedocs.io)
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
@@ -218,18 +221,19 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in several different languages (TypeScript, JavaScript, Python, PHP, C# and more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is TypeScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a TS or a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
 - `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
-- `./ccxt.js` for the Node.js npm package
+- `./js/ccxt.js` for the Node.js npm package
+- `./ts/ccxt.ts` for TypeScript
 - `./dist/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP
 
-Generated versions and docs are transpiled from the source `ccxt.js` file and files in `./js/` by the `npm run build` command.
+Generated versions and docs are transpiled from the source `ts/src` folder by the `npm run build` command.
 
 ### Transpiled (generated) files
 
@@ -1010,12 +1014,10 @@ node run-tests --python-async kraken # test Kraken with Python async test, requi
 
 Follow this steps to add a test:
 
-- Create a file in [js/tests/Exchange](js/test/Exchange/) following syntax that can be transpiled.
-- Add file location to [transpile.js](build/transpile.js#L1600)
-- run `npm run transpile` to generate the test file in python and php.
-- Call test in [tests.js](js/test/test.js)
-- Call test in [test_async.py](python/ccxt/test/test_async.py)
-- Call test in [test_asnyc.php](php/test/test_async.php)
+- Create a file in [ts/tests/Exchange](ts/test/Exchange/) following syntax that can be transpiled.
+- Add test to `runPrivateTests` or `runPublicTests` to [ts/src/test/test.ts](ts/src/test/test.ts#L354) or for ccxt.pro endpoints to [ts/src/pro/test/test.ts](ts/src/pro/test/test.ts#L121)
+- run `npm run transpile` to generate the test file in javascript, python and php.
+- Call tests `node run-tests`
 
 ## Committing Changes To The Repository
 

@@ -60,10 +60,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
 
     async def watch_balance(self, params={}):
         """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        see https://exchange.blockchain.com/api/#balances
-        :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://exchange.blockchain.com/api/#balances
+        :param dict [params]: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
@@ -79,11 +79,11 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 1,
-        #         event: 'subscribed',
-        #         channel: 'balances',
-        #         local_currency: 'USD',
-        #         batching: False
+        #         "seqnum": 1,
+        #         "event": "subscribed",
+        #         "channel": "balances",
+        #         "local_currency": "USD",
+        #         "batching": False
         #     }
         #  snapshot
         #     {
@@ -125,13 +125,13 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
-        see https://exchange.blockchain.com/api/#prices
+        :see: https://exchange.blockchain.com/api/#prices
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents. Allows '1m', '5m', '15m', '1h', '6h' '1d'. Can only watch one timeframe per symbol.
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the bitfinex2 api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -155,20 +155,20 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'prices',
-        #         symbol: 'BTC-USDT',
-        #         granularity: 60
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "prices",
+        #         "symbol": "BTC-USDT",
+        #         "granularity": 60
         #     }
         #
         #  updated
         #     {
-        #         seqnum: 1,
-        #         event: 'updated',
-        #         channel: 'prices',
-        #         symbol: 'BTC-USD',
-        #         price: [1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0]
+        #         "seqnum": 1,
+        #         "event": "updated",
+        #         "channel": "prices",
+        #         "symbol": "BTC-USD",
+        #         "price": [1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0]
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -198,10 +198,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_ticker(self, symbol: str, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        see https://exchange.blockchain.com/api/#ticker
+        :see: https://exchange.blockchain.com/api/#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        :param dict [params]: extra parameters specific to the blockchaincom api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -220,29 +220,29 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD'
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD"
         #     }
         #  snapshot
         #     {
-        #         seqnum: 1,
-        #         event: 'snapshot',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD',
-        #         price_24h: 23071.4,
-        #         volume_24h: 236.28398636,
-        #         last_trade_price: 23936.4,
-        #         mark_price: 23935.335240262
+        #         "seqnum": 1,
+        #         "event": "snapshot",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD",
+        #         "price_24h": 23071.4,
+        #         "volume_24h": 236.28398636,
+        #         "last_trade_price": 23936.4,
+        #         "mark_price": 23935.335240262
         #     }
         # update
         #     {
-        #         seqnum: 2,
-        #         event: 'updated',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD',
-        #         mark_price: 23935.242443617
+        #         "seqnum": 2,
+        #         "event": "updated",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD",
+        #         "mark_price": 23935.242443617
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -264,11 +264,11 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def parse_ws_updated_ticker(self, ticker, lastTicker=None, market=None):
         #
         #     {
-        #         seqnum: 2,
-        #         event: 'updated',
-        #         channel: 'ticker',
-        #         symbol: 'BTC-USD',
-        #         mark_price: 23935.242443617
+        #         "seqnum": 2,
+        #         "event": "updated",
+        #         "channel": "ticker",
+        #         "symbol": "BTC-USD",
+        #         "mark_price": 23935.242443617
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
@@ -300,12 +300,12 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        see https://exchange.blockchain.com/api/#trades
+        :see: https://exchange.blockchain.com/api/#trades
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of    trades to fetch
-        :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of    trades to fetch
+        :param dict [params]: extra parameters specific to the blockchaincom api endpoint
+        :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -325,22 +325,22 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribed
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'trades',
-        #         symbol: 'BTC-USDT'
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "trades",
+        #         "symbol": "BTC-USDT"
         #     }
         #  updates
         #     {
-        #         seqnum: 1,
-        #         event: 'updated',
-        #         channel: 'trades',
-        #         symbol: 'BTC-USDT',
-        #         timestamp: '2022-08-08T17:23:48.163096Z',
-        #         side: 'sell',
-        #         qty: 0.083523,
-        #         price: 23940.67,
-        #         trade_id: '563078810223444'
+        #         "seqnum": 1,
+        #         "event": "updated",
+        #         "channel": "trades",
+        #         "symbol": "BTC-USDT",
+        #         "timestamp": "2022-08-08T17:23:48.163096Z",
+        #         "side": "sell",
+        #         "qty": 0.083523,
+        #         "price": 23940.67,
+        #         "trade_id": "563078810223444"
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -363,15 +363,15 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def parse_ws_trade(self, trade, market=None):
         #
         #     {
-        #         seqnum: 1,
-        #         event: 'updated',
-        #         channel: 'trades',
-        #         symbol: 'BTC-USDT',
-        #         timestamp: '2022-08-08T17:23:48.163096Z',
-        #         side: 'sell',
-        #         qty: 0.083523,
-        #         price: 23940.67,
-        #         trade_id: '563078810223444'
+        #         "seqnum": 1,
+        #         "event": "updated",
+        #         "channel": "trades",
+        #         "symbol": "BTC-USDT",
+        #         "timestamp": "2022-08-08T17:23:48.163096Z",
+        #         "side": "sell",
+        #         "qty": 0.083523,
+        #         "price": 23940.67,
+        #         "trade_id": "563078810223444"
         #     }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -395,12 +395,12 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
-        see https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the blockchaincom api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :see: https://exchange.blockchain.com/api/#mass-order-status-request-ordermassstatusrequest
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the blockchaincom api endpoint
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -417,80 +417,80 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         orders = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_orders(self, client: Client, message):
         #
         #     {
-        #         seqnum: 1,
-        #         event: 'rejected',
-        #         channel: 'trading',
-        #         text: 'Not subscribed to channel'
+        #         "seqnum": 1,
+        #         "event": "rejected",
+        #         "channel": "trading",
+        #         "text": "Not subscribed to channel"
         #     }
         #  snapshot
         #     {
-        #         seqnum: 2,
-        #         event: 'snapshot',
-        #         channel: 'trading',
-        #         orders: [
+        #         "seqnum": 2,
+        #         "event": "snapshot",
+        #         "channel": "trading",
+        #         "orders": [
         #           {
-        #             orderID: '562965341621940',
-        #             gwOrderId: 181011136260,
-        #             clOrdID: '016caf67f7a94508webd',
-        #             symbol: 'BTC-USD',
-        #             side: 'sell',
-        #             ordType: 'limit',
-        #             orderQty: 0.000675,
-        #             leavesQty: 0.000675,
-        #             cumQty: 0,
-        #             avgPx: 0,
-        #             ordStatus: 'open',
-        #             timeInForce: 'GTC',
-        #             text: 'New order',
-        #             execType: '0',
-        #             execID: '21415965325',
-        #             transactTime: '2022-08-08T23:31:00.550795Z',
-        #             msgType: 8,
-        #             lastPx: 0,
-        #             lastShares: 0,
-        #             tradeId: '0',
-        #             fee: 0,
-        #             price: 30000,
-        #             marginOrder: False,
-        #             closePositionOrder: False
+        #             "orderID": "562965341621940",
+        #             "gwOrderId": 181011136260,
+        #             "clOrdID": "016caf67f7a94508webd",
+        #             "symbol": "BTC-USD",
+        #             "side": "sell",
+        #             "ordType": "limit",
+        #             "orderQty": 0.000675,
+        #             "leavesQty": 0.000675,
+        #             "cumQty": 0,
+        #             "avgPx": 0,
+        #             "ordStatus": "open",
+        #             "timeInForce": "GTC",
+        #             "text": "New order",
+        #             "execType": "0",
+        #             "execID": "21415965325",
+        #             "transactTime": "2022-08-08T23:31:00.550795Z",
+        #             "msgType": 8,
+        #             "lastPx": 0,
+        #             "lastShares": 0,
+        #             "tradeId": "0",
+        #             "fee": 0,
+        #             "price": 30000,
+        #             "marginOrder": False,
+        #             "closePositionOrder": False
         #           }
         #         ],
-        #         positions: []
+        #         "positions": []
         #     }
         #  update
         #     {
-        #         seqnum: 3,
-        #         event: 'updated',
-        #         channel: 'trading',
-        #         orderID: '562965341621940',
-        #         gwOrderId: 181011136260,
-        #         clOrdID: '016caf67f7a94508webd',
-        #         symbol: 'BTC-USD',
-        #         side: 'sell',
-        #         ordType: 'limit',
-        #         orderQty: 0.000675,
-        #         leavesQty: 0.000675,
-        #         cumQty: 0,
-        #         avgPx: 0,
-        #         ordStatus: 'cancelled',
-        #         timeInForce: 'GTC',
-        #         text: 'Canceled by User',
-        #         execType: '4',
-        #         execID: '21416034921',
-        #         transactTime: '2022-08-08T23:33:25.727785Z',
-        #         msgType: 8,
-        #         lastPx: 0,
-        #         lastShares: 0,
-        #         tradeId: '0',
-        #         fee: 0,
-        #         price: 30000,
-        #         marginOrder: False,
-        #         closePositionOrder: False
+        #         "seqnum": 3,
+        #         "event": "updated",
+        #         "channel": "trading",
+        #         "orderID": "562965341621940",
+        #         "gwOrderId": 181011136260,
+        #         "clOrdID": "016caf67f7a94508webd",
+        #         "symbol": "BTC-USD",
+        #         "side": "sell",
+        #         "ordType": "limit",
+        #         "orderQty": 0.000675,
+        #         "leavesQty": 0.000675,
+        #         "cumQty": 0,
+        #         "avgPx": 0,
+        #         "ordStatus": "cancelled",
+        #         "timeInForce": "GTC",
+        #         "text": "Canceled by User",
+        #         "execType": "4",
+        #         "execID": "21416034921",
+        #         "transactTime": "2022-08-08T23:33:25.727785Z",
+        #         "msgType": 8,
+        #         "lastPx": 0,
+        #         "lastShares": 0,
+        #         "tradeId": "0",
+        #         "fee": 0,
+        #         "price": 30000,
+        #         "marginOrder": False,
+        #         "closePositionOrder": False
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -518,33 +518,33 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def parse_ws_order(self, order, market=None):
         #
         #     {
-        #         seqnum: 3,
-        #         event: 'updated',
-        #         channel: 'trading',
-        #         orderID: '562965341621940',
-        #         gwOrderId: 181011136260,
-        #         clOrdID: '016caf67f7a94508webd',
-        #         symbol: 'BTC-USD',
-        #         side: 'sell',
-        #         ordType: 'limit',
-        #         orderQty: 0.000675,
-        #         leavesQty: 0.000675,
-        #         cumQty: 0,
-        #         avgPx: 0,
-        #         ordStatus: 'cancelled',
-        #         timeInForce: 'GTC',
-        #         text: 'Canceled by User',
-        #         execType: '4',
-        #         execID: '21416034921',
-        #         transactTime: '2022-08-08T23:33:25.727785Z',
-        #         msgType: 8,
-        #         lastPx: 0,
-        #         lastShares: 0,
-        #         tradeId: '0',
-        #         fee: 0,
-        #         price: 30000,
-        #         marginOrder: False,
-        #         closePositionOrder: False
+        #         "seqnum": 3,
+        #         "event": "updated",
+        #         "channel": "trading",
+        #         "orderID": "562965341621940",
+        #         "gwOrderId": 181011136260,
+        #         "clOrdID": "016caf67f7a94508webd",
+        #         "symbol": "BTC-USD",
+        #         "side": "sell",
+        #         "ordType": "limit",
+        #         "orderQty": 0.000675,
+        #         "leavesQty": 0.000675,
+        #         "cumQty": 0,
+        #         "avgPx": 0,
+        #         "ordStatus": "cancelled",
+        #         "timeInForce": "GTC",
+        #         "text": "Canceled by User",
+        #         "execType": "4",
+        #         "execID": "21416034921",
+        #         "transactTime": "2022-08-08T23:33:25.727785Z",
+        #         "msgType": 8,
+        #         "lastPx": 0,
+        #         "lastShares": 0,
+        #         "tradeId": "0",
+        #         "fee": 0,
+        #         "price": 30000,
+        #         "marginOrder": False,
+        #         "closePositionOrder": False
         #     }
         #
         datetime = self.safe_string(order, 'transactTime')
@@ -598,12 +598,12 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        see https://exchange.blockchain.com/api/#l2-order-book
+        :see: https://exchange.blockchain.com/api/#l2-order-book
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dictConstructor params: extra parameters specific to the blockchaincom api endpoint
-        :param str|None params['type']: accepts l2 or l3 for level 2 or level 3 order book
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dictConstructor [params]: extra parameters specific to the blockchaincom api endpoint
+        :param str [params.type]: accepts l2 or l3 for level 2 or level 3 order book
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -624,35 +624,35 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         #
         #  subscribe
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'l2',
-        #         symbol: 'BTC-USDT',
-        #         batching: False
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "l2",
+        #         "symbol": "BTC-USDT",
+        #         "batching": False
         #     }
         #  snapshot
         #     {
-        #         seqnum: 1,
-        #         event: 'snapshot',
-        #         channel: 'l2',
-        #         symbol: 'BTC-USDT',
-        #         bids: [
+        #         "seqnum": 1,
+        #         "event": "snapshot",
+        #         "channel": "l2",
+        #         "symbol": "BTC-USDT",
+        #         "bids": [
         #           {num: 1, px: 0.01, qty: 22},
         #         ],
-        #         asks: [
+        #         "asks": [
         #           {num: 1, px: 23840.26, qty: 0.25},
         #         ],
-        #         timestamp: '2022-08-08T22:03:19.071870Z'
+        #         "timestamp": "2022-08-08T22:03:19.071870Z"
         #     }
         #  update
         #     {
-        #         seqnum: 2,
-        #         event: 'updated',
-        #         channel: 'l2',
-        #         symbol: 'BTC-USDT',
-        #         bids: [],
-        #         asks: [{num: 1, px: 23855.06, qty: 1.04786347}],
-        #         timestamp: '2022-08-08T22:03:19.014680Z'
+        #         "seqnum": 2,
+        #         "event": "updated",
+        #         "channel": "l2",
+        #         "symbol": "BTC-USDT",
+        #         "bids": [],
+        #         "asks": [{num: 1, px: 23855.06, qty: 1.04786347}],
+        #         "timestamp": "2022-08-08T22:03:19.014680Z"
         #     }
         #
         event = self.safe_string(message, 'event')
@@ -708,8 +708,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         }
 
     def handle_delta(self, bookside, delta):
-        array = self.parse_counted_bid_ask(delta, 'px', 'qty', 'num')
-        bookside.storeArray(array)
+        bookArray = self.parse_counted_bid_ask(delta, 'px', 'qty', 'num')
+        bookside.storeArray(bookArray)
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
@@ -748,10 +748,10 @@ class blockchaincom(ccxt.async_support.blockchaincom):
     def handle_authentication_message(self, client: Client, message):
         #
         #     {
-        #         seqnum: 0,
-        #         event: 'subscribed',
-        #         channel: 'auth',
-        #         readOnly: False
+        #         "seqnum": 0,
+        #         "event": "subscribed",
+        #         "channel": "auth",
+        #         "readOnly": False
         #     }
         #
         event = self.safe_string(message, 'event')

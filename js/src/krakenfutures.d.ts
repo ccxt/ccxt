@@ -1,29 +1,56 @@
 import Exchange from './abstract/krakenfutures.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Ticker, OrderBook, Tickers } from './base/types.js';
+/**
+ * @class krakenfutures
+ * @extends Exchange
+ */
 export default class krakenfutures extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<import("./base/types.js").Order>;
-    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
+    cancelOrders(ids: string[], symbol?: string, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(orderType: any): string;
     verifyOrderActionSuccess(status: any, method: any, omit?: any[]): void;
     parseOrderStatus(status: any): string;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchBalance(params?: {}): Promise<any>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchPositions(symbols?: string[], params?: {}): Promise<any>;
+    parseOrder(order: any, market?: any): Order;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(response: any): Balances;
+    fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
+    parseFundingRate(ticker: any, market?: any): {
+        info: any;
+        symbol: string;
+        markPrice: number;
+        indexPrice: number;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: number;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: any;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
+    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePositions(response: any, symbols?: string[], params?: {}): any[];
     parsePosition(position: any, market?: any): {
         info: any;
@@ -37,7 +64,7 @@ export default class krakenfutures extends Exchange {
         entryPrice: number;
         notional: any;
         leverage: number;
-        unrealizedPnl: number;
+        unrealizedPnl: any;
         contracts: number;
         contractSize: number;
         marginRatio: any;
@@ -64,6 +91,8 @@ export default class krakenfutures extends Exchange {
     parseAccount(account: any): any;
     transferOut(code: string, amount: any, params?: {}): Promise<any>;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchLeverage(symbol?: string, params?: {}): Promise<any>;
     handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

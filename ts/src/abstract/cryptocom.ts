@@ -42,6 +42,8 @@ interface Exchange {
     v1PrivatePostPrivateGetCurrencyNetworks (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetDepositAddress (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetAccounts (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateGetWithdrawalHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
     v2PublicGetPublicAuth (params?: {}): Promise<implicitReturnType>;
     v2PublicGetPublicGetInstruments (params?: {}): Promise<implicitReturnType>;
     v2PublicGetPublicGetBook (params?: {}): Promise<implicitReturnType>;

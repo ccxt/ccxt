@@ -60,9 +60,9 @@ class bitopro extends \ccxt\async\bitopro {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bitopro api endpoint
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             if ($limit !== null) {
                 if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
@@ -87,21 +87,21 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_order_book(Client $client, $message) {
         //
         //     {
-        //         $event => 'ORDER_BOOK',
-        //         $timestamp => 1650121915308,
-        //         datetime => '2022-04-16T15:11:55.308Z',
-        //         pair => 'BTC_TWD',
-        //         limit => 5,
-        //         scale => 0,
-        //         bids => array(
-        //             array( price => '1188178', amount => '0.0425', count => 1, total => '0.0425' ),
+        //         "event" => "ORDER_BOOK",
+        //         "timestamp" => 1650121915308,
+        //         "datetime" => "2022-04-16T15:11:55.308Z",
+        //         "pair" => "BTC_TWD",
+        //         "limit" => 5,
+        //         "scale" => 0,
+        //         "bids" => array(
+        //             array( price => "1188178", amount => '0.0425', count => 1, total => "0.0425" ),
         //         ),
-        //         asks => array(
+        //         "asks" => array(
         //             array(
-        //                 price => '1190740',
-        //                 amount => '0.40943964',
-        //                 count => 1,
-        //                 total => '0.40943964'
+        //                 "price" => "1190740",
+        //                 "amount" => "0.40943964",
+        //                 "count" => 1,
+        //                 "total" => "0.40943964"
         //             ),
         //         )
         //     }
@@ -126,10 +126,10 @@ class bitopro extends \ccxt\async\bitopro {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the bitopro api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -146,19 +146,19 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_trade(Client $client, $message) {
         //
         //     {
-        //         $event => 'TRADE',
-        //         timestamp => 1650116346665,
-        //         datetime => '2022-04-16T13:39:06.665Z',
-        //         pair => 'BTC_TWD',
-        //         data => array(
+        //         "event" => "TRADE",
+        //         "timestamp" => 1650116346665,
+        //         "datetime" => "2022-04-16T13:39:06.665Z",
+        //         "pair" => "BTC_TWD",
+        //         "data" => array(
         //             array(
-        //                 $event => '',
-        //                 datetime => '',
-        //                 pair => '',
-        //                 timestamp => 1650116227,
-        //                 price => '1189429',
-        //                 amount => '0.0153127',
-        //                 isBuyer => true
+        //                 "event" => '',
+        //                 "datetime" => '',
+        //                 "pair" => '',
+        //                 "timestamp" => 1650116227,
+        //                 "price" => "1189429",
+        //                 "amount" => "0.0153127",
+        //                 "isBuyer" => true
         //             ),
         //         )
         //     }
@@ -187,8 +187,8 @@ class bitopro extends \ccxt\async\bitopro {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @param {array} [$params] extra parameters specific to the bitopro api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -201,20 +201,20 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $event => 'TICKER',
-        //         $timestamp => 1650119165710,
-        //         $datetime => '2022-04-16T14:26:05.710Z',
-        //         pair => 'BTC_TWD',
-        //         lastPrice => '1189110',
-        //         lastPriceUSD => '40919.1328',
-        //         lastPriceTWD => '1189110',
-        //         isBuyer => true,
-        //         priceChange24hr => '1.23',
-        //         volume24hr => '7.2090',
-        //         volume24hrUSD => '294985.5375',
-        //         volume24hrTWD => '8572279',
-        //         high24hr => '1193656',
-        //         low24hr => '1179321'
+        //         "event" => "TICKER",
+        //         "timestamp" => 1650119165710,
+        //         "datetime" => "2022-04-16T14:26:05.710Z",
+        //         "pair" => "BTC_TWD",
+        //         "lastPrice" => "1189110",
+        //         "lastPriceUSD" => "40919.1328",
+        //         "lastPriceTWD" => "1189110",
+        //         "isBuyer" => true,
+        //         "priceChange24hr" => "1.23",
+        //         "volume24hr" => "7.2090",
+        //         "volume24hrUSD" => "294985.5375",
+        //         "volume24hrTWD" => "8572279",
+        //         "high24hr" => "1193656",
+        //         "low24hr" => "1179321"
         //     }
         //
         $marketId = $this->safe_string($message, 'pair');
@@ -267,9 +267,9 @@ class bitopro extends \ccxt\async\bitopro {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the bitopro api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the bitopro api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -283,16 +283,16 @@ class bitopro extends \ccxt\async\bitopro {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         $event => 'ACCOUNT_BALANCE',
-        //         $timestamp => 1650450505715,
-        //         $datetime => '2022-04-20T10:28:25.715Z',
-        //         $data => {
-        //           ADA => array(
-        //             $currency => 'ADA',
-        //             amount => '0',
-        //             available => '0',
-        //             stake => '0',
-        //             tradable => true
+        //         "event" => "ACCOUNT_BALANCE",
+        //         "timestamp" => 1650450505715,
+        //         "datetime" => "2022-04-20T10:28:25.715Z",
+        //         "data" => {
+        //           "ADA" => array(
+        //             "currency" => "ADA",
+        //             "amount" => "0",
+        //             "available" => "0",
+        //             "stake" => "0",
+        //             "tradable" => true
         //           ),
         //         }
         //     }

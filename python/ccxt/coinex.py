@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -306,6 +305,11 @@ class coinex(Exchange, ImplicitAPI):
                 'accountsById': {
                     'spot': '0',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -316,8 +320,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         response = self.publicGetCommonAssetConfig(params)
         #     {
-        #         code: 0,
-        #         data: {
+        #         "code": 0,
+        #         "data": {
         #             "USDT-ERC20": {
         #                  "asset": "USDT",
         #                  "chain": "ERC20",
@@ -331,7 +335,7 @@ class coinex(Exchange, ImplicitAPI):
         #             },
         #             ...
         #         },
-        #         message: 'Success',
+        #         "message": "Success",
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -439,8 +443,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for coinex
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         promises = [
             self.fetch_spot_markets(params),
@@ -533,6 +537,7 @@ class coinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': market,
             })
         return result
@@ -628,11 +633,12 @@ class coinex(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # Spot fetchTicker, fetchTickers
         #
@@ -684,9 +690,9 @@ class coinex(Exchange, ImplicitAPI):
             'high': self.safe_string(ticker, 'high'),
             'low': self.safe_string(ticker, 'low'),
             'bid': self.safe_string(ticker, 'buy'),
-            'bidVolume': None,
+            'bidVolume': self.safe_string(ticker, 'buy_amount'),
             'ask': self.safe_string(ticker, 'sell'),
-            'askVolume': None,
+            'askVolume': self.safe_string(ticker, 'sell_amount'),
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
             'close': last,
@@ -700,12 +706,12 @@ class coinex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -770,14 +776,14 @@ class coinex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response['data'], market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -861,34 +867,32 @@ class coinex(Exchange, ImplicitAPI):
             }, marketInner)
             ticker['symbol'] = symbol
             result[symbol] = ticker
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
         response = self.perpetualPublicGetTime(params)
         #
         #     {
-        #         code: '0',
-        #         data: '1653261274414',
-        #         message: 'OK'
+        #         "code": "0",
+        #         "data": "1653261274414",
+        #         "message": "OK"
         #     }
         #
-        return self.safe_number(response, 'data')
+        return self.safe_integer(response, 'data')
 
     def fetch_order_book(self, symbol: str, limit=20, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -949,7 +953,7 @@ class coinex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'time')
         return self.parse_order_book(result, symbol, timestamp)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # Spot and Swap fetchTrades(public)
         #
@@ -1065,14 +1069,14 @@ class coinex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1108,8 +1112,8 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `fee structure <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1139,8 +1143,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}):
         """
         fetch the trading fees for multiple markets
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a dictionary of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.publicGetMarketInfo(params)
@@ -1183,7 +1187,7 @@ class coinex(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #     [
         #         1591484400,
@@ -1205,15 +1209,15 @@ class coinex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1401,11 +1405,53 @@ class coinex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_financial_balance(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountInvestmentBalance(params)
+        #
+        #     {
+        #          "code": 0,
+        #          "data": [
+        #              {
+        #                  "asset": "CET",
+        #                  "available": "0",
+        #                  "frozen": "0",
+        #                  "lock": "0",
+        #              },
+        #              {
+        #                  "asset": "USDT",
+        #                  "available": "999900",
+        #                  "frozen": "0",
+        #                  "lock": "0"
+        #              }
+        #          ],
+        #          "message": "Success"
+        #      }
+        #
+        result = {'info': response}
+        balances = self.safe_value(response, 'data', {})
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'available')
+            frozen = self.safe_string(balance, 'frozen')
+            locked = self.safe_string(balance, 'lock')
+            account['used'] = Precise.string_add(frozen, locked)
+            result[code] = account
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account001_account_info         # spot
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account004_investment_balance   # financial
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account006_margin_account       # margin
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http016_asset_query       # swap
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param str [params.type]: 'margin', 'swap', 'financial', or 'spot'
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -1416,6 +1462,8 @@ class coinex(Exchange, ImplicitAPI):
             return self.fetch_margin_balance(params)
         elif marketType == 'swap':
             return self.fetch_swap_balance(params)
+        elif marketType == 'financial':
+            return self.fetch_financial_balance(params)
         else:
             return self.fetch_spot_balance(params)
 
@@ -1428,7 +1476,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrder
         #
@@ -1660,7 +1708,8 @@ class coinex(Exchange, ImplicitAPI):
         remainingString = self.safe_string(order, 'left')
         marketId = self.safe_string(order, 'market')
         defaultType = self.safe_string(self.options, 'defaultType')
-        market = self.safe_market(marketId, market, None, defaultType)
+        orderType = 'swap' if ('source' in order) else defaultType
+        market = self.safe_market(marketId, market, None, orderType)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:
@@ -1716,27 +1765,27 @@ class coinex(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
         create a trade order
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
-        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http017_put_limit
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http018_put_market
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http019_put_limit_stop
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http020_put_market_stop
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http031_market_close
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http030_limit_close
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :param float triggerPrice: price at which to triger stop orders
         :param float stopPrice: price at which to triger stop orders
         :param float stopLossPrice: price at which to trigger stop-loss orders
         :param float takeProfitPrice: price at which to trigger take-profit orders
-        :param str params['timeInForce']: "GTC", "IOC", "FOK", "PO"
+        :param str [params.timeInForce]: "GTC", "IOC", "FOK", "PO"
         :param bool params.postOnly:
         :param bool params.reduceOnly:
-        :param bool|None params['position_id']: *required for reduce only orders* the position id to reduce
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param bool [params.position_id]: *required for reduce only orders* the position id to reduce
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1938,15 +1987,15 @@ class coinex(Exchange, ImplicitAPI):
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade022_modify_order
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.check_required_argument('editOrder', symbol, 'symbol')
         self.load_markets()
@@ -2000,9 +2049,9 @@ class coinex(Exchange, ImplicitAPI):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2140,11 +2189,10 @@ class coinex(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
         :param str symbol: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancellAllOrders() requires a symbol argument')
+        self.check_required_symbol('cancelAllOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketId = market['id']
@@ -2183,11 +2231,10 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         swap = market['swap']
@@ -2504,25 +2551,25 @@ class coinex(Exchange, ImplicitAPI):
         orders = self.safe_value(data, tradeRequest, [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         return self.fetch_orders_by_status('pending', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
@@ -2530,8 +2577,8 @@ class coinex(Exchange, ImplicitAPI):
         """
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2545,12 +2592,12 @@ class coinex(Exchange, ImplicitAPI):
         response = self.privatePutBalanceDepositAddressCoinType(self.extend(request, params))
         #
         #     {
-        #         code: 0,
-        #         data: {
-        #             coin_address: 'TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5',
-        #             is_bitcoin_cash: False
+        #         "code": 0,
+        #         "data": {
+        #             "coin_address": "TV639dSpb9iGRtoFYkCp4AoaaDYKrK1pw5",
+        #             "is_bitcoin_cash": False
         #         },
-        #         message: 'Success'
+        #         "message": "Success"
         #     }
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
@@ -2559,8 +2606,8 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2582,13 +2629,13 @@ class coinex(Exchange, ImplicitAPI):
         response = self.privateGetBalanceDepositAddressCoinType(self.extend(request, params))
         #
         #      {
-        #          code: 0,
-        #          data: {
-        #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        #            # coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy',  # with embedded tag/memo
-        #            is_bitcoin_cash: False
+        #          "code": 0,
+        #          "data": {
+        #            "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #            # coin_address: "xxxxxxxxxxxxxx:yyyyyyyyy",  # with embedded tag/memo
+        #            "is_bitcoin_cash": False
         #          },
-        #          message: 'Success'
+        #          "message": "Success"
         #      }
         #
         data = self.safe_value(response, 'data', {})
@@ -2617,8 +2664,8 @@ class coinex(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
-        #         is_bitcoin_cash: False
+        #         "coin_address": "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
+        #         "is_bitcoin_cash": False
         #     }
         #
         coinAddress = self.safe_string(depositAddress, 'coin_address')
@@ -2643,10 +2690,10 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         self.load_markets()
         market = None
@@ -2769,9 +2816,9 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
         """
         fetch all open positions
-        :param [str]|None symbols: list of unified market symbols
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2852,14 +2899,14 @@ class coinex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))
-        return self.filter_by_array(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `position structure <https://github.com/ccxt/ccxt/wiki/Manual#position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2993,7 +3040,7 @@ class coinex(Exchange, ImplicitAPI):
         liquidationPrice = self.safe_string(position, 'liq_price')
         entryPrice = self.safe_string(position, 'open_price')
         unrealizedPnl = self.safe_string(position, 'profit_unreal')
-        contractSize = self.safe_string(position, 'amount')
+        contracts = self.safe_number(position, 'amount')
         sideInteger = self.safe_integer(position, 'side')
         side = 'short' if (sideInteger == 1) else 'long'
         timestamp = self.safe_timestamp(position, 'update_time')
@@ -3011,8 +3058,8 @@ class coinex(Exchange, ImplicitAPI):
             'entryPrice': entryPrice,
             'unrealizedPnl': unrealizedPnl,
             'percentage': None,
-            'contracts': None,
-            'contractSize': contractSize,
+            'contracts': contracts,
+            'contractSize': self.safe_number(market, 'contractSize'),
             'markPrice': None,
             'lastPrice': None,
             'side': side,
@@ -3027,6 +3074,8 @@ class coinex(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'leverage': leverage,
             'marginRatio': None,
+            'stopLossPrice': self.safe_number(position, 'stop_loss_price'),
+            'takeProfitPrice': self.safe_number(position, 'take_profit_price'),
         })
 
     def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
@@ -3034,11 +3083,10 @@ class coinex(Exchange, ImplicitAPI):
         set margin mode to 'cross' or 'isolated'
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
@@ -3069,30 +3117,30 @@ class coinex(Exchange, ImplicitAPI):
 
     def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
         """
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage
         set the level of leverage for a market
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinex api endpoint
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated'(default is 'cross')
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         self.load_markets()
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode')
-        defaultPositionType = None
-        if defaultMarginMode == 'isolated':
-            defaultPositionType = 1
-        elif defaultMarginMode == 'cross':
-            defaultPositionType = 2
-        positionType = self.safe_integer(params, 'position_type', defaultPositionType)
-        if positionType is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a position_type parameter that will transfer margin to the specified trading pair')
         market = self.market(symbol)
-        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
-        if market['type'] != 'swap':
+        if not market['swap']:
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
-        if (leverage < 3) or (leverage > maxLeverage):
-            raise BadRequest(self.id + ' setLeverage() leverage should be between 3 and ' + str(maxLeverage) + ' for ' + symbol)
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
+        positionType = None
+        if marginMode == 'isolated':
+            positionType = 1
+        elif marginMode == 'cross':
+            positionType = 2
+        minLeverage = self.safe_integer(market['limits']['leverage'], 'min', 1)
+        maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)
+        if (leverage < minLeverage) or (leverage > maxLeverage):
+            raise BadRequest(self.id + ' setLeverage() leverage should be between ' + str(minLeverage) + ' and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'market': market['id'],
             'leverage': str(leverage),
@@ -3103,9 +3151,9 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :param [str]|None symbols: list of unified market symbols
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://github.com/ccxt/ccxt/wiki/Manual#leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
         response = self.perpetualPublicGetMarketLimitConfig(params)
@@ -3263,8 +3311,8 @@ class coinex(Exchange, ImplicitAPI):
         add margin
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 1, params)
 
@@ -3273,8 +3321,8 @@ class coinex(Exchange, ImplicitAPI):
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#reduce-margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 2, params)
 
@@ -3282,13 +3330,12 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
         :param str symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch funding history for
-        :param int|None limit: the maximum number of funding history structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingHistory', symbol)
         limit = 100 if (limit is None) else limit
         self.load_markets()
         market = self.market(symbol)
@@ -3352,8 +3399,8 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch the current funding rate
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `funding rate structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3457,9 +3504,9 @@ class coinex(Exchange, ImplicitAPI):
         """
          *  @method
         fetch the current funding rates
-        :param [str] symbols: unified market symbols
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :param str[] symbols: unified market symbols
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: an array of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3520,17 +3567,21 @@ class coinex(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str|None tag:
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param str tag:
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param str [params.network]: unified network code
+        :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
+        networkCode = self.safe_string_upper(params, 'network')
+        params = self.omit(params, 'network')
         if tag:
             address = address + ':' + tag
         request = {
@@ -3539,6 +3590,8 @@ class coinex(Exchange, ImplicitAPI):
             'actual_amount': float(amount),  # the actual amount without fees, https://www.coinex.com/fees
             'transfer_method': 'onchain',  # onchain, local
         }
+        if networkCode is not None:
+            request['smart_contract_name'] = self.network_code_to_id(networkCode)
         response = self.privatePostBalanceCoinWithdraw(self.extend(request, params))
         #
         #     {
@@ -3574,18 +3627,26 @@ class coinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit=100, params={}):
+    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
+        :see: https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history
         fetches historical funding rate prices
-        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|None since: timestamp in ms of the earliest funding rate to fetch
-        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :returns dict[]: a list of `funding rate structures <https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
+        if limit is None:
+            limit = 100
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -3595,6 +3656,7 @@ class coinex(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['start_time'] = since
+        request, params = self.handle_until_option('end_time', request, params)
         response = self.perpetualPublicGetMarketFundingHistory(self.extend(request, params))
         #
         #     {
@@ -3633,7 +3695,7 @@ class coinex(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
@@ -3744,8 +3806,8 @@ class coinex(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -3844,11 +3906,11 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch a history of internal transfers made on an account
-        :param str|None code: unified currency code of the currency transferred
-        :param int|None since: the earliest time in ms to fetch transfers for
-        :param int|None limit: the maximum number of  transfers structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :param str code: unified currency code of the currency transferred
+        :param int [since]: the earliest time in ms to fetch transfers for
+        :param int [limit]: the maximum number of  transfers structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `transfer structures <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
         self.load_markets()
         currency = None
@@ -3920,14 +3982,14 @@ class coinex(Exchange, ImplicitAPI):
         transfers = self.safe_value(data, 'records', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch withdrawals for
-        :param int|None limit: the maximum number of withdrawals structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         request = {}
         currency = None
@@ -3981,14 +4043,14 @@ class coinex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `transaction structures <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         request = {}
         currency = None
@@ -4074,8 +4136,8 @@ class coinex(Exchange, ImplicitAPI):
         """
         fetch the rate of interest to borrow a currency for margin trading
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
         """
         self.load_markets()
         market = None
@@ -4114,8 +4176,8 @@ class coinex(Exchange, ImplicitAPI):
     def fetch_borrow_rates(self, params={}):
         """
         fetch the borrow interest rates of all currencies
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a list of `borrow rate structures <https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure>`
         """
         self.load_markets()
         response = self.privateGetMarginConfig(params)
@@ -4246,15 +4308,14 @@ class coinex(Exchange, ImplicitAPI):
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        see https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
+        :see: https://github.com/coinexcom/coinex_exchange_api/wiki/086margin_loan
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol, required for coinex
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument')
+        self.check_required_symbol('borrowMargin', symbol)
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4283,16 +4344,15 @@ class coinex(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        see https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
+        :see: https://github.com/coinexcom/coinex_exchange_api/wiki/087margin_flat
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol, required for coinex
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :param str|None params['loan_id']: extra parameter that is not required
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :param str [params.loan_id]: extra parameter that is not required
+        :returns dict: a `margin loan structure <https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument')
+        self.check_required_symbol('repayMargin', symbol)
         self.load_markets()
         market = self.market(symbol)
         currency = self.currency(code)
@@ -4344,13 +4404,13 @@ class coinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdraw fees
-        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
-        :param [str]|None codes: list of unified currency codes
-        :param dict params: extra parameters specific to the coinex api endpoint
-        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :see: https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
+        :param str[]|None codes: list of unified currency codes
+        :param dict [params]: extra parameters specific to the coinex api endpoint
+        :returns dict[]: a list of `fees structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
         """
         self.load_markets()
         request = {}

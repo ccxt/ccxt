@@ -55,9 +55,8 @@ export default class bittrex extends bittrexRest {
     subscribeToMyTrades(authentication: any, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
-    subscribeToOrderBook(negotiation: any, symbol: any, limit?: Int, params?: {}): Promise<any>;
     fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
-    handleSubscribeToOrderBook(client: Client, message: any, subscription: any): void;
+    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -65,5 +64,6 @@ export default class bittrex extends bittrexRest {
     handleSystemStatusHelper(): Promise<void>;
     handleSystemStatus(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
 }

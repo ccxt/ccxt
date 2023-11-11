@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
@@ -22,11 +23,15 @@ class bitget extends \ccxt\async\bitget {
                 'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
+                'watchOHLCVForSymbols' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
+                'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -57,7 +62,18 @@ class bitget extends \ccxt\async\bitget {
                 'ws' => array(
                     'exact' => array(
                         '30001' => '\\ccxt\\BadRequest', // array("event":"error","code":30001,"msg":"instType:sp,channel:candlenull,instId:BTCUSDT doesn't exist")
+                        '30002' => '\\ccxt\\AuthenticationError', // illegal request
+                        '30003' => '\\ccxt\\BadRequest', // invalid op
+                        '30004' => '\\ccxt\\AuthenticationError', // requires login
+                        '30005' => '\\ccxt\\AuthenticationError', // login failed
+                        '30006' => '\\ccxt\\RateLimitExceeded', // too many requests
+                        '30007' => '\\ccxt\\RateLimitExceeded', // request over limit,connection close
+                        '30011' => '\\ccxt\\AuthenticationError', // invalid ACCESS_KEY
+                        '30012' => '\\ccxt\\AuthenticationError', // invalid ACCESS_PASSPHRASE
+                        '30013' => '\\ccxt\\AuthenticationError', // invalid ACCESS_TIMESTAMP
+                        '30014' => '\\ccxt\\BadRequest', // Request timestamp expired
                         '30015' => '\\ccxt\\AuthenticationError', // array( event => 'error', code => 30015, msg => 'Invalid sign' )
+                        '30016' => '\\ccxt\\BadRequest', // array( event => 'error', code => 30016, msg => 'Param error' )
                     ),
                 ),
             ),
@@ -72,28 +88,36 @@ class bitget extends \ccxt\async\bitget {
             return $market['info']['symbolName'];
         } else {
             if (!$sandboxMode) {
-                return str_replace('_UMCBL', '', $market['id']);
+                return str_replace('_CMCBL', '', $market['id'].replace ('_UMCBL', '').replace ('_DMCBL', ''));
             } else {
-                return str_replace('_SUMCBL', '', $market['id']);
+                return str_replace('_SCMCBL', '', $market['id'].replace ('_SUMCBL', '').replace ('_SDMCBL', ''));
             }
         }
     }
 
     public function get_market_id_from_arg($arg) {
         //
-        // array( $arg => { $instType => 'sp', channel => 'ticker', instId => 'BTCUSDT' )
+        // array( $arg => { $instType => 'sp', channel => "ticker", instId => "BTCUSDT" )
         //
         $instType = $this->safe_string($arg, 'instType');
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
-            $marketId .= '_SPBL';
+            $marketId = $marketId . '_SPBL';
         } else {
-            if (!$sandboxMode) {
-                $marketId .= '_UMCBL';
+            $extension = $sandboxMode ? '_S' : '_';
+            $splitByUSDT = explode('USDT', $marketId);
+            $splitByPERP = explode('PERP', $marketId);
+            $splitByUSDTLength = count($splitByUSDT);
+            $splitByPERPLength = count($splitByPERP);
+            if ($splitByUSDTLength > 1) {
+                $extension .= 'UMCBL';
+            } elseif ($splitByPERPLength > 1) {
+                $extension .= 'CMCBL';
             } else {
-                $marketId .= '_SUMCBL';
+                $extension .= 'DMCBL';
             }
+            $marketId = $marketId . $extension;
         }
         return $marketId;
     }
@@ -103,8 +127,8 @@ class bitget extends \ccxt\async\bitget {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -120,24 +144,57 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function watch_tickers(?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $market = $this->market($symbols[0]);
+            $instType = $market['spot'] ? 'sp' : 'mc';
+            $messageHash = 'tickers::' . implode(',', $symbols);
+            $marketIds = $this->market_ids($symbols);
+            $topics = [ ];
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $marketInner = $this->market($marketId);
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'ticker',
+                    'instId' => $this->get_ws_market_id($marketInner),
+                );
+                $topics[] = $args;
+            }
+            $tickers = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         //
         //   {
-        //       action => 'snapshot',
-        //       arg => array( instType => 'sp', channel => 'ticker', instId => 'BTCUSDT' ),
-        //       data => array(
+        //       "action" => "snapshot",
+        //       "arg" => array( instType => 'sp', channel => "ticker", instId => "BTCUSDT" ),
+        //       "data" => array(
         //         {
-        //           instId => 'BTCUSDT',
-        //           last => '21150.53',
-        //           open24h => '20759.65',
-        //           high24h => '21202.29',
-        //           low24h => '20518.82',
-        //           bestBid => '21150.500000',
-        //           bestAsk => '21150.600000',
-        //           baseVolume => '25402.1961',
-        //           quoteVolume => '530452554.2156',
-        //           ts => 1656408934044,
-        //           labeId => 0
+        //           "instId" => "BTCUSDT",
+        //           "last" => "21150.53",
+        //           "open24h" => "20759.65",
+        //           "high24h" => "21202.29",
+        //           "low24h" => "20518.82",
+        //           "bestBid" => "21150.500000",
+        //           "bestAsk" => "21150.600000",
+        //           "baseVolume" => "25402.1961",
+        //           "quoteVolume" => "530452554.2156",
+        //           "ts" => 1656408934044,
+        //           "labeId" => 0
         //         }
         //       )
         //   }
@@ -147,6 +204,17 @@ class bitget extends \ccxt\async\bitget {
         $this->tickers[$symbol] = $ticker;
         $messageHash = 'ticker:' . $symbol;
         $client->resolve ($ticker, $messageHash);
+        // watchTickers part
+        $messageHashes = $this->find_message_hashes($client, 'tickers::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHashTicker = $messageHashes[$i];
+            $parts = explode('::', $messageHashTicker);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            if ($this->in_array($symbol, $symbols)) {
+                $client->resolve ($ticker, $messageHashTicker);
+            }
+        }
         return $message;
     }
 
@@ -154,21 +222,21 @@ class bitget extends \ccxt\async\bitget {
         //
         // spot
         //     {
-        //         action => 'snapshot',
-        //         $arg => array( instType => 'sp', channel => 'ticker', instId => 'BTCUSDT' ),
-        //         $data => array(
+        //         "action" => "snapshot",
+        //         "arg" => array( instType => 'sp', channel => "ticker", instId => "BTCUSDT" ),
+        //         "data" => array(
         //           {
-        //             instId => 'BTCUSDT',
-        //             last => '21150.53',
-        //             open24h => '20759.65',
-        //             high24h => '21202.29',
-        //             low24h => '20518.82',
-        //             bestBid => '21150.500000',
-        //             bestAsk => '21150.600000',
-        //             $baseVolume => '25402.1961',
-        //             $quoteVolume => '530452554.2156',
-        //             ts => 1656408934044,
-        //             labeId => 0
+        //             "instId" => "BTCUSDT",
+        //             "last" => "21150.53",
+        //             "open24h" => "20759.65",
+        //             "high24h" => "21202.29",
+        //             "low24h" => "20518.82",
+        //             "bestBid" => "21150.500000",
+        //             "bestAsk" => "21150.600000",
+        //             "baseVolume" => "25402.1961",
+        //             "quoteVolume" => "530452554.2156",
+        //             "ts" => 1656408934044,
+        //             "labeId" => 0
         //           }
         //         )
         //     }
@@ -247,10 +315,10 @@ class bitget extends \ccxt\async\bitget {
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-             * @param {int|null} $limit the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[[int]]} A list of candles ordered, open, high, low, close, volume
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -269,6 +337,44 @@ class bitget extends \ccxt\async\bitget {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
+            /**
+             * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $topics = array();
+            $hashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $data = $symbolsAndTimeframes[$i];
+                $currentSymbol = $this->safe_string($data, 0);
+                $currentTimeframe = $this->safe_string($data, 1);
+                $market = $this->market($currentSymbol);
+                $interval = $this->safe_string($this->options['timeframes'], $currentTimeframe);
+                $instType = $market['spot'] ? 'sp' : 'mc';
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'candle' . $interval,
+                    'instId' => $this->get_ws_market_id($market),
+                );
+                $topics[] = $args;
+                $hashes[] = $currentSymbol . '#' . $currentSymbol;
+            }
+            $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
+            list($symbol, $timeframe, $stored) = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                $limit = $stored->getLimit ($symbol, $limit);
+            }
+            $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
+            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
         }) ();
     }
 
@@ -323,9 +429,10 @@ class bitget extends \ccxt\async\bitget {
         }
         $messageHash = 'candles:' . $timeframe . ':' . $symbol;
         $client->resolve ($stored, $messageHash);
+        $this->resolve_multiple_ohlcv($client, 'multipleOHLCV::', $symbol, $timeframe, $stored);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null) {
+    public function parse_ws_ohlcv($ohlcv, $market = null): array {
         //
         //   array(
         //      "1595779200000", // timestamp
@@ -351,9 +458,9 @@ class bitget extends \ccxt\async\bitget {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -362,7 +469,7 @@ class bitget extends \ccxt\async\bitget {
             $instType = $market['spot'] ? 'sp' : 'mc';
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }
@@ -372,6 +479,44 @@ class bitget extends \ccxt\async\bitget {
                 'instId' => $this->get_ws_market_id($market),
             );
             $orderbook = Async\await($this->watch_public($messageHash, $args, $params));
+            if ($incrementalFeed) {
+                return $orderbook->limit ();
+            } else {
+                return $orderbook;
+            }
+        }) ();
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {int} [$limit] the maximum amount of order book entries to return
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $channel = 'books';
+            $incrementalFeed = true;
+            if (($limit === 5) || ($limit === 15)) {
+                $channel .= (string) $limit;
+                $incrementalFeed = false;
+            }
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $instType = $market['spot'] ? 'sp' : 'mc';
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => $channel,
+                    'instId' => $this->get_ws_market_id($market),
+                );
+                $topics[] = $args;
+            }
+            $messageHash = 'multipleOrderbooks::' . implode(',', $symbols);
+            $orderbook = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
             if ($incrementalFeed) {
                 return $orderbook->limit ();
             } else {
@@ -434,7 +579,8 @@ class bitget extends \ccxt\async\bitget {
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
             $checksum = $this->safe_value($this->options, 'checksum', true);
-            if ($checksum) {
+            $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
+            if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
                 $storedBids = $storedOrderBook['bids'];
                 $asksLength = count($storedAsks);
@@ -463,6 +609,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $this->orderbooks[$symbol] = $storedOrderBook;
         $client->resolve ($storedOrderBook, $messageHash);
+        $this->resolve_promise_if_messagehash_matches($client, 'multipleOrderbooks::', $symbol, $storedOrderBook);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -483,11 +630,13 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#$trades-channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#$trades-channel
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -507,20 +656,58 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular symbol
+             * @param {string} symbol unified symbol of the $market to fetch $trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 0) {
+                throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $topics = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $instType = $market['spot'] ? 'sp' : 'mc';
+                $args = array(
+                    'instType' => $instType,
+                    'channel' => 'trade',
+                    'instId' => $this->get_ws_market_id($market),
+                );
+                $topics[] = $args;
+            }
+            $messageHash = 'multipleTrades::' . implode(',', $symbols);
+            $trades = Async\await($this->watch_public_multiple($messageHash, $topics, $params));
+            if ($this->newUpdates) {
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
     public function handle_trades(Client $client, $message) {
         //
         //    {
-        //        action => 'snapshot',
-        //        $arg => array( instType => 'sp', channel => 'trade', instId => 'BTCUSDT' ),
-        //        $data => array(
-        //          array( '1656411148032', '21047.78', '2.2294', 'buy' ),
-        //          array( '1656411142030', '21047.85', '2.1225', 'buy' ),
-        //          array( '1656411133064', '21045.88', '1.7704', 'sell' ),
-        //          array( '1656411126037', '21052.39', '2.6905', 'buy' ),
-        //          array( '1656411118029', '21056.87', '1.2308', 'sell' ),
-        //          array( '1656411108028', '21060.01', '1.7186', 'sell' ),
-        //          array( '1656411100027', '21060.4', '1.3641', 'buy' ),
-        //          array( '1656411093030', '21058.76', '1.5049', 'sell' )
+        //        "action" => "snapshot",
+        //        "arg" => array( instType => 'sp', channel => "trade", instId => "BTCUSDT" ),
+        //        "data" => array(
+        //          array( '1656411148032', '21047.78', "2.2294", "buy" ),
+        //          array( '1656411142030', '21047.85', "2.1225", "buy" ),
+        //          array( '1656411133064', '21045.88', "1.7704", "sell" ),
+        //          array( '1656411126037', '21052.39', "2.6905", "buy" ),
+        //          array( '1656411118029', '21056.87', "1.2308", "sell" ),
+        //          array( '1656411108028', '21060.01', "1.7186", "sell" ),
+        //          array( '1656411100027', '21060.4', "1.3641", "buy" ),
+        //          array( '1656411093030', '21058.76', "1.5049", "sell" )
         //        )
         //    }
         //
@@ -542,6 +729,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $messageHash = 'trade:' . $symbol;
         $client->resolve ($stored, $messageHash);
+        $this->resolve_promise_if_messagehash_matches($client, 'multipleTrades::', $symbol, $stored);
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -549,10 +737,10 @@ class bitget extends \ccxt\async\bitget {
         // public $trade
         //
         //   array(
-        //       '1656411148032', // $timestamp
-        //       '21047.78', // $price
-        //       '2.2294', // size
-        //       'buy', // $side
+        //       "1656411148032", // $timestamp
+        //       "21047.78", // $price
+        //       "2.2294", // size
+        //       "buy", // $side
         //   )
         //
         $market = $this->safe_market(null, $market);
@@ -577,20 +765,206 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch all open positions
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
+             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {string} $params->instType Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl => USDC margin Perpetual Contract Private Channel
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $messageHash = '';
+            $subscriptionHash = 'positions';
+            $instType = 'umcbl';
+            $symbols = $this->market_symbols($symbols);
+            if (!$this->is_empty($symbols)) {
+                $instType = 'dmcbl';
+                $market = $this->get_market_from_symbols($symbols);
+                $messageHash = '::' . implode(',', $symbols);
+                if ($market['settle'] === 'USDT') {
+                    $instType = 'umcbl';
+                } elseif ($market['settle'] === 'USDC') {
+                    $instType = 'cmcbl';
+                }
+            }
+            list($instType, $params) = $this->handle_option_and_params($params, 'watchPositions', 'instType', $instType);
+            $messageHash = $instType . ':positions' . $messageHash;
+            $args = array(
+                'instType' => $instType,
+                'channel' => 'positions',
+                'instId' => 'default',
+            );
+            $newPositions = Async\await($this->watch_private($messageHash, $subscriptionHash, $args, $params));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($newPositions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_positions(Client $client, $message) {
+        //
+        //    {
+        //        action => 'snapshot',
+        //        $arg => array(
+        //            $instType => 'umcbl',
+        //            channel => 'positions',
+        //            instId => 'default'
+        //        ),
+        //        data => [array(
+        //                posId => '926036334386778112',
+        //                instId => 'LTCUSDT_UMCBL',
+        //                instName => 'LTCUSDT',
+        //                marginCoin => 'USDT',
+        //                margin => '9.667',
+        //                marginMode => 'crossed',
+        //                holdSide => 'long',
+        //                holdMode => 'double_hold',
+        //                total => '0.3',
+        //                available => '0.3',
+        //                locked => '0',
+        //                averageOpenPrice => '64.44',
+        //                leverage => 2,
+        //                achievedProfits => '0',
+        //                upl => '0.0759',
+        //                uplRate => '0.0078',
+        //                liqPx => '-153.32',
+        //                keepMarginRate => '0.010',
+        //                marginRate => '0.005910309637',
+        //                cTime => '1656510187717',
+        //                uTime => '1694880005480',
+        //                markPrice => '64.7',
+        //                autoMargin => 'off'
+        //            ),
+        //            ...
+        //        ]
+        //    }
+        //
+        $arg = $this->safe_value($message, 'arg', array());
+        $instType = $this->safe_string($arg, 'instType', '');
+        if ($this->positions === null) {
+            $this->positions = array();
+        }
+        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions))) {
+            $this->positions[$instType] = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions[$instType];
+        $rawPositions = $this->safe_value($message, 'data', array());
+        $dataLength = count($rawPositions);
+        if ($dataLength === 0) {
+            return;
+        }
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_ws_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $instType . ':$positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, $instType . ':positions');
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        //
+        //    {
+        //        posId => '926036334386778112',
+        //        instId => 'LTCUSDT_UMCBL',
+        //        instName => 'LTCUSDT',
+        //        marginCoin => 'USDT',
+        //        margin => '9.667',
+        //        $marginMode => 'crossed',
+        //        holdSide => 'long',
+        //        holdMode => 'double_hold',
+        //        total => '0.3',
+        //        available => '0.3',
+        //        locked => '0',
+        //        averageOpenPrice => '64.44',
+        //        leverage => 2,
+        //        achievedProfits => '0',
+        //        upl => '0.0759',
+        //        uplRate => '0.0078',
+        //        liqPx => '-153.32',
+        //        keepMarginRate => '0.010',
+        //        marginRate => '0.005910309637',
+        //        cTime => '1656510187717',
+        //        uTime => '1694880005480',
+        //        markPrice => '64.7',
+        //        autoMargin => 'off'
+        //    }
+        //
+        $marketId = $this->safe_string($position, 'instId');
+        $marginModeId = $this->safe_string($position, 'marginMode');
+        $marginMode = $this->get_supported_mapping($marginModeId, array(
+            'crossed' => 'cross',
+            'fixed' => 'isolated',
+        ));
+        $hedgedId = $this->safe_string($position, 'holdMode');
+        $hedged = $this->get_supported_mapping($hedgedId, array(
+            'double_hold' => true,
+            'single_hold' => false,
+        ));
+        $timestamp = $this->safe_integer_2($position, 'uTime', 'cTime');
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => $this->safe_string($position, 'posId'),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'notional' => null,
+            'marginMode' => $marginMode,
+            'liquidationPrice' => null,
+            'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
+            'unrealizedPnl' => $this->safe_number($position, 'upl'),
+            'percentage' => $this->safe_number($position, 'uplRate'),
+            'contracts' => $this->safe_number($position, 'total'),
+            'contractSize' => null,
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'side' => $this->safe_string($position, 'holdSide'),
+            'hedged' => $hedged,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'keepMarginRate'),
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'marginRatio' => $this->safe_number($position, 'marginRate'),
+        ));
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#order-$channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#order-$channel
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#plan-order-$channel
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
-             * @param {int|null} $limit the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @param {int} [$since] the earliest time in ms to fetch $orders for
+             * @param {int} [$limit] the maximum number of  orde structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure
              */
             Async\await($this->load_markets());
             $market = null;
             $marketId = null;
-            $messageHash = 'order';
+            $isStop = $this->safe_value($params, 'stop', false);
+            $params = $this->omit($params, 'stop');
+            $messageHash = ($isStop) ? 'triggerOrder' : 'order';
             $subscriptionHash = 'order:trades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -598,8 +972,6 @@ class bitget extends \ccxt\async\bitget {
                 $marketId = $market['id'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
-            $isStop = $this->safe_value($params, 'stop', false);
-            $params = $this->omit($params, 'stop');
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             if (($type === 'spot') && ($symbol === null)) {
@@ -620,6 +992,9 @@ class bitget extends \ccxt\async\bitget {
                     $instType = 'SUMCBL';
                 }
             }
+            if ($isStop) {
+                $subscriptionHash = $subscriptionHash . ':stop'; // we don't want to re-use the same subscription hash for stop $orders
+            }
             $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $channel = $isStop ? 'ordersAlgo' : 'orders';
             $args = array(
@@ -631,7 +1006,7 @@ class bitget extends \ccxt\async\bitget {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
     }
 
@@ -640,30 +1015,65 @@ class bitget extends \ccxt\async\bitget {
         //
         // spot $order
         //    {
-        //        action => 'snapshot',
-        //        $arg => array( $instType => 'spbl', channel => 'orders', instId => 'LTCUSDT_SPBL' // instId='default' for contracts ),
-        //        $data => array(
+        //        "action" => "snapshot",
+        //        "arg" => array( $instType => 'spbl', $channel => 'orders', instId => "LTCUSDT_SPBL" // instId="default" for contracts ),
+        //        "data" => array(
         //          {
-        //            instId => 'LTCUSDT_SPBL',
-        //            ordId => '925999649898545152',
-        //            clOrdId => '8b2aa69a-6a09-46c0-a50d-7ed50277394c',
-        //            px => '20.00',
-        //            sz => '0.3000',
-        //            notional => '6.000000',
-        //            ordType => 'limit',
-        //            force => 'normal',
-        //            side => 'buy',
-        //            accFillSz => '0.0000',
-        //            avgPx => '0.00',
-        //            status => 'new',
-        //            cTime => 1656501441454,
-        //            uTime => 1656501441454,
-        //            orderFee => array()
+        //            "instId" => "LTCUSDT_SPBL",
+        //            "ordId" => "925999649898545152",
+        //            "clOrdId" => "8b2aa69a-6a09-46c0-a50d-7ed50277394c",
+        //            "px" => "20.00",
+        //            "sz" => "0.3000",
+        //            "notional" => "6.000000",
+        //            "ordType" => "limit",
+        //            "force" => "normal",
+        //            "side" => "buy",
+        //            "accFillSz" => "0.0000",
+        //            "avgPx" => "0.00",
+        //            "status" => "new",
+        //            "cTime" => 1656501441454,
+        //            "uTime" => 1656501441454,
+        //            "orderFee" => array()
         //          }
         //        )
         //    }
         //
+        //    {
+        //        "action" => "snapshot",
+        //        "arg" => array( $instType => 'umcbl', $channel => "ordersAlgo", instId => "default" ),
+        //        "data" => array(
+        //          {
+        //            "actualPx" => "55.000000000",
+        //            "actualSz" => "0.000000000",
+        //            "cOid" => "1104372235724890112",
+        //            "cTime" => "1699028779917",
+        //            "eps" => "web",
+        //            "hM" => "double_hold",
+        //            "id" => "1104372235724890113",
+        //            "instId" => "BTCUSDT_UMCBL",
+        //            "key" => "1104372235724890113",
+        //            "ordPx" => "55.000000000",
+        //            "ordType" => "limit",
+        //            "planType" => "pl",
+        //            "posSide" => "long",
+        //            "side" => "buy",
+        //            "state" => "not_trigger",
+        //            "sz" => "3.557000000",
+        //            "tS" => "open_long",
+        //            "tgtCcy" => "USDT",
+        //            "triggerPx" => "55.000000000",
+        //            "triggerPxType" => "last",
+        //            "triggerTime" => "1699028779917",
+        //            "uTime" => "1699028779917",
+        //            "userId" => "3704614084",
+        //            "version" => 1104372235586478100
+        //          }
+        //        ),
+        //        "ts" => 1699028780327
+        //    }
+        //
         $arg = $this->safe_value($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel');
         $instType = $this->safe_string($arg, 'instType');
         $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $isContractUpdate = (!$sandboxMode) ? ($instType === 'umcbl') : ($instType === 'sumcbl');
@@ -671,8 +1081,10 @@ class bitget extends \ccxt\async\bitget {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->triggerOrders = new ArrayCacheBySymbolById ($limit);
         }
-        $stored = $this->orders;
+        $stored = ($channel === 'ordersAlgo') ? $this->triggerOrders : $this->orders;
+        $messageHash = ($channel === 'ordersAlgo') ? 'triggerOrder' : 'order';
         $marketSymbols = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
@@ -689,79 +1101,79 @@ class bitget extends \ccxt\async\bitget {
         $keys = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
-            $messageHash = 'order:' . $symbol;
-            $client->resolve ($stored, $messageHash);
+            $innerMessageHash = $messageHash . ':' . $symbol;
+            $client->resolve ($stored, $innerMessageHash);
         }
-        $client->resolve ($stored, 'order');
+        $client->resolve ($stored, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
         //
         // spot $order
         //     {
-        //         instId => 'LTCUSDT_SPBL',
-        //         ordId => '925999649898545152',
-        //         clOrdId => '8b2aa69a-6a09-46c0-a50d-7ed50277394c',
-        //         px => '20.00',
-        //         sz => '0.3000',
-        //         notional => '6.000000',
-        //         ordType => 'limit',
-        //         force => 'normal',
-        //         $side => 'buy',
-        //         accFillSz => '0.0000',
-        //         avgPx => '0.00',
-        //         $status => 'new',
-        //         cTime => 1656501441454,
-        //         uTime => 1656501441454,
-        //         $orderFee => array()
+        //         "instId" => "LTCUSDT_SPBL",
+        //         "ordId" => "925999649898545152",
+        //         "clOrdId" => "8b2aa69a-6a09-46c0-a50d-7ed50277394c",
+        //         "px" => "20.00",
+        //         "sz" => "0.3000",
+        //         "notional" => "6.000000",
+        //         "ordType" => "limit",
+        //         "force" => "normal",
+        //         "side" => "buy",
+        //         "accFillSz" => "0.0000",
+        //         "avgPx" => "0.00",
+        //         "status" => "new",
+        //         "cTime" => 1656501441454,
+        //         "uTime" => 1656501441454,
+        //         "orderFee" => array()
         //     }
         // partial fill
         //
         //    {
-        //        instId => 'LTCUSDT_SPBL',
-        //        ordId => '926006174213914625',
-        //        clOrdId => '7ce28714-0016-46d0-a971-9a713a9923c5',
-        //        notional => '5.000000',
-        //        ordType => 'market',
-        //        force => 'normal',
-        //        $side => 'buy',
-        //        fillPx => '52.11',
-        //        tradeId => '926006174514073601',
-        //        fillSz => '0.0959',
-        //        fillTime => '1656502997043',
-        //        fillFee => '-0.0000959',
-        //        fillFeeCcy => 'LTC',
-        //        execType => 'T',
-        //        accFillSz => '0.0959',
-        //        avgPx => '52.11',
-        //        $status => 'partial-fill',
-        //        cTime => 1656502996972,
-        //        uTime => 1656502997119,
-        //        $orderFee => [Array]
+        //        "instId" => "LTCUSDT_SPBL",
+        //        "ordId" => "926006174213914625",
+        //        "clOrdId" => "7ce28714-0016-46d0-a971-9a713a9923c5",
+        //        "notional" => "5.000000",
+        //        "ordType" => "market",
+        //        "force" => "normal",
+        //        "side" => "buy",
+        //        "fillPx" => "52.11",
+        //        "tradeId" => "926006174514073601",
+        //        "fillSz" => "0.0959",
+        //        "fillTime" => "1656502997043",
+        //        "fillFee" => "-0.0000959",
+        //        "fillFeeCcy" => "LTC",
+        //        "execType" => "T",
+        //        "accFillSz" => "0.0959",
+        //        "avgPx" => "52.11",
+        //        "status" => "partial-fill",
+        //        "cTime" => 1656502996972,
+        //        "uTime" => 1656502997119,
+        //        "orderFee" => [Array]
         //    }
         //
         // contract $order
         //    {
-        //        accFillSz => '0',
-        //        cTime => 1656510642518,
-        //        clOrdId => '926038241960431617',
-        //        force => 'normal',
-        //        instId => 'LTCUSDT_UMCBL',
-        //        lever => '20',
-        //        notionalUsd => '7.5',
-        //        ordId => '926038241859768320',
-        //        ordType => 'limit',
-        //        $orderFee => array(
-        //             array(feeCcy => 'USDT', $fee => '0')
+        //        "accFillSz" => "0",
+        //        "cTime" => 1656510642518,
+        //        "clOrdId" => "926038241960431617",
+        //        "force" => "normal",
+        //        "instId" => "LTCUSDT_UMCBL",
+        //        "lever" => "20",
+        //        "notionalUsd" => "7.5",
+        //        "ordId" => "926038241859768320",
+        //        "ordType" => "limit",
+        //        "orderFee" => array(
+        //             array(feeCcy => "USDT", $fee => "0")
         //        )
-        //        posSide => 'long',
-        //        px => '25',
-        //        $side => 'buy',
-        //        $status => 'new',
-        //        sz => '0.3',
-        //        tdMode => 'cross',
-        //        tgtCcy => 'USDT',
-        //        uTime => 1656510642518
+        //        "posSide" => "long",
+        //        "px" => "25",
+        //        "side" => "buy",
+        //        "status" => "new",
+        //        "sz" => "0.3",
+        //        "tdMode" => "cross",
+        //        "tgtCcy" => "USDT",
+        //        "uTime" => 1656510642518
         //    }
         // algo $order
         //    {
@@ -865,11 +1277,11 @@ class bitget extends \ccxt\async\bitget {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches $trades made by the user
-             * @param {str|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch $trades for
-             * @param {int|null} $limit the maximum number of $trades structures to retrieve
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @return {[array]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @param {str} $symbol unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch $trades for
+             * @param {int} [$limit] the maximum number of $trades structures to retrieve
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
              */
             // only contracts stream provides the trade info consistently in between order updates
             // the spot stream only provides on $limit orders updates so we can't support it for spot
@@ -906,34 +1318,34 @@ class bitget extends \ccxt\async\bitget {
         // order and trade mixin (contract)
         //
         //   {
-        //       accFillSz => '0.1',
-        //       avgPx => '52.81',
-        //       cTime => 1656511777208,
-        //       clOrdId => '926043001195237376',
-        //       execType => 'T',
-        //       fillFee => '-0.0031686',
-        //       fillFeeCcy => 'USDT',
-        //       fillNotionalUsd => '5.281',
-        //       fillPx => '52.81',
-        //       fillSz => '0.1',
-        //       fillTime => '1656511777266',
-        //       force => 'normal',
-        //       instId => 'LTCUSDT_UMCBL',
-        //       lever => '1',
-        //       notionalUsd => '5.281',
-        //       ordId => '926043001132322816',
-        //       ordType => 'market',
-        //       orderFee => [Array],
-        //       pnl => '0.004',
-        //       posSide => 'long',
-        //       px => '0',
-        //       side => 'sell',
-        //       status => 'full-fill',
-        //       sz => '0.1',
-        //       tdMode => 'cross',
-        //       tgtCcy => 'USDT',
-        //       tradeId => '926043001438552105',
-        //       uTime => 1656511777266
+        //       "accFillSz" => "0.1",
+        //       "avgPx" => "52.81",
+        //       "cTime" => 1656511777208,
+        //       "clOrdId" => "926043001195237376",
+        //       "execType" => "T",
+        //       "fillFee" => "-0.0031686",
+        //       "fillFeeCcy" => "USDT",
+        //       "fillNotionalUsd" => "5.281",
+        //       "fillPx" => "52.81",
+        //       "fillSz" => "0.1",
+        //       "fillTime" => "1656511777266",
+        //       "force" => "normal",
+        //       "instId" => "LTCUSDT_UMCBL",
+        //       "lever" => "1",
+        //       "notionalUsd" => "5.281",
+        //       "ordId" => "926043001132322816",
+        //       "ordType" => "market",
+        //       "orderFee" => [Array],
+        //       "pnl" => "0.004",
+        //       "posSide" => "long",
+        //       "px" => "0",
+        //       "side" => "sell",
+        //       "status" => "full-fill",
+        //       "sz" => "0.1",
+        //       "tdMode" => "cross",
+        //       "tgtCcy" => "USDT",
+        //       "tradeId" => "926043001438552105",
+        //       "uTime" => 1656511777266
         //   }
         //
         if ($this->myTrades === null) {
@@ -955,34 +1367,34 @@ class bitget extends \ccxt\async\bitget {
         // order and $trade mixin (contract)
         //
         //   {
-        //       accFillSz => '0.1',
-        //       avgPx => '52.81',
-        //       cTime => 1656511777208,
-        //       clOrdId => '926043001195237376',
-        //       execType => 'T',
-        //       fillFee => '-0.0031686',
-        //       fillFeeCcy => 'USDT',
-        //       fillNotionalUsd => '5.281',
-        //       fillPx => '52.81',
-        //       fillSz => '0.1',
-        //       fillTime => '1656511777266',
-        //       force => 'normal',
-        //       instId => 'LTCUSDT_UMCBL',
-        //       lever => '1',
-        //       notionalUsd => '5.281',
-        //       ordId => '926043001132322816',
-        //       ordType => 'market',
-        //       orderFee => [Array],
-        //       pnl => '0.004',
-        //       posSide => 'long',
-        //       px => '0',
-        //       $side => 'sell',
-        //       status => 'full-fill',
-        //       sz => '0.1',
-        //       tdMode => 'cross',
-        //       tgtCcy => 'USDT',
-        //       tradeId => '926043001438552105',
-        //       uTime => 1656511777266
+        //       "accFillSz" => "0.1",
+        //       "avgPx" => "52.81",
+        //       "cTime" => 1656511777208,
+        //       "clOrdId" => "926043001195237376",
+        //       "execType" => "T",
+        //       "fillFee" => "-0.0031686",
+        //       "fillFeeCcy" => "USDT",
+        //       "fillNotionalUsd" => "5.281",
+        //       "fillPx" => "52.81",
+        //       "fillSz" => "0.1",
+        //       "fillTime" => "1656511777266",
+        //       "force" => "normal",
+        //       "instId" => "LTCUSDT_UMCBL",
+        //       "lever" => "1",
+        //       "notionalUsd" => "5.281",
+        //       "ordId" => "926043001132322816",
+        //       "ordType" => "market",
+        //       "orderFee" => [Array],
+        //       "pnl" => "0.004",
+        //       "posSide" => "long",
+        //       "px" => "0",
+        //       "side" => "sell",
+        //       "status" => "full-fill",
+        //       "sz" => "0.1",
+        //       "tdMode" => "cross",
+        //       "tgtCcy" => "USDT",
+        //       "tradeId" => "926043001438552105",
+        //       "uTime" => 1656511777266
         //   }
         //
         $id = $this->safe_string($trade, 'tradeId');
@@ -1021,10 +1433,10 @@ class bitget extends \ccxt\async\bitget {
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} $params extra parameters specific to the bitget api endpoint
-             * @param {str|null} $params->type spot or contract if not provided $this->options['defaultType'] is used
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} [$params] extra parameters specific to the bitget api endpoint
+             * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', null, $params);
@@ -1050,11 +1462,11 @@ class bitget extends \ccxt\async\bitget {
         // spot
         //
         //    {
-        //        action => 'snapshot',
-        //        $arg => array( $instType => 'spbl', channel => 'account', instId => 'default' ),
-        //        $data => array(
-        //          array( coinId => '5', coinName => 'LTC', available => '0.1060938000000000' ),
-        //          array( coinId => '2', coinName => 'USDT', available => '13.4498240000000000' )
+        //        "action" => "snapshot",
+        //        "arg" => array( $instType => 'spbl', channel => "account", instId => "default" ),
+        //        "data" => array(
+        //          array( coinId => '5', coinName => "LTC", available => "0.1060938000000000" ),
+        //          array( coinId => '2', coinName => "USDT", available => "13.4498240000000000" )
         //        )
         //    }
         //
@@ -1109,13 +1521,26 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function watch_public_multiple($messageHash, $argsArray, $params = array ()) {
+        return Async\async(function () use ($messageHash, $argsArray, $params) {
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'op' => 'subscribe',
+                'args' => $argsArray,
+            );
+            $message = array_merge($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
+    }
+
     public function authenticate($params = array ()) {
         $this->check_required_credentials();
         $url = $this->urls['api']['ws'];
         $client = $this->client($url);
         $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
+        $future = $client->future ($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
             $timestamp = (string) $this->seconds();
             $auth = $timestamp . 'GET' . '/user/verify';
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
@@ -1132,8 +1557,7 @@ class bitget extends \ccxt\async\bitget {
                 ),
             );
             $message = array_merge($request, $params);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
+            $this->watch($url, $messageHash, $message, $messageHash);
         }
         return $future;
     }
@@ -1153,15 +1577,16 @@ class bitget extends \ccxt\async\bitget {
 
     public function handle_authenticate(Client $client, $message) {
         //
-        //  array( event => 'login', code => 0 )
+        //  array( event => "login", code => 0 )
         //
         $messageHash = 'authenticated';
-        $client->resolve ($message, $messageHash);
+        $future = $this->safe_value($client->futures, $messageHash);
+        $future->resolve (true);
     }
 
     public function handle_error_message(Client $client, $message) {
         //
-        //    array( $event => 'error', $code => 30015, msg => 'Invalid sign' )
+        //    array( $event => "error", $code => 30015, $msg => "Invalid sign" )
         //
         $event = $this->safe_string($message, 'event');
         try {
@@ -1169,6 +1594,9 @@ class bitget extends \ccxt\async\bitget {
                 $code = $this->safe_string($message, 'code');
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
+                $msg = $this->safe_string($message, 'msg', '');
+                $this->throw_broadly_matched_exception($this->exceptions['ws']['broad'], $msg, $feedback);
+                throw new ExchangeError($feedback);
             }
             return false;
         } catch (Exception $e) {
@@ -1178,6 +1606,9 @@ class bitget extends \ccxt\async\bitget {
                 if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
+            } else {
+                // Note => if error happens on a subscribe $event, user will have to close exchange to resubscribe. Issue #19041
+                $client->reject ($e);
             }
             return true;
         }
@@ -1186,36 +1617,36 @@ class bitget extends \ccxt\async\bitget {
     public function handle_message(Client $client, $message) {
         //
         //   {
-        //       action => 'snapshot',
-        //       $arg => array( instType => 'sp', channel => 'ticker', instId => 'BTCUSDT' ),
-        //       data => array(
+        //       "action" => "snapshot",
+        //       "arg" => array( instType => 'sp', channel => "ticker", instId => "BTCUSDT" ),
+        //       "data" => array(
         //         {
-        //           instId => 'BTCUSDT',
-        //           last => '21150.53',
-        //           open24h => '20759.65',
-        //           high24h => '21202.29',
-        //           low24h => '20518.82',
-        //           bestBid => '21150.500000',
-        //           bestAsk => '21150.600000',
-        //           baseVolume => '25402.1961',
-        //           quoteVolume => '530452554.2156',
-        //           ts => 1656408934044,
-        //           labeId => 0
+        //           "instId" => "BTCUSDT",
+        //           "last" => "21150.53",
+        //           "open24h" => "20759.65",
+        //           "high24h" => "21202.29",
+        //           "low24h" => "20518.82",
+        //           "bestBid" => "21150.500000",
+        //           "bestAsk" => "21150.600000",
+        //           "baseVolume" => "25402.1961",
+        //           "quoteVolume" => "530452554.2156",
+        //           "ts" => 1656408934044,
+        //           "labeId" => 0
         //         }
         //       )
         //   }
         // pong $message
-        //    'pong'
+        //    "pong"
         //
         // login
         //
-        //     array( $event => 'login', code => 0 )
+        //     array( $event => "login", code => 0 )
         //
         // subscribe
         //
         //    {
-        //        $event => 'subscribe',
-        //        $arg => array( instType => 'spbl', channel => 'account', instId => 'default' )
+        //        "event" => "subscribe",
+        //        "arg" => array( instType => 'spbl', channel => "account", instId => "default" )
         //    }
         //
         if ($this->handle_error_message($client, $message)) {
@@ -1245,6 +1676,7 @@ class bitget extends \ccxt\async\bitget {
             'orders' => array($this, 'handle_order'),
             'ordersAlgo' => array($this, 'handle_order'),
             'account' => array($this, 'handle_balance'),
+            'positions' => array($this, 'handle_positions'),
         );
         $arg = $this->safe_value($message, 'arg', array());
         $topic = $this->safe_value($arg, 'channel', '');
@@ -1272,8 +1704,8 @@ class bitget extends \ccxt\async\bitget {
     public function handle_subscription_status(Client $client, $message) {
         //
         //    {
-        //        event => 'subscribe',
-        //        arg => array( instType => 'spbl', channel => 'account', instId => 'default' )
+        //        "event" => "subscribe",
+        //        "arg" => array( instType => 'spbl', channel => "account", instId => "default" )
         //    }
         //
         return $message;

@@ -10,6 +10,11 @@ interface Exchange {
     publicGetTradingPairsInfo(params?: {}): Promise<implicitReturnType>;
     publicGetCurrencies(params?: {}): Promise<implicitReturnType>;
     publicGetEurUsd(params?: {}): Promise<implicitReturnType>;
+    publicGetTravelRuleVasps(params?: {}): Promise<implicitReturnType>;
+    privateGetTravelRuleContacts(params?: {}): Promise<implicitReturnType>;
+    privateGetContactsContactUuid(params?: {}): Promise<implicitReturnType>;
+    privateGetEarnSubscriptions(params?: {}): Promise<implicitReturnType>;
+    privateGetEarnTransactions(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBalances(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBalancesCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostBalance(params?: {}): Promise<implicitReturnType>;
@@ -35,6 +40,7 @@ interface Exchange {
     privatePostTransferFromMain(params?: {}): Promise<implicitReturnType>;
     privatePostMyTradingPairs(params?: {}): Promise<implicitReturnType>;
     privatePostFeesTrading(params?: {}): Promise<implicitReturnType>;
+    privatePostFeesTradingPair(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFeesWithdrawalCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawalRequests(params?: {}): Promise<implicitReturnType>;
@@ -203,6 +209,14 @@ interface Exchange {
     privatePostDogeAddress(params?: {}): Promise<implicitReturnType>;
     privatePostFlrWithdrawal(params?: {}): Promise<implicitReturnType>;
     privatePostFlrAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostDgldWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostDgldAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostLdoWithdrawal(params?: {}): Promise<implicitReturnType>;
+    privatePostLdoAddress(params?: {}): Promise<implicitReturnType>;
+    privatePostTravelRuleContacts(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnSubscribe(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnSubscriptionsSetting(params?: {}): Promise<implicitReturnType>;
+    privatePostEarnUnsubscribe(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

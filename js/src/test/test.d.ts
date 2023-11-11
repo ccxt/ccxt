@@ -1,4 +1,9 @@
+import { Exchange } from '../../ccxt.js';
 declare class baseMainTestClass {
+    lang: string;
+    idTests: boolean;
+    staticTestsFailed: boolean;
+    staticTests: boolean;
     info: boolean;
     verbose: boolean;
     debug: boolean;
@@ -16,10 +21,10 @@ export default class testMainClass extends baseMainTestClass {
     importFiles(exchange: any): Promise<void>;
     expandSettings(exchange: any, symbol: any): void;
     addPadding(message: any, size: any): string;
-    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<any>;
-    testSafe(methodName: any, exchange: any, args: any, isPublic: any): Promise<boolean>;
+    testMethod(methodName: any, exchange: any, args: any, isPublic: any): Promise<void>;
+    testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<boolean>;
     runPublicTests(exchange: any, symbol: any): Promise<void>;
-    loadExchange(exchange: any): Promise<void>;
+    loadExchange(exchange: any): Promise<boolean>;
     getTestSymbol(exchange: any, isSpot: any, symbols: any): any;
     getExchangeCode(exchange: any, codes?: any): any;
     getMarketsFromExchange(exchange: any, spot?: boolean): {};
@@ -27,5 +32,30 @@ export default class testMainClass extends baseMainTestClass {
     testExchange(exchange: any, providedSymbol?: any): Promise<void>;
     runPrivateTests(exchange: any, symbol: any): Promise<void>;
     startTest(exchange: any, symbol: any): Promise<void>;
+    assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any): void;
+    loadMarketsFromFile(id: string): any;
+    loadStaticData(targetExchange?: string): {};
+    removeHostnamefromUrl(url: string): string;
+    urlencodedToDict(url: string): {};
+    assertNewAndStoredOutput(exchange: any, skipKeys: string[], newOutput: any, storedOutput: any): void;
+    assertStaticOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
+    sanitizeDataInput(input: any): any[];
+    testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
+    initOfflineExchange(exchangeName: string): Exchange;
+    testExchangeStatically(exchangeName: string, exchangeData: object, testName?: string): Promise<void>;
+    getNumberOfTestsFromExchange(exchange: any, exchangeData: object): number;
+    runStaticTests(targetExchange?: string, testName?: string): Promise<void>;
+    runBrokerIdTests(): Promise<void>;
+    testBinance(): Promise<void>;
+    testOkx(): Promise<void>;
+    testCryptocom(): Promise<void>;
+    testBybit(): Promise<void>;
+    testKucoin(): Promise<void>;
+    testKucoinfutures(): Promise<void>;
+    testBitget(): Promise<void>;
+    testMexc(): Promise<void>;
+    testHuobi(): Promise<void>;
+    testWoo(): Promise<void>;
+    testBitmart(): Promise<void>;
 }
 export {};

@@ -70,6 +70,9 @@ abstract class bigone extends \ccxt\Exchange {
     public function private_post_transfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array());
     }
+    public function webexchange_get_uc_v2_assets($params = array()) {
+        return $this->request('uc/v2/assets', 'webExchange', 'GET', $params, null, null, array());
+    }
     public function publicGetPing($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array());
     }
@@ -132,5 +135,8 @@ abstract class bigone extends \ccxt\Exchange {
     }
     public function privatePostTransfer($params = array()) {
         return $this->request('transfer', 'private', 'POST', $params, null, null, array());
+    }
+    public function webExchangeGetUcV2Assets($params = array()) {
+        return $this->request('uc/v2/assets', 'webExchange', 'GET', $params, null, null, array());
     }
 }

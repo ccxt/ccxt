@@ -11,6 +11,8 @@ const errorHierarchy = {
             'BadRequest': {
                 'BadSymbol': {},
                 'MarginModeAlreadySet': {},
+                'NoChange': {},
+                'OperationRejected': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -26,6 +28,7 @@ const errorHierarchy = {
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
+                'ContractUnavailable': {},
             },
             'NotSupported': {},
         },
@@ -38,6 +41,7 @@ const errorHierarchy = {
             },
             'InvalidNonce': {},
             'RequestTimeout': {},
+            'OperationFailed': {},
         },
     },
 };

@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import OrderSide
-from ccxt.base.types import OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -27,6 +26,7 @@ class btcturk(Exchange, ImplicitAPI):
             'name': 'BTCTurk',
             'countries': ['TR'],  # Turkey
             'rateLimit': 100,
+            'pro': False,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -71,6 +71,7 @@ class btcturk(Exchange, ImplicitAPI):
                 'setLeverage': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
+                'ws': False,
             },
             'timeframes': {
                 '1m': 1,
@@ -98,6 +99,7 @@ class btcturk(Exchange, ImplicitAPI):
                         'orderbook': 1,
                         'ticker': 0.1,
                         'trades': 1,   # ?last=COUNT(max 50)
+                        'ohlc': 1,
                         'server/exchangeinfo': 1,
                     },
                 },
@@ -109,6 +111,8 @@ class btcturk(Exchange, ImplicitAPI):
                         'users/transactions/trade': 1,
                     },
                     'post': {
+                        'users/transactions/crypto': 1,
+                        'users/transactions/fiat': 1,
                         'order': 1,
                         'cancelOrder': 1,
                     },
@@ -142,8 +146,8 @@ class btcturk(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}):
         """
         retrieves data on all markets for btcturk
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [dict]: an array of objects representing market data
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :returns dict[]: an array of objects representing market data
         """
         response = await self.publicGetServerExchangeinfo(params)
         #
@@ -261,11 +265,12 @@ class btcturk(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
+                'created': None,
                 'info': entry,
             })
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', [])
         result = {
             'info': response,
@@ -283,11 +288,11 @@ class btcturk(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
         await self.load_markets()
         response = await self.privateGetUsersBalances(params)
@@ -309,13 +314,13 @@ class btcturk(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -338,7 +343,7 @@ class btcturk(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #   {
         #     "pair": "BTCTRY",
@@ -387,30 +392,30 @@ class btcturk(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         response = await self.publicGetTicker(params)
         tickers = self.safe_value(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
         tickers = await self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades
         #     {
@@ -471,14 +476,14 @@ class btcturk(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -509,15 +514,15 @@ class btcturk(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None):
+    def parse_ohlcv(self, ohlcv, market=None) -> list:
         #
         #    {
-        #        'timestamp': 1661990400,
-        #        'high': 368388.0,
-        #        'open': 368388.0,
-        #        'low': 368388.0,
-        #        'close': 368388.0,
-        #        'volume': 0.00035208,
+        #        "timestamp": 1661990400,
+        #        "high": 368388.0,
+        #        "open": 368388.0,
+        #        "low": 368388.0,
+        #        "close": 368388.0,
+        #        "volume": 0.00035208,
         #    }
         #
         return [
@@ -529,17 +534,17 @@ class btcturk(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1h', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        see https://docs.btcturk.com/public-endpoints/get-kline-data
+        :see: https://docs.btcturk.com/public-endpoints/get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int|None since: timestamp in ms of the earliest candle to fetch
-        :param int|None limit: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :param int|None params['until']: timestamp in ms of the latest candle to fetch
-        :returns [[int]]: A list of candles ordered, open, high, low, close, volume
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -629,9 +634,9 @@ class btcturk(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -655,23 +660,23 @@ class btcturk(Exchange, ImplicitAPI):
         """
         cancels an open order
         :param str id: order id
-        :param str|None symbol: not used by btcturk cancelOrder()
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: not used by btcturk cancelOrder()
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         request = {
             'id': id,
         }
         return await self.privateDeleteOrder(self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of  open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -685,14 +690,14 @@ class btcturk(Exchange, ImplicitAPI):
         asks = self.safe_value(data, 'asks', [])
         return self.parse_orders(self.array_concat(bids, asks), market, since, limit)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :param str|None symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of  orde structures to retrieve
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -737,7 +742,7 @@ class btcturk(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrders / fetchOpenOrders
         #     {
@@ -806,11 +811,11 @@ class btcturk(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch all trades made by the user
-        :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
-        :param dict params: extra parameters specific to the btcturk api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades structures to retrieve
+        :param dict [params]: extra parameters specific to the btcturk api endpoint
+        :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         await self.load_markets()
         market = None

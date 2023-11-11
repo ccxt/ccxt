@@ -1,11 +1,11 @@
 import wazirxRest from '../wazirx.js';
-import { Int } from '../base/types.js';
+import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class wazirx extends wazirxRest {
     describe(): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
-    parseWSTrade(trade: any, market?: any): import("../base/types.js").Trade;
+    parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
@@ -15,14 +15,14 @@ export default class wazirx extends wazirxRest {
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): number[];
+    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
-    parseWSOrder(order: any): import("../base/types.js").Order;
+    parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleMyTrades(client: Client, message: any): void;
     handleConnected(client: Client, message: any): any;
     handleSubscribed(client: Client, message: any): any;

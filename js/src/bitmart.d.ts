@@ -1,5 +1,9 @@
 import Exchange from './abstract/bitmart.js';
-import { Int, OrderSide, Balances, OrderType } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Trade, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
+/**
+ * @class bitmart
+ * @extends Exchange
+ */
 export default class bitmart extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
@@ -43,16 +47,16 @@ export default class bitmart extends Exchange {
         };
         networks: {};
     }>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<any>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseOHLCV(ohlcv: any, market?: any): number[];
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseOHLCV(ohlcv: any, market?: any): OHLCV;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     customParseBalance(response: any, marketType: any): Balances;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     fetchBalance(params?: {}): Promise<Balances>;
@@ -68,16 +72,19 @@ export default class bitmart extends Exchange {
         maker: number;
         taker: number;
     }>;
-    parseOrder(order: any, market?: any): import("./base/types.js").Order;
+    parseOrder(order: any, market?: any): Order;
+    parseOrderSide(side: any): string;
     parseOrderStatusByType(type: any, status: any): string;
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
+    createSwapOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
+    createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
-    fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<import("./base/types.js").Order>;
+    fetchOrdersByStatus(status: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchCanceledOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -88,69 +95,12 @@ export default class bitmart extends Exchange {
     safeNetwork(networkId: any): any;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     fetchTransactionsByType(type: any, code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposit(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        address: string;
-        addressFrom: any;
-        addressTo: any;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    }>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        address: string;
-        addressFrom: any;
-        addressTo: any;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    }>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: any;
-        currency: any;
-        amount: number;
-        network: any;
-        address: string;
-        addressFrom: any;
-        addressTo: any;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        status: string;
-        type: any;
-        updated: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        fee: any;
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
@@ -182,16 +132,19 @@ export default class bitmart extends Exchange {
     parseBorrowRates(info: any, codeKey: any): any[];
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<any>;
     parseTransferStatus(status: any): string;
+    parseTransferToAccount(type: any): string;
+    parseTransferFromAccount(type: any): string;
     parseTransfer(transfer: any, currency?: any): {
         id: string;
-        timestamp: any;
-        datetime: any;
+        timestamp: number;
+        datetime: string;
         currency: any;
-        amount: any;
-        fromAccount: any;
-        toAccount: any;
+        amount: number;
+        fromAccount: string;
+        toAccount: string;
         status: string;
     };
+    fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         symbol: string;
@@ -204,7 +157,52 @@ export default class bitmart extends Exchange {
         datetime: string;
         info: any;
     };
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
+    fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
+    parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
+    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchFundingRate(symbol: string, params?: {}): Promise<{
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    }>;
+    parseFundingRate(contract: any, market?: any): {
+        info: any;
+        symbol: any;
+        markPrice: any;
+        indexPrice: any;
+        interestRate: any;
+        estimatedSettlePrice: any;
+        timestamp: number;
+        datetime: string;
+        fundingRate: number;
+        fundingTimestamp: any;
+        fundingDatetime: any;
+        nextFundingRate: any;
+        nextFundingTimestamp: any;
+        nextFundingDatetime: any;
+        previousFundingRate: number;
+        previousFundingTimestamp: any;
+        previousFundingDatetime: any;
+    };
+    fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
+    fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
+    parsePosition(position: any, market?: any): import("./base/types.js").Position;
+    fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Liquidation[]>;
+    parseLiquidation(liquidation: any, market?: any): import("./base/types.js").Liquidation;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

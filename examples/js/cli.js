@@ -34,12 +34,14 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSpot = process.argv.includes ('--spot')
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
+    , isOption = process.argv.includes ('--option')
+    , shouldCreateReport = process.argv.includes ('--report')
 
 //-----------------------------------------------------------------------------
 
-console.log (new Date ())
-console.log ('Node.js:', process.version)
-console.log ('CCXT v' + ccxt.version)
+log ((new Date ()).toISOString())
+log ('Node.js:', process.version)
+log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
@@ -88,12 +90,18 @@ try {
         exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
     }
 
+    if (exchange === undefined) {
+        process.exit ()
+    }
+
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';
     } else if (isSwap) {
         exchange.options['defaultType'] = 'swap';
     } else if (isFuture) {
         exchange.options['defaultType'] = 'future';
+    } else if (isOption) {
+        exchange.options['defaultType'] = 'option';
     }
 
     // check auth keys in env var
@@ -117,6 +125,22 @@ try {
     log.red (e)
     printUsage ()
     process.exit ()
+}
+
+//-----------------------------------------------------------------------------
+
+function createTemplate(exchange, methodName, args, result) {
+    const final = {
+        'description': 'Fill this with a description of the method call',
+        'method': methodName,
+        'url': exchange.last_request_url ?? '',
+        'input': args,
+        'output': exchange.last_request_body ?? undefined
+    }
+    log('Report: (paste inside static/data/' + exchange.id + '.json ->' + methodName + ')')
+    log.green('-------------------------------------------')
+    log (JSON.stringify (final, null, 2))
+    log.green('-------------------------------------------')
 }
 
 //-----------------------------------------------------------------------------
@@ -295,11 +319,14 @@ async function run () {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
                         if (!isWsMethod) {
-                            console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                            log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         }
                         printHumanReadable (exchange, result)
                         if (!isWsMethod) {
-                            console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                            log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
+                        if (shouldCreateReport) {
+                            createTemplate(exchange, methodName, args, result)
                         }
                         start = end
                     } catch (e) {
@@ -319,7 +346,8 @@ async function run () {
                     if (debug) {
                         const keys = Object.keys (httpsAgent.freeSockets)
                         const firstKey = keys[0]
-                        console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                        let httpAgent = httpsAgent.freeSockets[firstKey];
+                        log (firstKey, httpAgent.length)
                     }
 
                     if (!poll && !isWsMethod){
@@ -333,7 +361,7 @@ async function run () {
                 printHumanReadable (exchange, exchange[methodName])
             }
         } else {
-            console.log (exchange)
+            log (exchange)
         }
     }
 
