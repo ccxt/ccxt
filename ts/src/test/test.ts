@@ -988,7 +988,7 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    initOfflineExchange (exchangeName: string) {
+    initOfflineExchange (exchangeName: string): Exchange {
         const markets = this.loadMarketsFromFile (exchangeName);
         return initExchange (exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
     }
@@ -1081,34 +1081,34 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testBinance () {
-        const binance = this.initOfflineExchange ('binance');
+        const exchange = this.initOfflineExchange ('binance');
         const spotId = 'x-R4BD3S82';
         let spotOrderRequest = undefined;
         try {
-            await binance.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            spotOrderRequest = this.urlencodedToDict (binance.last_request_body);
+            spotOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         assert (clientOrderId.startsWith (spotId), 'spot clientOrderId does not start with spotId');
         const swapId = 'x-xcKtGhcu';
         let swapOrderRequest = undefined;
         try {
-            await binance.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            swapOrderRequest = this.urlencodedToDict (binance.last_request_body);
+            swapOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         let swapInverseOrderRequest = undefined;
         try {
-            await binance.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            swapInverseOrderRequest = this.urlencodedToDict (binance.last_request_body);
+            swapInverseOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const clientOrderIdSpot = swapOrderRequest['newClientOrderId'];
         assert (clientOrderIdSpot.startsWith (swapId), 'swap clientOrderId does not start with swapId');
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (swapId), 'swap clientOrderIdInverse does not start with swapId');
-        await close (binance);
+        await close (exchange);
     }
 
     async testOkx () {

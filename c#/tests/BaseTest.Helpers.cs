@@ -31,6 +31,7 @@ public partial class testMainClass : BaseTest
 
     public bool staticTestsFailed = false;
     public bool staticTests = false;
+    public bool idTests = false;
 
     public string lang = "C#";
 
@@ -39,7 +40,7 @@ public partial class testMainClass : BaseTest
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
     public static Exchange initExchange(object exchangeId, object exchangeArgs = null)
     {
-        var exchange = Exchange.MagicallyCreateInstance((string)exchangeId, (dict)exchangeArgs);
+        var exchange = Exchange.MagicallyCreateInstance((string)exchangeId, exchangeArgs);
         return exchange;
     }
 

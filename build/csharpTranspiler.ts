@@ -796,6 +796,7 @@ class NewTranspiler {
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
+            [ /public virtual object initOfflineExchange/g, 'public virtual Exchange initOfflineExchange' ],
             [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
             [ /object exchange =/g, 'Exchange exchange =' ],
             [ /throw new Error/g, 'throw new Exception' ],
