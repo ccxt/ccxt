@@ -1112,187 +1112,187 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testOkx () {
-        const okx = this.initOfflineExchange ('okx');
+        const exchange = this.initOfflineExchange ('okx');
         const id = 'e847386590ce4dBC';
         let spotOrderRequest = undefined;
         try {
-            await okx.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            spotOrderRequest = jsonParse (okx.last_request_body);
+            spotOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest[0]['clOrdId']; // returns order inside array
         assert (clientOrderId.startsWith (id), 'spot clientOrderId does not start with id');
         assert (spotOrderRequest[0]['tag'] === id, 'id different from spot tag');
         let swapOrderRequest = undefined;
         try {
-            await okx.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            swapOrderRequest = jsonParse (okx.last_request_body);
+            swapOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderIdSpot = swapOrderRequest[0]['clOrdId'];
         assert (clientOrderIdSpot.startsWith (id), 'swap clientOrderId does not start with id');
         assert (swapOrderRequest[0]['tag'] === id, 'id different from swap tag');
-        await close (okx);
+        await close (exchange);
     }
 
     async testCryptocom () {
-        const cryptocom = this.initOfflineExchange ('cryptocom');
+        const exchange = this.initOfflineExchange ('cryptocom');
         const id = 'CCXT';
-        await cryptocom.loadMarkets ();
+        await exchange.loadMarkets ();
         let request = undefined;
         try {
-            await cryptocom.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            request = jsonParse (cryptocom.last_request_body);
+            request = jsonParse (exchange.last_request_body);
         }
         assert (request['params']['broker_id'] === id, 'id different from  broker_id');
-        await close (cryptocom);
+        await close (exchange);
     }
 
     async testBybit () {
-        const bybit = this.initOfflineExchange ('bybit');
+        const exchange = this.initOfflineExchange ('bybit');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        assert (bybit.options['brokerId'] === id, 'id not in options');
+        assert (exchange.options['brokerId'] === id, 'id not in options');
         try {
-            await bybit.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = bybit.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['Referer'] === id, 'id not in headers');
-        await close (bybit);
+        await close (exchange);
     }
 
     async testKucoin () {
-        const kucoin = this.initOfflineExchange ('kucoin');
+        const exchange = this.initOfflineExchange ('kucoin');
         let reqHeaders = undefined;
-        assert (kucoin.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
-        assert (kucoin.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
+        assert (exchange.options['partner']['spot']['id'] === 'ccxt', 'id not in options');
+        assert (exchange.options['partner']['spot']['key'] === '9e58cc35-5b5e-4133-92ec-166e3f077cb8', 'key not in options');
         try {
-            await kucoin.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = kucoin.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         const id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
-        await close (kucoin);
+        await close (exchange);
     }
 
     async testKucoinfutures () {
-        const kucoin = this.initOfflineExchange ('kucoinfutures');
+        const exchange = this.initOfflineExchange ('kucoinfutures');
         let reqHeaders = undefined;
         const id = 'ccxtfutures';
-        assert (kucoin.options['partner']['future']['id'] === id, 'id not in options');
-        assert (kucoin.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
+        assert (exchange.options['partner']['future']['id'] === id, 'id not in options');
+        assert (exchange.options['partner']['future']['key'] === '1b327198-f30c-4f14-a0ac-918871282f15', 'key not in options');
         try {
-            await kucoin.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = kucoin.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'id not in headers');
-        await close (kucoin);
+        await close (exchange);
     }
 
     async testBitget () {
-        const bitget = this.initOfflineExchange ('bitget');
+        const exchange = this.initOfflineExchange ('bitget');
         let reqHeaders = undefined;
         const id = 'p4sve';
-        assert (bitget.options['broker'] === id, 'id not in options');
+        assert (exchange.options['broker'] === id, 'id not in options');
         try {
-            await bitget.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = bitget.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'id not in headers');
-        await close (bitget);
+        await close (exchange);
     }
 
     async testMexc () {
-        const mexc = this.initOfflineExchange ('mexc');
+        const exchange = this.initOfflineExchange ('mexc');
         let reqHeaders = undefined;
         const id = 'CCXT';
-        assert (mexc.options['broker'] === id, 'id not in options');
-        await mexc.loadMarkets ();
+        assert (exchange.options['broker'] === id, 'id not in options');
+        await exchange.loadMarkets ();
         try {
-            await mexc.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = mexc.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['source'] === id, 'id not in headers');
-        await close (mexc);
+        await close (exchange);
     }
 
     async testHuobi () {
-        const huobi = this.initOfflineExchange ('huobi');
+        const exchange = this.initOfflineExchange ('huobi');
         // spot test
         const id = 'AA03022abc';
         let spotOrderRequest = undefined;
         try {
-            await huobi.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            spotOrderRequest = jsonParse (huobi.last_request_body);
+            spotOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderId = spotOrderRequest['client-order-id'];
         assert (clientOrderId.startsWith (id), 'spot clientOrderId does not start with id');
         // swap test
         let swapOrderRequest = undefined;
         try {
-            await huobi.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            swapOrderRequest = jsonParse (huobi.last_request_body);
+            swapOrderRequest = jsonParse (exchange.last_request_body);
         }
         let swapInverseOrderRequest = undefined;
         try {
-            await huobi.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            swapInverseOrderRequest = jsonParse (huobi.last_request_body);
+            swapInverseOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderIdSpot = swapOrderRequest['channel_code'];
         assert (clientOrderIdSpot.startsWith (id), 'swap channel_code does not start with id');
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
         assert (clientOrderIdInverse.startsWith (id), 'swap inverse channel_code does not start with id');
-        await close (huobi);
+        await close (exchange);
     }
 
     async testWoo () {
-        const woo = this.initOfflineExchange ('woo');
+        const exchange = this.initOfflineExchange ('woo');
         // spot test
         const id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
         let spotOrderRequest = undefined;
         try {
-            await woo.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            spotOrderRequest = this.urlencodedToDict (woo.last_request_body);
+            spotOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
         const brokerId = spotOrderRequest['broker_id'];
         assert (brokerId.startsWith (id), 'broker_id does not start with id');
         // swap test
         let stopOrderRequest = undefined;
         try {
-            await woo.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
         } catch (e) {
-            stopOrderRequest = jsonParse (woo.last_request_body);
+            stopOrderRequest = jsonParse (exchange.last_request_body);
         }
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
         assert (clientOrderIdSpot.startsWith (id), 'brokerId does not start with id');
-        await close (woo);
+        await close (exchange);
     }
 
     async testBitmart () {
-        const bitmart = this.initOfflineExchange ('bitmart');
+        const exchange = this.initOfflineExchange ('bitmart');
         let reqHeaders = undefined;
         const id = 'CCXTxBitmart000';
-        assert (bitmart.options['brokerId'] === id, 'id not in options');
-        await bitmart.loadMarkets ();
+        assert (exchange.options['brokerId'] === id, 'id not in options');
+        await exchange.loadMarkets ();
         try {
-            await bitmart.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            reqHeaders = bitmart.last_request_headers;
+            reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
-        await close (bitmart);
+        await close (exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****
