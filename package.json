@@ -115,7 +115,8 @@
     "id-tests-js": "node js/src/test/test.js --idTests",
     "id-tests-py": "python python/ccxt/test/test_async.py --idTests",
     "id-tests-php": "php php/test/test_async.php --idTests",
-    "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php"
+    "id-tests-csharp": "dotnet run --project c#/tests/tests.csproj --idTests",
+    "id-tests": "npm run id-tests-js && npm run id-tests-py && npm run id-tests-php && npm run id-tests-csharp"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
