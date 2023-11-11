@@ -88,7 +88,7 @@ export default class lnmarkets extends Exchange {
                 'fetchOrderBook': false,
                 'fetchOrders': true,
                 'fetchPositions': true,
-                'fetchStatus': 'emulated',
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTrades': false,
                 'fetchWithdrawal': true,
@@ -830,21 +830,6 @@ export default class lnmarkets extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    async fetchStatus (params = {}) {
-        /**
-         * @method
-         * @name lnmarkets#fetchStatus
-         * @description Emulated status endpoint
-         * @see status.lnmarkets.com
-         */
-        return {
-            'status': 'ok',
-            'updated': undefined,
-            'eta': undefined,
-            'url': 'status.lnmarkets.com',
-        };
-    }
-
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -1116,7 +1101,7 @@ export default class lnmarkets extends Exchange {
             price = this.safeNumber (info, 'forward');
         }
         const datetime = this.iso8601 (timestamp);
-        return {
+        return this.safePosition ({
             'info': info,
             'id': this.safeString (info, 'id'),
             'symbol': safeSymbol,
@@ -1138,7 +1123,7 @@ export default class lnmarkets extends Exchange {
             'liquidationPrice': this.safeNumber (info, 'liquidation'),
             'marginMode': 'isolated',
             'percentage': undefined,
-        };
+        });
     }
 
     parsePositionSide (side: string, type: string) {
@@ -1199,7 +1184,7 @@ export default class lnmarkets extends Exchange {
         const now = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const price = (symbol === 'BTC/USD:BTC') ? this.safeNumber (ticker, 'lastPrice') : this.safeNumber (ticker, 'volatility');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': now,
@@ -1220,7 +1205,7 @@ export default class lnmarkets extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
-        };
+        });
     }
 
     parseTransaction (transaction, currency = undefined) {
