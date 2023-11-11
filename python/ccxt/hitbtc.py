@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, MarginMode, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -78,7 +78,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': None,
                 'fetchLiquidations': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -2221,6 +2221,77 @@ class hitbtc(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
             'stopLossPrice': None,
         }, market)
+
+    def fetch_margin_mode(self, symbol: Optional[str] = None, params={}) -> MarginMode:
+        """
+        fetches margin mode of the user
+        :see: https://api.hitbtc.com/#get-margin-position-parameters
+        :see: https://api.hitbtc.com/#get-futures-position-parameters
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the hitbtc api endpoint
+        :returns dict: Struct of MarginMode
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMarginMode', market, params)
+        response = None
+        if marketType == 'margin':
+            response = self.privateGetMarginConfig(params)
+        elif marketType == 'swap':
+            response = self.privateGetFuturesConfig(params)
+        else:
+            raise BadSymbol(self.id + ' fetchMarginMode() supports swap contracts and margin only')
+        #
+        # margin
+        #     {
+        #         "config": [{
+        #             "symbol": "BTCUSD",
+        #             "margin_call_leverage_mul": "1.50",
+        #             "liquidation_leverage_mul": "2.00",
+        #             "max_initial_leverage": "10.00",
+        #             "margin_mode": "Isolated",
+        #             "force_close_fee": "0.05",
+        #             "enabled": True,
+        #             "active": True,
+        #             "limit_base": "50000.00",
+        #             "limit_power": "2.2",
+        #             "unlimited_threshold": "10.0"
+        #         }]
+        #     }
+        #
+        # swap
+        #     {
+        #         "config": [{
+        #             "symbol": "BTCUSD_PERP",
+        #             "margin_call_leverage_mul": "1.20",
+        #             "liquidation_leverage_mul": "2.00",
+        #             "max_initial_leverage": "100.00",
+        #             "margin_mode": "Isolated",
+        #             "force_close_fee": "0.001",
+        #             "enabled": True,
+        #             "active": False,
+        #             "limit_base": "5000000.000000000000",
+        #             "limit_power": "1.25",
+        #             "unlimited_threshold": "2.00"
+        #         }]
+        #     }
+        #
+        config = self.safe_value(response, 'config', [])
+        marginModes = []
+        for i in range(0, len(config)):
+            data = self.safe_value(config, i)
+            marketId = self.safe_string(data, 'symbol')
+            marketInner = self.safe_market(marketId)
+            marginModes.append({
+                'info': data,
+                'symbol': self.safe_string(marketInner, 'symbol'),
+                'marginMode': self.safe_string_lower(data, 'margin_mode'),
+            })
+        filteredMargin = self.filter_by_symbol(marginModes, symbol)
+        return self.safe_value(filteredMargin, 0)
 
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """

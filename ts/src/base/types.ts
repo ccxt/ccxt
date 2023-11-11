@@ -156,7 +156,6 @@ export interface Transaction {
 }
 
 export interface Tickers extends Dictionary<Ticker> {
-    info: any;
 }
 
 export interface Currency {
@@ -277,6 +276,12 @@ export interface FundingHistory {
     datetime?: string;
     id: string;
     amount: number;
+}
+
+export interface MarginMode {
+    infp: any;
+    symbol: string;
+    marginMode: 'isolated' | 'cross' | string;
 }
 
 /** [ timestamp, open, high, low, close, volume ] */
