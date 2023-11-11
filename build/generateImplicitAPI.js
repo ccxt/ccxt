@@ -220,7 +220,7 @@ function createPyHeader(instance, parent){
 
 function createCSharpHeader(exchange, parent){
     const namespace = 'namespace ccxt;'
-    const header = `public partial class ${exchange.id} : ${parent}\n{`;
+    const header = `public partial class ${exchange.id} : ${parent}\n{\n    public ${exchange.id} (object args): base(args) {}\n`;
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
 
