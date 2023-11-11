@@ -368,7 +368,9 @@ class NewTranspiler {
         const res: string[] = ['// class wrappers'];
         exchangeIds.forEach(exchange => {
             const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-            res.push(`public class ${capitalizedExchange.replace('.ts','')} : ${exchange.replace('.ts','')} { }`)
+            const capitalName = capitalizedExchange.replace('.ts','');
+            const constructor = `public ${capitalName}(object args = null) : base(args) { }`
+            res.push(`public class  ${capitalName}: ${exchange.replace('.ts','')} { ${constructor} }`)
         });
         return res;
     }
