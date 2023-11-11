@@ -27,6 +27,10 @@ public partial class Exchange
             foreach (string key in keys)
             {
                 var value = parameter[key];
+                if (value == null)
+                {
+                    continue;
+                }
                 if (value.GetType() != typeof(List<object>))
                 {
                     path = path.Replace("{" + key + "}", Convert.ToString(value));
