@@ -511,7 +511,7 @@
         }
     },
     "btcalpha": {
-	"skip": true, 
+	"skip": true,
         "skipMethods": {
             "fetchOrderBook": "bids[0][0] is not < asks[0][0]",
             "fetchL2OrderBook": "same",
@@ -943,13 +943,11 @@
     "hollaex": {
         "skipWs": true
     },
-    "huobi": {
+    "htx": {
         "skipWs": true,
         "skipMethods": {
             "loadMarkets": {
                 "limits":"messed",
-                "taker": "messed",
-                "maker": "messed",
                 "currencyIdAndCode": "messed codes"
             },
             "fetchCurrencies": {
