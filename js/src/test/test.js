@@ -1041,7 +1041,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testBitget(),
             this.testMexc(),
             this.testHuobi(),
-            this.testWoo()
+            this.testWoo(),
+            this.testBitmart()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1253,6 +1254,21 @@ export default class testMainClass extends baseMainTestClass {
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
         assert(clientOrderIdSpot.startsWith(id), 'brokerId does not start with id');
         await close(woo);
+    }
+    async testBitmart() {
+        const bitmart = this.initOfflineExchange('bitmart');
+        let reqHeaders = undefined;
+        const id = 'CCXTxBitmart000';
+        assert(bitmart.options['brokerId'] === id, 'id not in options');
+        await bitmart.loadMarkets();
+        try {
+            await bitmart.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = bitmart.last_request_headers;
+        }
+        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
+        await close(bitmart);
     }
 }
 // ***** AUTO-TRANSPILER-END *****

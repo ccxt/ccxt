@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1008,9 +1008,11 @@ class binance(Exchange, ImplicitAPI):
                         'um/order': 1,  # 1
                         'um/conditional/order': 1,
                         'um/allOpenOrders': 1,  # 1
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1,  # 1
                         'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,  # 1
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1,  # Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5,  # 5
                         'margin/orderList': 2,  # 2
@@ -2224,7 +2226,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         swap = False
         future = False
         option = False
@@ -3106,7 +3108,7 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot

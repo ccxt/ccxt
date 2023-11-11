@@ -468,7 +468,7 @@ class timex extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1183,7 +1183,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1213,7 +1213,7 @@ class timex extends Exchange {
         $minBase = $this->safe_string($market, 'baseMinSize');
         $minAmount = Precise::string_max($amountIncrement, $minBase);
         $priceIncrement = $this->safe_string($market, 'tickSize');
-        $minCost = $this->safe_string($market, 'quoteMinSize');
+        $minCost = $this->safe_number($market, 'quoteMinSize');
         return array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,

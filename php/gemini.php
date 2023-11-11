@@ -580,7 +580,7 @@ class gemini extends Exchange {
         return $this->to_array($result);
     }
 
-    public function parse_market($response) {
+    public function parse_market($response): array {
         $marketId = $this->safe_string_lower($response, 'symbol');
         $baseId = $this->safe_string($response, 'base_currency');
         $quoteId = $this->safe_string($response, 'quote_currency');
@@ -837,7 +837,7 @@ class gemini extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned

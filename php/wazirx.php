@@ -408,7 +408,7 @@ class wazirx extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market

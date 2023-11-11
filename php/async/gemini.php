@@ -600,7 +600,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function parse_market($response) {
+    public function parse_market($response): array {
         $marketId = $this->safe_string_lower($response, 'symbol');
         $baseId = $this->safe_string($response, 'base_currency');
         $quoteId = $this->safe_string($response, 'quote_currency');
@@ -867,7 +867,7 @@ class gemini extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market

@@ -56,5 +56,6 @@ export default class testMainClass extends baseMainTestClass {
     testMexc(): Promise<void>;
     testHuobi(): Promise<void>;
     testWoo(): Promise<void>;
+    testBitmart(): Promise<void>;
 }
 export {};

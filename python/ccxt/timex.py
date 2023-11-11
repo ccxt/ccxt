@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -456,7 +456,7 @@ class timex(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1104,7 +1104,7 @@ class timex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 0, {})
         return self.parse_trading_fee(result, market)
 
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         #
         #     {
         #         "symbol": "ETHBTC",
@@ -1134,7 +1134,7 @@ class timex(Exchange, ImplicitAPI):
         minBase = self.safe_string(market, 'baseMinSize')
         minAmount = Precise.string_max(amountIncrement, minBase)
         priceIncrement = self.safe_string(market, 'tickSize')
-        minCost = self.safe_string(market, 'quoteMinSize')
+        minCost = self.safe_number(market, 'quoteMinSize')
         return {
             'id': id,
             'symbol': base + '/' + quote,
