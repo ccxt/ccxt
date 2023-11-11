@@ -234,6 +234,7 @@ public partial class Exchange
         public double? average;
         public double? baseVolume;
         public double? quoteVolume;
+        public Dictionary<string, object> info;
 
         public Ticker(object ticker2)
         {
@@ -257,37 +258,58 @@ public partial class Exchange
             average = SafeFloat(ticker, "average");
             baseVolume = SafeFloat(ticker, "baseVolume");
             quoteVolume = SafeFloat(ticker, "quoteVolume");
+            info = ticker.ContainsKey("info") ? (Dictionary<string, object>)ticker["info"] : null;
+        }
+    }
+
+    public struct Tickers
+    {
+        public Dictionary<string, object> info;
+        public Dictionary<string, Ticker> tickers;
+
+        public Tickers(object tickers2)
+        {
+            var tickers = (Dictionary<string, object>)tickers2;
+
+            info = tickers.ContainsKey("info") ? (Dictionary<string, object>)tickers["info"] : null;
+            this.tickers = new Dictionary<string, Ticker>();
+            foreach (var ticker in tickers)
+            {
+                if (ticker.Key != "info")
+                    this.tickers.Add(ticker.Key, new Ticker(ticker.Value));
+            }
         }
 
-        struct Transaction
-        {
-            public string? id;
-            public string? txid;
-            public string? address;
-            public string? tag;
-            public string? type;
-            public string? currency;
-            public double? amount;
-            public string? status;
-            public Int64? updated;
-            public Int64? timestamp;
-            public string? datetime;
+    }
 
-            public Transaction(object transaction2)
-            {
-                var transaction = (Dictionary<string, object>)transaction2;
-                id = SafeString(transaction, "id");
-                txid = SafeString(transaction, "txid");
-                address = SafeString(transaction, "address");
-                tag = SafeString(transaction, "tag");
-                type = SafeString(transaction, "type");
-                currency = SafeString(transaction, "currency");
-                amount = SafeFloat(transaction, "amount");
-                status = SafeString(transaction, "status");
-                updated = SafeInteger(transaction, "updated");
-                timestamp = SafeInteger(transaction, "timestamp");
-                datetime = SafeString(transaction, "datetime");
-            }
+    public struct Transaction
+    {
+        public string? id;
+        public string? txid;
+        public string? address;
+        public string? tag;
+        public string? type;
+        public string? currency;
+        public double? amount;
+        public string? status;
+        public Int64? updated;
+        public Int64? timestamp;
+        public string? datetime;
+
+        public Transaction(object transaction2)
+        {
+            var transaction = (Dictionary<string, object>)transaction2;
+            id = SafeString(transaction, "id");
+            txid = SafeString(transaction, "txid");
+            address = SafeString(transaction, "address");
+            tag = SafeString(transaction, "tag");
+            type = SafeString(transaction, "type");
+            currency = SafeString(transaction, "currency");
+            amount = SafeFloat(transaction, "amount");
+            status = SafeString(transaction, "status");
+            updated = SafeInteger(transaction, "updated");
+            timestamp = SafeInteger(transaction, "timestamp");
+            datetime = SafeString(transaction, "datetime");
         }
     }
 
@@ -561,48 +583,47 @@ public partial class Exchange
         }
     }
 
+    // public struct Transaction
+    // {
+    //     public string? id;
+    //     public string? txid;
+    //     public string? address;
+    //     public string? tag;
+    //     public string? type;
+    //     public string? currency;
+    //     public double? amount;
+    //     public string? status;
+    //     public Int64? updated;
+    //     public Int64? timestamp;
+    //     public string? datetime;
+    //     public Fee? fee;
+    //     public string? tagFrom;
+    //     public string? tagTo;
+    //     public string? addressTo;
+    //     public string? addressFrom;
+    //     public string? comment;
 
-    public struct Transaction
-    {
-        public string? id;
-        public string? txid;
-        public string? address;
-        public string? tag;
-        public string? type;
-        public string? currency;
-        public double? amount;
-        public string? status;
-        public Int64? updated;
-        public Int64? timestamp;
-        public string? datetime;
-        public Fee? fee;
-        public string? tagFrom;
-        public string? tagTo;
-        public string? addressTo;
-        public string? addressFrom;
-        public string? comment;
-
-        public Transaction(object transaction)
-        {
-            id = SafeString(transaction, "id");
-            txid = SafeString(transaction, "txid");
-            address = SafeString(transaction, "address");
-            tag = SafeString(transaction, "tag");
-            type = SafeString(transaction, "type");
-            currency = SafeString(transaction, "currency");
-            amount = SafeFloat(transaction, "amount");
-            status = SafeString(transaction, "status");
-            updated = SafeInteger(transaction, "updated");
-            timestamp = SafeInteger(transaction, "timestamp");
-            datetime = SafeString(transaction, "datetime");
-            fee = SafeValue(transaction, "fee") != null ? new Fee(SafeValue(transaction, "fee")) : null;
-            tagFrom = SafeString(transaction, "tagFrom");
-            tagTo = SafeString(transaction, "tagTo");
-            addressTo = SafeString(transaction, "addressTo");
-            addressFrom = SafeString(transaction, "addressFrom");
-            comment = SafeString(transaction, "comment");
-        }
-    }
+    //     public Transaction(object transaction)
+    //     {
+    //         id = SafeString(transaction, "id");
+    //         txid = SafeString(transaction, "txid");
+    //         address = SafeString(transaction, "address");
+    //         tag = SafeString(transaction, "tag");
+    //         type = SafeString(transaction, "type");
+    //         currency = SafeString(transaction, "currency");
+    //         amount = SafeFloat(transaction, "amount");
+    //         status = SafeString(transaction, "status");
+    //         updated = SafeInteger(transaction, "updated");
+    //         timestamp = SafeInteger(transaction, "timestamp");
+    //         datetime = SafeString(transaction, "datetime");
+    //         fee = SafeValue(transaction, "fee") != null ? new Fee(SafeValue(transaction, "fee")) : null;
+    //         tagFrom = SafeString(transaction, "tagFrom");
+    //         tagTo = SafeString(transaction, "tagTo");
+    //         addressTo = SafeString(transaction, "addressTo");
+    //         addressFrom = SafeString(transaction, "addressFrom");
+    //         comment = SafeString(transaction, "comment");
+    //     }
+    // }
 
     public struct Position
     {
@@ -832,6 +853,20 @@ public partial class Exchange
             code = SafeString(funding, "code");
             symbol = SafeString(funding, "symbol");
             amount = SafeFloat(funding, "status");
+        }
+    }
+
+    public struct MarginMode
+    {
+        public Dictionary<string, object>? info;
+        public string? symbol;
+        public string? marginMode;
+
+        public MarginMode(object marginMode)
+        {
+            info = SafeValue(marginMode, "info") != null ? (Dictionary<string, object>)SafeValue(marginMode, "info") : null;
+            symbol = SafeString(marginMode, "symbol");
+            this.marginMode = SafeString(marginMode, "marginMode");
         }
     }
 }
