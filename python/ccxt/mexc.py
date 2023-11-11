@@ -145,8 +145,8 @@ class mexc(Exchange, ImplicitAPI):
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mxcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mxcdevelop.github.io/APIDoc/',  # v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
+                    'https://mexcdevelop.github.io/APIDoc/',  # v1 & v2 : soon to be deprecated
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -888,7 +888,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1271,8 +1271,8 @@ class mexc(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
-        :see: https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -3332,9 +3332,9 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
-        :see: https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :param str [params.symbols]:  # required for margin, market id's separated by commas
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
@@ -3985,7 +3985,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict: a dictionary of `address structures <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>` indexed by the network
@@ -4020,7 +4020,7 @@ class mexc(Exchange, ImplicitAPI):
 
     def create_deposit_address(self, code: str, params={}):
         """
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
@@ -4057,7 +4057,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict: an `address structure <https://github.com/ccxt/ccxt/wiki/Manual#address-structure>`
@@ -4079,7 +4079,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -4132,7 +4132,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -4526,7 +4526,7 @@ class mexc(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -4651,7 +4651,7 @@ class mexc(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount, address, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -4661,7 +4661,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         self.check_address(address)
         self.load_markets()
@@ -4675,7 +4675,7 @@ class mexc(Exchange, ImplicitAPI):
             request['memo'] = tag
         if network is not None:
             request['network'] = network
-            params = self.omit(params, 'network')
+            params = self.omit(params, ['network', 'chain'])
         response = self.spotPrivatePostCapitalWithdrawApply(self.extend(request, params))
         #
         #     {
@@ -4715,7 +4715,7 @@ class mexc(Exchange, ImplicitAPI):
     def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         create a loan to borrow margin
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param str symbol: unified market symbol
@@ -4746,7 +4746,7 @@ class mexc(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
         """
         repay borrowed margin and interest
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: unified market symbol
@@ -4782,7 +4782,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch deposit and withdrawal fees
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         :param str[]|None codes: returns fees for all currencies if None
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
@@ -4875,7 +4875,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
         """
         fetch deposit and withdrawal fees
-        :see: https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         :param str[]|None codes: returns fees for all currencies if None
         :param dict [params]: extra parameters specific to the mexc3 api endpoint
         :returns dict[]: a list of `fee structures <https://github.com/ccxt/ccxt/wiki/Manual#fee-structure>`
