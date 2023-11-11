@@ -25,7 +25,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, AuthenticationError, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidOrder, InvalidAddress, RateLimitExceeded
 from ccxt.base.decimal_to_precision import TRUNCATE, ROUND, TICK_SIZE, DECIMAL_PLACES, SIGNIFICANT_DIGITS
-from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade, OrderRequest, Greeks
+from ccxt.base.types import OrderType, OrderSide, IndexType, Balance, Trade, OrderRequest
 
 # -----------------------------------------------------------------------------
 
@@ -2485,6 +2485,9 @@ class Exchange(BaseExchange):
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
 
+    async def fetch_greeks(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -3464,3 +3467,6 @@ class Exchange(BaseExchange):
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_greeks(self, greeks, market=None):
+        raise NotSupported(self.id + ' parseGreeks() is not supported yet')
