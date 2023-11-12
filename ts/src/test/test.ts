@@ -139,6 +139,10 @@ async function setTestFiles (holderClass, properties) {
     }
 }
 
+function isNullValue (value) {
+    return value === null;
+}
+
 async function close (exchange) {
     // stub
 }
@@ -946,7 +950,7 @@ export default class testMainClass extends baseMainTestClass {
         const newInput = [];
         for (let i = 0; i < input.length; i++) {
             const current = input[i];
-            if (current === null) { // noqa: E711
+            if (isNullValue (current)) {
                 newInput.push (undefined);
             } else {
                 newInput.push (current);
@@ -1047,6 +1051,18 @@ export default class testMainClass extends baseMainTestClass {
             dump (successMessage);
             exitScript (0);
         }
+    }
+
+    async runMockResponseTests () {
+        //  -----------------------------------------------------------------------------
+        //  --- Init of mockResponses tests functions------------------------------------
+        //  -----------------------------------------------------------------------------
+        const exchange = this.initOfflineExchange ('binance');
+        const data = [];
+        async function fetchMock (url, metod, headers, bodyText) {
+            return data;
+        }
+        exchange.fetch = fetchMock;
     }
 
     async runBrokerIdTests () {
