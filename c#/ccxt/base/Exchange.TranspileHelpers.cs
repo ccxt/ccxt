@@ -133,7 +133,7 @@ public partial class Exchange
     public object parseJson(object json)
     {
         var jsonString = json.ToString();
-        if (jsonString.StartsWith('['))
+        if (jsonString.StartsWith("[".ToString()))
         {
             return JsonConvert.DeserializeObject<List<dict>>(jsonString);
         }
