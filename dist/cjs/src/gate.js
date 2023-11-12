@@ -4076,6 +4076,7 @@ class gate extends gate$1 {
          * @name gate#editOrder
          * @description edit a trade order, gate currently only supports the modification of the price or amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -4087,9 +4088,6 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['spot']) {
-            throw new errors.BadRequest(this.id + ' editOrder() supports only spot markets');
-        }
         const [marketType, query] = this.handleMarketTypeAndParams('editOrder', market, params);
         const account = this.convertTypeToAccount(marketType);
         const isLimitOrder = (type === 'limit');
@@ -4110,7 +4108,14 @@ class gate extends gate$1 {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privateSpotPatchOrdersOrderId(this.extend(request, query));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateSpotPatchOrdersOrderId(this.extend(request, query));
+        }
+        else {
+            request['settle'] = market['settleId'];
+            response = await this.privateFuturesPutSettleOrdersOrderId(this.extend(request, query));
+        }
         //
         //     {
         //         "id": "243233276443",

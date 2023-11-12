@@ -3854,6 +3854,7 @@ class gate(Exchange, ImplicitAPI):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+        :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -3865,8 +3866,6 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise BadRequest(self.id + ' editOrder() supports only spot markets')
         marketType, query = self.handle_market_type_and_params('editOrder', market, params)
         account = self.convert_type_to_account(marketType)
         isLimitOrder = (type == 'limit')
@@ -3883,7 +3882,12 @@ class gate(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+        response = None
+        if market['spot']:
+            response = self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+        else:
+            request['settle'] = market['settleId']
+            response = self.privateFuturesPutSettleOrdersOrderId(self.extend(request, query))
         #
         #     {
         #         "id": "243233276443",

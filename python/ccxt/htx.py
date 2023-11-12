@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -57,6 +57,7 @@ class htx(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createDepositAddress': None,
                 'createOrder': True,
+                'createOrders': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -651,7 +652,7 @@ class htx(Exchange, ImplicitAPI):
                             # Future Trade Interface
                             'api/v1/contract-cancel-after': 1,
                             'api/v1/contract_order': 1,
-                            'v1/contract_batchorder': 1,
+                            'api/v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
                             'api/v1/contract_cancelall': 1,
                             'api/v1/contract_switch_lever_rate': 1,
@@ -4418,14 +4419,46 @@ class htx(Exchange, ImplicitAPI):
         #         "trade_partition": "USDT"
         #     }
         #
-        id = self.safe_string_2(order, 'id', 'order_id_str')
+        # spot: createOrders
+        #
+        #     [
+        #         {
+        #             "order-id": 936847569789079,
+        #             "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        #         },
+        #         {
+        #             "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        #             "err-code": "account-frozen-balance-insufficient-error",
+        #             "err-msg": "trade account balance is not enough, left: `89`"
+        #         }
+        #     ]
+        #
+        # swap and future: createOrders
+        #
+        #     [
+        #         {
+        #             "index": 2,
+        #             "err_code": 1047,
+        #             "err_msg": "Insufficient margin available."
+        #         },
+        #         {
+        #             "order_id": 1172923090632953857,
+        #             "index": 1,
+        #             "order_id_str": "1172923090632953857"
+        #         }
+        #     ]
+        #
+        rejectedCreateOrders = self.safe_string_2(order, 'err_code', 'err-code')
+        status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
+        if rejectedCreateOrders is not None:
+            status = 'rejected'
+        id = self.safe_string_n(order, ['id', 'order_id_str', 'order-id'])
         side = self.safe_string(order, 'direction')
         type = self.safe_string(order, 'order_price_type')
         if 'type' in order:
             orderType = order['type'].split('-')
             side = orderType[0]
             type = orderType[1]
-        status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_n(order, ['created_at', 'created-at', 'create_date'])
@@ -4461,7 +4494,9 @@ class htx(Exchange, ImplicitAPI):
         average = self.safe_string(order, 'trade_avg_price')
         trades = self.safe_value(order, 'trades')
         reduceOnlyInteger = self.safe_integer(order, 'reduce_only')
-        reduceOnly = False if (reduceOnlyInteger == 0) else True
+        reduceOnly = None
+        if reduceOnlyInteger is not None:
+            reduceOnly = False if (reduceOnlyInteger == 0) else True
         return self.safe_order({
             'info': order,
             'id': id,
@@ -4488,55 +4523,18 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
-        """
-        create a trade order
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the huobi api endpoint
-        :param float [params.stopPrice]: the price a trigger order is triggered at
-        :param str [params.triggerType]: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
-        :param float [params.stopLossPrice]: *contract only* the price a stop-loss order is triggered at
-        :param float [params.takeProfitPrice]: *contract only* the price a take-profit order is triggered at
-        :param str [params.operator]: *spot and margin only* gte or lte, trigger price condition
-        :param str [params.offset]: *contract only* 'open', 'close', or 'both', required in hedge mode
-        :param bool [params.postOnly]: *contract only* True or False
-        :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
-        :param str [params.timeInForce]: supports 'IOC' and 'FOK'
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
-        """
-        self.load_markets()
-        market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
-        if marketType == 'spot':
-            return self.create_spot_order(symbol, type, side, amount, price, query)
-        else:
-            return self.create_contract_order(symbol, type, side, amount, price, query)
-
-    def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
          * @ignore
-        create a spot trade order
-        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+        helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the huobi api endpoint
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :param dict [params]: extra parameters specific to the htx api endpoint
+        :param str [params.timeInForce]: supports 'IOC' and 'FOK'
+        :returns dict: request to be sent to the exchange
         """
         self.load_markets()
         self.load_accounts()
@@ -4618,50 +4616,20 @@ class htx(Exchange, ImplicitAPI):
         if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
         params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
-        response = self.spotPrivatePostV1OrderOrdersPlace(self.extend(request, params))
-        #
-        # spot
-        #
-        #     {"status":"ok","data":"438398393065481"}
-        #
-        id = self.safe_string(response, 'data')
-        return self.safe_order({
-            'info': response,
-            'id': id,
-            'timestamp': None,
-            'datetime': None,
-            'lastTradeTimestamp': None,
-            'status': None,
-            'symbol': None,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': None,
-            'remaining': None,
-            'cost': None,
-            'trades': None,
-            'fee': None,
-            'clientOrderId': None,
-            'average': None,
-        }, market)
+        return self.extend(request, params)
 
-    def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
+    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
          * @ignore
-        create a contract trade order
-        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
-        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
-        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+        helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-        :param dict params: extra parameters specific to the huobi api endpoint
+        :param dict [params]: extra parameters specific to the htx api endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
-        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        :returns dict: request to be sent to the exchange
         """
         market = self.market(symbol)
         request = {
@@ -4718,44 +4686,94 @@ class htx(Exchange, ImplicitAPI):
                 request['reduce_only'] = 1
             request['lever_rate'] = leverRate
             request['order_price_type'] = type
-        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce'])
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
+        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce'])
+        return self.extend(request, params)
+
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
+        """
+        create a trade order
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   # spot, margin
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        # coin-m swap
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   # coin-m swap trigger
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           # usdt-m swap cross
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      # usdt-m swap cross trigger
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        # usdt-m swap isolated
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   # usdt-m swap isolated trigger
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        # coin-m futures
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   # coin-m futures contract trigger
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the huobi api endpoint
+        :param float [params.stopPrice]: the price a trigger order is triggered at
+        :param str [params.triggerType]: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
+        :param float [params.stopLossPrice]: *contract only* the price a stop-loss order is triggered at
+        :param float [params.takeProfitPrice]: *contract only* the price a take-profit order is triggered at
+        :param str [params.operator]: *spot and margin only* gte or lte, trigger price condition
+        :param str [params.offset]: *contract only* 'open', 'close', or 'both', required in hedge mode
+        :param bool [params.postOnly]: *contract only* True or False
+        :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+        :param str [params.timeInForce]: supports 'IOC' and 'FOK'
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
+        stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
+        takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
+        isStop = triggerPrice is not None
+        isStopLossTriggerOrder = stopLossTriggerPrice is not None
+        isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         response = None
-        if market['linear']:
-            marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-            marginMode = 'cross' if (marginMode is None) else marginMode
-            if marginMode == 'isolated':
-                if isStop:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(self.extend(request, params))
-                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(self.extend(request, params))
-                else:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapOrder(self.extend(request, params))
-            elif marginMode == 'cross':
-                if isStop:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(self.extend(request, params))
-                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(self.extend(request, params))
-                else:
-                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(self.extend(request, params))
-        elif market['inverse']:
-            if market['swap']:
-                if isStop:
-                    response = self.contractPrivatePostSwapApiV1SwapTriggerOrder(self.extend(request, params))
-                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-                    response = self.contractPrivatePostSwapApiV1SwapTpslOrder(self.extend(request, params))
-                else:
-                    response = self.contractPrivatePostSwapApiV1SwapOrder(self.extend(request, params))
-            elif market['future']:
-                if isStop:
-                    response = self.contractPrivatePostApiV1ContractTriggerOrder(self.extend(request, params))
-                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
-                    response = self.contractPrivatePostApiV1ContractTpslOrder(self.extend(request, params))
-                else:
-                    response = self.contractPrivatePostApiV1ContractOrder(self.extend(request, params))
+        if market['spot']:
+            spotRequest = self.create_spot_order_request(symbol, type, side, amount, price, params)
+            response = self.spotPrivatePostV1OrderOrdersPlace(spotRequest)
+        else:
+            contractRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
+            if market['linear']:
+                marginMode = None
+                marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+                marginMode = 'cross' if (marginMode is None) else marginMode
+                if marginMode == 'isolated':
+                    if isStop:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest)
+                    elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest)
+                    else:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest)
+                elif marginMode == 'cross':
+                    if isStop:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest)
+                    elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest)
+                    else:
+                        response = self.contractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest)
+            elif market['inverse']:
+                if market['swap']:
+                    if isStop:
+                        response = self.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)
+                    elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                        response = self.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest)
+                    else:
+                        response = self.contractPrivatePostSwapApiV1SwapOrder(contractRequest)
+                elif market['future']:
+                    if isStop:
+                        response = self.contractPrivatePostApiV1ContractTriggerOrder(contractRequest)
+                    elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
+                        response = self.contractPrivatePostApiV1ContractTpslOrder(contractRequest)
+                    else:
+                        response = self.contractPrivatePostApiV1ContractOrder(contractRequest)
+        #
+        # spot
+        #
+        #     {"status":"ok","data":"438398393065481"}
+        #
+        # swap and future
         #
         #     {
         #         "status": "ok",
@@ -4782,7 +4800,28 @@ class htx(Exchange, ImplicitAPI):
         #
         data = None
         result = None
-        if isStopLossTriggerOrder:
+        if market['spot']:
+            return self.safe_order({
+                'info': response,
+                'id': self.safe_string(response, 'data'),
+                'timestamp': None,
+                'datetime': None,
+                'lastTradeTimestamp': None,
+                'status': None,
+                'symbol': None,
+                'type': type,
+                'side': side,
+                'price': price,
+                'amount': amount,
+                'filled': None,
+                'remaining': None,
+                'cost': None,
+                'trades': None,
+                'fee': None,
+                'clientOrderId': None,
+                'average': None,
+            }, market)
+        elif isStopLossTriggerOrder:
             data = self.safe_value(response, 'data', {})
             result = self.safe_value(data, 'sl_order', {})
         elif isTakeProfitTriggerOrder:
@@ -4791,6 +4830,120 @@ class htx(Exchange, ImplicitAPI):
         else:
             result = self.safe_value(response, 'data', {})
         return self.parse_order(result, market)
+
+    def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+        :param array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the htx api endpoint
+        :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
+        """
+        self.load_markets()
+        ordersRequests = []
+        symbol = None
+        market = None
+        marginMode = None
+        for i in range(0, len(orders)):
+            rawOrder = orders[i]
+            marketId = self.safe_string(rawOrder, 'symbol')
+            if symbol is None:
+                symbol = marketId
+            else:
+                if symbol != marketId:
+                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
+            type = self.safe_string(rawOrder, 'type')
+            side = self.safe_string(rawOrder, 'side')
+            amount = self.safe_value(rawOrder, 'amount')
+            price = self.safe_value(rawOrder, 'price')
+            orderParams = self.safe_value(rawOrder, 'params', {})
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
+            currentMarginMode = marginResult[0]
+            if currentMarginMode is not None:
+                if marginMode is None:
+                    marginMode = currentMarginMode
+                else:
+                    if marginMode != currentMarginMode:
+                        raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
+            market = self.market(symbol)
+            orderRequest = None
+            if market['spot']:
+                orderRequest = self.create_spot_order_request(marketId, type, side, amount, price, orderParams)
+            else:
+                orderRequest = self.create_contract_order_request(marketId, type, side, amount, price, orderParams)
+            orderRequest = self.omit(orderRequest, 'marginMode')
+            ordersRequests.append(orderRequest)
+        request = {}
+        response = None
+        if market['spot']:
+            response = self.privatePostOrderBatchOrders(ordersRequests)
+        else:
+            request['orders_data'] = ordersRequests
+            if market['linear']:
+                marginMode = 'cross' if (marginMode is None) else marginMode
+                if marginMode == 'isolated':
+                    response = self.contractPrivatePostLinearSwapApiV1SwapBatchorder(request)
+                elif marginMode == 'cross':
+                    response = self.contractPrivatePostLinearSwapApiV1SwapCrossBatchorder(request)
+            elif market['inverse']:
+                if market['swap']:
+                    response = self.contractPrivatePostSwapApiV1SwapBatchorder(request)
+                elif market['future']:
+                    response = self.contractPrivatePostApiV1ContractBatchorder(request)
+        #
+        # spot
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "order-id": 936847569789079,
+        #                 "client-order-id": "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        #             },
+        #             {
+        #                 "client-order-id": "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        #                 "err-code": "account-frozen-balance-insufficient-error",
+        #                 "err-msg": "trade account balance is not enough, left: `89`"
+        #             }
+        #         ]
+        #     }
+        #
+        # swap and future
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "errors": [
+        #                 {
+        #                     "index": 2,
+        #                     "err_code": 1047,
+        #                     "err_msg": "Insufficient margin available."
+        #                 }
+        #             ],
+        #             "success": [
+        #                 {
+        #                     "order_id": 1172923090632953857,
+        #                     "index": 1,
+        #                     "order_id_str": "1172923090632953857"
+        #                 }
+        #             ]
+        #         },
+        #         "ts": 1699688256671
+        #     }
+        #
+        result = None
+        if market['spot']:
+            result = self.safe_value(response, 'data', [])
+        else:
+            data = self.safe_value(response, 'data', {})
+            success = self.safe_value(data, 'success', [])
+            errors = self.safe_value(data, 'errors', [])
+            result = self.array_concat(success, errors)
+        return self.parse_orders(result, market)
 
     def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
