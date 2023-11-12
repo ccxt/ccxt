@@ -130,8 +130,13 @@ public partial class Exchange
         return a;
     }
 
-    public dict parseJson(object json)
+    public object parseJson(object json)
     {
+        var jsonString = json.ToString();
+        if (jsonString.StartsWith('['))
+        {
+            return JsonConvert.DeserializeObject<List<dict>>(jsonString);
+        }
         return JsonConvert.DeserializeObject<dict>((string)json);
     }
 
@@ -694,7 +699,10 @@ public partial class Exchange
         var tasks = new List<Task<object>>();
         foreach (var promise in promises)
         {
-            tasks.Add((Task<object>)promise);
+            if (promise is Task<object>)
+            {
+                tasks.Add((Task<object>)promise);
+            }
         }
         var results = await Task.WhenAll(tasks);
         return results.ToList();

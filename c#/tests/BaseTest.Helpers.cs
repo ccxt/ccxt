@@ -83,6 +83,11 @@ public partial class testMainClass : BaseTest
 
     public object jsonParse(object a)
     {
+        var jsonString = a.ToString();
+        if (jsonString.StartsWith('['))
+        {
+            return JsonConvert.DeserializeObject<List<dict>>(jsonString);
+        }
         return JsonConvert.DeserializeObject<dict>((string)a);
     }
 
