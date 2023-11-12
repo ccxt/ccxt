@@ -2182,7 +2182,24 @@ class Transpiler {
         const commentEndLine = '***** AUTO-TRANSPILER-END *****';
 
         const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
-        let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+        // let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
+        const transpiler = new astTranspiler({'verbose': false});
+        let fileConfig = [
+            {
+                language: "php",
+                async: true
+            },
+            {
+                language: "php",
+                async: false
+            },
+            {
+                language: "python",
+                async: true
+            }
+        ]
+        const transpilerResult = transpiler.transpileDifferentLanguages(fileConfig, mainContent);
+        let [ phpAsync, php, python3 ] = [ transpilerResult[0].content, transpilerResult[1].content, transpilerResult[2].content  ];
 
         // ########### PYTHON ###########
         python3 = python3.
