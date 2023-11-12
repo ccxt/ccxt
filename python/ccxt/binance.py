@@ -695,6 +695,25 @@ class binance(Exchange):
             results.append(result)
         return results
 
+    def fetch_collateral(self, asset, symbol=None, params=None):
+        if params is None:
+            params = dict()
+        self.load_markets()
+        params["asset"] = asset
+        _type = self.safe_string(self.options, 'defaultType')
+        if _type == "margin_isolated":
+            params["isolatedSymbol"] = self.market_id(symbol)
+            response = self.sapiGetMarginMaxBorrowable(params)
+            quote_asset = self.get_pair(symbol) == asset
+            available_asset_balance = self.fetch_partial_balance(symbol, quote_asset=quote_asset).get("free", 0.)
+        elif _type == "margin_cross":
+            response = self.sapiGetMarginMaxBorrowable(params)
+            available_asset_balance = self.fetch_partial_balance(asset).get("free", 0.)
+        else:
+            raise NotSupported
+        max_borrowable = self.safe_float(response, 'amount')
+        return {"free_collateral": max_borrowable + available_asset_balance}
+
     def set_leverage(self, symbol, leverage):
         self.load_markets()
         _id = self.find_market(symbol)["id"]
@@ -715,33 +734,50 @@ class binance(Exchange):
             side = 'short'
         return side
 
-    def parse_positions(self, account_positions, risk_positions):
+    def get_position_maintenance_margin(self, account_position):
+        margin = self.safe_float(account_position, "initialMargin", 0.) + \
+                 self.safe_float(account_position, "unrealizedProfit", 0.) - \
+                 self.safe_float(account_position, "openOrderInitialMargin", 0.)
+        return margin
+
+    def parse_position(self, position, account_position=None):
+        if position:
+            position_side = self.safe_string(position, "positionSide")
+            if not account_position or position_side == account_position.get("positionSide"):
+                side = self.get_position_side(position)
+                maintenance_margin = \
+                    self.get_position_maintenance_margin(account_position) if account_position else None
+                market = self.find_market(position["symbol"])
+                if type(market) is dict:
+                    liq_price = self.safe_float(position, "liquidationPrice", 0)
+                    result = {"info": position, "symbol": market["symbol"],
+                              "quantity": self.safe_float(position, "positionAmt", 0.),
+                              "leverage": self.safe_float(position, "leverage", None),
+                              "maintenance_margin": maintenance_margin, "margin_type": position["marginType"],
+                              "liquidation_price": max(liq_price, 0), "side": side,
+                              "is_long": None if position_side == "BOTH" else position_side == "LONG"}
+                    return result
+
+    def parse_positions_with_maintenance_margin(self, account_positions, risk_positions):
         positions_to_return = list()
 
         for account_position in account_positions:
             symbol = account_position["symbol"]
             positions = risk_positions.get(symbol)
-            account_position_side = account_position.get("positionSide")
             if positions is None:
                 continue
             for position in positions:
-                if position:
-                    position_side = self.safe_string(position, "positionSide")
-                    if position_side == account_position_side:
-                        side = self.get_position_side(position)
-                        margin = self.safe_float(account_position, "initialMargin", 0.) + \
-                            self.safe_float(account_position, "unrealizedProfit", 0.) - \
-                            self.safe_float(account_position, "openOrderInitialMargin", 0.)
-                        market = self.find_market(position["symbol"])
-                        if type(market) is dict:
-                            liq_price = self.safe_float(position, "liquidationPrice", 0)
-                            result = {"info": position, "symbol": market["symbol"],
-                                      "quantity": self.safe_float(position, "positionAmt", 0.),
-                                      "leverage": self.safe_float(position, "leverage", None),
-                                      "maintenance_margin": margin, "margin_type": position["marginType"],
-                                      "liquidation_price": max(liq_price, 0), "side": side,
-                                      "is_long": None if position_side == "BOTH" else position_side == "LONG"}
-                            positions_to_return.append(result)
+                parsed_position = self.parse_position(position, account_position=account_position)
+                if parsed_position:
+                    positions_to_return.append(parsed_position)
+        return positions_to_return
+
+    def parse_positions_without_maintenance_margin(self, positions):
+        positions_to_return = list()
+        for position in positions:
+            parsed_position = self.parse_position(position)
+            if parsed_position:
+                positions_to_return.append(parsed_position)
         return positions_to_return
 
     def parse_isolated_margin_positions(self, positions):
@@ -767,41 +803,32 @@ class binance(Exchange):
 
         return positions_to_return
 
-    def fetch_collateral(self, asset, symbol=None, params={}):
-        self.load_markets()
-        params["asset"] = asset
+    def get_futures_positions(self, symbol=None, fetch_maintenance_margin=True):
         _type = self.safe_string(self.options, 'defaultType')
-        if _type == "margin_isolated":
-            params["isolatedSymbol"] = self.market_id(symbol)
-            response = self.sapiGetMarginMaxBorrowable(params)
-            quote_asset = self.get_pair(symbol) == asset
-            available_asset_balance = self.fetch_partial_balance(symbol, quote_asset=quote_asset).get("free", 0.)
-        elif _type == "margin_cross":
-            response = self.sapiGetMarginMaxBorrowable(params)
-            available_asset_balance = self.fetch_partial_balance(asset).get("free", 0.)
-        else:
-            raise NotSupported
-        max_borrowable = self.safe_float(response, 'amount')
-        return {"free_collateral": max_borrowable + available_asset_balance}
-
-    def get_positions(self, symbol=None, params=None):
-        self.load_markets()
-        _type = self.safe_string(self.options, 'defaultType')
-
         if _type == "future":
-            account_positions = self.fapiPrivateV2GetAccount().get("positions", list())
+            account_func = self.fapiPrivateV2GetAccount
+            position_risk_func = self.fapiPrivateV2GetPositionRisk
+        else:
+            account_func = self.dapiPrivateGetAccount
+            position_risk_func = self.dapiPrivateGetPositionRisk
+        raw_risk_positions = position_risk_func({"symbol": self.market_id(symbol)} if symbol else {})
+        if fetch_maintenance_margin:
             risk_positions = defaultdict(list)
-            raw_risk_positions = self.fapiPrivateV2GetPositionRisk({"symbol": self.market_id(symbol)} if symbol else {})
             for raw_risk_position in raw_risk_positions:
                 risk_positions[raw_risk_position["symbol"]].append(raw_risk_position)
-            positions_to_return = self.parse_positions(account_positions, risk_positions)
-        elif _type == "delivery":
-            account_positions = self.dapiPrivateGetAccount().get("positions", list())
-            risk_positions = defaultdict(list)
-            raw_risk_positions = self.dapiPrivateGetPositionRisk({"symbol": self.market_id(symbol)} if symbol else {})
-            for raw_risk_position in raw_risk_positions:
-                risk_positions[raw_risk_position["symbol"]].append(raw_risk_position)
-            positions_to_return = self.parse_positions(account_positions, risk_positions)
+            account_positions = account_func().get("positions", list())
+            positions_to_return = self.parse_positions_with_maintenance_margin(account_positions, risk_positions)
+        else:
+            positions_to_return = self.parse_positions_without_maintenance_margin(raw_risk_positions)
+        return positions_to_return
+
+    def get_positions(self, symbol=None, fetch_maintenance_margin=True, params=None):
+        self.load_markets()
+        _type = self.safe_string(self.options, 'defaultType')
+
+        if _type in {"future", "delivery"}:
+            positions_to_return = self.get_futures_positions(symbol=symbol,
+                                                             fetch_maintenance_margin=fetch_maintenance_margin)
         elif _type == "margin_isolated":
             response = self.sapiGetMarginIsolatedAccount({"symbols": self.market_id(symbol)} if symbol else {})
             positions = self.safe_value(response, "assets", [])
