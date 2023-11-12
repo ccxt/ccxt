@@ -305,6 +305,26 @@ export default class coinex extends Exchange {
                 'ACM': 'Actinium',
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                    '23': PermissionDenied, // IP Prohibited
+                    '24': AuthenticationError,
+                    '25': AuthenticationError,
+                    '34': AuthenticationError, // Access id is expires
+                    '35': ExchangeNotAvailable, // Service unavailable
+                    '36': RequestTimeout, // Service timeout
+                    '213': RateLimitExceeded, // Too many requests
+                    '107': InsufficientFunds,
+                    '600': OrderNotFound,
+                    '601': InvalidOrder,
+                    '602': InvalidOrder,
+                    '606': InvalidOrder,
+                },
+                'broad': {
+                    'ip not allow visit': PermissionDenied,
+                },
+            },
         });
     }
 
@@ -4805,29 +4825,29 @@ export default class coinex extends Exchange {
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         const nonce = this.nonce ().toString ();
-        if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
-            this.checkRequiredCredentials ();
-            if (method === 'POST') {
-                const parts = path.split ('/');
-                const firstPart = this.safeString (parts, 0, '');
-                if (firstPart === 'order') {
-                    // inject in implicit API calls
-                    // POST /order/limit - Place limit orders
-                    // POST /order/market - Place market orders
-                    // POST /order/stop/limit - Place stop limit orders
-                    // POST /order/stop/market - Place stop market orders
-                    // POST /perpetual/v1/order/put_limit - Place limit orders
-                    // POST /perpetual/v1/order/put_market - Place market orders
-                    // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
-                    // POST /perpetual/v1/order/put_stop_market - Place stop market orders
-                    const clientOrderId = this.safeString (params, 'client_id');
-                    if (clientOrderId === undefined) {
-                        const defaultId = 'x-167673045';
-                        const brokerId = this.safeValue (this.options, 'brokerId', defaultId);
-                        params['client_id'] = brokerId + '_' + this.uuid16 ();
-                    }
+        if (method === 'POST') {
+            const parts = path.split ('/');
+            const firstPart = this.safeString (parts, 0, '');
+            if (firstPart === 'order') {
+                // inject in implicit API calls
+                // POST /order/limit - Place limit orders
+                // POST /order/market - Place market orders
+                // POST /order/stop/limit - Place stop limit orders
+                // POST /order/stop/market - Place stop market orders
+                // POST /perpetual/v1/order/put_limit - Place limit orders
+                // POST /perpetual/v1/order/put_market - Place market orders
+                // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
+                // POST /perpetual/v1/order/put_stop_market - Place stop market orders
+                const clientOrderId = this.safeString (params, 'client_id');
+                if (clientOrderId === undefined) {
+                    const defaultId = 'x-167673045';
+                    const brokerId = this.safeValue (this.options, 'brokerId', defaultId);
+                    query['client_id'] = brokerId + '_' + this.uuid16 ();
                 }
             }
+        }
+        if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
+            this.checkRequiredCredentials ();
             query = this.extend ({
                 'access_id': this.apiKey,
                 'timestamp': nonce,
@@ -4879,23 +4899,10 @@ export default class coinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
-            const responseCodes = {
-                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
-                '23': PermissionDenied, // IP Prohibited
-                '24': AuthenticationError,
-                '25': AuthenticationError,
-                '34': AuthenticationError, // Access id is expires
-                '35': ExchangeNotAvailable, // Service unavailable
-                '36': RequestTimeout, // Service timeout
-                '213': RateLimitExceeded, // Too many requests
-                '107': InsufficientFunds,
-                '600': OrderNotFound,
-                '601': InvalidOrder,
-                '602': InvalidOrder,
-                '606': InvalidOrder,
-            };
-            const ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
-            throw new ErrorClass (response['message']);
+            const feedback = this.id + ' ' + message;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
