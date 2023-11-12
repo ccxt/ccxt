@@ -1578,6 +1578,7 @@ export default class coinex extends Exchange {
         //         "status": "done",
         //         "taker_fee_rate": "0.0005",
         //         "type": "sell",
+        //         "client_id": "",
         //     }
         //
         // Spot and Margin createOrder, cancelOrder, fetchOrder
@@ -1605,6 +1606,7 @@ export default class coinex extends Exchange {
         //          "stock_fee":"0",
         //          "taker_fee_rate":"0.002",
         //          "type":"buy"
+        //          "client_id": "",
         //      }
         //
         // Swap createOrder, cancelOrder, fetchOrder
@@ -1816,9 +1818,13 @@ export default class coinex extends Exchange {
         } else {
             type = rawType;
         }
+        let clientOrderId = this.safeString (order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         return this.safeOrder ({
             'id': this.safeString2 (order, 'id', 'order_id'),
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeTimestamp (order, 'update_time'),
