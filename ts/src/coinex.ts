@@ -285,6 +285,7 @@ export default class coinex extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'x-167673045',
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
@@ -1858,6 +1859,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
+        const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
         const stopPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -1879,6 +1881,14 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker', {});
+            const defaultId = 'x-167673045';
+            const brokerId = this.safeString (broker, 'id', defaultId);
+            request['client_id'] = brokerId + '-' + this.uuid16 ();
+        } else {
+            request['client_id'] = clientOrderId;
+        }
         if (swap) {
             if (stopLossPrice || takeProfitPrice) {
                 request['stop_type'] = this.safeInteger (params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price
@@ -4814,6 +4824,27 @@ export default class coinex extends Exchange {
         const nonce = this.nonce ().toString ();
         if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
             this.checkRequiredCredentials ();
+            if (method === 'POST') {
+                const parts = path.split ('/');
+                const firstPart = this.safeString (parts, 0, '');
+                if (firstPart === 'order') {
+                    // inject in implicit API calls
+                    // POST /order/limit - Place limit orders
+                    // POST /order/market - Place market orders
+                    // POST /order/stop/limit - Place stop limit orders
+                    // POST /order/stop/market - Place stop market orders
+                    // POST /perpetual/v1/order/put_limit - Place limit orders
+                    // POST /perpetual/v1/order/put_market - Place market orders
+                    // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
+                    // POST /perpetual/v1/order/put_stop_market - Place stop market orders
+                    const clientOrderId = this.safeString (params, 'client_id');
+                    if (clientOrderId === undefined) {
+                        const defaultId = 'x-167673045';
+                        const brokerId = this.safeValue (this.options, 'brokerId', defaultId);
+                        params['client_id'] = brokerId + '_' + this.uuid16 ();
+                    }
+                }
+            }
             query = this.extend ({
                 'access_id': this.apiKey,
                 'timestamp': nonce,
