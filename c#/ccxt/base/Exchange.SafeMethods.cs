@@ -169,6 +169,21 @@ public partial class Exchange
         return parsedValue == null ? defaultValue : parsedValue;
     }
 
+    public object safeIntegerProductN(object obj, List<object> keys, object defaultValue = null, object multiplier = null)
+    {
+        var result = safeValueN(obj, keys, defaultValue);
+        object parsedValue = null;
+        try
+        {
+            parsedValue = Convert.ToInt64((Convert.ToDouble(result) * Convert.ToDouble(multiplier)));
+        }
+        catch (Exception e)
+        {
+
+        }
+        return parsedValue == null ? defaultValue : parsedValue;
+    }
+
     public object safeIntegerN(object obj, List<object> keys, object defaultValue = null) => SafeIntegerN(obj, keys, defaultValue);
     public static Int64? SafeIntegerN(object obj, List<object> keys, object defaultValue = null)
     {

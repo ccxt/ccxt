@@ -489,6 +489,10 @@ public partial class Exchange
         {
             return ((List<string>)value).Count;
         }
+        else if (value.GetType() == typeof(List<dict>))
+        {
+            return ((List<dict>)value).Count;
+        }
         else if (value.GetType() == typeof(string))
         {
             return ((string)value).Length; // fallback that should not be used
