@@ -1064,7 +1064,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testMexc (),
             this.testHuobi (),
             this.testWoo (),
-            this.testBitmart ()
+            this.testBitmart (),
+            this.testCoinex ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1285,6 +1286,21 @@ export default class testMainClass extends baseMainTestClass {
         }
         assert (reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
         await close (bitmart);
+    }
+
+    async testCoinex () {
+        const exchange = this.initOfflineExchange ('coinex');
+        const id = 'x-167673045';
+        assert (exchange.options['brokerId'] === id, 'id not in options');
+        let spotOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            spotOrderRequest = jsonParse (exchange.last_request_body);
+        }
+        const clientOrderId = spotOrderRequest['client_id'];
+        assert (clientOrderId.startsWith (id), 'clientOrderId does not start with id');
+        await close (exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****
