@@ -6790,7 +6790,7 @@ export default class gate extends Exchange {
             'askPrice': this.safeNumber (greeks, 'ask1_price'),
             'markPrice': this.safeNumber (greeks, 'mark_price'),
             'lastPrice': this.safeNumber (greeks, 'last_price'),
-            'underlyingPrice': undefined,
+            'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
             'info': greeks,
         };
     }
