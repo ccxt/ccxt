@@ -124,6 +124,8 @@
         }
     },
     "bit2c": {
+        "skip": "temporary certificate issues",
+        "until": "2023-11-25",
         "skipMethods": {
             "loadMarkets": {
                 "precision": "not provided",
