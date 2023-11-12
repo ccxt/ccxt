@@ -33,8 +33,8 @@ from ccxt.base.errors import AuthenticationError
 # ------------------------------------------------------------------------------
 
 class Argv(object):
-    idTests = False
-    staticTests = False
+    id_tests = False
+    static_tests = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -93,11 +93,11 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 class baseMainTestClass():
     lang = 'PY'
-    staticTestsFailed = False
-    skippedMethods = {}
-    checkedPublicTests = {}
-    testFiles = {}
-    publicTests = {}
+    static_tests_failed = False
+    skipped_methods = {}
+    check_public_tests = {}
+    test_files = {}
+    public_tests = {}
     pass
 
 
