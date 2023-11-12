@@ -132,7 +132,7 @@ public partial class testMainClass : BaseTest
     {
         var path = path2 as string;
         var filesInDir = System.IO.Directory.GetFiles(path);
-        return filesInDir;
+        return filesInDir.ToList<string>();
     }
 
     public async Task<object> callMethod(object testFiles2, object methodName, object exchange, params object[] args)
