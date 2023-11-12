@@ -5178,7 +5178,7 @@ export default class htx extends Exchange {
                 if (market['swap']) {
                     response = await this.contractPrivatePostSwapApiV1SwapBatchorder (request);
                 } else if (market['future']) {
-                    response = await this.contractPrivatePostV1ContractBatchorder (request);
+                    response = await this.contractPrivatePostApiV1ContractBatchorder (request);
                 }
             }
         }
