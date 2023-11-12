@@ -4833,7 +4833,12 @@ export default class coinex extends Exchange {
         if (method === 'POST') {
             const parts = path.split ('/');
             const firstPart = this.safeString (parts, 0, '');
-            if (firstPart === 'order') {
+            const numParts = parts.length;
+            const lastPart = this.safeString (parts, numParts - 1, '');
+            const lastWords = lastPart.split ('_');
+            const numWords = lastWords.length;
+            const lastWord = this.safeString (lastWords, numWords - 1, '');
+            if ((firstPart === 'order') && (lastWord === 'limit' || lastWord === 'market')) {
                 // inject in implicit API calls
                 // POST /order/limit - Place limit orders
                 // POST /order/market - Place market orders
