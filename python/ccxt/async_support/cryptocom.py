@@ -71,6 +71,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,

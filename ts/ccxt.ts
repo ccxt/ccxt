@@ -469,6 +469,7 @@ export {
     Liquidation,
     FundingHistory,
     MarginMode,
+    Greeks,
     ace,
     alpaca,
     ascendex,

@@ -60,6 +60,7 @@ class deribit extends Exchange {
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => true,
@@ -3116,6 +3117,139 @@ class deribit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://docs.deribit.com/#public-ticker
+             * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+             * @param {array} [$params] extra parameters specific to the deribit api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             "estimated_delivery_price" => 36552.72,
+            //             "best_bid_amount" => 0.2,
+            //             "best_ask_amount" => 9.1,
+            //             "interest_rate" => 0.0,
+            //             "best_bid_price" => 0.214,
+            //             "best_ask_price" => 0.219,
+            //             "open_interest" => 368.8,
+            //             "settlement_price" => 0.22103022,
+            //             "last_price" => 0.215,
+            //             "bid_iv" => 60.51,
+            //             "ask_iv" => 61.88,
+            //             "mark_iv" => 61.27,
+            //             "underlying_index" => "BTC-27SEP24",
+            //             "underlying_price" => 38992.71,
+            //             "min_price" => 0.1515,
+            //             "max_price" => 0.326,
+            //             "mark_price" => 0.2168,
+            //             "instrument_name" => "BTC-27SEP24-40000-C",
+            //             "index_price" => 36552.72,
+            //             "greeks" => array(
+            //                 "rho" => 130.63998,
+            //                 "theta" => -13.48784,
+            //                 "vega" => 141.90146,
+            //                 "gamma" => 0.00002,
+            //                 "delta" => 0.59621
+            //             ),
+            //             "stats" => array(
+            //                 "volume_usd" => 100453.9,
+            //                 "volume" => 12.0,
+            //                 "price_change" => -2.2727,
+            //                 "low" => 0.2065,
+            //                 "high" => 0.238
+            //             ),
+            //             "state" => "open",
+            //             "timestamp" => 1699578548021
+            //         ),
+            //         "usIn" => 1699578548308414,
+            //         "usOut" => 1699578548308606,
+            //         "usDiff" => 192,
+            //         "testnet" => false
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_greeks($result, $market);
+        }) ();
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        //
+        //     {
+        //         "estimated_delivery_price" => 36552.72,
+        //         "best_bid_amount" => 0.2,
+        //         "best_ask_amount" => 9.1,
+        //         "interest_rate" => 0.0,
+        //         "best_bid_price" => 0.214,
+        //         "best_ask_price" => 0.219,
+        //         "open_interest" => 368.8,
+        //         "settlement_price" => 0.22103022,
+        //         "last_price" => 0.215,
+        //         "bid_iv" => 60.51,
+        //         "ask_iv" => 61.88,
+        //         "mark_iv" => 61.27,
+        //         "underlying_index" => "BTC-27SEP24",
+        //         "underlying_price" => 38992.71,
+        //         "min_price" => 0.1515,
+        //         "max_price" => 0.326,
+        //         "mark_price" => 0.2168,
+        //         "instrument_name" => "BTC-27SEP24-40000-C",
+        //         "index_price" => 36552.72,
+        //         "greeks" => array(
+        //             "rho" => 130.63998,
+        //             "theta" => -13.48784,
+        //             "vega" => 141.90146,
+        //             "gamma" => 0.00002,
+        //             "delta" => 0.59621
+        //         ),
+        //         "stats" => array(
+        //             "volume_usd" => 100453.9,
+        //             "volume" => 12.0,
+        //             "price_change" => -2.2727,
+        //             "low" => 0.2065,
+        //             "high" => 0.238
+        //         ),
+        //         "state" => "open",
+        //         "timestamp" => 1699578548021
+        //     }
+        //
+        $timestamp = $this->safe_integer($greeks, 'timestamp');
+        $marketId = $this->safe_string($greeks, 'instrument_name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $stats = $this->safe_value($greeks, 'greeks', array());
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($stats, 'delta'),
+            'gamma' => $this->safe_number($stats, 'gamma'),
+            'theta' => $this->safe_number($stats, 'theta'),
+            'vega' => $this->safe_number($stats, 'vega'),
+            'rho' => $this->safe_number($stats, 'rho'),
+            'bidSize' => $this->safe_number($greeks, 'best_bid_amount'),
+            'askSize' => $this->safe_number($greeks, 'best_ask_amount'),
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'mark_iv'),
+            'bidPrice' => $this->safe_number($greeks, 'best_bid_price'),
+            'askPrice' => $this->safe_number($greeks, 'best_ask_price'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
+            'underlyingPrice' => $this->safe_number($greeks, 'underlying_price'),
+            'info' => $greeks,
+        );
     }
 
     public function nonce() {

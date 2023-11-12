@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction, Greeks
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -92,6 +92,7 @@ class okx(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchL3OrderBook': False,
                 'fetchLedger': True,
@@ -6507,6 +6508,109 @@ class okx(Exchange, ImplicitAPI):
         #
         underlyings = self.safe_value(response, 'data', [])
         return underlyings[0]
+
+    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the okx api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        optionParts = marketId.split('-')
+        request = {
+            'uly': market['info']['uly'],
+            'instFamily': market['info']['instFamily'],
+            'expTime': self.safe_string(optionParts, 2),
+        }
+        response = await self.publicGetPublicOptSummary(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "askVol": "0",
+        #                 "bidVol": "0",
+        #                 "delta": "0.5105464486882039",
+        #                 "deltaBS": "0.7325502184143025",
+        #                 "fwdPx": "37675.80158694987186",
+        #                 "gamma": "-0.13183515090501083",
+        #                 "gammaBS": "0.000024139685826358558",
+        #                 "instId": "BTC-USD-240329-32000-C",
+        #                 "instType": "OPTION",
+        #                 "lever": "4.504428015946619",
+        #                 "markVol": "0.5916253554539876",
+        #                 "realVol": "0",
+        #                 "theta": "-0.0004202992014012855",
+        #                 "thetaBS": "-18.52354631567909",
+        #                 "ts": "1699586421976",
+        #                 "uly": "BTC-USD",
+        #                 "vega": "0.0020207455080045846",
+        #                 "vegaBS": "74.44022302387287",
+        #                 "volLv": "0.5948549730405797"
+        #             },
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            entryMarketId = self.safe_string(entry, 'instId')
+            if entryMarketId == marketId:
+                return self.parse_greeks(entry, market)
+
+    def parse_greeks(self, greeks, market=None):
+        #
+        #     {
+        #         "askVol": "0",
+        #         "bidVol": "0",
+        #         "delta": "0.5105464486882039",
+        #         "deltaBS": "0.7325502184143025",
+        #         "fwdPx": "37675.80158694987186",
+        #         "gamma": "-0.13183515090501083",
+        #         "gammaBS": "0.000024139685826358558",
+        #         "instId": "BTC-USD-240329-32000-C",
+        #         "instType": "OPTION",
+        #         "lever": "4.504428015946619",
+        #         "markVol": "0.5916253554539876",
+        #         "realVol": "0",
+        #         "theta": "-0.0004202992014012855",
+        #         "thetaBS": "-18.52354631567909",
+        #         "ts": "1699586421976",
+        #         "uly": "BTC-USD",
+        #         "vega": "0.0020207455080045846",
+        #         "vegaBS": "74.44022302387287",
+        #         "volLv": "0.5948549730405797"
+        #     }
+        #
+        timestamp = self.safe_integer(greeks, 'ts')
+        marketId = self.safe_string(greeks, 'instId')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'delta': self.safe_number(greeks, 'delta'),
+            'gamma': self.safe_number(greeks, 'gamma'),
+            'theta': self.safe_number(greeks, 'theta'),
+            'vega': self.safe_number(greeks, 'vega'),
+            'rho': None,
+            'bidSize': None,
+            'askSize': None,
+            'bidImpliedVolatility': self.safe_number(greeks, 'bidVol'),
+            'askImpliedVolatility': self.safe_number(greeks, 'askVol'),
+            'markImpliedVolatility': self.safe_number(greeks, 'markVol'),
+            'bidPrice': None,
+            'askPrice': None,
+            'markPrice': None,
+            'lastPrice': None,
+            'underlyingPrice': None,
+            'info': greeks,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

@@ -65,6 +65,7 @@ class binance extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchL3OrderBook' => false,
                 'fetchLastPrices' => true,
@@ -9310,5 +9311,80 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+        /**
+         * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+         * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+         * @param {array} [$params] extra parameters specific to the binance api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->eapiPublicGetMark (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "symbol" => "BTC-231229-40000-C",
+        //             "markPrice" => "2012",
+        //             "bidIV" => "0.60236275",
+        //             "askIV" => "0.62267244",
+        //             "markIV" => "0.6125176",
+        //             "delta" => "0.39111646",
+        //             "theta" => "-32.13948531",
+        //             "gamma" => "0.00004656",
+        //             "vega" => "51.70062218",
+        //             "highPriceLimit" => "6474",
+        //             "lowPriceLimit" => "5"
+        //         }
+        //     )
+        //
+        return $this->parse_greeks($response[0], $market);
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC-231229-40000-C",
+        //         "markPrice" => "2012",
+        //         "bidIV" => "0.60236275",
+        //         "askIV" => "0.62267244",
+        //         "markIV" => "0.6125176",
+        //         "delta" => "0.39111646",
+        //         "theta" => "-32.13948531",
+        //         "gamma" => "0.00004656",
+        //         "vega" => "51.70062218",
+        //         "highPriceLimit" => "6474",
+        //         "lowPriceLimit" => "5"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => null,
+            'askSize' => null,
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bidIV'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'askIV'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'markIV'),
+            'bidPrice' => null,
+            'askPrice' => null,
+            'markPrice' => $this->safe_number($greeks, 'markPrice'),
+            'lastPrice' => null,
+            'underlyingPrice' => null,
+            'info' => $greeks,
+        );
     }
 }
