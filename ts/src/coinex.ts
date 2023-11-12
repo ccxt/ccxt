@@ -1905,9 +1905,8 @@ export default class coinex extends Exchange {
             'market': market['id'],
         };
         if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker', {});
             const defaultId = 'x-167673045';
-            const brokerId = this.safeString (broker, 'id', defaultId);
+            const brokerId = this.safeString (this.options, 'brokerId', defaultId);
             request['client_id'] = brokerId + '-' + this.uuid16 ();
         } else {
             request['client_id'] = clientOrderId;
