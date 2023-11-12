@@ -4996,47 +4996,47 @@ export default class htx extends Exchange {
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
         if (market['spot']) {
-            const request = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
-            response = await this.spotPrivatePostV1OrderOrdersPlace (this.extend (request, params));
+            const spotRequest = await this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.spotPrivatePostV1OrderOrdersPlace (spotRequest);
         } else {
-            const request = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            const contractRequest = this.createContractOrderRequest (symbol, type, side, amount, price, params);
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
                     if (isStop) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (contractRequest);
                     } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (contractRequest);
                     }
                 } else if (marginMode === 'cross') {
                     if (isStop) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (contractRequest);
                     } else {
-                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostLinearSwapApiV1SwapCrossOrder (contractRequest);
                     }
                 }
             } else if (market['inverse']) {
                 if (market['swap']) {
                     if (isStop) {
-                        response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                        response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (contractRequest);
                     } else {
-                        response = await this.contractPrivatePostSwapApiV1SwapOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostSwapApiV1SwapOrder (contractRequest);
                     }
                 } else if (market['future']) {
                     if (isStop) {
-                        response = await this.contractPrivatePostApiV1ContractTriggerOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostApiV1ContractTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
-                        response = await this.contractPrivatePostApiV1ContractTpslOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostApiV1ContractTpslOrder (contractRequest);
                     } else {
-                        response = await this.contractPrivatePostApiV1ContractOrder (this.extend (request, params));
+                        response = await this.contractPrivatePostApiV1ContractOrder (contractRequest);
                     }
                 }
             }
