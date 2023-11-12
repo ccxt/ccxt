@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class coinspot extends Exchange {
 
@@ -140,7 +141,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if (gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances))) {
@@ -169,7 +170,7 @@ class coinspot extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -199,7 +200,7 @@ class coinspot extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -218,7 +219,7 @@ class coinspot extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         //     {
         //         "btc":{
@@ -254,7 +255,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -285,7 +286,7 @@ class coinspot extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -329,7 +330,7 @@ class coinspot extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -379,28 +380,28 @@ class coinspot extends Exchange {
             }
             $response = Async\await($this->privatePostRoMyTransactions (array_merge($request, $params)));
             //  {
-            //   status => 'ok',
-            //   buyorders => array(
+            //   "status" => "ok",
+            //   "buyorders" => array(
             //     array(
-            //       otc => false,
-            //       $market => 'ALGO/AUD',
-            //       amount => 386.95197925,
-            //       created => '2022-10-20T09:56:44.502Z',
-            //       audfeeExGst => 1.80018002,
-            //       audGst => 0.180018,
-            //       audtotal => 200
+            //       "otc" => false,
+            //       "market" => "ALGO/AUD",
+            //       "amount" => 386.95197925,
+            //       "created" => "2022-10-20T09:56:44.502Z",
+            //       "audfeeExGst" => 1.80018002,
+            //       "audGst" => 0.180018,
+            //       "audtotal" => 200
             //     ),
             //   ),
-            //   sellorders => array(
+            //   "sellorders" => array(
             //     array(
-            //       otc => false,
-            //       $market => 'SOLO/ALGO',
-            //       amount => 154.52345614,
-            //       total => 115.78858204658796,
-            //       created => '2022-04-16T09:36:43.698Z',
-            //       audfeeExGst => 1.08995731,
-            //       audGst => 0.10899573,
-            //       audtotal => 118.7
+            //       "otc" => false,
+            //       "market" => "SOLO/ALGO",
+            //       "amount" => 154.52345614,
+            //       "total" => 115.78858204658796,
+            //       "created" => "2022-04-16T09:36:43.698Z",
+            //       "audfeeExGst" => 1.08995731,
+            //       "audGst" => 0.10899573,
+            //       "audtotal" => 118.7
             //     ),
             //   )
             // }
@@ -417,7 +418,7 @@ class coinspot extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -432,16 +433,16 @@ class coinspot extends Exchange {
         //
         // private fetchMyTrades
         //     {
-        //       otc => false,
-        //       $market => 'ALGO/AUD',
-        //       amount => 386.95197925,
-        //       created => '2022-10-20T09:56:44.502Z',
-        //       $audfeeExGst => 1.80018002,
-        //       $audGst => 0.180018,
-        //       audtotal => 200,
-        //       total => 200,
-        //       $side => 'buy',
-        //       price => 0.5168600000125209
+        //       "otc" => false,
+        //       "market" => "ALGO/AUD",
+        //       "amount" => 386.95197925,
+        //       "created" => "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst" => 1.80018002,
+        //       "audGst" => 0.180018,
+        //       "audtotal" => 200,
+        //       "total" => 200,
+        //       "side" => "buy",
+        //       "price" => 0.5168600000125209
         //     }
         $timestamp = null;
         $priceString = null;

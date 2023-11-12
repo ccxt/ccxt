@@ -818,7 +818,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -963,7 +963,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
@@ -1105,7 +1105,7 @@ class delta extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://docs.delta.exchange/#get-$tickers-for-products
@@ -1256,7 +1256,7 @@ class delta extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.delta.exchange/#get-l2-orderbook
@@ -1296,7 +1296,7 @@ class delta extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // public fetchTrades
         //
@@ -1396,7 +1396,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://docs.delta.exchange/#get-public-trades
@@ -1452,7 +1452,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          * @see https://docs.delta.exchange/#get-ohlc-candles
@@ -1503,7 +1503,7 @@ class delta extends Exchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $response );
         $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId', array());
@@ -1520,7 +1520,7 @@ class delta extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.delta.exchange/#get-wallet-balances
@@ -1882,8 +1882,8 @@ class delta extends Exchange {
         $request = array(
             'id' => intval($id),
             'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($symbol, $price),
-            // 'size' => $this->amount_to_precision($symbol, $amount),
+            // "limit_price" => $this->price_to_precision($symbol, $price),
+            // "size" => $this->amount_to_precision($symbol, $amount),
         );
         if ($amount !== null) {
             $request['size'] = intval($this->amount_to_precision($symbol, $amount));
@@ -1996,7 +1996,7 @@ class delta extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.delta.exchange/#get-active-orders
@@ -2009,7 +2009,7 @@ class delta extends Exchange {
         return $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.delta.exchange/#get-order-history-cancelled-and-closed
@@ -2650,7 +2650,7 @@ class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-$symbol
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure)
+         * @return {array} an open interest structurearray(@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);

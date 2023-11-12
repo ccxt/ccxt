@@ -567,7 +567,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
@@ -623,7 +623,7 @@ class cryptocom extends Exchange {
         return $this->parse_tickers($data, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$tickers
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -637,7 +637,7 @@ class cryptocom extends Exchange {
         return $this->safe_value($tickers, $symbol);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
@@ -717,7 +717,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get a list of the most recent $trades for a particular $symbol
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-$trades
@@ -775,7 +775,7 @@ class cryptocom extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
@@ -837,7 +837,7 @@ class cryptocom extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
@@ -880,7 +880,7 @@ class cryptocom extends Exchange {
         return $this->parse_order_book($orderBook, $symbol, $timestamp);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         $responseResult = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($responseResult, 'data', array());
         $positionBalances = $this->safe_value($data[0], 'position_balances', array());
@@ -897,7 +897,7 @@ class cryptocom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
@@ -1408,7 +1408,7 @@ class cryptocom extends Exchange {
         return $this->parse_orders($result, $market, null, null, $params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open $orders
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-$orders
@@ -1692,7 +1692,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
@@ -1750,7 +1750,7 @@ class cryptocom extends Exchange {
         return $this->parse_transactions($depositList, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
@@ -1883,18 +1883,18 @@ class cryptocom extends Exchange {
         $response = $this->$method (array_merge($request, $query));
         //
         //     {
-        //       id => '1641032709328',
-        //       $method => 'private/deriv/get-$transfer-history',
-        //       $code => '0',
-        //       result => {
-        //         transfer_list => array(
+        //       "id" => "1641032709328",
+        //       "method" => "private/deriv/get-$transfer-history",
+        //       "code" => "0",
+        //       "result" => {
+        //         "transfer_list" => array(
         //           {
-        //             direction => 'IN',
-        //             time => '1641025185223',
-        //             amount => '109.56',
-        //             status => 'COMPLETED',
-        //             information => 'From Spot Wallet',
-        //             $currency => 'USDC'
+        //             "direction" => "IN",
+        //             "time" => "1641025185223",
+        //             "amount" => "109.56",
+        //             "status" => "COMPLETED",
+        //             "information" => "From Spot Wallet",
+        //             "currency" => "USDC"
         //           }
         //         )
         //       }
@@ -1918,19 +1918,19 @@ class cryptocom extends Exchange {
     public function parse_transfer($transfer, $currency = null) {
         //
         //   {
-        //     $response => {
-        //       id => '1641032709328',
-        //       $method => 'private/deriv/get-$transfer-history',
-        //       $code => '0',
-        //       $result => {
-        //         transfer_list => array(
+        //     "response" => {
+        //       "id" => "1641032709328",
+        //       "method" => "private/deriv/get-$transfer-history",
+        //       "code" => "0",
+        //       "result" => {
+        //         "transfer_list" => array(
         //           {
-        //             $direction => 'IN',
-        //             time => '1641025185223',
-        //             $amount => '109.56',
-        //             $status => 'COMPLETED',
-        //             $information => 'From Spot Wallet',
-        //             $currency => 'USDC'
+        //             "direction" => "IN",
+        //             "time" => "1641025185223",
+        //             "amount" => "109.56",
+        //             "status" => "COMPLETED",
+        //             "information" => "From Spot Wallet",
+        //             "currency" => "USDC"
         //           }
         //         )
         //       }
@@ -1990,7 +1990,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -2051,7 +2051,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades
         //
@@ -2273,7 +2273,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2536,16 +2536,16 @@ class cryptocom extends Exchange {
     public function parse_deposit_withdraw_fee($fee, $currency = null) {
         //
         //    {
-        //        full_name => 'Alchemix',
-        //        default_network => 'ETH',
-        //        network_list => array(
+        //        "full_name" => "Alchemix",
+        //        "default_network" => "ETH",
+        //        "network_list" => array(
         //          {
-        //            network_id => 'ETH',
-        //            withdrawal_fee => '0.25000000',
-        //            withdraw_enabled => true,
-        //            min_withdrawal_amount => '0.5',
-        //            deposit_enabled => true,
-        //            confirmation_required => '0'
+        //            "network_id" => "ETH",
+        //            "withdrawal_fee" => "0.25000000",
+        //            "withdraw_enabled" => true,
+        //            "min_withdrawal_amount" => "0.5",
+        //            "deposit_enabled" => true,
+        //            "confirmation_required" => "0"
         //          }
         //        )
         //    }
@@ -3112,7 +3112,7 @@ class cryptocom extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'hedged' => null,
             'side' => null,
-            'contracts' => null,
+            'contracts' => $this->safe_number($position, 'quantity'),
             'contractSize' => $market['contractSize'],
             'entryPrice' => null,
             'markPrice' => null,

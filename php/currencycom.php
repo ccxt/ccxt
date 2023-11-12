@@ -336,13 +336,13 @@ class currencycom extends Exchange {
         //             "minDeposit" => "90.0",
         //         ),
         //         array(
-        //             name => "Bitcoin",
-        //             displaySymbol => "BTC",
-        //             precision => "8",
-        //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
-        //             minWithdrawal => "0.00020",
-        //             commissionFixed => "0.00010",
-        //             minDeposit => "0.00010",
+        //             "name" => "Bitcoin",
+        //             "displaySymbol" => "BTC",
+        //             "precision" => "8",
+        //             "type" => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+        //             "minWithdrawal" => "0.00020",
+        //             "commissionFixed" => "0.00010",
+        //             "minDeposit" => "0.00010",
         //         ),
         //     )
         //
@@ -391,49 +391,49 @@ class currencycom extends Exchange {
         $response = $this->publicGetV2ExchangeInfo ($params);
         //
         //     {
-        //         timezone => "UTC",
-        //         serverTime => "1645186287261",
-        //         rateLimits => array(
+        //         "timezone" => "UTC",
+        //         "serverTime" => "1645186287261",
+        //         "rateLimits" => array(
         //             array( rateLimitType => "REQUEST_WEIGHT", interval => "MINUTE", intervalNum => "1", limit => "1200" ),
         //             array( rateLimitType => "ORDERS", interval => "SECOND", intervalNum => "1", limit => "10" ),
         //             array( rateLimitType => "ORDERS", interval => "DAY", intervalNum => "1", limit => "864000" ),
         //         ),
-        //         exchangeFilters => array(),
-        //         symbols => array(
+        //         "exchangeFilters" => array(),
+        //         "symbols" => array(
         //             array(
-        //                 $symbol => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
-        //                 name => "Bitcoin / Tether",
-        //                 status => "TRADING", // TRADING, BREAK, HALT
-        //                 baseAsset => "BTC",
-        //                 baseAssetPrecision => "4",
-        //                 quoteAsset => "USDT",
-        //                 quoteAssetId => "USDT", // USDT, USDT_LEVERAGE
-        //                 quotePrecision => "4",
-        //                 orderTypes => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
-        //                 $filters => array(
+        //                 "symbol" => "BTC/USDT", // BTC/USDT, BTC/USDT_LEVERAGE
+        //                 "name" => "Bitcoin / Tether",
+        //                 "status" => "TRADING", // TRADING, BREAK, HALT
+        //                 "baseAsset" => "BTC",
+        //                 "baseAssetPrecision" => "4",
+        //                 "quoteAsset" => "USDT",
+        //                 "quoteAssetId" => "USDT", // USDT, USDT_LEVERAGE
+        //                 "quotePrecision" => "4",
+        //                 "orderTypes" => array( "LIMIT", "MARKET" ), // LIMIT, MARKET, STOP
+        //                 "filters" => array(
         //                     array( filterType => "LOT_SIZE", minQty => "0.0001", maxQty => "100", stepSize => "0.0001", ),
         //                     array( filterType => "MIN_NOTIONAL", minNotional => "5", ),
         //                 ),
-        //                 marketModes => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
-        //                 marketType => "SPOT", // SPOT, LEVERAGE
-        //                 longRate => -0.0684932, // LEVERAGE only
-        //                 shortRate => -0.0684932, // LEVERAGE only
-        //                 swapChargeInterval => 1440, // LEVERAGE only
-        //                 country => "",
-        //                 sector => "",
-        //                 industry => "",
-        //                 tradingHours => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
-        //                 tickSize => "0.01",
-        //                 tickValue => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
-        //                 $exchangeFee => "0.2", // SPOT only
-        //                 tradingFee => 0.075, // LEVERAGE only
-        //                 $makerFee => -0.025, // LEVERAGE only
-        //                 $takerFee => 0.06, // LEVERAGE only
-        //                 maxSLGap => 50, // LEVERAGE only
-        //                 minSLGap => 1, // LEVERAGE only
-        //                 maxTPGap => 50, // LEVERAGE only
-        //                 minTPGap => 0.5, // LEVERAGE only
-        //                 assetType => "CRYPTOCURRENCY",
+        //                 "marketModes" => array( "REGULAR" ), // CLOSE_ONLY, LONG_ONLY, REGULAR
+        //                 "marketType" => "SPOT", // SPOT, LEVERAGE
+        //                 "longRate" => -0.0684932, // LEVERAGE only
+        //                 "shortRate" => -0.0684932, // LEVERAGE only
+        //                 "swapChargeInterval" => 1440, // LEVERAGE only
+        //                 "country" => "",
+        //                 "sector" => "",
+        //                 "industry" => "",
+        //                 "tradingHours" => "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //                 "tickSize" => "0.01",
+        //                 "tickValue" => "403.4405", // not available in BTC/USDT_LEVERAGE, but available in BTC/USD_LEVERAGE
+        //                 "exchangeFee" => "0.2", // SPOT only
+        //                 "tradingFee" => 0.075, // LEVERAGE only
+        //                 "makerFee" => -0.025, // LEVERAGE only
+        //                 "takerFee" => 0.06, // LEVERAGE only
+        //                 "maxSLGap" => 50, // LEVERAGE only
+        //                 "minSLGap" => 1, // LEVERAGE only
+        //                 "maxTPGap" => 50, // LEVERAGE only
+        //                 "minTPGap" => 0.5, // LEVERAGE only
+        //                 "assetType" => "CRYPTOCURRENCY",
         //             ),
         //         )
         //     }
@@ -634,16 +634,16 @@ class currencycom extends Exchange {
         $response = $this->privateGetV2Account ($params);
         //
         //    {
-        //        makerCommission => '0.20',
-        //        takerCommission => '0.20',
-        //        buyerCommission => '0.20',
-        //        sellerCommission => '0.20',
-        //        canTrade => true,
-        //        canWithdraw => true,
-        //        canDeposit => true,
-        //        updateTime => '1645738976',
-        //        userId => '-1924114235',
-        //        balances => array()
+        //        "makerCommission" => "0.20",
+        //        "takerCommission" => "0.20",
+        //        "buyerCommission" => "0.20",
+        //        "sellerCommission" => "0.20",
+        //        "canTrade" => true,
+        //        "canWithdraw" => true,
+        //        "canDeposit" => true,
+        //        "updateTime" => "1645738976",
+        //        "userId" => "-1924114235",
+        //        "balances" => array()
         //    }
         //
         $makerFee = $this->safe_number($response, 'makerCommission');
@@ -700,7 +700,7 @@ class currencycom extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the currencycom api endpoint
@@ -742,7 +742,7 @@ class currencycom extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -779,7 +779,7 @@ class currencycom extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTicker
         //
@@ -858,7 +858,7 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -894,7 +894,7 @@ class currencycom extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -945,7 +945,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -978,7 +978,7 @@ class currencycom extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1056,7 +1056,7 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -1378,7 +1378,7 @@ class currencycom extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1430,9 +1430,7 @@ class currencycom extends Exchange {
          * @param {array} [$params] extra parameters specific to the currencycom api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
@@ -1472,9 +1470,7 @@ class currencycom extends Exchange {
          * @param {array} [$params] extra parameters specific to the currencycom api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1505,7 +1501,7 @@ class currencycom extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified currency $code
@@ -1517,7 +1513,7 @@ class currencycom extends Exchange {
         return $this->fetch_transactions_by_method('privateGetV2Deposits', $code, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified currency $code
@@ -1529,7 +1525,7 @@ class currencycom extends Exchange {
         return $this->fetch_transactions_by_method('privateGetV2Withdrawals', $code, $since, $limit, $params);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
@@ -1574,7 +1570,7 @@ class currencycom extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         //    {
         //        "id" => "616769213",

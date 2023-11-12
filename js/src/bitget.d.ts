@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 /**
  * @class bitget
  * @extends Exchange
@@ -10,62 +10,12 @@ export default class bitget extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any>;
     parseMarkets(markets: any): any[];
-    parseMarket(market: any): {
-        id: string;
-        symbol: string;
-        base: any;
-        quote: any;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: string;
-        type: any;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: any;
-        contract: boolean;
-        linear: any;
-        inverse: any;
-        taker: number;
-        maker: number;
-        contractSize: number;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: any;
-            price: any;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: number;
-                max: number;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: any;
-                max: any;
-            };
-        };
-        created: any;
-        info: any;
-    };
+    parseMarket(market: any): Market;
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
         id: any;
         info: any;
@@ -87,28 +37,8 @@ export default class bitget extends Exchange {
         comment: any;
         fee: any;
     }>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransaction(transaction: any, currency?: any): {
-        id: string;
-        info: any;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        addressFrom: any;
-        address: string;
-        addressTo: string;
-        amount: number;
-        type: string;
-        currency: any;
-        status: string;
-        updated: number;
-        tagFrom: any;
-        tag: string;
-        tagTo: string;
-        comment: any;
-        fee: any;
-    };
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatus(status: any): string;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
@@ -124,10 +54,10 @@ export default class bitget extends Exchange {
         network: string;
         info: any;
     };
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFee(symbol: string, params?: {}): Promise<{
@@ -145,8 +75,8 @@ export default class bitget extends Exchange {
     };
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    parseBalance(balance: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(balance: any): Balances;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;

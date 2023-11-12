@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kraken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -628,28 +628,28 @@ class kraken(Exchange, ImplicitAPI):
         response = await self.privatePostTradeVolume(self.extend(request, params))
         #
         #     {
-        #        error: [],
-        #        result: {
-        #          currency: 'ZUSD',
-        #          volume: '0.0000',
-        #          fees: {
-        #            XXBTZUSD: {
-        #              fee: '0.2600',
-        #              minfee: '0.1000',
-        #              maxfee: '0.2600',
-        #              nextfee: '0.2400',
-        #              tiervolume: '0.0000',
-        #              nextvolume: '50000.0000'
+        #        "error": [],
+        #        "result": {
+        #          "currency": 'ZUSD',
+        #          "volume": '0.0000',
+        #          "fees": {
+        #            "XXBTZUSD": {
+        #              "fee": '0.2600',
+        #              "minfee": '0.1000',
+        #              "maxfee": '0.2600',
+        #              "nextfee": '0.2400',
+        #              "tiervolume": '0.0000',
+        #              "nextvolume": '50000.0000'
         #            }
         #          },
-        #          fees_maker: {
-        #            XXBTZUSD: {
-        #              fee: '0.1600',
-        #              minfee: '0.0000',
-        #              maxfee: '0.1600',
-        #              nextfee: '0.1400',
-        #              tiervolume: '0.0000',
-        #              nextvolume: '50000.0000'
+        #          "fees_maker": {
+        #            "XXBTZUSD": {
+        #              "fee": '0.1600',
+        #              "minfee": '0.0000',
+        #              "maxfee": '0.1600',
+        #              "nextfee": '0.1400',
+        #              "tiervolume": '0.0000',
+        #              "nextvolume": '50000.0000'
         #            }
         #          }
         #        }
@@ -678,7 +678,7 @@ class kraken(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(bidask, 2)
         return [price, amount, timestamp]
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
@@ -726,7 +726,7 @@ class kraken(Exchange, ImplicitAPI):
             orderbook = self.safe_value(result, wsName, orderbook)
         return self.parse_order_book(orderbook, symbol)
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         #     {
         #         "a":["2432.77000","1","1.000"],
@@ -776,7 +776,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
@@ -807,7 +807,7 @@ class kraken(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
@@ -849,7 +849,7 @@ class kraken(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
@@ -909,14 +909,14 @@ class kraken(Exchange, ImplicitAPI):
         #
         #     {
         #         'LTFK7F-N2CUX-PNY4SX': {
-        #             refid: "TSJTGT-DT7WN-GPPQMJ",
-        #             time:  1520102320.555,
-        #             type: "trade",
-        #             aclass: "currency",
-        #             asset: "XETH",
-        #             amount: "0.1087194600",
-        #             fee: "0.0000000000",
-        #             balance: "0.2855851000"
+        #             "refid": "TSJTGT-DT7WN-GPPQMJ",
+        #             "time":  1520102320.555,
+        #             "type": "trade",
+        #             "aclass": "currency",
+        #             "asset": "XETH",
+        #             "amount": "0.1087194600",
+        #             "fee": "0.0000000000",
+        #             "balance": "0.2855851000"
         #         },
         #         ...
         #     }
@@ -958,7 +958,6 @@ class kraken(Exchange, ImplicitAPI):
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
-        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
         :param str code: unified currency code, default is None
@@ -980,14 +979,14 @@ class kraken(Exchange, ImplicitAPI):
         request, params = self.handle_until_option('end', request, params)
         response = await self.privatePostLedgers(self.extend(request, params))
         # { error: [],
-        #   result: {ledger: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
-        #                                                   time:  1520103488.314,
-        #                                                   type: "withdrawal",
-        #                                                 aclass: "currency",
-        #                                                  asset: "XETH",
-        #                                                 amount: "-0.2805800000",
-        #                                                    fee: "0.0050000000",
-        #                                                balance: "0.0000051000"           },
+        #   "result": {ledger: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
+        #                                                   "time":  1520103488.314,
+        #                                                   "type": "withdrawal",
+        #                                                 "aclass": "currency",
+        #                                                  "asset": "XETH",
+        #                                                 "amount": "-0.2805800000",
+        #                                                    "fee": "0.0050000000",
+        #                                                "balance": "0.0000051000"           },
         result = self.safe_value(response, 'result', {})
         ledger = self.safe_value(result, 'ledger', {})
         keys = list(ledger.keys())
@@ -1008,14 +1007,14 @@ class kraken(Exchange, ImplicitAPI):
         }, params)
         response = await self.privatePostQueryLedgers(request)
         # { error: [],
-        #   result: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
-        #                                         time:  1520103488.314,
-        #                                         type: "withdrawal",
-        #                                       aclass: "currency",
-        #                                        asset: "XETH",
-        #                                       amount: "-0.2805800000",
-        #                                          fee: "0.0050000000",
-        #                                      balance: "0.0000051000"           }}}
+        #   "result": {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
+        #                                         "time":  1520103488.314,
+        #                                         "type": "withdrawal",
+        #                                       "aclass": "currency",
+        #                                        "asset": "XETH",
+        #                                       "amount": "-0.2805800000",
+        #                                          "fee": "0.0050000000",
+        #                                      "balance": "0.0000051000"           }}}
         result = response['result']
         keys = list(result.keys())
         items = []
@@ -1030,7 +1029,7 @@ class kraken(Exchange, ImplicitAPI):
         items = await self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1046,19 +1045,19 @@ class kraken(Exchange, ImplicitAPI):
         # fetchOrderTrades(private)
         #
         #     {
-        #         id: 'TIMIRG-WUNNE-RRJ6GT',  # injected from outside
-        #         ordertxid: 'OQRPN2-LRHFY-HIFA7D',
-        #         postxid: 'TKH2SE-M7IF5-CFI7LT',
-        #         pair: 'USDCUSDT',
-        #         time: 1586340086.457,
-        #         type: 'sell',
-        #         ordertype: 'market',
-        #         price: '0.99860000',
-        #         cost: '22.16892001',
-        #         fee: '0.04433784',
-        #         vol: '22.20000000',
-        #         margin: '0.00000000',
-        #         misc: ''
+        #         "id": 'TIMIRG-WUNNE-RRJ6GT',  # injected from outside
+        #         "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+        #         "postxid": 'TKH2SE-M7IF5-CFI7LT',
+        #         "pair": 'USDCUSDT',
+        #         "time": 1586340086.457,
+        #         "type": 'sell',
+        #         "ordertype": 'market',
+        #         "price": '0.99860000',
+        #         "cost": '22.16892001',
+        #         "fee": '0.04433784',
+        #         "vol": '22.20000000',
+        #         "margin": '0.00000000',
+        #         "misc": ''
         #     }
         #
         timestamp = None
@@ -1123,7 +1122,7 @@ class kraken(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
@@ -1174,7 +1173,7 @@ class kraken(Exchange, ImplicitAPI):
         lastTrade.append(lastTradeId)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'result', {})
         result = {
             'info': response,
@@ -1192,7 +1191,7 @@ class kraken(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
@@ -1244,10 +1243,10 @@ class kraken(Exchange, ImplicitAPI):
         response = await self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
-        #         error: [],
-        #         result: {
-        #             descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
-        #             txid: ['OEKVV2-IH52O-TPL6GZ']
+        #         "error": [],
+        #         "result": {
+        #             "descr": {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
+        #             "txid": ['OEKVV2-IH52O-TPL6GZ']
         #         }
         #     }
         #
@@ -1309,8 +1308,8 @@ class kraken(Exchange, ImplicitAPI):
         # createOrder for regular orders
         #
         #     {
-        #         descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
-        #         txid: ['OEKVV2-IH52O-TPL6GZ']
+        #         "descr": {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
+        #         "txid": ['OEKVV2-IH52O-TPL6GZ']
         #     }
         #     {
         #         "txid": ["TX_ID_HERE"],
@@ -1346,11 +1345,11 @@ class kraken(Exchange, ImplicitAPI):
         #     }
         #  ws - createOrder
         #    {
-        #        descr: 'sell 0.00010000 XBTUSDT @ market',
-        #        event: 'addOrderStatus',
-        #        reqid: 1,
-        #        status: 'ok',
-        #        txid: 'OAVXZH-XIE54-JCYYDG'
+        #        "descr": 'sell 0.00010000 XBTUSDT @ market',
+        #        "event": 'addOrderStatus',
+        #        "reqid": 1,
+        #        "status": 'ok',
+        #        "txid": 'OAVXZH-XIE54-JCYYDG'
         #    }
         #  ws - editOrder
         #    {
@@ -1673,21 +1672,21 @@ class kraken(Exchange, ImplicitAPI):
             response = await self.privatePostQueryTrades(request)
             #
             #     {
-            #         error: [],
-            #         result: {
+            #         "error": [],
+            #         "result": {
             #             'TIMIRG-WUNNE-RRJ6GT': {
-            #                 ordertxid: 'OQRPN2-LRHFY-HIFA7D',
-            #                 postxid: 'TKH2SE-M7IF5-CFI7LT',
-            #                 pair: 'USDCUSDT',
-            #                 time: 1586340086.457,
-            #                 type: 'sell',
-            #                 ordertype: 'market',
-            #                 price: '0.99860000',
-            #                 cost: '22.16892001',
-            #                 fee: '0.04433784',
-            #                 vol: '22.20000000',
-            #                 margin: '0.00000000',
-            #                 misc: ''
+            #                 "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+            #                 "postxid": 'TKH2SE-M7IF5-CFI7LT',
+            #                 "pair": 'USDCUSDT',
+            #                 "time": 1586340086.457,
+            #                 "type": 'sell',
+            #                 "ordertype": 'market',
+            #                 "price": '0.99860000',
+            #                 "cost": '22.16892001',
+            #                 "fee": '0.04433784',
+            #                 "vol": '22.20000000',
+            #                 "margin": '0.00000000',
+            #                 "misc": ''
             #             }
             #         }
             #     }
@@ -1831,9 +1830,8 @@ class kraken(Exchange, ImplicitAPI):
         await self.load_markets()
         return await self.privatePostCancelAll(params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
-        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
         fetch all unfilled currently open orders
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
         :param str symbol: unified market symbol
@@ -1859,9 +1857,8 @@ class kraken(Exchange, ImplicitAPI):
         orders = self.safe_value(result, 'open', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
-        :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
         fetches information on multiple closed orders made by the user
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
         :param str symbol: unified market symbol of the market orders were made in
@@ -1940,21 +1937,21 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
         #     {
-        #         method: "Ether(Hex)",
-        #         aclass: "currency",
-        #         asset: "XETH",
-        #         refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        #         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        #         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        #         amount: "7.9999257900",
-        #         fee: "0.0000000000",
-        #         time:  1529223212,
-        #         status: "Success"
+        #         "method": "Ether(Hex)",
+        #         "aclass": "currency",
+        #         "asset": "XETH",
+        #         "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        #         "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        #         "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        #         "amount": "7.9999257900",
+        #         "fee": "0.0000000000",
+        #         "time":  1529223212,
+        #         "status": "Success"
         #     }
         #
         # there can be an additional 'status-prop' field present
@@ -1962,17 +1959,17 @@ class kraken(Exchange, ImplicitAPI):
         # the deposit is initiated by the exchange => 'return'
         #
         #      {
-        #          type: 'deposit',
-        #          method: 'Fidor Bank AG(Wire Transfer)',
-        #          aclass: 'currency',
-        #          asset: 'ZEUR',
-        #          refid: 'xxx-xxx-xxx',
-        #          txid: '12341234',
-        #          info: 'BANKCODEXXX',
-        #          amount: '38769.08',
-        #          fee: '0.0000',
-        #          time: 1644306552,
-        #          status: 'Success',
+        #          "type": 'deposit',
+        #          "method": 'Fidor Bank AG(Wire Transfer)',
+        #          "aclass": 'currency',
+        #          "asset": 'ZEUR',
+        #          "refid": 'xxx-xxx-xxx',
+        #          "txid": '12341234',
+        #          "info": 'BANKCODEXXX',
+        #          "amount": '38769.08',
+        #          "fee": '0.0000',
+        #          "time": 1644306552,
+        #          "status": 'Success',
         #          status-prop: 'on-hold'
         #      }
         #
@@ -1980,16 +1977,16 @@ class kraken(Exchange, ImplicitAPI):
         # fetchWithdrawals
         #
         #     {
-        #         method: "Ether",
-        #         aclass: "currency",
-        #         asset: "XETH",
-        #         refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        #         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
-        #         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        #         amount: "9.9950000000",
-        #         fee: "0.0050000000",
-        #         time:  1530481750,
-        #         status: "Success"
+        #         "method": "Ether",
+        #         "aclass": "currency",
+        #         "asset": "XETH",
+        #         "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        #         "txid": "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        #         "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        #         "amount": "9.9950000000",
+        #         "fee": "0.0050000000",
+        #         "time":  1530481750,
+        #         "status": "Success"
         #         status-prop: 'on-hold'  # self field might not be present in some cases
         #     }
         #
@@ -2051,9 +2048,8 @@ class kraken(Exchange, ImplicitAPI):
             result.append(transaction)
         return self.filter_by_currency_since_limit(result, code, since, limit)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
-        :see: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
         fetch all deposits made to an account
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
         :param str code: unified currency code
@@ -2073,16 +2069,16 @@ class kraken(Exchange, ImplicitAPI):
         response = await self.privatePostDepositStatus(self.extend(request, params))
         #
         #     { error: [],
-        #       result: [{method: "Ether(Hex)",
-        #                   aclass: "currency",
-        #                    asset: "XETH",
-        #                    refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        #                     txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        #                     info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        #                   amount: "7.9999257900",
-        #                      fee: "0.0000000000",
-        #                     time:  1529223212,
-        #                   status: "Success"                                                       }]}
+        #       "result": [{"method": "Ether(Hex)",
+        #                     "aclass": "currency",
+        #                      "asset": "XETH",
+        #                      "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        #                       "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        #                       "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        #                     "amount": "7.9999257900",
+        #                        "fee": "0.0000000000",
+        #                       "time":  1529223212,
+        #                     "status": "Success"                                                       }]}
         #
         return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
 
@@ -2107,7 +2103,7 @@ class kraken(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.safe_timestamp(result, 'unixtime')
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
@@ -2128,16 +2124,16 @@ class kraken(Exchange, ImplicitAPI):
         response = await self.privatePostWithdrawStatus(self.extend(request, params))
         #
         #     { error: [],
-        #       result: [{method: "Ether",
-        #                   aclass: "currency",
-        #                    asset: "XETH",
-        #                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        #                     txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
-        #                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        #                   amount: "9.9950000000",
-        #                      fee: "0.0050000000",
-        #                     time:  1530481750,
-        #                   status: "Success"                                                             }]}
+        #       "result": [{"method": "Ether",
+        #                     "aclass": "currency",
+        #                      "asset": "XETH",
+        #                      "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        #                       "txid": "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
+        #                       "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        #                     "amount": "9.9950000000",
+        #                        "fee": "0.0050000000",
+        #                       "time":  1530481750,
+        #                     "status": "Success"                                                             }]}
         #
         return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
@@ -2312,24 +2308,24 @@ class kraken(Exchange, ImplicitAPI):
         # no consolidation
         #
         #     {
-        #         error: [],
-        #         result: {
+        #         "error": [],
+        #         "result": {
         #             'TGUFMY-FLESJ-VYIX3J': {
-        #                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
-        #                 posstatus: "open",
-        #                 pair: "ETHUSDT",
-        #                 time:  1611557231.4584,
-        #                 type: "buy",
-        #                 ordertype: "market",
-        #                 cost: "28.49800",
-        #                 fee: "0.07979",
-        #                 vol: "0.02000000",
-        #                 vol_closed: "0.00000000",
-        #                 margin: "14.24900",
-        #                 terms: "0.0200% per 4 hours",
-        #                 rollovertm: "1611571631",
-        #                 misc: "",
-        #                 oflags: ""
+        #                 "ordertxid": "O3LRNU-ZKDG5-XNCDFR",
+        #                 "posstatus": "open",
+        #                 "pair": "ETHUSDT",
+        #                 "time":  1611557231.4584,
+        #                 "type": "buy",
+        #                 "ordertype": "market",
+        #                 "cost": "28.49800",
+        #                 "fee": "0.07979",
+        #                 "vol": "0.02000000",
+        #                 "vol_closed": "0.00000000",
+        #                 "margin": "14.24900",
+        #                 "terms": "0.0200% per 4 hours",
+        #                 "rollovertm": "1611571631",
+        #                 "misc": "",
+        #                 "oflags": ""
         #             }
         #         }
         #     }
@@ -2337,18 +2333,18 @@ class kraken(Exchange, ImplicitAPI):
         # consolidation by market
         #
         #     {
-        #         error: [],
-        #         result: [
+        #         "error": [],
+        #         "result": [
         #             {
-        #                 pair: "ETHUSDT",
-        #                 positions: "1",
-        #                 type: "buy",
-        #                 leverage: "2.00000",
-        #                 cost: "28.49800",
-        #                 fee: "0.07979",
-        #                 vol: "0.02000000",
-        #                 vol_closed: "0.00000000",
-        #                 margin: "14.24900"
+        #                 "pair": "ETHUSDT",
+        #                 "positions": "1",
+        #                 "type": "buy",
+        #                 "leverage": "2.00000",
+        #                 "cost": "28.49800",
+        #                 "fee": "0.07979",
+        #                 "vol": "0.02000000",
+        #                 "vol_closed": "0.00000000",
+        #                 "margin": "14.24900"
         #             }
         #         ]
         #     }

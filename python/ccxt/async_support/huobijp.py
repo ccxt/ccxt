@@ -6,12 +6,11 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.huobijp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -371,37 +370,37 @@ class huobijp(Exchange, ImplicitAPI):
         response = await self.publicGetCommonExchange(self.extend(request, params))
         #
         #     {status:   "ok",
-        #         data: {                                 symbol: "aidocbtc",
-        #                              'buy-limit-must-less-than':  1.1,
-        #                          'sell-limit-must-greater-than':  0.9,
-        #                         'limit-order-must-greater-than':  1,
-        #                            'limit-order-must-less-than':  5000000,
-        #                    'market-buy-order-must-greater-than':  0.0001,
-        #                       'market-buy-order-must-less-than':  100,
-        #                   'market-sell-order-must-greater-than':  1,
-        #                      'market-sell-order-must-less-than':  500000,
-        #                       'circuit-break-when-greater-than':  10000,
-        #                          'circuit-break-when-less-than':  10,
-        #                 'market-sell-order-rate-must-less-than':  0.1,
-        #                  'market-buy-order-rate-must-less-than':  0.1        }}
+        #         "data": {                                 symbol: "aidocbtc",
+        #                              "buy-limit-must-less-than":  1.1,
+        #                          "sell-limit-must-greater-than":  0.9,
+        #                         "limit-order-must-greater-than":  1,
+        #                            "limit-order-must-less-than":  5000000,
+        #                    "market-buy-order-must-greater-than":  0.0001,
+        #                       "market-buy-order-must-less-than":  100,
+        #                   "market-sell-order-must-greater-than":  1,
+        #                      "market-sell-order-must-less-than":  500000,
+        #                       "circuit-break-when-greater-than":  10000,
+        #                          "circuit-break-when-less-than":  10,
+        #                 "market-sell-order-rate-must-less-than":  0.1,
+        #                  "market-buy-order-rate-must-less-than":  0.1        }}
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
     def parse_trading_limits(self, limits, symbol: Optional[str] = None, params={}):
         #
         #   {                                 symbol: "aidocbtc",
-        #                  'buy-limit-must-less-than':  1.1,
-        #              'sell-limit-must-greater-than':  0.9,
-        #             'limit-order-must-greater-than':  1,
-        #                'limit-order-must-less-than':  5000000,
-        #        'market-buy-order-must-greater-than':  0.0001,
-        #           'market-buy-order-must-less-than':  100,
-        #       'market-sell-order-must-greater-than':  1,
-        #          'market-sell-order-must-less-than':  500000,
-        #           'circuit-break-when-greater-than':  10000,
-        #              'circuit-break-when-less-than':  10,
-        #     'market-sell-order-rate-must-less-than':  0.1,
-        #      'market-buy-order-rate-must-less-than':  0.1        }
+        #                  "buy-limit-must-less-than":  1.1,
+        #              "sell-limit-must-greater-than":  0.9,
+        #             "limit-order-must-greater-than":  1,
+        #                "limit-order-must-less-than":  5000000,
+        #        "market-buy-order-must-greater-than":  0.0001,
+        #           "market-buy-order-must-less-than":  100,
+        #       "market-sell-order-must-greater-than":  1,
+        #          "market-sell-order-must-less-than":  500000,
+        #           "circuit-break-when-greater-than":  10000,
+        #              "circuit-break-when-less-than":  10,
+        #     "market-sell-order-rate-must-less-than":  0.1,
+        #      "market-buy-order-rate-must-less-than":  0.1        }
         #
         return {
             'info': limits,
@@ -527,7 +526,7 @@ class huobijp(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -547,18 +546,18 @@ class huobijp(Exchange, ImplicitAPI):
         #
         # fetchTickers
         #     {
-        #         symbol: "bhdht",
-        #         open:  2.3938,
-        #         high:  2.4151,
-        #         low:  2.3323,
-        #         close:  2.3909,
-        #         amount:  628.992,
-        #         vol:  1493.71841095,
-        #         count:  2088,
-        #         bid:  2.3643,
-        #         bidSize:  0.7136,
-        #         ask:  2.4061,
-        #         askSize:  0.4156
+        #         "symbol": "bhdht",
+        #         "open":  2.3938,
+        #         "high":  2.4151,
+        #         "low":  2.3323,
+        #         "close":  2.3909,
+        #         "amount":  628.992,
+        #         "vol":  1493.71841095,
+        #         "count":  2088,
+        #         "bid":  2.3643,
+        #         "bidSize":  0.7136,
+        #         "ask":  2.4061,
+        #         "askSize":  0.4156
         #     }
         #
         symbol = self.safe_symbol(None, market)
@@ -608,7 +607,7 @@ class huobijp(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -654,7 +653,7 @@ class huobijp(Exchange, ImplicitAPI):
             return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -693,7 +692,7 @@ class huobijp(Exchange, ImplicitAPI):
         ticker['datetime'] = self.iso8601(timestamp)
         return ticker
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -716,7 +715,7 @@ class huobijp(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -732,21 +731,21 @@ class huobijp(Exchange, ImplicitAPI):
         # fetchMyTrades(private)
         #
         #     {
-        #          'symbol': 'swftcbtc',
-        #          'fee-currency': 'swftc',
-        #          'filled-fees': '0',
-        #          'source': 'spot-api',
-        #          'id': 83789509854000,
-        #          'type': 'buy-limit',
-        #          'order-id': 83711103204909,
-        #          'filled-points': '0.005826843283532154',
-        #          'fee-deduct-currency': 'ht',
-        #          'filled-amount': '45941.53',
-        #          'price': '0.0000001401',
-        #          'created-at': 1597933260729,
-        #          'match-id': 100087455560,
-        #          'role': 'maker',
-        #          'trade-id': 100050305348
+        #          "symbol": "swftcbtc",
+        #          "fee-currency": "swftc",
+        #          "filled-fees": "0",
+        #          "source": "spot-api",
+        #          "id": 83789509854000,
+        #          "type": "buy-limit",
+        #          "order-id": 83711103204909,
+        #          'filled-points': "0.005826843283532154",
+        #          "fee-deduct-currency": "ht",
+        #          'filled-amount': "45941.53",
+        #          "price": "0.0000001401",
+        #          "created-at": 1597933260729,
+        #          "match-id": 100087455560,
+        #          "role": "maker",
+        #          "trade-id": 100050305348
         #     },
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -834,7 +833,7 @@ class huobijp(Exchange, ImplicitAPI):
         response = await self.privateGetOrderMatchresults(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit=1000, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -907,7 +906,7 @@ class huobijp(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=1000, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=1000, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1046,7 +1045,7 @@ class huobijp(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -1065,7 +1064,7 @@ class huobijp(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the huobijp api endpoint
@@ -1092,21 +1091,21 @@ class huobijp(Exchange, ImplicitAPI):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders')
         response = await getattr(self, method)(self.extend(request, params))
         #
-        #     {status:   "ok",
-        #         data: [{                 id:  13997833014,
-        #                                symbol: "ethbtc",
-        #                          'account-id':  3398321,
-        #                                amount: "0.045000000000000000",
-        #                                 price: "0.034014000000000000",
-        #                          'created-at':  1545836976871,
-        #                                  type: "sell-limit",
-        #                        'field-amount': "0.045000000000000000",
-        #                   'field-cash-amount': "0.001530630000000000",
-        #                          'field-fees': "0.000003061260000000",
-        #                         'finished-at':  1545837948214,
-        #                                source: "spot-api",
-        #                                 state: "filled",
-        #                         'canceled-at':  0                      }  ]}
+        #     {"status":   "ok",
+        #         "data": [{                 id:  13997833014,
+        #                                "symbol": "ethbtc",
+        #                          "account-id":  3398321,
+        #                                "amount": "0.045000000000000000",
+        #                                 "price": "0.034014000000000000",
+        #                          "created-at":  1545836976871,
+        #                                  "type": "sell-limit",
+        #                        "field-amount": "0.045000000000000000",
+        #                   "field-cash-amount": "0.001530630000000000",
+        #                          "field-fees": "0.000003061260000000",
+        #                         "finished-at":  1545837948214,
+        #                                "source": "spot-api",
+        #                                 "state": "filled",
+        #                         "canceled-at":  0                      }  ]}
         #
         return self.parse_orders(response['data'], market, since, limit)
 
@@ -1125,7 +1124,7 @@ class huobijp(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1136,7 +1135,7 @@ class huobijp(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1149,11 +1148,10 @@ class huobijp(Exchange, ImplicitAPI):
         return await getattr(self, method)(symbol, since, limit, params)
 
     async def fetch_open_orders_v1(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrdersV1() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrdersV1', symbol)
         return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1223,34 +1221,34 @@ class huobijp(Exchange, ImplicitAPI):
     def parse_order(self, order, market=None) -> Order:
         #
         #     {                 id:  13997833014,
-        #                    symbol: "ethbtc",
-        #              'account-id':  3398321,
-        #                    amount: "0.045000000000000000",
-        #                     price: "0.034014000000000000",
-        #              'created-at':  1545836976871,
-        #                      type: "sell-limit",
-        #            'field-amount': "0.045000000000000000",  # they have fixed it for filled-amount
-        #       'field-cash-amount': "0.001530630000000000",  # they have fixed it for filled-cash-amount
-        #              'field-fees': "0.000003061260000000",  # they have fixed it for filled-fees
-        #             'finished-at':  1545837948214,
-        #                    source: "spot-api",
-        #                     state: "filled",
-        #             'canceled-at':  0                      }
+        #                    "symbol": "ethbtc",
+        #              "account-id":  3398321,
+        #                    "amount": "0.045000000000000000",
+        #                     "price": "0.034014000000000000",
+        #              "created-at":  1545836976871,
+        #                      "type": "sell-limit",
+        #            "field-amount": "0.045000000000000000",  # they have fixed it for filled-amount
+        #       "field-cash-amount": "0.001530630000000000",  # they have fixed it for filled-cash-amount
+        #              "field-fees": "0.000003061260000000",  # they have fixed it for filled-fees
+        #             "finished-at":  1545837948214,
+        #                    "source": "spot-api",
+        #                     "state": "filled",
+        #             "canceled-at":  0                      }
         #
         #     {                 id:  20395337822,
-        #                    symbol: "ethbtc",
-        #              'account-id':  5685075,
-        #                    amount: "0.001000000000000000",
-        #                     price: "0.0",
-        #              'created-at':  1545831584023,
-        #                      type: "buy-market",
-        #            'field-amount': "0.029100000000000000",  # they have fixed it for filled-amount
-        #       'field-cash-amount': "0.000999788700000000",  # they have fixed it for filled-cash-amount
-        #              'field-fees': "0.000058200000000000",  # they have fixed it for filled-fees
-        #             'finished-at':  1545831584181,
-        #                    source: "spot-api",
-        #                     state: "filled",
-        #             'canceled-at':  0                      }
+        #                    "symbol": "ethbtc",
+        #              "account-id":  5685075,
+        #                    "amount": "0.001000000000000000",
+        #                     "price": "0.0",
+        #              "created-at":  1545831584023,
+        #                      "type": "buy-market",
+        #            "field-amount": "0.029100000000000000",  # they have fixed it for filled-amount
+        #       "field-cash-amount": "0.000999788700000000",  # they have fixed it for filled-cash-amount
+        #              "field-fees": "0.000058200000000000",  # they have fixed it for filled-fees
+        #             "finished-at":  1545831584181,
+        #                    "source": "spot-api",
+        #                     "state": "filled",
+        #             "canceled-at":  0                      }
         #
         id = self.safe_string(order, 'id')
         side = None
@@ -1386,8 +1384,8 @@ class huobijp(Exchange, ImplicitAPI):
         response = await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
         #
         #     {
-        #         'status': 'ok',
-        #         'data': '10138899000',
+        #         "status": "ok",
+        #         "data": "10138899000",
         #     }
         #
         return self.extend(self.parse_order(response), {
@@ -1468,8 +1466,8 @@ class huobijp(Exchange, ImplicitAPI):
         response = await self.privatePostOrderOrdersBatchCancelOpenOrders(self.extend(request, params))
         #
         #     {
-        #         code: 200,
-        #         data: {
+        #         "code": 200,
+        #         "data": {
         #             "success-count": 2,
         #             "failed-count": 0,
         #             "next-id": 5454600
@@ -1492,10 +1490,10 @@ class huobijp(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
-        #         currency: "usdt",
-        #         address: "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
-        #         addressTag: "",
-        #         chain: "usdterc20",  # trc20usdt, hrc20usdt, usdt, algousdt
+        #         "currency": "usdt",
+        #         "address": "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+        #         "addressTag": "",
+        #         "chain": "usdterc20",  # trc20usdt, hrc20usdt, usdt, algousdt
         #     }
         #
         address = self.safe_string(depositAddress, 'address')
@@ -1517,7 +1515,7 @@ class huobijp(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1544,7 +1542,7 @@ class huobijp(Exchange, ImplicitAPI):
         # return response
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1571,40 +1569,40 @@ class huobijp(Exchange, ImplicitAPI):
         # return response
         return self.parse_transactions(response['data'], currency, since, limit)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #
         #     {
-        #         'id': 8211029,
-        #         'type': 'deposit',
-        #         'currency': 'eth',
-        #         'chain': 'eth',
-        #         'tx-hash': 'bd315....',
-        #         'amount': 0.81162421,
-        #         'address': '4b8b....',
-        #         'address-tag': '',
-        #         'fee': 0,
-        #         'state': 'safe',
-        #         'created-at': 1542180380965,
-        #         'updated-at': 1542180788077
+        #         "id": 8211029,
+        #         "type": "deposit",
+        #         "currency": "eth",
+        #         "chain": "eth",
+        #         'tx-hash': "bd315....",
+        #         "amount": 0.81162421,
+        #         "address": "4b8b....",
+        #         'address-tag": '",
+        #         "fee": 0,
+        #         "state": "safe",
+        #         "created-at": 1542180380965,
+        #         "updated-at": 1542180788077
         #     }
         #
         # fetchWithdrawals
         #
         #     {
-        #         'id': 6908275,
-        #         'type': 'withdraw',
-        #         'currency': 'btc',
-        #         'chain': 'btc',
-        #         'tx-hash': 'c1a1a....',
-        #         'amount': 0.80257005,
-        #         'address': '1QR....',
-        #         'address-tag': '',
-        #         'fee': 0.0005,
-        #         'state': 'confirmed',
-        #         'created-at': 1552107295685,
-        #         'updated-at': 1552108032859
+        #         "id": 6908275,
+        #         "type": "withdraw",
+        #         "currency": "btc",
+        #         "chain": "btc",
+        #         'tx-hash': "c1a1a....",
+        #         "amount": 0.80257005,
+        #         "address": "1QR....",
+        #         'address-tag": '",
+        #         "fee": 0.0005,
+        #         "state": "confirmed",
+        #         "created-at": 1552107295685,
+        #         "updated-at": 1552108032859
         #     }
         #
         # withdraw

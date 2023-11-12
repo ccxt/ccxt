@@ -4,7 +4,7 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory } from './types.js';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers } from './types.js';
 export { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory } from './types.js';
 /**
  * @class Exchange
@@ -72,7 +72,7 @@ export default class Exchange {
     transactions: {};
     ohlcvs: any;
     myTrades: any;
-    positions: {};
+    positions: any;
     urls: {
         logo?: string;
         api?: string | Dictionary<string>;
@@ -548,6 +548,7 @@ export default class Exchange {
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     fetchDepositAddresses(codes?: string[], params?: {}): Promise<any>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchMarginMode(symbol?: string, params?: {}): Promise<MarginMode>;
     fetchRestOrderBookSafe(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTime(params?: {}): Promise<number>;
@@ -675,6 +676,9 @@ export default class Exchange {
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: number, params?: {}): Promise<Order>;
     fetchPermissions(params?: {}): Promise<void>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
+    watchPosition(symbol?: string, params?: {}): Promise<Position>;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositionForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     fetchPositionsBySymbol(symbol: string, params?: {}): Promise<Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<Position[]>;
     fetchPositionsRisk(symbols?: string[], params?: {}): Promise<Position[]>;
@@ -713,7 +717,7 @@ export default class Exchange {
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;

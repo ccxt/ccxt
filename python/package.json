@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.1.41",
+  "version": "4.1.48",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 130+ exchanges",
   "unpkg": "dist/ccxt.browser.js",
   "type": "module",
@@ -87,6 +87,7 @@
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && eslint \"ts/src/*.ts\" \"ts/src/base/Exchange.ts\" \"ts/src/pro/*.ts\" --cache --cache-location .cache/eslintcache --cache-strategy metadata",
     "eslint": "eslint",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
+    "check-python-types": "cd python && tox -e type && cd ..",
     "check-php-syntax": "npm run check-rest-php-syntax && npm run check-ws-php-syntax",
     "check-rest-php-syntax": "php -f php/test/syntax.php",
     "check-ws-php-syntax": "php -f php/pro/test/syntax.php",

@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
 /**
  * @class woo
  * @extends Exchange
@@ -7,8 +7,8 @@ import { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType } from './b
 export default class woo extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;
     fetchTradingFees(params?: {}): Promise<{}>;
     fetchCurrencies(params?: {}): Promise<{}>;
@@ -21,11 +21,11 @@ export default class woo extends Exchange {
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): any;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchAccounts(params?: {}): Promise<any[]>;
     parseAccount(account: any): {
         info: any;
@@ -34,8 +34,8 @@ export default class woo extends Exchange {
         code: any;
         type: string;
     };
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(response: any): Balances;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -64,29 +64,10 @@ export default class woo extends Exchange {
     };
     parseLedgerEntryType(type: any): string;
     getCurrencyFromChaincode(networkizedCode: any, currency: any): any;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: string;
-        addressTo: string;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: number;
-        comment: any;
-        fee: any;
-    };
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatus(status: any): string;
     transfer(code: string, amount: any, fromAccount: any, toAccount: any, params?: {}): Promise<{
         id: string;
@@ -112,26 +93,7 @@ export default class woo extends Exchange {
         info: any;
     };
     parseTransferStatus(status: any): string;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: string;
-        addressTo: string;
-        tag: string;
-        tagFrom: any;
-        tagTo: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: number;
-        comment: any;
-        fee: any;
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: any;

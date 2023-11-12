@@ -6,8 +6,9 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coincheck import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import AuthenticationError
@@ -167,7 +168,7 @@ class coincheck(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
@@ -182,7 +183,7 @@ class coincheck(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coincheck api endpoint
@@ -192,7 +193,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateGetAccountsBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -219,13 +220,13 @@ class coincheck(Exchange, ImplicitAPI):
         # fetchOpenOrders
         #
         #     {                       id:  202835,
-        #                      order_type: "buy",
-        #                            rate:  26890,
-        #                            pair: "btc_jpy",
-        #                  pending_amount: "0.5527",
-        #       pending_market_buy_amount:  null,
-        #                  stop_loss_rate:  null,
-        #                      created_at: "2015-01-10T05:55:38.000Z"}
+        #                      "order_type": "buy",
+        #                            "rate":  26890,
+        #                            "pair": "btc_jpy",
+        #                  "pending_amount": "0.5527",
+        #       "pending_market_buy_amount":  null,
+        #                  "stop_loss_rate":  null,
+        #                      "created_at": "2015-01-10T05:55:38.000Z"}
         #
         # todo: add formats for fetchOrder, fetchClosedOrders here
         #
@@ -263,7 +264,7 @@ class coincheck(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -279,7 +280,7 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'])
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # {
         #     "last":4192632.0,
@@ -317,7 +318,7 @@ class coincheck(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -345,7 +346,7 @@ class coincheck(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -463,7 +464,7 @@ class coincheck(Exchange, ImplicitAPI):
         transactions = self.safe_value(response, 'data', [])
         return self.parse_trades(transactions, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -503,20 +504,20 @@ class coincheck(Exchange, ImplicitAPI):
         response = await self.privateGetAccounts(params)
         #
         #     {
-        #         success: True,
-        #         id: '7487995',
-        #         email: 'some@email.com',
-        #         identity_status: 'identity_pending',
-        #         bitcoin_address: null,
-        #         lending_leverage: '4',
-        #         taker_fee: '0.0',
-        #         maker_fee: '0.0',
-        #         exchange_fees: {
-        #           btc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           etc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           fct_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           mona_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
-        #           plt_jpy: {taker_fee: '0.0', maker_fee: '0.0'}
+        #         "success": True,
+        #         "id": "7487995",
+        #         "email": "some@email.com",
+        #         "identity_status": "identity_pending",
+        #         "bitcoin_address": null,
+        #         "lending_leverage": "4",
+        #         "taker_fee": "0.0",
+        #         "maker_fee": "0.0",
+        #         "exchange_fees": {
+        #           "btc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "etc_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "fct_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "mona_jpy": {taker_fee: '0.0', maker_fee: "0.0"},
+        #           "plt_jpy": {taker_fee: '0.0', maker_fee: "0.0"}
         #         }
         #     }
         #
@@ -581,7 +582,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return await self.privateDeleteExchangeOrdersId(self.extend(request, params))
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -625,7 +626,7 @@ class coincheck(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'deposits', [])
         return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -679,7 +680,7 @@ class coincheck(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchDeposits
         #

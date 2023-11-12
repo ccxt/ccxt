@@ -827,8 +827,16 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const keyValue = part.split('=');
+            const keysLength = keyValue.length;
+            if (keysLength !== 2) {
+                continue;
+            }
             const key = keyValue[0];
-            const value = keyValue[1];
+            let value = keyValue[1];
+            if ((value !== undefined) && ((value.startsWith('[')) || (value.startsWith('{')))) {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = jsonParse(value);
+            }
             result[key] = value;
         }
         return result;
@@ -883,8 +891,15 @@ export default class testMainClass extends baseMainTestClass {
             if ((storedUrl !== undefined) && (requestUrl !== undefined)) {
                 const storedUrlParts = storedUrl.split('?');
                 const newUrlParts = requestUrl.split('?');
-                const storedUrlParams = this.urlencodedToDict(storedUrlParts[1]);
-                const newUrlParams = this.urlencodedToDict(newUrlParts[1]);
+                const storedUrlQuery = exchange.safeValue(storedUrlParts, 1);
+                const newUrlQuery = exchange.safeValue(newUrlParts, 1);
+                if ((storedUrlQuery === undefined) && (newUrlQuery === undefined)) {
+                    // might be a get request without any query parameters
+                    // example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return;
+                }
+                const storedUrlParams = this.urlencodedToDict(storedUrlQuery);
+                const newUrlParams = this.urlencodedToDict(newUrlQuery);
                 this.assertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams);
                 return;
             }
@@ -904,11 +919,28 @@ export default class testMainClass extends baseMainTestClass {
         }
         this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
     }
+    sanitizeDataInput(input) {
+        // remove nulls and replace with unefined instead
+        if (input === undefined) {
+            return undefined;
+        }
+        const newInput = [];
+        for (let i = 0; i < input.length; i++) {
+            const current = input[i];
+            if (current === null) { // noqa: E711
+                newInput.push(undefined);
+            }
+            else {
+                newInput.push(current);
+            }
+        }
+        return newInput;
+    }
     async testMethodStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            await callExchangeMethodDynamically(exchange, method, data['input']);
+            await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
         }
         catch (e) {
             if (!(e instanceof NetworkError)) {
@@ -931,7 +963,7 @@ export default class testMainClass extends baseMainTestClass {
     }
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
-        return initExchange(exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999 } });
+        return initExchange(exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
     }
     async testExchangeStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
@@ -1009,7 +1041,8 @@ export default class testMainClass extends baseMainTestClass {
             this.testBitget(),
             this.testMexc(),
             this.testHuobi(),
-            this.testWoo()
+            this.testWoo(),
+            this.testBitmart()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1221,6 +1254,21 @@ export default class testMainClass extends baseMainTestClass {
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
         assert(clientOrderIdSpot.startsWith(id), 'brokerId does not start with id');
         await close(woo);
+    }
+    async testBitmart() {
+        const bitmart = this.initOfflineExchange('bitmart');
+        let reqHeaders = undefined;
+        const id = 'CCXTxBitmart000';
+        assert(bitmart.options['brokerId'] === id, 'id not in options');
+        await bitmart.loadMarkets();
+        try {
+            await bitmart.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = bitmart.last_request_headers;
+        }
+        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
+        await close(bitmart);
     }
 }
 // ***** AUTO-TRANSPILER-END *****

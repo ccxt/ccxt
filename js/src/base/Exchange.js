@@ -58,7 +58,6 @@ export default class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.positions = {};
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.enableLastJsonResponse = true;
@@ -252,7 +251,7 @@ export default class Exchange {
         this.transactions = {};
         this.ohlcvs = {};
         this.myTrades = undefined;
-        this.positions = {};
+        this.positions = undefined;
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
@@ -1345,6 +1344,9 @@ export default class Exchange {
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBook() is not supported yet');
+    }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMarginMode() is not supported yet');
     }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
@@ -2745,7 +2747,7 @@ export default class Exchange {
         const symbol = this.safeString(position, 'symbol');
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            market = this.safeValue(this.markets, symbol);
         }
         if (contractSize === undefined && market !== undefined) {
             contractSize = this.safeNumber(market, 'contractSize');
@@ -2965,6 +2967,15 @@ export default class Exchange {
     }
     async fetchPosition(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchPosition() is not supported yet');
+    }
+    async watchPosition(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchPosition() is not supported yet');
+    }
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' watchPositions() is not supported yet');
+    }
+    async watchPositionForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.watchPositions(symbols, since, limit, params);
     }
     async fetchPositionsBySymbol(symbol, params = {}) {
         /**

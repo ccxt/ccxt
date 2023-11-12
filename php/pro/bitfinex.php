@@ -108,12 +108,12 @@ class bitfinex extends \ccxt\async\bitfinex {
         // when a $trade does not have an id yet
         //
         //     // $channel id, update type, seq, time, price, amount
-        //     array( 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ),
+        //     array( 2, "te", "28462857-BTCUSD", 1580565041, 9374.9, 0.005 ),
         //
         // when a $trade already has an id
         //
         //     // $channel id, update type, seq, $trade id, time, price, amount
-        //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
+        //     array( 2, "tu", "28462857-BTCUSD", 413357662, 1580565041, 9374.9, 0.005 )
         //
         $channel = $this->safe_value($subscription, 'channel');
         $marketId = $this->safe_string($subscription, 'pair');
@@ -144,7 +144,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $message;
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         // snapshot $trade
         //
@@ -154,12 +154,12 @@ class bitfinex extends \ccxt\async\bitfinex {
         // when a $trade does not have an $id yet
         //
         //     // channel $id, update type, $seq, time, $price, $amount
-        //     array( 2, 'te', '28462857-BTCUSD', 1580565041, 9374.9, 0.005 ),
+        //     array( 2, "te", "28462857-BTCUSD", 1580565041, 9374.9, 0.005 ),
         //
         // when a $trade already has an $id
         //
         //     // channel $id, update type, $seq, $trade $id, time, $price, $amount
-        //     array( 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 )
+        //     array( 2, "tu", "28462857-BTCUSD", 413357662, 1580565041, 9374.9, 0.005 )
         //
         if (gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade))) {
             return parent::parse_trade($trade, $market);
@@ -275,9 +275,9 @@ class bitfinex extends \ccxt\async\bitfinex {
             $prec = $this->safe_string($options, 'prec', 'P0');
             $freq = $this->safe_string($options, 'freq', 'F0');
             $request = array(
-                // 'event' => 'subscribe', // added in subscribe()
-                // 'channel' => channel, // added in subscribe()
-                // 'symbol' => marketId, // added in subscribe()
+                // "event" => "subscribe", // added in subscribe()
+                // "channel" => channel, // added in subscribe()
+                // "symbol" => marketId, // added in subscribe()
                 'prec' => $prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
                 'freq' => $freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
                 'len' => $limit, // string, number of price points, '25', '100', default = '25'
@@ -389,10 +389,10 @@ class bitfinex extends \ccxt\async\bitfinex {
         // involves system status and maintenance updates
         //
         //     {
-        //         event => 'info',
-        //         version => 2,
-        //         serverId => 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-        //         platform => array( status => 1 ), // 1 for operative, 0 for maintenance
+        //         "event" => "info",
+        //         "version" => 2,
+        //         "serverId" => "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+        //         "platform" => array( status => 1 ), // 1 for operative, 0 for maintenance
         //     }
         //
         return $message;
@@ -401,14 +401,14 @@ class bitfinex extends \ccxt\async\bitfinex {
     public function handle_subscription_status(Client $client, $message) {
         //
         //     {
-        //         event => 'subscribed',
-        //         channel => 'book',
-        //         chanId => 67473,
-        //         symbol => 'tBTCUSD',
-        //         prec => 'P0',
-        //         freq => 'F0',
-        //         len => '25',
-        //         pair => 'BTCUSD'
+        //         "event" => "subscribed",
+        //         "channel" => "book",
+        //         "chanId" => 67473,
+        //         "symbol" => "tBTCUSD",
+        //         "prec" => "P0",
+        //         "freq" => "F0",
+        //         "len" => "25",
+        //         "pair" => "BTCUSD"
         //     }
         //
         $channelId = $this->safe_string($message, 'chanId');
@@ -500,18 +500,18 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         //     array(
         //         0,
-        //         'os',
+        //         "os",
         //         array(
         //             array(
         //                 45287766631,
-        //                 'ETHUST',
+        //                 "ETHUST",
         //                 -0.07,
         //                 -0.07,
-        //                 'EXCHANGE LIMIT',
-        //                 'ACTIVE',
+        //                 "EXCHANGE LIMIT",
+        //                 "ACTIVE",
         //                 210,
         //                 0,
-        //                 '2020-05-16T13:17:46Z',
+        //                 "2020-05-16T13:17:46Z",
         //                 0,
         //                 0,
         //                 0
@@ -523,17 +523,17 @@ class bitfinex extends \ccxt\async\bitfinex {
         //
         //     array(
         //         0,
-        //         'oc',
+        //         "oc",
         //         array(
         //             45287766631,
-        //             'ETHUST',
+        //             "ETHUST",
         //             -0.07,
         //             -0.07,
-        //             'EXCHANGE LIMIT',
-        //             'CANCELED',
+        //             "EXCHANGE LIMIT",
+        //             "CANCELED",
         //             210,
         //             0,
-        //             '2020-05-16T13:17:46Z',
+        //             "2020-05-16T13:17:46Z",
         //             0,
         //             0,
         //             0,
@@ -565,14 +565,14 @@ class bitfinex extends \ccxt\async\bitfinex {
 
     public function handle_order(Client $client, $order) {
         // array( 45287766631,
-        //     'ETHUST',
+        //     "ETHUST",
         //     -0.07,
         //     -0.07,
-        //     'EXCHANGE LIMIT',
-        //     'CANCELED',
+        //     "EXCHANGE LIMIT",
+        //     "CANCELED",
         //     210,
         //     0,
-        //     '2020-05-16T13:17:46Z',
+        //     "2020-05-16T13:17:46Z",
         //     0,
         //     0,
         //     0 )
@@ -635,7 +635,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             //
             //     array(
             //         1231,
-            //         'hb',
+            //         "hb",
             //     )
             //
             if ($message[1] === 'hb') {
@@ -663,10 +663,10 @@ class bitfinex extends \ccxt\async\bitfinex {
             // todo add bitfinex handleErrorMessage
             //
             //     {
-            //         $event => 'info',
-            //         version => 2,
-            //         serverId => 'e293377e-7bb7-427e-b28c-5db045b2c1d1',
-            //         platform => array( status => 1 ), // 1 for operative, 0 for maintenance
+            //         "event" => "info",
+            //         "version" => 2,
+            //         "serverId" => "e293377e-7bb7-427e-b28c-5db045b2c1d1",
+            //         "platform" => array( status => 1 ), // 1 for operative, 0 for maintenance
             //     }
             //
             $event = $this->safe_string($message, 'event');

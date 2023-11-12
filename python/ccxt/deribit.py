@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -422,12 +422,12 @@ class deribit(Exchange, ImplicitAPI):
         response = self.publicGetGetTime(params)
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: 1583922446019,
-        #         usIn: 1583922446019955,
-        #         usOut: 1583922446019956,
-        #         usDiff: 1,
-        #         testnet: False
+        #         "jsonrpc": "2.0",
+        #         "result": 1583922446019,
+        #         "usIn": 1583922446019955,
+        #         "usOut": 1583922446019956,
+        #         "usDiff": 1,
+        #         "testnet": False
         #     }
         #
         return self.safe_integer(response, 'result')
@@ -543,36 +543,36 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetGetSubaccounts(params)
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: [{
-        #                 username: 'someusername',
-        #                 type: 'main',
-        #                 system_name: 'someusername',
-        #                 security_keys_enabled: False,
-        #                 security_keys_assignments: [],
-        #                 receive_notifications: False,
-        #                 login_enabled: True,
-        #                 is_password: True,
-        #                 id: '238216',
-        #                 email: 'pablo@abcdef.com'
+        #         "jsonrpc": "2.0",
+        #         "result": [{
+        #                 "username": "someusername",
+        #                 "type": "main",
+        #                 "system_name": "someusername",
+        #                 "security_keys_enabled": False,
+        #                 "security_keys_assignments": [],
+        #                 "receive_notifications": False,
+        #                 "login_enabled": True,
+        #                 "is_password": True,
+        #                 "id": "238216",
+        #                 "email": "pablo@abcdef.com"
         #             },
         #             {
-        #                 username: 'someusername_1',
-        #                 type: 'subaccount',
-        #                 system_name: 'someusername_1',
-        #                 security_keys_enabled: False,
-        #                 security_keys_assignments: [],
-        #                 receive_notifications: False,
-        #                 login_enabled: False,
-        #                 is_password: False,
-        #                 id: '245499',
-        #                 email: 'pablo@abcdef.com'
+        #                 "username": "someusername_1",
+        #                 "type": "subaccount",
+        #                 "system_name": "someusername_1",
+        #                 "security_keys_enabled": False,
+        #                 "security_keys_assignments": [],
+        #                 "receive_notifications": False,
+        #                 "login_enabled": False,
+        #                 "is_password": False,
+        #                 "id": "245499",
+        #                 "email": "pablo@abcdef.com"
         #             }
         #         ],
-        #         usIn: '1652736468292006',
-        #         usOut: '1652736468292377',
-        #         usDiff: '371',
-        #         testnet: False
+        #         "usIn": "1652736468292006",
+        #         "usOut": "1652736468292377",
+        #         "usDiff": "371",
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', [])
@@ -581,16 +581,16 @@ class deribit(Exchange, ImplicitAPI):
     def parse_account(self, account, currency=None):
         #
         #      {
-        #          username: 'someusername_1',
-        #          type: 'subaccount',
-        #          system_name: 'someusername_1',
-        #          security_keys_enabled: False,
-        #          security_keys_assignments: [],
-        #          receive_notifications: False,
-        #          login_enabled: False,
-        #          is_password: False,
-        #          id: '245499',
-        #          email: 'pablo@abcdef.com'
+        #          "username": "someusername_1",
+        #          "type": "subaccount",
+        #          "system_name": "someusername_1",
+        #          "security_keys_enabled": False,
+        #          "security_keys_assignments": [],
+        #          "receive_notifications": False,
+        #          "login_enabled": False,
+        #          "is_password": False,
+        #          "id": "245499",
+        #          "email": "pablo@abcdef.com"
         #      }
         #
         return {
@@ -609,26 +609,26 @@ class deribit(Exchange, ImplicitAPI):
         currenciesResponse = self.publicGetGetCurrencies(params)
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: [
+        #         "jsonrpc": "2.0",
+        #         "result": [
         #             {
-        #                 withdrawal_priorities: [
-        #                     {value: 0.15, name: 'very_low'},
-        #                     {value: 1.5, name: 'very_high'},
+        #                 "withdrawal_priorities": [
+        #                     {value: 0.15, name: "very_low"},
+        #                     {value: 1.5, name: "very_high"},
         #                 ],
-        #                 withdrawal_fee: 0.0005,
-        #                 min_withdrawal_fee: 0.0005,
-        #                 min_confirmations: 1,
-        #                 fee_precision: 4,
-        #                 currency_long: 'Bitcoin',
-        #                 currency: 'BTC',
-        #                 coin_type: 'BITCOIN'
+        #                 "withdrawal_fee": 0.0005,
+        #                 "min_withdrawal_fee": 0.0005,
+        #                 "min_confirmations": 1,
+        #                 "fee_precision": 4,
+        #                 "currency_long": "Bitcoin",
+        #                 "currency": "BTC",
+        #                 "coin_type": "BITCOIN"
         #             }
         #         ],
-        #         usIn: 1583761588590479,
-        #         usOut: 1583761588590544,
-        #         usDiff: 65,
-        #         testnet: False
+        #         "usIn": 1583761588590479,
+        #         "usOut": 1583761588590544,
+        #         "usDiff": 65,
+        #         "testnet": False
         #     }
         #
         parsedMarkets = {}
@@ -811,7 +811,7 @@ class deribit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, balance):
+    def parse_balance(self, balance) -> Balances:
         result = {
             'info': balance,
         }
@@ -824,7 +824,7 @@ class deribit(Exchange, ImplicitAPI):
         result[currencyCode] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the deribit api endpoint
@@ -839,44 +839,44 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetGetAccountSummary(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {
-        #             total_pl: 0,
-        #             session_upl: 0,
-        #             session_rpl: 0,
-        #             session_funding: 0,
-        #             portfolio_margining_enabled: False,
-        #             options_vega: 0,
-        #             options_theta: 0,
-        #             options_session_upl: 0,
-        #             options_session_rpl: 0,
-        #             options_pl: 0,
-        #             options_gamma: 0,
-        #             options_delta: 0,
-        #             margin_balance: 0.00062359,
-        #             maintenance_margin: 0,
-        #             limits: {
-        #                 non_matching_engine_burst: 300,
-        #                 non_matching_engine: 200,
-        #                 matching_engine_burst: 20,
-        #                 matching_engine: 2
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "total_pl": 0,
+        #             "session_upl": 0,
+        #             "session_rpl": 0,
+        #             "session_funding": 0,
+        #             "portfolio_margining_enabled": False,
+        #             "options_vega": 0,
+        #             "options_theta": 0,
+        #             "options_session_upl": 0,
+        #             "options_session_rpl": 0,
+        #             "options_pl": 0,
+        #             "options_gamma": 0,
+        #             "options_delta": 0,
+        #             "margin_balance": 0.00062359,
+        #             "maintenance_margin": 0,
+        #             "limits": {
+        #                 "non_matching_engine_burst": 300,
+        #                 "non_matching_engine": 200,
+        #                 "matching_engine_burst": 20,
+        #                 "matching_engine": 2
         #             },
-        #             initial_margin: 0,
-        #             futures_session_upl: 0,
-        #             futures_session_rpl: 0,
-        #             futures_pl: 0,
-        #             equity: 0.00062359,
-        #             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        #             delta_total: 0,
-        #             currency: 'BTC',
-        #             balance: 0.00062359,
-        #             available_withdrawal_funds: 0.00062359,
-        #             available_funds: 0.00062359
+        #             "initial_margin": 0,
+        #             "futures_session_upl": 0,
+        #             "futures_session_rpl": 0,
+        #             "futures_pl": 0,
+        #             "equity": 0.00062359,
+        #             "deposit_address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        #             "delta_total": 0,
+        #             "currency": "BTC",
+        #             "balance": 0.00062359,
+        #             "available_withdrawal_funds": 0.00062359,
+        #             "available_funds": 0.00062359
         #         },
-        #         usIn: 1583775838115975,
-        #         usOut: 1583775838116520,
-        #         usDiff: 545,
-        #         testnet: False
+        #         "usIn": 1583775838115975,
+        #         "usOut": 1583775838116520,
+        #         "usDiff": 545,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -897,13 +897,13 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetCreateDepositAddress(self.extend(request, params))
         #
         #     {
-        #         'jsonrpc': '2.0',
-        #         'id': 7538,
-        #         'result': {
-        #             'address': '2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB',
-        #             'creation_timestamp': 1550575165170,
-        #             'currency': 'BTC',
-        #             'type': 'deposit'
+        #         "jsonrpc": "2.0",
+        #         "id": 7538,
+        #         "result": {
+        #             "address": "2N8udZGBc1hLRCFsU9kGwMPpmYUwMFTuCwB",
+        #             "creation_timestamp": 1550575165170,
+        #             "currency": "BTC",
+        #             "type": "deposit"
         #         }
         #     }
         #
@@ -932,19 +932,19 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetGetCurrentDepositAddress(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {
-        #             type: 'deposit',
-        #             status: 'ready',
-        #             requires_confirmation: True,
-        #             currency: 'BTC',
-        #             creation_timestamp: 1514694684651,
-        #             address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw'
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "type": "deposit",
+        #             "status": "ready",
+        #             "requires_confirmation": True,
+        #             "currency": "BTC",
+        #             "creation_timestamp": 1514694684651,
+        #             "address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw"
         #         },
-        #         usIn: 1583785137274288,
-        #         usOut: 1583785137274454,
-        #         usDiff: 166,
-        #         testnet: False
+        #         "usIn": 1583785137274288,
+        #         "usOut": 1583785137274454,
+        #         "usDiff": 166,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -958,51 +958,51 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker /public/ticker
         #
         #     {
-        #         timestamp: 1583778859480,
-        #         stats: {volume: 60627.57263769, low: 7631.5, high: 8311.5},
-        #         state: 'open',
-        #         settlement_price: 7903.21,
-        #         open_interest: 111543850,
-        #         min_price: 7634,
-        #         max_price: 7866.51,
-        #         mark_price: 7750.02,
-        #         last_price: 7750.5,
-        #         instrument_name: 'BTC-PERPETUAL',
-        #         index_price: 7748.01,
-        #         funding_8h: 0.0000026,
-        #         current_funding: 0,
-        #         best_bid_price: 7750,
-        #         best_bid_amount: 19470,
-        #         best_ask_price: 7750.5,
-        #         best_ask_amount: 343280
+        #         "timestamp": 1583778859480,
+        #         "stats": {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #         "state": "open",
+        #         "settlement_price": 7903.21,
+        #         "open_interest": 111543850,
+        #         "min_price": 7634,
+        #         "max_price": 7866.51,
+        #         "mark_price": 7750.02,
+        #         "last_price": 7750.5,
+        #         "instrument_name": "BTC-PERPETUAL",
+        #         "index_price": 7748.01,
+        #         "funding_8h": 0.0000026,
+        #         "current_funding": 0,
+        #         "best_bid_price": 7750,
+        #         "best_bid_amount": 19470,
+        #         "best_ask_price": 7750.5,
+        #         "best_ask_amount": 343280
         #     }
         #
         # fetchTicker /public/get_book_summary_by_instrument
         # fetchTickers /public/get_book_summary_by_currency
         #
         #     {
-        #         volume: 124.1,
-        #         underlying_price: 7856.445926872601,
-        #         underlying_index: 'SYN.BTC-10MAR20',
-        #         quote_currency: 'USD',
-        #         open_interest: 121.8,
-        #         mid_price: 0.01975,
-        #         mark_price: 0.01984559,
-        #         low: 0.0095,
-        #         last: 0.0205,
-        #         interest_rate: 0,
-        #         instrument_name: 'BTC-10MAR20-7750-C',
-        #         high: 0.0295,
-        #         estimated_delivery_price: 7856.29,
-        #         creation_timestamp: 1583783678366,
-        #         bid_price: 0.0185,
-        #         base_currency: 'BTC',
-        #         ask_price: 0.021
+        #         "volume": 124.1,
+        #         "underlying_price": 7856.445926872601,
+        #         "underlying_index": "SYN.BTC-10MAR20",
+        #         "quote_currency": "USD",
+        #         "open_interest": 121.8,
+        #         "mid_price": 0.01975,
+        #         "mark_price": 0.01984559,
+        #         "low": 0.0095,
+        #         "last": 0.0205,
+        #         "interest_rate": 0,
+        #         "instrument_name": "BTC-10MAR20-7750-C",
+        #         "high": 0.0295,
+        #         "estimated_delivery_price": 7856.29,
+        #         "creation_timestamp": 1583783678366,
+        #         "bid_price": 0.0185,
+        #         "base_currency": "BTC",
+        #         "ask_price": 0.021
         #     },
         #
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
@@ -1033,7 +1033,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1048,36 +1048,36 @@ class deribit(Exchange, ImplicitAPI):
         response = self.publicGetTicker(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {
-        #             timestamp: 1583778859480,
-        #             stats: {volume: 60627.57263769, low: 7631.5, high: 8311.5},
-        #             state: 'open',
-        #             settlement_price: 7903.21,
-        #             open_interest: 111543850,
-        #             min_price: 7634,
-        #             max_price: 7866.51,
-        #             mark_price: 7750.02,
-        #             last_price: 7750.5,
-        #             instrument_name: 'BTC-PERPETUAL',
-        #             index_price: 7748.01,
-        #             funding_8h: 0.0000026,
-        #             current_funding: 0,
-        #             best_bid_price: 7750,
-        #             best_bid_amount: 19470,
-        #             best_ask_price: 7750.5,
-        #             best_ask_amount: 343280
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "timestamp": 1583778859480,
+        #             "stats": {volume: 60627.57263769, low: 7631.5, high: 8311.5},
+        #             "state": "open",
+        #             "settlement_price": 7903.21,
+        #             "open_interest": 111543850,
+        #             "min_price": 7634,
+        #             "max_price": 7866.51,
+        #             "mark_price": 7750.02,
+        #             "last_price": 7750.5,
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "index_price": 7748.01,
+        #             "funding_8h": 0.0000026,
+        #             "current_funding": 0,
+        #             "best_bid_price": 7750,
+        #             "best_bid_amount": 19470,
+        #             "best_ask_price": 7750.5,
+        #             "best_ask_amount": 343280
         #         },
-        #         usIn: 1583778859483941,
-        #         usOut: 1583778859484075,
-        #         usDiff: 134,
-        #         testnet: False
+        #         "usIn": 1583778859483941,
+        #         "usOut": 1583778859484075,
+        #         "usDiff": 134,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result')
         return self.parse_ticker(result, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1094,32 +1094,32 @@ class deribit(Exchange, ImplicitAPI):
         response = self.publicGetGetBookSummaryByCurrency(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: [
+        #         "jsonrpc": "2.0",
+        #         "result": [
         #             {
-        #                 volume: 124.1,
-        #                 underlying_price: 7856.445926872601,
-        #                 underlying_index: 'SYN.BTC-10MAR20',
-        #                 quote_currency: 'USD',
-        #                 open_interest: 121.8,
-        #                 mid_price: 0.01975,
-        #                 mark_price: 0.01984559,
-        #                 low: 0.0095,
-        #                 last: 0.0205,
-        #                 interest_rate: 0,
-        #                 instrument_name: 'BTC-10MAR20-7750-C',
-        #                 high: 0.0295,
-        #                 estimated_delivery_price: 7856.29,
-        #                 creation_timestamp: 1583783678366,
-        #                 bid_price: 0.0185,
-        #                 base_currency: 'BTC',
-        #                 ask_price: 0.021
+        #                 "volume": 124.1,
+        #                 "underlying_price": 7856.445926872601,
+        #                 "underlying_index": "SYN.BTC-10MAR20",
+        #                 "quote_currency": "USD",
+        #                 "open_interest": 121.8,
+        #                 "mid_price": 0.01975,
+        #                 "mark_price": 0.01984559,
+        #                 "low": 0.0095,
+        #                 "last": 0.0205,
+        #                 "interest_rate": 0,
+        #                 "instrument_name": "BTC-10MAR20-7750-C",
+        #                 "high": 0.0295,
+        #                 "estimated_delivery_price": 7856.29,
+        #                 "creation_timestamp": 1583783678366,
+        #                 "bid_price": 0.0185,
+        #                 "base_currency": "BTC",
+        #                 "ask_price": 0.021
         #             },
         #         ],
-        #         usIn: 1583783678361966,
-        #         usOut: 1583783678372069,
-        #         usDiff: 10103,
-        #         testnet: False
+        #         "usIn": 1583783678361966,
+        #         "usOut": 1583783678372069,
+        #         "usDiff": 10103,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', [])
@@ -1130,7 +1130,7 @@ class deribit(Exchange, ImplicitAPI):
             tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1162,28 +1162,28 @@ class deribit(Exchange, ImplicitAPI):
         response = self.publicGetGetTradingviewChartData(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {
-        #             volume: [3.6680847969999992, 22.682721123, 3.011587939, 0],
-        #             ticks: [1583916960000, 1583917020000, 1583917080000, 1583917140000],
-        #             status: 'ok',
-        #             open: [7834, 7839, 7833.5, 7833],
-        #             low: [7834, 7833.5, 7832.5, 7833],
-        #             high: [7839.5, 7839, 7833.5, 7833],
-        #             cost: [28740, 177740, 23590, 0],
-        #             close: [7839.5, 7833.5, 7833, 7833]
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "volume": [3.6680847969999992, 22.682721123, 3.011587939, 0],
+        #             "ticks": [1583916960000, 1583917020000, 1583917080000, 1583917140000],
+        #             "status": "ok",
+        #             "open": [7834, 7839, 7833.5, 7833],
+        #             "low": [7834, 7833.5, 7832.5, 7833],
+        #             "high": [7839.5, 7839, 7833.5, 7833],
+        #             "cost": [28740, 177740, 23590, 0],
+        #             "close": [7839.5, 7833.5, 7833, 7833]
         #         },
-        #         usIn: 1583917166709801,
-        #         usOut: 1583917166710175,
-        #         usDiff: 374,
-        #         testnet: False
+        #         "usIn": 1583917166709801,
+        #         "usOut": 1583917166710175,
+        #         "usDiff": 374,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', {})
         ohlcvs = self.convert_trading_view_to_ohlcv(result, 'ticks', 'open', 'high', 'low', 'close', 'volume', True)
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -1269,7 +1269,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.deribit.com/#private-get_user_trades_by_currency
         get the list of most recent trades for a particular symbol.
@@ -1336,51 +1336,51 @@ class deribit(Exchange, ImplicitAPI):
         response = self.privateGetGetAccountSummary(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {
-        #             total_pl: 0,
-        #             session_upl: 0,
-        #             session_rpl: 0,
-        #             session_funding: 0,
-        #             portfolio_margining_enabled: False,
-        #             options_vega: 0,
-        #             options_theta: 0,
-        #             options_session_upl: 0,
-        #             options_session_rpl: 0,
-        #             options_pl: 0,
-        #             options_gamma: 0,
-        #             options_delta: 0,
-        #             margin_balance: 0.00062359,
-        #             maintenance_margin: 0,
-        #             limits: {
-        #                 non_matching_engine_burst: 300,
-        #                 non_matching_engine: 200,
-        #                 matching_engine_burst: 20,
-        #                 matching_engine: 2
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "total_pl": 0,
+        #             "session_upl": 0,
+        #             "session_rpl": 0,
+        #             "session_funding": 0,
+        #             "portfolio_margining_enabled": False,
+        #             "options_vega": 0,
+        #             "options_theta": 0,
+        #             "options_session_upl": 0,
+        #             "options_session_rpl": 0,
+        #             "options_pl": 0,
+        #             "options_gamma": 0,
+        #             "options_delta": 0,
+        #             "margin_balance": 0.00062359,
+        #             "maintenance_margin": 0,
+        #             "limits": {
+        #                 "non_matching_engine_burst": 300,
+        #                 "non_matching_engine": 200,
+        #                 "matching_engine_burst": 20,
+        #                 "matching_engine": 2
         #             },
-        #             initial_margin: 0,
-        #             futures_session_upl: 0,
-        #             futures_session_rpl: 0,
-        #             futures_pl: 0,
-        #             equity: 0.00062359,
-        #             deposit_address: '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
-        #             delta_total: 0,
-        #             currency: 'BTC',
-        #             balance: 0.00062359,
-        #             available_withdrawal_funds: 0.00062359,
-        #             available_funds: 0.00062359,
-        #             fees: [
-        #                 currency: '',
-        #                 instrument_type: 'perpetual',
-        #                 fee_type: 'relative',
-        #                 maker_fee: 0,
-        #                 taker_fee: 0,
+        #             "initial_margin": 0,
+        #             "futures_session_upl": 0,
+        #             "futures_session_rpl": 0,
+        #             "futures_pl": 0,
+        #             "equity": 0.00062359,
+        #             "deposit_address": "13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        #             "delta_total": 0,
+        #             "currency": "BTC",
+        #             "balance": 0.00062359,
+        #             "available_withdrawal_funds": 0.00062359,
+        #             "available_funds": 0.00062359,
+        #             "fees": [
+        #                 "currency": '',
+        #                 "instrument_type": "perpetual",
+        #                 "fee_type": "relative",
+        #                 "maker_fee": 0,
+        #                 "taker_fee": 0,
         #             ],
         #         },
-        #         usIn: 1583775838115975,
-        #         usOut: 1583775838116520,
-        #         usDiff: 545,
-        #         testnet: False
+        #         "usIn": 1583775838115975,
+        #         "usOut": 1583775838116520,
+        #         "usDiff": 545,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -1430,7 +1430,7 @@ class deribit(Exchange, ImplicitAPI):
             parsedFees[symbol] = fee
         return parsedFees
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1448,41 +1448,41 @@ class deribit(Exchange, ImplicitAPI):
         response = self.publicGetGetOrderBook(self.extend(request, params))
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         result: {
-        #             timestamp: 1583781354740,
-        #             stats: {volume: 61249.66735634, low: 7631.5, high: 8311.5},
-        #             state: 'open',
-        #             settlement_price: 7903.21,
-        #             open_interest: 111536690,
-        #             min_price: 7695.13,
-        #             max_price: 7929.49,
-        #             mark_price: 7813.06,
-        #             last_price: 7814.5,
-        #             instrument_name: 'BTC-PERPETUAL',
-        #             index_price: 7810.12,
-        #             funding_8h: 0.0000031,
-        #             current_funding: 0,
-        #             change_id: 17538025952,
-        #             bids: [
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "timestamp": 1583781354740,
+        #             "stats": {volume: 61249.66735634, low: 7631.5, high: 8311.5},
+        #             "state": "open",
+        #             "settlement_price": 7903.21,
+        #             "open_interest": 111536690,
+        #             "min_price": 7695.13,
+        #             "max_price": 7929.49,
+        #             "mark_price": 7813.06,
+        #             "last_price": 7814.5,
+        #             "instrument_name": "BTC-PERPETUAL",
+        #             "index_price": 7810.12,
+        #             "funding_8h": 0.0000031,
+        #             "current_funding": 0,
+        #             "change_id": 17538025952,
+        #             "bids": [
         #                 [7814, 351820],
         #                 [7813.5, 207490],
         #                 [7813, 32160],
         #             ],
-        #             best_bid_price: 7814,
-        #             best_bid_amount: 351820,
-        #             best_ask_price: 7814.5,
-        #             best_ask_amount: 11880,
-        #             asks: [
+        #             "best_bid_price": 7814,
+        #             "best_bid_amount": 351820,
+        #             "best_ask_price": 7814.5,
+        #             "best_ask_amount": 11880,
+        #             "asks": [
         #                 [7814.5, 11880],
         #                 [7815, 18100],
         #                 [7815.5, 2640],
         #             ],
         #         },
-        #         usIn: 1583781354745804,
-        #         usOut: 1583781354745932,
-        #         usDiff: 128,
-        #         testnet: False
+        #         "usIn": 1583781354745804,
+        #         "usOut": 1583781354745932,
+        #         "usDiff": 128,
+        #         "testnet": False
         #     }
         #
         result = self.safe_value(response, 'result', {})
@@ -1866,7 +1866,7 @@ class deribit(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return response
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1892,7 +1892,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2041,7 +2041,7 @@ class deribit(Exchange, ImplicitAPI):
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -2084,7 +2084,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2138,7 +2138,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         # fetchWithdrawals
         #
@@ -2200,6 +2200,7 @@ class deribit(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': updated,
+            'network': None,
             'fee': fee,
         }
 
@@ -2953,16 +2954,16 @@ class deribit(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         #
         #     {
-        #         jsonrpc: '2.0',
-        #         error: {
-        #             message: 'Invalid params',
-        #             data: {reason: 'invalid currency', param: 'currency'},
-        #             code: -32602
+        #         "jsonrpc": "2.0",
+        #         "error": {
+        #             "message": "Invalid params",
+        #             "data": {reason: "invalid currency", param: "currency"},
+        #             "code": -32602
         #         },
-        #         testnet: False,
-        #         usIn: 1583763842150374,
-        #         usOut: 1583763842150410,
-        #         usDiff: 36
+        #         "testnet": False,
+        #         "usIn": 1583763842150374,
+        #         "usOut": 1583763842150410,
+        #         "usDiff": 36
         #     }
         #
         error = self.safe_value(response, 'error')

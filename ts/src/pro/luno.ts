@@ -2,7 +2,7 @@
 
 import lunoRest from '../luno.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -70,17 +70,17 @@ export default class luno extends lunoRest {
     handleTrades (client: Client, message, subscription) {
         //
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const rawTrades = this.safeValue (message, 'trade_updates', []);
@@ -106,7 +106,7 @@ export default class luno extends lunoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // watchTrades (public)
         //
@@ -184,17 +184,17 @@ export default class luno extends lunoRest {
         //
         //  update
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const symbol = subscription['symbol'];
@@ -256,33 +256,33 @@ export default class luno extends lunoRest {
         //
         //  create
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: {
-        //             order_id: 'BXHSYXAUMH8C2RW',
-        //             type: 'ASK',
-        //             price: '24081.09000000',
-        //             volume: '0.07780000'
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": {
+        //             "order_id": "BXHSYXAUMH8C2RW",
+        //             "type": "ASK",
+        //             "price": "24081.09000000",
+        //             "volume": "0.07780000"
         //         },
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  delete
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [],
-        //         create_update: null,
-        //         delete_update: {
+        //         "sequence": "110980825",
+        //         "trade_updates": [],
+        //         "create_update": null,
+        //         "delete_update": {
         //             "order_id": "BXMC2CJ7HNB88U4"
         //         },
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //  trade
         //     {
-        //         sequence: '110980825',
-        //         trade_updates: [
+        //         "sequence": "110980825",
+        //         "trade_updates": [
         //             {
         //                 "base": "0.1",
         //                 "counter": "5232.00",
@@ -290,10 +290,10 @@ export default class luno extends lunoRest {
         //                 "taker_order_id": "BXMC2CJ7HNB88U5"
         //             }
         //         ],
-        //         create_update: null,
-        //         delete_update: null,
-        //         status_update: null,
-        //         timestamp: 1660598775360
+        //         "create_update": null,
+        //         "delete_update": null,
+        //         "status_update": null,
+        //         "timestamp": 1660598775360
         //     }
         //
         const createUpdate = this.safeValue (message, 'create_update');

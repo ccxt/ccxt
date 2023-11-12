@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 /**
  * @class binance
  * @extends Exchange
@@ -62,65 +62,12 @@ export default class binance extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseMarket(market: any): {
-        id: string;
-        lowercaseId: string;
-        symbol: string;
-        base: any;
-        quote: any;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: string;
-        type: any;
-        spot: boolean;
-        margin: any;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: any;
-        inverse: any;
-        taker: any;
-        maker: any;
-        contractSize: any;
-        expiry: number;
-        expiryDatetime: string;
-        strike: number;
-        optionType: string;
-        precision: {
-            amount: number;
-            price: number;
-            base: number;
-            quote: number;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: number;
-                max: number;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: any;
-                max: any;
-            };
-        };
-        info: any;
-        created: number;
-    };
+    parseMarket(market: any): Market;
     parseBalanceHelper(entry: any): import("./base/types.js").Balance;
     parseBalance(response: any, type?: any, marginMode?: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTicker(ticker: any, market?: any): Ticker;
     fetchStatus(params?: {}): Promise<{
         status: string;
         updated: any;
@@ -128,8 +75,8 @@ export default class binance extends Exchange {
         url: any;
         info: any;
     }>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchBidsAsks(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchLastPrices(symbols?: string[], params?: {}): Promise<any>;
     parseLastPrice(info: any, market?: any): {
         symbol: any;
@@ -139,27 +86,10 @@ export default class binance extends Exchange {
         side: any;
         info: any;
     };
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseTrade(trade: any, market?: any): Trade | {
-        id: any;
-        timestamp: number;
-        datetime: string;
-        symbol: any;
-        order: string;
-        type: any;
-        takerOrMaker: any;
-        side: any;
-        amount: number;
-        price: number;
-        cost: number;
-        fee: {
-            currency: any;
-            cost: number;
-        };
-        info: any;
-    };
+    parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     editSpotOrder(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): Promise<Order>;
     editSpotOrderRequest(id: string, symbol: any, type: any, side: any, amount: any, price?: any, params?: {}): any;
@@ -199,30 +129,10 @@ export default class binance extends Exchange {
         };
         info: any;
     };
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: any;
-        datetime: string;
-        network: string;
-        address: string;
-        addressTo: string;
-        addressFrom: any;
-        tag: string;
-        tagTo: string;
-        tagFrom: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: number;
-        internal: number;
-        fee: any;
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransferStatus(status: any): string;
     parseTransfer(transfer: any, currency?: any): {
         info: any;
@@ -270,27 +180,7 @@ export default class binance extends Exchange {
     }>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: any;
-        datetime: string;
-        network: string;
-        address: string;
-        addressTo: string;
-        addressFrom: any;
-        tag: string;
-        tagTo: string;
-        tagFrom: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: number;
-        internal: number;
-        fee: any;
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTradingFee(fee: any, market?: any): {
         info: any;
         symbol: any;

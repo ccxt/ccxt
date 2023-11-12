@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bigone.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -309,91 +309,91 @@ export default class bigone extends Exchange {
         }
         //
         // {
-        //     code: "0",
-        //     message: "",
-        //     data: [
+        //     "code": "0",
+        //     "message": "",
+        //     "data": [
         //       {
-        //         name: "TetherUS",
-        //         symbol: "USDT",
-        //         contract_address: "31",
-        //         is_deposit_enabled: true,
-        //         is_withdrawal_enabled: true,
-        //         is_stub: false,
-        //         withdrawal_fee: "5.0",
-        //         is_fiat: false,
-        //         is_memo_required: false,
-        //         logo: {
-        //           default: "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        //           white: "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //         "name": "TetherUS",
+        //         "symbol": "USDT",
+        //         "contract_address": "31",
+        //         "is_deposit_enabled": true,
+        //         "is_withdrawal_enabled": true,
+        //         "is_stub": false,
+        //         "withdrawal_fee": "5.0",
+        //         "is_fiat": false,
+        //         "is_memo_required": false,
+        //         "logo": {
+        //           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
+        //           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
         //         },
-        //         info_link: null,
-        //         scale: "12",
-        //         default_gateway: ..., // one object from "gateways"
-        //         gateways: [
+        //         "info_link": null,
+        //         "scale": "12",
+        //         "default_gateway": ..., // one object from "gateways"
+        //         "gateways": [
         //           {
-        //             uuid: "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        //             name: "Mixin",
-        //             kind: "CHAIN",
-        //             required_confirmations: "0",
+        //             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+        //             "name": "Mixin",
+        //             "kind": "CHAIN",
+        //             "required_confirmations": "0",
         //           },
         //           {
-        //             uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //             name: "Ethereum",
-        //             kind: "CHAIN",
-        //             required_confirmations: "18",
+        //             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        //             "name": "Ethereum",
+        //             "kind": "CHAIN",
+        //             "required_confirmations": "18",
         //           },
         //           {
-        //             uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //             name: "Tron",
-        //             kind: "CHAIN",
-        //             required_confirmations: "1",
+        //             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        //             "name": "Tron",
+        //             "kind": "CHAIN",
+        //             "required_confirmations": "1",
         //           },
         //          ...
         //         ],
-        //         payments: [],
-        //         uuid: "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        //         binding_gateways: [
+        //         "payments": [],
+        //         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //         "binding_gateways": [
         //           {
-        //             guid: "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        //             contract_address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //             is_deposit_enabled: true,
-        //             display_name: "Ethereum(ERC20)",
-        //             gateway_name: "Ethereum",
-        //             min_withdrawal_amount: "0.000001",
-        //             min_internal_withdrawal_amount: "0.00000001",
-        //             withdrawal_fee: "14",
-        //             is_withdrawal_enabled: true,
-        //             min_deposit_amount: "0.000001",
-        //             is_memo_required: false,
-        //             withdrawal_scale: "2",
-        //             gateway: {
-        //               uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //               name: "Ethereum",
-        //               kind: "CHAIN",
-        //               required_confirmations: "18",
+        //             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //             "is_deposit_enabled": true,
+        //             "display_name": "Ethereum(ERC20)",
+        //             "gateway_name": "Ethereum",
+        //             "min_withdrawal_amount": "0.000001",
+        //             "min_internal_withdrawal_amount": "0.00000001",
+        //             "withdrawal_fee": "14",
+        //             "is_withdrawal_enabled": true,
+        //             "min_deposit_amount": "0.000001",
+        //             "is_memo_required": false,
+        //             "withdrawal_scale": "2",
+        //             "gateway": {
+        //               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        //               "name": "Ethereum",
+        //               "kind": "CHAIN",
+        //               "required_confirmations": "18",
         //             },
-        //             scale: "12",
+        //             "scale": "12",
         //          },
         //          {
-        //             guid: "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        //             contract_address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        //             is_deposit_enabled: true,
-        //             display_name: "Tron(TRC20)",
-        //             gateway_name: "Tron",
-        //             min_withdrawal_amount: "0.000001",
-        //             min_internal_withdrawal_amount: "0.00000001",
-        //             withdrawal_fee: "1",
-        //             is_withdrawal_enabled: true,
-        //             min_deposit_amount: "0.000001",
-        //             is_memo_required: false,
-        //             withdrawal_scale: "6",
-        //             gateway: {
-        //               uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //               name: "Tron",
-        //               kind: "CHAIN",
-        //               required_confirmations: "1",
+        //             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+        //             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        //             "is_deposit_enabled": true,
+        //             "display_name": "Tron(TRC20)",
+        //             "gateway_name": "Tron",
+        //             "min_withdrawal_amount": "0.000001",
+        //             "min_internal_withdrawal_amount": "0.00000001",
+        //             "withdrawal_fee": "1",
+        //             "is_withdrawal_enabled": true,
+        //             "min_deposit_amount": "0.000001",
+        //             "is_memo_required": false,
+        //             "withdrawal_scale": "6",
+        //             "gateway": {
+        //               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        //               "name": "Tron",
+        //               "kind": "CHAIN",
+        //               "required_confirmations": "1",
         //             },
-        //             scale: "12",
+        //             "scale": "12",
         //           },
         //           ...
         //         ],
@@ -596,7 +596,7 @@ export default class bigone extends Exchange {
         return markets;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined): Ticker {
         //
         //     {
         //         "asset_pair_name":"ETH-BTC",
@@ -640,7 +640,7 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bigone#fetchTicker
@@ -675,7 +675,7 @@ export default class bigone extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bigone#fetchTickers
@@ -752,7 +752,7 @@ export default class bigone extends Exchange {
         return this.parseToInt (timestamp / 1000000);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bigone#fetchOrderBook
@@ -789,7 +789,7 @@ export default class bigone extends Exchange {
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price', 'quantity');
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade (trade, market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -928,7 +928,7 @@ export default class bigone extends Exchange {
         return this.safeTrade (result as any, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bigone#fetchTrades
@@ -973,12 +973,12 @@ export default class bigone extends Exchange {
     parseOHLCV (ohlcv, market = undefined): OHLCV {
         //
         //     {
-        //         close: '0.021562',
-        //         high: '0.021563',
-        //         low: '0.02156',
-        //         open: '0.021563',
-        //         time: '2019-11-21T07:54:00Z',
-        //         volume: '59.84376'
+        //         "close": "0.021562",
+        //         "high": "0.021563",
+        //         "low": "0.02156",
+        //         "open": "0.021563",
+        //         "time": "2019-11-21T07:54:00Z",
+        //         "volume": "59.84376"
         //     }
         //
         return [
@@ -991,7 +991,7 @@ export default class bigone extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bigone#fetchOHLCV
@@ -1022,23 +1022,23 @@ export default class bigone extends Exchange {
         const response = await this.publicGetAssetPairsAssetPairNameCandles (this.extend (request, params));
         //
         //     {
-        //         code: 0,
-        //         data: [
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 close: '0.021656',
-        //                 high: '0.021658',
-        //                 low: '0.021652',
-        //                 open: '0.021652',
-        //                 time: '2019-11-21T09:30:00Z',
-        //                 volume: '53.08664'
+        //                 "close": "0.021656",
+        //                 "high": "0.021658",
+        //                 "low": "0.021652",
+        //                 "open": "0.021652",
+        //                 "time": "2019-11-21T09:30:00Z",
+        //                 "volume": "53.08664"
         //             },
         //             {
-        //                 close: '0.021652',
-        //                 high: '0.021656',
-        //                 low: '0.021652',
-        //                 open: '0.021656',
-        //                 time: '2019-11-21T09:29:00Z',
-        //                 volume: '88.39861'
+        //                 "close": "0.021652",
+        //                 "high": "0.021656",
+        //                 "low": "0.021652",
+        //                 "open": "0.021656",
+        //                 "time": "2019-11-21T09:29:00Z",
+        //                 "volume": "88.39861"
         //             },
         //         ]
         //     }
@@ -1047,7 +1047,7 @@ export default class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseBalance (response) {
+    parseBalance (response): Balances {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1066,7 +1066,7 @@ export default class bigone extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bigone#fetchBalance
@@ -1109,18 +1109,18 @@ export default class bigone extends Exchange {
     parseOrder (order, market = undefined): Order {
         //
         //    {
-        //        "id": '42154072251',
-        //        "asset_pair_name": 'SOL-USDT',
-        //        "price": '20',
-        //        "amount": '0.5',
-        //        "filled_amount": '0',
-        //        "avg_deal_price": '0',
-        //        "side": 'ASK',
-        //        "state": 'PENDING',
-        //        "created_at": '2023-09-13T03:42:00Z',
-        //        "updated_at": '2023-09-13T03:42:00Z',
-        //        "type": 'LIMIT',
-        //        "stop_price": '0',
+        //        "id": "42154072251",
+        //        "asset_pair_name": "SOL-USDT",
+        //        "price": "20",
+        //        "amount": "0.5",
+        //        "filled_amount": "0",
+        //        "avg_deal_price": "0",
+        //        "side": "ASK",
+        //        "state": "PENDING",
+        //        "created_at": "2023-09-13T03:42:00Z",
+        //        "updated_at": "2023-09-13T03:42:00Z",
+        //        "type": "LIMIT",
+        //        "stop_price": "0",
         //        "immediate_or_cancel": false,
         //        "post_only": false,
         //        "client_order_id": ''
@@ -1217,10 +1217,10 @@ export default class bigone extends Exchange {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
             'side': requestSide, // order side one of "ASK"/"BID", required
             'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-            // 'price': this.priceToPrecision (symbol, price), // order price, string, required
-            // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
-            // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
-            // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
+            // "price": this.priceToPrecision (symbol, price), // order price, string, required
+            // "operator": "GTE", // stop orders only, GTE greater than and equal, LTE less than and equal
+            // "immediate_or_cancel": false, // limit orders only, must be false when post_only is true
+            // "post_only": false, // limit orders only, must be false when immediate_or_cancel is true
         };
         if (isLimit || (uppercaseType === 'STOP_LIMIT')) {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -1351,7 +1351,7 @@ export default class bigone extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bigone#fetchOrders
@@ -1362,9 +1362,7 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1413,10 +1411,8 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1473,7 +1469,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bigone#fetchOpenOrders
@@ -1490,7 +1486,7 @@ export default class bigone extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bigone#fetchClosedOrders
@@ -1610,7 +1606,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseTransaction (transaction, currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1664,7 +1660,7 @@ export default class bigone extends Exchange {
         //
         const currencyId = this.safeString (transaction, 'asset_symbol');
         const code = this.safeCurrencyCode (currencyId);
-        const id = this.safeInteger (transaction, 'id');
+        const id = this.safeString (transaction, 'id');
         const amount = this.safeNumber (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'inserted_at'));
@@ -1695,7 +1691,7 @@ export default class bigone extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bigone#fetchDeposits
@@ -1747,7 +1743,7 @@ export default class bigone extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bigone#fetchWithdrawals

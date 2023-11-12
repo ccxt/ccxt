@@ -5,7 +5,6 @@ import json
 # import logging
 import os
 import sys
-import time  # noqa: F401
 from traceback import format_tb, format_exception
 
 import importlib  # noqa: E402
@@ -811,8 +810,14 @@ class testMainClass(baseMainTestClass):
         for i in range(0, len(parts)):
             part = parts[i]
             keyValue = part.split('=')
+            keysLength = len(keyValue)
+            if keysLength != 2:
+                continue
             key = keyValue[0]
             value = keyValue[1]
+            if (value is not None) and ((value.startswith('[')) or (value.startswith('{'))):
+                # some exchanges might return something like self: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = json_parse(value)
             result[key] = value
         return result
 
@@ -858,8 +863,14 @@ class testMainClass(baseMainTestClass):
             if (storedUrl is not None) and (requestUrl is not None):
                 storedUrlParts = storedUrl.split('?')
                 newUrlParts = requestUrl.split('?')
-                storedUrlParams = self.urlencoded_to_dict(storedUrlParts[1])
-                newUrlParams = self.urlencoded_to_dict(newUrlParts[1])
+                storedUrlQuery = exchange.safe_value(storedUrlParts, 1)
+                newUrlQuery = exchange.safe_value(newUrlParts, 1)
+                if (storedUrlQuery is None) and (newUrlQuery is None):
+                    # might be a get request without any query parameters
+                    # example: https://api.gateio.ws/api/v4/delivery/usdt/positions
+                    return
+                storedUrlParams = self.urlencoded_to_dict(storedUrlQuery)
+                newUrlParams = self.urlencoded_to_dict(newUrlQuery)
                 self.assert_new_and_stored_output(exchange, skipKeys, newUrlParams, storedUrlParams)
                 return
         # body is defined
@@ -873,11 +884,24 @@ class testMainClass(baseMainTestClass):
             newOutput = self.urlencoded_to_dict(newOutput)
         self.assert_new_and_stored_output(exchange, skipKeys, newOutput, storedOutput)
 
+    def sanitize_data_input(self, input):
+        # remove nulls and replace with unefined instead
+        if input is None:
+            return None
+        newInput = []
+        for i in range(0, len(input)):
+            current = input[i]
+            if current == None:  # noqa: E711
+                newInput.append(None)
+            else:
+                newInput.append(current)
+        return newInput
+
     def test_method_statically(self, exchange, method: str, data: object, type: str, skipKeys: List[str]):
         output = None
         requestUrl = None
         try:
-            call_exchange_method_dynamically(exchange, method, data['input'])
+            call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
         except Exception as e:
             if not (isinstance(e, NetworkError)):
                 # if it's not a network error, it means our request was not created succesfully
@@ -895,7 +919,7 @@ class testMainClass(baseMainTestClass):
 
     def init_offline_exchange(self, exchangeName: str):
         markets = self.load_markets_from_file(exchangeName)
-        return init_exchange(exchangeName, {'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False, 'accessToken': 'token', 'expires': 999999999999999}})
+        return init_exchange(exchangeName, {'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}})
 
     def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: Optional[str] = None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
@@ -964,7 +988,8 @@ class testMainClass(baseMainTestClass):
             self.test_bitget(),
             self.test_mexc(),
             self.test_huobi(),
-            self.test_woo()
+            self.test_woo(),
+            self.test_bitmart()
         ]
         (promises)
         successMessage = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
@@ -1144,6 +1169,19 @@ class testMainClass(baseMainTestClass):
         clientOrderIdSpot = stopOrderRequest['brokerId']
         assert clientOrderIdSpot.startswith(id), 'brokerId does not start with id'
         close(woo)
+
+    def test_bitmart(self):
+        bitmart = self.init_offline_exchange('bitmart')
+        reqHeaders = None
+        id = 'CCXTxBitmart000'
+        assert bitmart.options['brokerId'] == id, 'id not in options'
+        bitmart.load_markets()
+        try:
+            bitmart.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            reqHeaders = bitmart.last_request_headers
+        assert reqHeaders['X-BM-BROKER-ID'] == id, 'id not in headers'
+        close(bitmart)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

@@ -743,9 +743,9 @@ class lbank extends lbank$1 {
         const response = this.privatePostWithdraw(this.extend(request, params));
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -755,9 +755,9 @@ class lbank extends lbank$1 {
         // withdraw
         //
         //     {
-        //         'result': 'true',
-        //         'withdrawId': 90082,
-        //         'fee':0.001
+        //         "result": "true",
+        //         "withdrawId": 90082,
+        //         "fee":0.001
         //     }
         //
         currency = this.safeCurrency(undefined, currency);
