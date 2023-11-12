@@ -90,6 +90,14 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 # non-transpiled part, but shared names among langs
 
+is_synchronous = 'async' not in os.path.basename(__file__)
+
+rootDir = current_dir + '/../../../'
+rootDirForSkips = current_dir + '/../../../'
+envVars = os.environ
+LOG_CHARS_LENGTH = 10000
+ext = 'py'
+
 
 class baseMainTestClass():
     lang = 'PY'
@@ -98,19 +106,11 @@ class baseMainTestClass():
     check_public_tests = {}
     test_files = {}
     public_tests = {}
+    root_dir = rootDir
+    env_vars = envVars
+    ext = ext
+    root_dir_for_skips = rootDirForSkips
     pass
-
-
-is_synchronous = 'async' not in os.path.basename(__file__)
-
-rootDir = current_dir + '/../../../'
-root_dir = current_dir + '/../../../'
-rootDirForSkips = current_dir + '/../../../'
-root_dir_for_skips = current_dir + '/../../../'
-envVars = os.environ
-env_vars = os.environ
-LOG_CHARS_LENGTH = 10000
-ext = 'py'
 
 
 def dump(*args):
@@ -234,7 +234,7 @@ class testMainClass(baseMainTestClass):
             await self.run_broker_id_tests()
             return
         symbol_str = symbol if symbol is not None else 'all'
-        dump('\nTESTING ', ext, {
+        dump('\nTESTING ', self.ext, {
             'exchange': exchange_id,
             'symbol': symbol_str,
         }, '\n')
@@ -258,8 +258,8 @@ class testMainClass(baseMainTestClass):
 
     def expand_settings(self, exchange, symbol):
         exchange_id = exchange.id
-        keys_global = root_dir + 'keys.json'
-        keys_local = root_dir + 'keys.local.json'
+        keys_global = self.root_dir + 'keys.json'
+        keys_local = self.root_dir + 'keys.local.json'
         keys_global_exists = io_file_exists(keys_global)
         keys_local_exists = io_file_exists(keys_local)
         global_settings = io_file_read(keys_global) if keys_global_exists else {}
@@ -287,11 +287,11 @@ class testMainClass(baseMainTestClass):
             if is_required and get_exchange_prop(exchange, credential) is None:
                 full_key = exchange_id + '_' + credential
                 credential_env_name = full_key.upper()  # example: KRAKEN_APIKEY
-                credential_value = env_vars[credential_env_name] if (credential_env_name in env_vars) else None
+                credential_value = self.env_vars[credential_env_name] if (credential_env_name in self.env_vars) else None
                 if credential_value:
                     set_exchange_prop(exchange, credential, credential_value)
         # skipped tests
-        skipped_file = root_dir_for_skips + 'skip-tests.json'
+        skipped_file = self.root_dir_for_skips + 'skip-tests.json'
         skipped_settings = io_file_read(skipped_file)
         skipped_settings_for_exchange = exchange.safe_value(skipped_settings, exchange_id, {})
         # others
@@ -676,12 +676,12 @@ class testMainClass(baseMainTestClass):
         # to make this test as fast as possible
         # and basically independent from the exchange
         # so we can run it offline
-        filename = root_dir + './ts/src/test/static/markets/' + id + '.json'
+        filename = self.root_dir + './ts/src/test/static/markets/' + id + '.json'
         content = io_file_read(filename)
         return content
 
     def load_static_data(self, target_exchange=None):
-        folder = root_dir + './ts/src/test/static/data/'
+        folder = self.root_dir + './ts/src/test/static/data/'
         result = {}
         if target_exchange:
             # read a single exchange

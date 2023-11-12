@@ -6,6 +6,7 @@ ini_set('memory_limit', '512M');
 
 define('rootDir', __DIR__ . '/../../');
 define('root_dir', __DIR__ . '/../../');
+
 include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
@@ -29,6 +30,12 @@ $exchangeSymbol = null; // todo: this should be different than JS
 
 // non-transpiled part, but shared names among langs
 
+define ('is_synchronous', stripos(__FILE__, '_async') === false);
+define('rootDirForSkips', __DIR__ . '/../../');
+define('envVars', $_ENV);
+define('LOG_CHARS_LENGTH', 10000);
+define('ext', 'php');
+
 class baseMainTestClass {
     public $lang = 'PHP';
     public $test_files = [];
@@ -44,14 +51,12 @@ class baseMainTestClass {
     public $static_tests = false;
     public $static_tests_failed = false;
     public $id_tests = false;
+    public $root_dir = root_dir;
+    public $env_vars = envVars;
+    public $rootDir_for_skips = rootDirForSkips;
+    public $ext = ext;
+    public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
 }
-
-define ('is_synchronous', stripos(__FILE__, '_async') === false);
-
-define('rootDirForSkips', __DIR__ . '/../../');
-define('envVars', $_ENV);
-define('LOG_CHARS_LENGTH', 10000);
-define('ext', 'php');
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -184,6 +189,13 @@ function close($exchange) {
     })();
 }
 
+// Required imports
+use ccxt\NotSupported;
+use ccxt\NetworkError;
+use ccxt\ExchangeNotAvailable;
+use ccxt\OnMaintenance;
+use ccxt\AuthenticationError;
+
 // *********************************
 // ***** AUTO-TRANSPILER-START *****
 class testMainClass extends baseMainTestClass {
@@ -210,7 +222,7 @@ class testMainClass extends baseMainTestClass {
                 return;
             }
             $symbol_str = $symbol !== null ? $symbol : 'all';
-            dump('\nTESTING ', $ext, array(
+            dump('\nTESTING ', $this->ext, array(
                 'exchange' => $exchange_id,
                 'symbol' => $symbol_str,
             ), '\n');
@@ -239,8 +251,8 @@ class testMainClass extends baseMainTestClass {
 
     public function expand_settings($exchange, $symbol) {
         $exchange_id = $exchange->id;
-        $keys_global = $root_dir . 'keys.json';
-        $keys_local = $root_dir . 'keys.local.json';
+        $keys_global = $this->root_dir . 'keys.json';
+        $keys_local = $this->root_dir . 'keys.local.json';
         $keys_global_exists = io_file_exists($keys_global);
         $keys_local_exists = io_file_exists($keys_local);
         $global_settings = $keys_global_exists ? io_file_read($keys_global) : array();
@@ -272,14 +284,14 @@ class testMainClass extends baseMainTestClass {
             if ($is_required && get_exchange_prop($exchange, $credential) === null) {
                 $full_key = $exchange_id . '_' . $credential;
                 $credential_env_name = strtoupper($full_key); // example: KRAKEN_APIKEY
-                $credential_value = (is_array($env_vars) && array_key_exists($credential_env_name, $env_vars)) ? $env_vars[$credential_env_name] : null;
+                $credential_value = (is_array($this->env_vars) && array_key_exists($credential_env_name, $this->env_vars)) ? $this->env_vars[$credential_env_name] : null;
                 if ($credential_value) {
                     set_exchange_prop($exchange, $credential, $credential_value);
                 }
             }
         }
         // skipped tests
-        $skipped_file = $root_dir_for_skips . 'skip-tests.json';
+        $skipped_file = $this->root_dir_for_skips . 'skip-tests.json';
         $skipped_settings = io_file_read($skipped_file);
         $skipped_settings_for_exchange = $exchange->safe_value($skipped_settings, $exchange_id, array());
         // others
@@ -362,11 +374,11 @@ class testMainClass extends baseMainTestClass {
                     Async\await($this->test_method($method_name, $exchange, $args, $is_public));
                     return true;
                 } catch(Exception $e) {
-                    $is_auth_error = (e instanceof AuthenticationError);
-                    $is_not_supported = (e instanceof NotSupported);
-                    $is_network_error = (e instanceof NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
-                    $is_exchange_not_available = (e instanceof ExchangeNotAvailable);
-                    $is_on_maintenance = (e instanceof OnMaintenance);
+                    $is_auth_error = ($e instanceof AuthenticationError);
+                    $is_not_supported = ($e instanceof NotSupported);
+                    $is_network_error = ($e instanceof NetworkError); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "isOperationFailed", "InvalidNonce", ...
+                    $is_exchange_not_available = ($e instanceof ExchangeNotAvailable);
+                    $is_on_maintenance = ($e instanceof OnMaintenance);
                     $temp_failure = $is_network_error && (!$is_exchange_not_available || $is_on_maintenance); // we do not mute specifically "ExchangeNotAvailable" excetpion (but its subtype "OnMaintenance" can be muted)
                     if ($temp_failure) {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -377,7 +389,7 @@ class testMainClass extends baseMainTestClass {
                             Async\await($exchange->sleep($i * 1000)); // increase wait seconds on every retry
                             continue;
                         }
-                    } elseif (e instanceof OnMaintenance) {
+                    } elseif ($e instanceof OnMaintenance) {
                         // in case of maintenance, skip exchange (don't fail the test)
                         dump('[TEST_WARNING] Exchange is on maintenance', $exchange->id);
                     } elseif ($is_public && $is_auth_error) {
@@ -761,13 +773,13 @@ class testMainClass extends baseMainTestClass {
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        $filename = $root_dir . './ts/src/test/static/markets/' . $id . '.json';
+        $filename = $this->root_dir . './ts/src/test/static/markets/' . $id . '.json';
         $content = io_file_read($filename);
         return $content;
     }
 
     public function load_static_data($target_exchange = null) {
-        $folder = $root_dir . './ts/src/test/static/data/';
+        $folder = $this->root_dir . './ts/src/test/static/data/';
         $result = array();
         if ($target_exchange) {
             // read a single exchange
@@ -928,7 +940,7 @@ class testMainClass extends baseMainTestClass {
             try {
                 Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
             } catch(Exception $e) {
-                if (!(e instanceof NetworkError)) {
+                if (!($e instanceof NetworkError)) {
                     throw $e;
                 }
                 $output = $exchange->last_request_body;
