@@ -132,7 +132,13 @@ public partial class testMainClass : BaseTest
     {
         var path = path2 as string;
         var filesInDir = System.IO.Directory.GetFiles(path);
-        return filesInDir.ToList<string>();
+        // return filesInDir.ToList<string>();
+        var fileNameOnly = new List<string>();
+        foreach (string fileName in filesInDir)
+        {
+            fileNameOnly.Add(Path.GetFileName(fileName));
+        }
+        return fileNameOnly;
     }
 
     public async Task<object> callMethod(object testFiles2, object methodName, object exchange, params object[] args)
