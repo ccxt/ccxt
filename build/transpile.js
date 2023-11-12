@@ -2183,7 +2183,16 @@ class Transpiler {
 
         const mainContent = ts.split (commentStartLine)[1].split (commentEndLine)[0];
         // let { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (mainContent);
-        const transpiler = new astTranspiler({'verbose': false});
+        const parserConfig = {
+            'verbose': false,
+            'python':{
+                'uncamelcaseIdentifiers': true,
+            },
+            'php':{
+                'uncamelcaseIdentifiers': true,
+            },
+        };
+        const transpiler = new astTranspiler(parserConfig);
         let fileConfig = [
             {
                 language: "php",
