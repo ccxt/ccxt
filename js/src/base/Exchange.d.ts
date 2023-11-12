@@ -4,8 +4,8 @@ ExchangeError, AuthenticationError, DDoSProtection, RequestTimeout, ExchangeNotA
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
-import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode } from './types.js';
-export { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory } from './types.js';
+import { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks } from './types.js';
+export { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory, Greeks } from './types.js';
 /**
  * @class Exchange
  */
@@ -726,7 +726,7 @@ export default class Exchange {
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     watchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
@@ -754,6 +754,7 @@ export default class Exchange {
     fetchMyTradesWs(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
     fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDeposits(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchWithdrawals(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
@@ -848,5 +849,6 @@ export default class Exchange {
     safeOpenInterest(interest: any, market?: any): OpenInterest;
     parseLiquidation(liquidation: any, market?: any): Liquidation;
     parseLiquidations(liquidations: any, market?: any, since?: Int, limit?: Int): Liquidation[];
+    parseGreeks(greeks: any, market?: any): Greeks;
 }
 export { Exchange, };

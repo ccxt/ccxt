@@ -280,6 +280,7 @@ export default class coinex extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'x-167673045',
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot',
                 'defaultSubType': 'linear',
@@ -299,6 +300,26 @@ export default class coinex extends Exchange {
                 'ACM': 'Actinium',
             },
             'precisionMode': TICK_SIZE,
+            'exceptions': {
+                'exact': {
+                    // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                    '23': PermissionDenied,
+                    '24': AuthenticationError,
+                    '25': AuthenticationError,
+                    '34': AuthenticationError,
+                    '35': ExchangeNotAvailable,
+                    '36': RequestTimeout,
+                    '213': RateLimitExceeded,
+                    '107': InsufficientFunds,
+                    '600': OrderNotFound,
+                    '601': InvalidOrder,
+                    '602': InvalidOrder,
+                    '606': InvalidOrder,
+                },
+                'broad': {
+                    'ip not allow visit': PermissionDenied,
+                },
+            },
         });
     }
     async fetchCurrencies(params = {}) {
@@ -1536,6 +1557,7 @@ export default class coinex extends Exchange {
         //         "status": "done",
         //         "taker_fee_rate": "0.0005",
         //         "type": "sell",
+        //         "client_id": "",
         //     }
         //
         // Spot and Margin createOrder, cancelOrder, fetchOrder
@@ -1563,6 +1585,7 @@ export default class coinex extends Exchange {
         //          "stock_fee":"0",
         //          "taker_fee_rate":"0.002",
         //          "type":"buy"
+        //          "client_id": "",
         //      }
         //
         // Swap createOrder, cancelOrder, fetchOrder
@@ -1778,9 +1801,13 @@ export default class coinex extends Exchange {
         else {
             type = rawType;
         }
+        let clientOrderId = this.safeString(order, 'client_id');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         return this.safeOrder({
             'id': this.safeString2(order, 'id', 'order_id'),
-            'clientOrderId': undefined,
+            'clientOrderId': clientOrderId,
             'datetime': this.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeTimestamp(order, 'update_time'),
@@ -1837,6 +1864,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const swap = market['swap'];
+        const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
         const stopPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeValue(params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
@@ -1858,6 +1886,14 @@ export default class coinex extends Exchange {
         const request = {
             'market': market['id'],
         };
+        if (clientOrderId === undefined) {
+            const defaultId = 'x-167673045';
+            const brokerId = this.safeString(this.options, 'brokerId', defaultId);
+            request['client_id'] = brokerId + '-' + this.uuid16();
+        }
+        else {
+            request['client_id'] = clientOrderId;
+        }
         if (swap) {
             if (stopLossPrice || takeProfitPrice) {
                 request['stop_type'] = this.safeInteger(params, 'stop_type', 1); // 1: triggered by the latest transaction, 2: mark price, 3: index price
@@ -4759,6 +4795,32 @@ export default class coinex extends Exchange {
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit(params, this.extractParams(path));
         const nonce = this.nonce().toString();
+        if (method === 'POST') {
+            const parts = path.split('/');
+            const firstPart = this.safeString(parts, 0, '');
+            const numParts = parts.length;
+            const lastPart = this.safeString(parts, numParts - 1, '');
+            const lastWords = lastPart.split('_');
+            const numWords = lastWords.length;
+            const lastWord = this.safeString(lastWords, numWords - 1, '');
+            if ((firstPart === 'order') && (lastWord === 'limit' || lastWord === 'market')) {
+                // inject in implicit API calls
+                // POST /order/limit - Place limit orders
+                // POST /order/market - Place market orders
+                // POST /order/stop/limit - Place stop limit orders
+                // POST /order/stop/market - Place stop market orders
+                // POST /perpetual/v1/order/put_limit - Place limit orders
+                // POST /perpetual/v1/order/put_market - Place market orders
+                // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
+                // POST /perpetual/v1/order/put_stop_market - Place stop market orders
+                const clientOrderId = this.safeString(params, 'client_id');
+                if (clientOrderId === undefined) {
+                    const defaultId = 'x-167673045';
+                    const brokerId = this.safeValue(this.options, 'brokerId', defaultId);
+                    query['client_id'] = brokerId + '_' + this.uuid16();
+                }
+            }
+        }
         if (api === 'perpetualPrivate' || url === 'https://api.coinex.com/perpetual/v1/market/user_deals') {
             this.checkRequiredCredentials();
             query = this.extend({
@@ -4815,23 +4877,10 @@ export default class coinex extends Exchange {
         const data = this.safeValue(response, 'data');
         const message = this.safeString(response, 'message');
         if ((code !== '0') || ((message !== 'Success') && (message !== 'Succeeded') && (message !== 'Ok') && !data)) {
-            const responseCodes = {
-                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
-                '23': PermissionDenied,
-                '24': AuthenticationError,
-                '25': AuthenticationError,
-                '34': AuthenticationError,
-                '35': ExchangeNotAvailable,
-                '36': RequestTimeout,
-                '213': RateLimitExceeded,
-                '107': InsufficientFunds,
-                '600': OrderNotFound,
-                '601': InvalidOrder,
-                '602': InvalidOrder,
-                '606': InvalidOrder,
-            };
-            const ErrorClass = this.safeValue(responseCodes, code, ExchangeError);
-            throw new ErrorClass(response['message']);
+            const feedback = this.id + ' ' + message;
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            throw new ExchangeError(feedback);
         }
         return undefined;
     }

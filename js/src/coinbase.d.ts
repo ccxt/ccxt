@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Transaction, Balances } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Transaction, Balances, Tickers } from './base/types.js';
 /**
  * @class coinbase
  * @extends Exchange
@@ -58,6 +58,7 @@ export default class coinbase extends Exchange {
     fetchCurrenciesFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
 <<<<<<< HEAD
+<<<<<<< HEAD
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
     fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
@@ -69,6 +70,9 @@ export default class coinbase extends Exchange {
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
 =======
     fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+=======
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+>>>>>>> 949cdbc9d756a3212f9e26d536832701560bbd31
     fetchTickersV2(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchTickersV3(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

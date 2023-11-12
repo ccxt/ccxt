@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------------
-import { Exchange as _Exchange } from '../base/Exchange.js';
-class Exchange extends _Exchange {
+import _htx from '../htx.js';
+class htx extends _htx {
 }
-export default Exchange;
+export default htx;

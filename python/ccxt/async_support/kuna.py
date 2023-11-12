@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -689,7 +689,7 @@ class kuna(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the response, but the median can be accessed via response['info']['price']
         :see: https://docs.kuna.io/docs/get-market-info-by-tickers

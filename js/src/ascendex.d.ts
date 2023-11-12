@@ -1,5 +1,5 @@
 import Exchange from './abstract/ascendex.js';
-import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
+import { FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
 /**
  * @class ascendex
  * @extends Exchange
@@ -23,7 +23,7 @@ export default class ascendex extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: any): Trade;

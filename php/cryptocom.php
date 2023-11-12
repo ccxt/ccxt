@@ -53,6 +53,7 @@ class cryptocom extends Exchange {
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -567,7 +568,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker

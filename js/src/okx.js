@@ -65,6 +65,7 @@ export default class okx extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchL3OrderBook': false,
                 'fetchLedger': true,
@@ -6941,6 +6942,113 @@ export default class okx extends Exchange {
         //
         const underlyings = this.safeValue(response, 'data', []);
         return underlyings[0];
+    }
+    async fetchGreeks(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const marketId = market['id'];
+        const optionParts = marketId.split('-');
+        const request = {
+            'uly': market['info']['uly'],
+            'instFamily': market['info']['instFamily'],
+            'expTime': this.safeString(optionParts, 2),
+        };
+        const response = await this.publicGetPublicOptSummary(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "askVol": "0",
+        //                 "bidVol": "0",
+        //                 "delta": "0.5105464486882039",
+        //                 "deltaBS": "0.7325502184143025",
+        //                 "fwdPx": "37675.80158694987186",
+        //                 "gamma": "-0.13183515090501083",
+        //                 "gammaBS": "0.000024139685826358558",
+        //                 "instId": "BTC-USD-240329-32000-C",
+        //                 "instType": "OPTION",
+        //                 "lever": "4.504428015946619",
+        //                 "markVol": "0.5916253554539876",
+        //                 "realVol": "0",
+        //                 "theta": "-0.0004202992014012855",
+        //                 "thetaBS": "-18.52354631567909",
+        //                 "ts": "1699586421976",
+        //                 "uly": "BTC-USD",
+        //                 "vega": "0.0020207455080045846",
+        //                 "vegaBS": "74.44022302387287",
+        //                 "volLv": "0.5948549730405797"
+        //             },
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue(response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const entryMarketId = this.safeString(entry, 'instId');
+            if (entryMarketId === marketId) {
+                return this.parseGreeks(entry, market);
+            }
+        }
+    }
+    parseGreeks(greeks, market = undefined) {
+        //
+        //     {
+        //         "askVol": "0",
+        //         "bidVol": "0",
+        //         "delta": "0.5105464486882039",
+        //         "deltaBS": "0.7325502184143025",
+        //         "fwdPx": "37675.80158694987186",
+        //         "gamma": "-0.13183515090501083",
+        //         "gammaBS": "0.000024139685826358558",
+        //         "instId": "BTC-USD-240329-32000-C",
+        //         "instType": "OPTION",
+        //         "lever": "4.504428015946619",
+        //         "markVol": "0.5916253554539876",
+        //         "realVol": "0",
+        //         "theta": "-0.0004202992014012855",
+        //         "thetaBS": "-18.52354631567909",
+        //         "ts": "1699586421976",
+        //         "uly": "BTC-USD",
+        //         "vega": "0.0020207455080045846",
+        //         "vegaBS": "74.44022302387287",
+        //         "volLv": "0.5948549730405797"
+        //     }
+        //
+        const timestamp = this.safeInteger(greeks, 'ts');
+        const marketId = this.safeString(greeks, 'instId');
+        const symbol = this.safeSymbol(marketId, market);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'delta': this.safeNumber(greeks, 'delta'),
+            'gamma': this.safeNumber(greeks, 'gamma'),
+            'theta': this.safeNumber(greeks, 'theta'),
+            'vega': this.safeNumber(greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': undefined,
+            'askSize': undefined,
+            'bidImpliedVolatility': this.safeNumber(greeks, 'bidVol'),
+            'askImpliedVolatility': this.safeNumber(greeks, 'askVol'),
+            'markImpliedVolatility': this.safeNumber(greeks, 'markVol'),
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'underlyingPrice': undefined,
+            'info': greeks,
+        };
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

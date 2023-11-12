@@ -111,6 +111,7 @@ class gate extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -2584,7 +2585,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -6716,6 +6717,100 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+             * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'underlying' => $market['info']['underlying'],
+            );
+            $response = Async\await($this->publicOptionsGetTickers (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "vega" => "1.78992",
+            //             "leverage" => "6.2096777055417",
+            //             "ask_iv" => "0.6245",
+            //             "delta" => "-0.69397",
+            //             "last_price" => "0",
+            //             "theta" => "-2.5723",
+            //             "bid1_price" => "222.9",
+            //             "mark_iv" => "0.5909",
+            //             "name" => "ETH_USDT-20231201-2300-P",
+            //             "bid_iv" => "0.5065",
+            //             "ask1_price" => "243.6",
+            //             "mark_price" => "236.57",
+            //             "position_size" => 0,
+            //             "bid1_size" => 368,
+            //             "ask1_size" => -335,
+            //             "gamma" => "0.00116"
+            //         ),
+            //     )
+            //
+            $marketId = $market['id'];
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $entryMarketId = $this->safe_string($entry, 'name');
+                if ($entryMarketId === $marketId) {
+                    return $this->parse_greeks($entry, $market);
+                }
+            }
+        }) ();
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        //
+        //     {
+        //         "vega" => "1.78992",
+        //         "leverage" => "6.2096777055417",
+        //         "ask_iv" => "0.6245",
+        //         "delta" => "-0.69397",
+        //         "last_price" => "0",
+        //         "theta" => "-2.5723",
+        //         "bid1_price" => "222.9",
+        //         "mark_iv" => "0.5909",
+        //         "name" => "ETH_USDT-20231201-2300-P",
+        //         "bid_iv" => "0.5065",
+        //         "ask1_price" => "243.6",
+        //         "mark_price" => "236.57",
+        //         "position_size" => 0,
+        //         "bid1_size" => 368,
+        //         "ask1_size" => -335,
+        //         "gamma" => "0.00116"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => $this->safe_number($greeks, 'bid1_size'),
+            'askSize' => $this->safe_number($greeks, 'ask1_size'),
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'mark_iv'),
+            'bidPrice' => $this->safe_number($greeks, 'bid1_price'),
+            'askPrice' => $this->safe_number($greeks, 'ask1_price'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
+            'underlyingPrice' => $this->parse_number($market['info']['underlying_price']),
+            'info' => $greeks,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

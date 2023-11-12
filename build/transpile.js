@@ -913,8 +913,8 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances:/, /-> Market:/, /-> Order:/, /-> OrderBook:/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker:/, /-> Tickers:/, /-> MarginMode:/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/ ]
-        const objects = [ 'Balances', 'Market', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Tickers', 'MarginMode', 'Trade', 'Transaction' ]
+        const matchAgainst = [ /-> Balances:/, /-> Market:/, /-> Order:/, /-> OrderBook:/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker:/, /-> Tickers:/, /-> MarginMode:/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/, /-> Greeks:/ ]
+        const objects = [ 'Balances', 'Market', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Tickers', 'MarginMode', 'Trade', 'Transaction', 'Greeks' ]
         const matches = []
         let match
         const listRegex = /: List\[(\w+)\]/g

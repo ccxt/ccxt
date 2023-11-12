@@ -1951,6 +1951,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function papi_delete_um_allopenorders($params = array()) {
         return $this->request('um/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function papi_delete_um_conditional_allopenorders($params = array()) {
+        return $this->request('um/conditional/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
+    }
     public function papi_delete_cm_order($params = array()) {
         return $this->request('cm/order', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -1959,6 +1962,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function papi_delete_cm_allopenorders($params = array()) {
         return $this->request('cm/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function papi_delete_cm_conditional_allopenorders($params = array()) {
+        return $this->request('cm/conditional/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function papi_delete_margin_order($params = array()) {
         return $this->request('margin/order', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
@@ -3916,6 +3922,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function papiDeleteUmAllOpenOrders($params = array()) {
         return $this->request('um/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
+    public function papiDeleteUmConditionalAllOpenOrders($params = array()) {
+        return $this->request('um/conditional/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
+    }
     public function papiDeleteCmOrder($params = array()) {
         return $this->request('cm/order', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -3924,6 +3933,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function papiDeleteCmAllOpenOrders($params = array()) {
         return $this->request('cm/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function papiDeleteCmConditionalAllOpenOrders($params = array()) {
+        return $this->request('cm/conditional/allOpenOrders', 'papi', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function papiDeleteMarginOrder($params = array()) {
         return $this->request('margin/order', 'papi', 'DELETE', $params, null, null, array("cost" => 1));

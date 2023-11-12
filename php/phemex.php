@@ -1349,7 +1349,7 @@ class phemex extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://phemex-docs.github.io/#$query-24-hours-ticker-for-all-$symbols-2     // spot

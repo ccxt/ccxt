@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -721,7 +721,7 @@ class zonda(Exchange, ImplicitAPI):
         stats = self.safe_value_2(response, 'ticker', 'stats')
         return self.parse_ticker(stats, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
          * @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market

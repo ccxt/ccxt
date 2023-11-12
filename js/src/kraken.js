@@ -975,7 +975,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchLedger
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} code unified currency code, default is undefined
@@ -1951,7 +1950,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchOpenOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} symbol unified market symbol
@@ -1984,7 +1982,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchClosedOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -2185,7 +2182,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchDeposits
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @description fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} code unified currency code

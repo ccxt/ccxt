@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.47';
+$version = '4.1.49';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.47';
+    const VERSION = '4.1.49';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -428,6 +428,7 @@ class Exchange {
         'hitbtc',
         'hitbtc3',
         'hollaex',
+        'htx',
         'huobi',
         'huobijp',
         'huobipro',
@@ -4586,6 +4587,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet');
     }
 
+    public function fetch_greeks(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
+    }
+
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
@@ -5784,5 +5789,9 @@ class Exchange {
         $sorted = $this->sort_by($result, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 }

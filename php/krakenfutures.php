@@ -451,7 +451,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order_book($response['orderBook'], $symbol, $timestamp);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-$tickers

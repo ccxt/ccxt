@@ -649,9 +649,11 @@ interface binance {
     papiDeleteUmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmAllOpenOrders(params?: {}): Promise<implicitReturnType>;
+    papiDeleteUmConditionalAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteCmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteCmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteCmAllOpenOrders(params?: {}): Promise<implicitReturnType>;
+    papiDeleteCmConditionalAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList(params?: {}): Promise<implicitReturnType>;

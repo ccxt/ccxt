@@ -589,7 +589,7 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         // $spot markets
         //
@@ -918,7 +918,7 @@ class okcoin extends Exchange {
         return $this->parse_ticker($first, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market

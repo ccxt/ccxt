@@ -1,5 +1,5 @@
 import Exchange from './abstract/yobit.js';
-import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class yobit
  * @extends Exchange
@@ -12,7 +12,7 @@ export default class yobit extends Exchange {
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

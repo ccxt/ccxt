@@ -600,7 +600,7 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         // $spot markets
         //
@@ -935,7 +935,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers

@@ -6,9 +6,9 @@
 // -------------------------------------------------------------------------------
 
 import { implicitReturnType } from '../base/types.js';
-import { Exchange as _Exchange } from '../base/Exchange.js';
+import _htx from '../htx.js';
 
-interface Exchange {
+interface htx {
     v2PublicGetReferenceCurrencies (params?: {}): Promise<implicitReturnType>;
     v2PublicGetMarketStatus (params?: {}): Promise<implicitReturnType>;
     v2PrivateGetAccountLedger (params?: {}): Promise<implicitReturnType>;
@@ -547,6 +547,6 @@ interface Exchange {
     contractPrivatePostLinearSwapApiV1SwapTrackHisorders (params?: {}): Promise<implicitReturnType>;
     contractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders (params?: {}): Promise<implicitReturnType>;
 }
-abstract class Exchange extends _Exchange {}
+abstract class htx extends _htx {}
 
-export default Exchange
+export default htx

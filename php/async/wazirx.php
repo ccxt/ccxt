@@ -420,7 +420,7 @@ class wazirx extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://docs.wazirx.com/#24hr-$tickers-price-change-statistics
