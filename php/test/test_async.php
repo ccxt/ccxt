@@ -11,18 +11,18 @@ include_once rootDir .'/vendor/autoload.php';
 use React\Async;
 use React\Promise;
 
-assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
-    $args = func_get_args();
-    $message = '';
-    try {
-        $message = "[ASSERT_ERROR] - [ $file : $line ] $description";
-    } catch (\Exception $exc) {
-        $message = "[ASSERT_ERROR] -" . json_encode($args);
-    }
-    $message = substr($message, 0, LOG_CHARS_LENGTH);
-    dump($message);
-    exit;
-});
+// assert_options (ASSERT_CALLBACK, function(string $file, int $line, ?string $assertion, string $description = null){
+//     $args = func_get_args();
+//     $message = '';
+//     try {
+//         $message = "[ASSERT_ERROR] - [ $file : $line ] $description";
+//     } catch (\Exception $exc) {
+//         $message = "[ASSERT_ERROR] -" . json_encode($args);
+//     }
+//     $message = substr($message, 0, LOG_CHARS_LENGTH);
+//     dump($message);
+//     exit;
+// });
 
 $filetered_args = array_filter(array_map (function ($x) { return stripos($x,'--')===false? $x : null;} , $argv));
 $exchangeId = array_key_exists(1, $filetered_args) ? $filetered_args[1] : null; // this should be different than JS
@@ -51,6 +51,7 @@ class baseMainTestClass {
     public $static_tests = false;
     public $static_tests_failed = false;
     public $id_tests = false;
+    public $response_tests = false;
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $rootDir_for_skips = rootDirForSkips;
@@ -111,6 +112,12 @@ function io_dir_read($path) {
 
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
     return $testFiles[$methodName]($exchange, $skippedProperties, ... $args);
+}
+
+function call_overriden_method($exchange, $methodName, $args) {
+    // $overridenMethod = $exchange->{$methodName};
+    // return $overridenMethod(... $args);
+    return $exchange->call_method('fetch_ticker', ... $args);
 }
 
 function call_exchange_method_dynamically($exchange, $methodName, $args) {
@@ -189,6 +196,11 @@ function close($exchange) {
     })();
 }
 
+function set_fetch_response($exchange, $data) {
+    $exchange->fetchResult = $data;
+    return $exchange;
+}
+
 // Required imports
 use ccxt\NotSupported;
 use ccxt\NetworkError;
@@ -200,6 +212,7 @@ use ccxt\AuthenticationError;
 // ***** AUTO-TRANSPILER-START *****
 class testMainClass extends baseMainTestClass {
     public function parse_cli_args() {
+        $this->response_tests = get_cli_arg_value('--responseTests');
         $this->id_tests = get_cli_arg_value('--idTests');
         $this->static_tests = get_cli_arg_value('--static');
         $this->info = get_cli_arg_value('--info');
@@ -213,6 +226,10 @@ class testMainClass extends baseMainTestClass {
     public function init($exchange_id, $symbol) {
         return Async\async(function () use ($exchange_id, $symbol) {
             $this->parse_cli_args();
+            if ($this->response_tests) {
+                Async\await($this->run_mock_response_tests($exchange_id, $symbol));
+                return;
+            }
             if ($this->static_tests) {
                 Async\await($this->run_static_tests($exchange_id, $symbol)); // symbol here is the testname
                 return;
@@ -1048,20 +1065,19 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
-    public function run_mock_response_tests() {
+    public function run_mock_response_tests($exchange_name = null, $test = null) {
         //  -----------------------------------------------------------------------------
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
-        return Async\async(function () {
+        return Async\async(function () use ($exchange_name, $test) {
             $exchange = $this->init_offline_exchange('binance');
-            $data = [];
-            function fetch_mock($url, $metod, $headers, $body_text) {
-                return Async\async(function () use ($url, $metod, $headers, $body_text) {
-                    return $data;
-
-                }) ();
-            }
-            $exchange->fetch = $fetch_mock;
+            $data = [array(
+    'orderId' => 'teste',
+)];
+            $mocked_exchange = set_fetch_response($exchange, $data);
+            // const order = await call_overriden_method (mockedExchange, 'fetchOrders', [ 'BTC/USDT' ]);
+            $order = Async\await($mocked_exchange->fetch_orders('BTC/USDT'));
+            dump($order);
         }) ();
     }
 

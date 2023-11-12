@@ -35,6 +35,7 @@ from ccxt.base.errors import AuthenticationError
 class Argv(object):
     id_tests = False
     static_tests = False
+    response_tests = False
     token_bucket = False
     sandbox = False
     privateOnly = False
@@ -57,6 +58,7 @@ parser.add_argument('--verbose', action='store_true', help='enable verbose outpu
 parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
+parser.add_argument('--responseTests', action='store_true', help='run response tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -102,6 +104,7 @@ ext = 'py'
 class baseMainTestClass():
     lang = 'PY'
     static_tests_failed = False
+    response_tests = False
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}
@@ -165,6 +168,9 @@ async def call_method(testFiles, methodName, exchange, skippedProperties, args):
 async def call_exchange_method_dynamically(exchange, methodName, args):
     return await getattr(exchange, methodName)(*args)
 
+async def call_overriden_method(exchange, methodName, args):
+    # needed for php
+    return await call_exchange_method_dynamically(exchange, methodName, args)
 
 def exception_message(exc):
     message = '[' + type(exc).__name__ + '] ' + "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6))
@@ -212,10 +218,17 @@ async def close(exchange):
 def is_null_value(value):
     return value is None
 
+def set_fetch_response(exchange: ccxt.Exchange, data):
+    async def fetch(url, method='GET', headers=None, body=None):
+        return data
+    exchange.fetch = fetch
+    return exchange
+
 # *********************************
 # ***** AUTO-TRANSPILER-START *****
 class testMainClass(baseMainTestClass):
     def parse_cli_args(self):
+        self.response_tests = get_cli_arg_value('--responseTests')
         self.id_tests = get_cli_arg_value('--idTests')
         self.static_tests = get_cli_arg_value('--static')
         self.info = get_cli_arg_value('--info')
@@ -227,6 +240,9 @@ class testMainClass(baseMainTestClass):
 
     async def init(self, exchange_id, symbol):
         self.parse_cli_args()
+        if self.response_tests:
+            await self.run_mock_response_tests(exchange_id, symbol)
+            return
         if self.static_tests:
             await self.run_static_tests(exchange_id, symbol)  # symbol here is the testname
             return
@@ -898,15 +914,18 @@ class testMainClass(baseMainTestClass):
             dump(success_message)
             exit_script(0)
 
-    async def run_mock_response_tests(self):
+    async def run_mock_response_tests(self, exchange_name=None, test=None):
         #  -----------------------------------------------------------------------------
         #  --- Init of mockResponses tests functions------------------------------------
         #  -----------------------------------------------------------------------------
         exchange = self.init_offline_exchange('binance')
-        data = []
-        async def fetch_mock(url, metod, headers, body_text):
-            return data
-        exchange.fetch = fetch_mock
+        data = [{
+    'orderId': 'teste',
+}]
+        mocked_exchange = set_fetch_response(exchange, data)
+        # const order = await call_overriden_method (mockedExchange, 'fetchOrders', [ 'BTC/USDT' ]);
+        order = await mocked_exchange.fetch_orders('BTC/USDT')
+        dump(order)
 
     async def run_broker_id_tests(self):
         #  -----------------------------------------------------------------------------

@@ -31,6 +31,7 @@ class baseMainTestClass {
     idTests = false;
     staticTestsFailed = false;
     staticTests = false;
+    responseTests = false;
     info = false;
     verbose = false;
     debug = false;
@@ -96,6 +97,11 @@ async function callExchangeMethodDynamically (exchange: Exchange, methodName: st
     return await exchange[methodName] (...args);
 }
 
+async function callOverridenMethod (exchange, methodName, args) {
+    // needed in PHP here is just a bridge
+    return await callExchangeMethodDynamically (exchange, methodName, args);
+}
+
 function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
 }
@@ -143,6 +149,11 @@ async function setTestFiles (holderClass, properties) {
     }
 }
 
+function setFetchResponse (exchange: Exchange, mockResponse) {
+    exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
+    return exchange;
+}
+
 function isNullValue (value) {
     return value === null;
 }
@@ -156,6 +167,7 @@ async function close (exchange) {
 
 export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
+        this.responseTests = getCliArgValue ('--responseTests');
         this.idTests = getCliArgValue ('--idTests');
         this.staticTests = getCliArgValue ('--static');
         this.info = getCliArgValue ('--info');
@@ -168,6 +180,10 @@ export default class testMainClass extends baseMainTestClass {
 
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
+        if (this.responseTests) {
+            await this.runMockResponseTests (exchangeId, symbol);
+            return;
+        }
         if (this.staticTests) {
             await this.runStaticTests (exchangeId, symbol); // symbol here is the testname
             return;
@@ -1057,16 +1073,16 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async runMockResponseTests () {
+    async runMockResponseTests (exchangeName = undefined, test = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         const exchange = this.initOfflineExchange ('binance');
-        const data = [];
-        async function fetchMock (url, metod, headers, bodyText) {
-            return data;
-        }
-        exchange.fetch = fetchMock;
+        const data = [ { 'orderId': 'teste' } ];
+        const mockedExchange = setFetchResponse (exchange, data);
+        // const order = await callOverridenMethod (mockedExchange, 'fetchOrders', [ 'BTC/USDT' ]);
+        const order = await mockedExchange.fetchOrders ('BTC/USDT');
+        dump (order);
     }
 
     async runBrokerIdTests () {
