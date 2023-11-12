@@ -657,6 +657,17 @@ public partial class Exchange
             }
             return ((List<object>)value)[parsed];
         }
+        else if (value.GetType() == typeof(List<dict>))
+        {
+            // check here if index is out of bounds
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((List<dict>)value)[parsed];
+        }
         else if (value.GetType() == typeof(List<string>))
         {
             int parsed = Convert.ToInt32(key);
