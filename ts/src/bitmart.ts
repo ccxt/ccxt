@@ -363,6 +363,7 @@ export default class bitmart extends Exchange {
                     '58001': BadRequest, // 415, Unsupported Media Type
                     '59001': ExchangeError, // 500, User account not found
                     '59002': ExchangeError, // 500, Internal Server Error
+                    '53007': PermissionDenied, // {"message":"Please complete your personal verification(Advanced).","code":53007,"trace":"6591fc7b508845359d5fa442e3b3a4fb.52.16998965321206647","data":{}}
                     // contract errors
                     '40001': ExchangeError, // 400, Cloud account not found
                     '40002': ExchangeError, // 400, out_trade_no not found
