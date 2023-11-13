@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 import assert from 'assert';
+import { iso8601 } from '../../../base/functions.js';
 import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -289,7 +290,7 @@ export default async (exchange) => {
             assert (response['remaining'] === 1);
             assert (response['fee']['cost'] === 0.002);
         }
-        console.log (exchange.iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'orders');
+        console.log (iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'orders');
     } catch (e) {
 
         if (!(e instanceof errors.NetworkError)) {
