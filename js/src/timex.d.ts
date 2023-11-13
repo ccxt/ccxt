@@ -1,5 +1,5 @@
 import Exchange from './abstract/timex.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class timex
  * @extends Exchange
@@ -8,13 +8,13 @@ export default class timex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     getCurrencyByAddress(address: any): any;
     parseTransaction(transaction: any, currency?: any): Transaction;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseBalance(response: any): Balances;
@@ -39,57 +39,7 @@ export default class timex extends Exchange {
         maker: number;
         taker: number;
     }>;
-    parseMarket(market: any): {
-        id: string;
-        symbol: string;
-        base: any;
-        quote: any;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: any;
-        type: string;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: any;
-        inverse: any;
-        taker: number;
-        maker: number;
-        contractSize: any;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: number;
-            price: number;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: number;
-                max: any;
-            };
-            price: {
-                min: number;
-                max: any;
-            };
-            cost: {
-                min: string;
-                max: any;
-            };
-        };
-        created: any;
-        info: any;
-    };
+    parseMarket(market: any): Market;
     parseCurrency(currency: any): {
         id: any;
         code: any;

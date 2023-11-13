@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.44';
+$version = '4.1.50';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.44';
+    const VERSION = '4.1.50';
 
     public $browser;
     public $marketsLoading = null;
@@ -534,6 +534,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function fetch_margin_mode(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
     }
 
     public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
@@ -1976,7 +1980,7 @@ class Exchange extends \ccxt\Exchange {
         $symbol = $this->safe_string($position, 'symbol');
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->safe_value($this->markets, $symbol);
         }
         if ($contractSize === null && $market !== null) {
             $contractSize = $this->safe_number($market, 'contractSize');
@@ -2232,6 +2236,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function watch_position(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchPosition() is not supported yet');
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchPositions() is not supported yet');
+    }
+
+    public function watch_position_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->watchPositions ($symbols, $since, $limit, $params);
     }
 
     public function fetch_positions_by_symbol(string $symbol, $params = array ()) {
@@ -2772,6 +2788,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet');
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -4022,5 +4042,9 @@ class Exchange extends \ccxt\Exchange {
         $sorted = $this->sort_by($result, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 }

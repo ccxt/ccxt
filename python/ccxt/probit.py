@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -527,7 +527,7 @@ class probit(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://docs-en.probit.com/reference/balance
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -549,7 +549,7 @@ class probit(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs-en.probit.com/reference/order_book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -577,7 +577,7 @@ class probit(Exchange, ImplicitAPI):
         dataBySide = self.group_by(data, 'side')
         return self.parse_order_book(dataBySide, market['symbol'], None, 'buy', 'sell', 'price', 'quantity')
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         :see: https://docs-en.probit.com/reference/ticker
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -610,7 +610,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://docs-en.probit.com/reference/ticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -738,7 +738,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs-en.probit.com/reference/trade-1
         get the list of most recent trades for a particular symbol
@@ -895,7 +895,7 @@ class probit(Exchange, ImplicitAPI):
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs-en.probit.com/reference/candle
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -979,7 +979,7 @@ class probit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'base_volume'),
         ]
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs-en.probit.com/reference/open_order-1
         fetch all unfilled currently open orders
@@ -1000,7 +1000,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs-en.probit.com/reference/order
         fetches information on multiple closed orders made by the user
@@ -1358,7 +1358,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_transaction(data, currency)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1373,7 +1373,7 @@ class probit(Exchange, ImplicitAPI):
         result = self.fetch_transactions(code, since, limit, self.extend(request, params))
         return result
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
         :param str code: unified currency code

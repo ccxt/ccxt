@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks } from './base/types.js';
 /**
  * @class okx
  * @extends Exchange
@@ -66,23 +66,23 @@ export default class okx extends Exchange {
     fetchAccounts(params?: {}): Promise<any[]>;
     fetchMarkets(params?: {}): Promise<any[]>;
     parseMarkets(markets: any): any[];
-    parseMarket(market: any): any;
+    parseMarket(market: any): Market;
     fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickersByType(type: any, symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
-    parseBalanceByType(type: any, response: any): import("./base/types.js").Balances;
-    parseTradingBalance(response: any): import("./base/types.js").Balances;
-    parseFundingBalance(response: any): import("./base/types.js").Balances;
+    parseBalanceByType(type: any, response: any): Balances;
+    parseTradingBalance(response: any): Balances;
+    parseFundingBalance(response: any): Balances;
     parseTradingFee(fee: any, market?: any): {
         info: any;
         symbol: any;
@@ -95,7 +95,7 @@ export default class okx extends Exchange {
         maker: number;
         taker: number;
     }>;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchBalance(params?: {}): Promise<Balances>;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
@@ -141,9 +141,9 @@ export default class okx extends Exchange {
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
@@ -328,5 +328,27 @@ export default class okx extends Exchange {
     };
     parseSettlements(settlements: any, market: any): any[];
     fetchUnderlyingAssets(params?: {}): Promise<any>;
+    fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    parseGreeks(greeks: any, market?: any): {
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        delta: number;
+        gamma: number;
+        theta: number;
+        vega: number;
+        rho: any;
+        bidSize: any;
+        askSize: any;
+        bidImpliedVolatility: number;
+        askImpliedVolatility: number;
+        markImpliedVolatility: number;
+        bidPrice: any;
+        askPrice: any;
+        markPrice: any;
+        lastPrice: any;
+        underlyingPrice: any;
+        info: any;
+    };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
 }

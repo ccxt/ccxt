@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.types import OrderSide, OrderType
 from ccxt.async_support.base.ws.client import Client
@@ -32,6 +32,7 @@ class okx(ccxt.async_support.okx):
                 'watchOHLCV': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
+                'watchPositions': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -802,6 +803,117 @@ class okx(ccxt.async_support.okx):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        :see: https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        if self.is_empty(symbols):
+            raise ArgumentsRequired(self.id + ' watchPositions requires a list of symbols')
+        await self.load_markets()
+        await self.authenticate(params)
+        symbols = self.market_symbols(symbols)
+        request = {
+            'instType': 'ANY',
+        }
+        channel = 'positions'
+        newPositions = await self.subscribe_multiple('private', channel, symbols, self.extend(request, params))
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        arg: {
+        #            channel: 'positions',
+        #            instType: 'ANY',
+        #            instId: 'XRP-USDT-SWAP',
+        #            uid: '464737184507959869'
+        #        },
+        #        data: [{
+        #            adl: '1',
+        #            availPos: '',
+        #            avgPx: '0.52668',
+        #            baseBal: '',
+        #            baseBorrowed: '',
+        #            baseInterest: '',
+        #            bizRefId: '',
+        #            bizRefType: '',
+        #            cTime: '1693151444408',
+        #            ccy: 'USDT',
+        #            closeOrderAlgo: [],
+        #            deltaBS: '',
+        #            deltaPA: '',
+        #            gammaBS: '',
+        #            gammaPA: '',
+        #            idxPx: '0.52683',
+        #            imr: '17.564000000000004',
+        #            instId: 'XRP-USDT-SWAP',
+        #            instType: 'SWAP',
+        #            interest: '',
+        #            last: '0.52691',
+        #            lever: '3',
+        #            liab: '',
+        #            liabCcy: '',
+        #            liqPx: '0.3287514731020614',
+        #            margin: '',
+        #            markPx: '0.52692',
+        #            mgnMode: 'cross',
+        #            mgnRatio: '69.00363001456147',
+        #            mmr: '0.26346',
+        #            notionalUsd: '52.68620388000001',
+        #            optVal: '',
+        #            pTime: '1693151906023',
+        #            pendingCloseOrdLiabVal: '',
+        #            pos: '1',
+        #            posCcy: '',
+        #            posId: '616057041198907393',
+        #            posSide: 'net',
+        #            quoteBal: '',
+        #            quoteBorrowed: '',
+        #            quoteInterest: '',
+        #            spotInUseAmt: '',
+        #            spotInUseCcy: '',
+        #            thetaBS: '',
+        #            thetaPA: '',
+        #            tradeId: '138745402',
+        #            uTime: '1693151444408',
+        #            upl: '0.0240000000000018',
+        #            uplLastPx: '0.0229999999999952',
+        #            uplRatio: '0.0013670539986328',
+        #            uplRatioLastPx: '0.001310093415356',
+        #            usdPx: '',
+        #            vegaBS: '',
+        #            vegaPA: ''
+        #        }]
+        #    }
+        #
+        arg = self.safe_value(message, 'arg', {})
+        channel = self.safe_string(arg, 'channel', '')
+        data = self.safe_value(message, 'data', [])
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        newPositions = []
+        for i in range(0, len(data)):
+            rawPosition = data[i]
+            position = self.parse_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, channel + '::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-order-channel
@@ -1326,6 +1438,7 @@ class okx(ccxt.async_support.okx):
                 'books50-l2-tbt': self.handle_order_book,  # only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': self.handle_order_book,  # only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': self.handle_ticker,
+                'positions': self.handle_positions,
                 'index-tickers': self.handle_ticker,
                 'sprd-tickers': self.handle_ticker,
                 'block-tickers': self.handle_ticker,

@@ -16,6 +16,7 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
+use React\Promise\PromiseInterface;
 
 class coinex extends Exchange {
 
@@ -288,6 +289,7 @@ class coinex extends Exchange {
                 ),
             ),
             'options' => array(
+                'brokerId' => 'x-167673045',
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
                 'defaultSubType' => 'linear', // linear, inverse
@@ -307,6 +309,26 @@ class coinex extends Exchange {
                 'ACM' => 'Actinium',
             ),
             'precisionMode' => TICK_SIZE,
+            'exceptions' => array(
+                'exact' => array(
+                    // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
+                    '23' => '\\ccxt\\PermissionDenied', // IP Prohibited
+                    '24' => '\\ccxt\\AuthenticationError',
+                    '25' => '\\ccxt\\AuthenticationError',
+                    '34' => '\\ccxt\\AuthenticationError', // Access id is expires
+                    '35' => '\\ccxt\\ExchangeNotAvailable', // Service unavailable
+                    '36' => '\\ccxt\\RequestTimeout', // Service timeout
+                    '213' => '\\ccxt\\RateLimitExceeded', // Too many requests
+                    '107' => '\\ccxt\\InsufficientFunds',
+                    '600' => '\\ccxt\\OrderNotFound',
+                    '601' => '\\ccxt\\InvalidOrder',
+                    '602' => '\\ccxt\\InvalidOrder',
+                    '606' => '\\ccxt\\InvalidOrder',
+                ),
+                'broad' => array(
+                    'ip not allow visit' => '\\ccxt\\PermissionDenied',
+                ),
+            ),
         ));
     }
 
@@ -721,7 +743,7 @@ class coinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -794,7 +816,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -1106,7 +1128,7 @@ class coinex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1259,7 +1281,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1512,7 +1534,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1574,6 +1596,7 @@ class coinex extends Exchange {
         //         "status" => "done",
         //         "taker_fee_rate" => "0.0005",
         //         "type" => "sell",
+        //         "client_id" => "",
         //     }
         //
         // Spot and Margin createOrder, cancelOrder, fetchOrder
@@ -1601,6 +1624,7 @@ class coinex extends Exchange {
         //          "stock_fee":"0",
         //          "taker_fee_rate":"0.002",
         //          "type":"buy"
+        //          "client_id" => "",
         //      }
         //
         // Swap createOrder, cancelOrder, fetchOrder
@@ -1812,9 +1836,13 @@ class coinex extends Exchange {
         } else {
             $type = $rawType;
         }
+        $clientOrderId = $this->safe_string($order, 'client_id');
+        if ($clientOrderId === '') {
+            $clientOrderId = null;
+        }
         return $this->safe_order(array(
             'id' => $this->safe_string_2($order, 'id', 'order_id'),
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => $this->safe_timestamp($order, 'update_time'),
@@ -1871,6 +1899,7 @@ class coinex extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $swap = $market['swap'];
+            $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
             $stopPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
             $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
             $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -1892,6 +1921,13 @@ class coinex extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
+            if ($clientOrderId === null) {
+                $defaultId = 'x-167673045';
+                $brokerId = $this->safe_string($this->options, 'brokerId', $defaultId);
+                $request['client_id'] = $brokerId . '-' . $this->uuid16();
+            } else {
+                $request['client_id'] = $clientOrderId;
+            }
             if ($swap) {
                 if ($stopLossPrice || $takeProfitPrice) {
                     $request['stop_type'] = $this->safe_integer($params, 'stop_type', 1); // 1 => triggered by the latest transaction, 2 => mark $price, 3 => index $price
@@ -2696,7 +2732,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2710,7 +2746,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -4255,7 +4291,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4322,7 +4358,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -4819,6 +4855,32 @@ class coinex extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
+        if ($method === 'POST') {
+            $parts = explode('/', $path);
+            $firstPart = $this->safe_string($parts, 0, '');
+            $numParts = count($parts);
+            $lastPart = $this->safe_string($parts, $numParts - 1, '');
+            $lastWords = explode('_', $lastPart);
+            $numWords = count($lastWords);
+            $lastWord = $this->safe_string($lastWords, $numWords - 1, '');
+            if (($firstPart === 'order') && ($lastWord === 'limit' || $lastWord === 'market')) {
+                // inject in implicit API calls
+                // POST /order/limit - Place limit orders
+                // POST /order/market - Place market orders
+                // POST /order/stop/limit - Place stop limit orders
+                // POST /order/stop/market - Place stop market orders
+                // POST /perpetual/v1/order/put_limit - Place limit orders
+                // POST /perpetual/v1/order/put_market - Place market orders
+                // POST /perpetual/v1/order/put_stop_limit - Place stop limit orders
+                // POST /perpetual/v1/order/put_stop_market - Place stop market orders
+                $clientOrderId = $this->safe_string($params, 'client_id');
+                if ($clientOrderId === null) {
+                    $defaultId = 'x-167673045';
+                    $brokerId = $this->safe_value($this->options, 'brokerId', $defaultId);
+                    $query['client_id'] = $brokerId . '_' . $this->uuid16();
+                }
+            }
+        }
         if ($api === 'perpetualPrivate' || $url === 'https://api->coinex.com/perpetual/v1/market/user_deals') {
             $this->check_required_credentials();
             $query = array_merge(array(
@@ -4872,23 +4934,10 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $message = $this->safe_string($response, 'message');
         if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && ($message !== 'Ok') && !$data)) {
-            $responseCodes = array(
-                // https://github.com/coinexcom/coinex_exchange_api/wiki/013error_code
-                '23' => '\\ccxt\\PermissionDenied', // IP Prohibited
-                '24' => '\\ccxt\\AuthenticationError',
-                '25' => '\\ccxt\\AuthenticationError',
-                '34' => '\\ccxt\\AuthenticationError', // Access id is expires
-                '35' => '\\ccxt\\ExchangeNotAvailable', // Service unavailable
-                '36' => '\\ccxt\\RequestTimeout', // Service timeout
-                '213' => '\\ccxt\\RateLimitExceeded', // Too many requests
-                '107' => '\\ccxt\\InsufficientFunds',
-                '600' => '\\ccxt\\OrderNotFound',
-                '601' => '\\ccxt\\InvalidOrder',
-                '602' => '\\ccxt\\InvalidOrder',
-                '606' => '\\ccxt\\InvalidOrder',
-            );
-            $ErrorClass = $this->safe_value($responseCodes, $code, '\\ccxt\\ExchangeError');
-            throw new $ErrorClass($response['message']);
+            $feedback = $this->id . ' ' . $message;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
@@ -30,6 +30,7 @@ class gate(ccxt.async_support.gate):
                 'watchOHLCV': True,
                 'watchBalance': True,
                 'watchOrders': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -80,6 +81,10 @@ class gate(ccxt.async_support.gate):
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
                     'spot': 'spot.balances',  # spot.margin_balances, spot.funding_balances or spot.cross_balances
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': True,  # or False
+                    'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
                 },
             },
             'exceptions': {
@@ -706,6 +711,129 @@ class gate(ccxt.async_support.gate):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        :see: https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
+        :see: https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
+        :see: https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+        watch all open positions
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        market = None
+        symbols = self.market_symbols(symbols)
+        payload = ['!' + 'all']
+        if not self.is_empty(symbols):
+            market = self.get_market_from_symbols(symbols)
+        type = None
+        query = None
+        type, query = self.handle_market_type_and_params('watchPositions', market, params)
+        if type == 'spot':
+            type = 'swap'
+        typeId = self.get_supported_mapping(type, {
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        })
+        messageHash = type + ':positions'
+        if not self.is_empty(symbols):
+            messageHash += '::' + ','.join(symbols)
+        channel = typeId + '.positions'
+        subType = None
+        subType, query = self.handle_sub_type_and_params('watchPositions', market, query)
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
+        client = self.client(url)
+        self.set_positions_cache(client, type, symbols)
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        cache = self.safe_value(self.positions, type)
+        if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
+            return await client.future(type + ':fetchPositionsSnapshot')
+        positions = await self.subscribe_private(url, messageHash, payload, channel, query, True)
+        if self.newUpdates:
+            return positions
+        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+
+    def set_positions_cache(self, client: Client, type, symbols: Optional[List[str]] = None):
+        if self.positions is None:
+            self.positions = {}
+        if type in self.positions:
+            return
+        fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if fetchPositionsSnapshot:
+            messageHash = type + ':fetchPositionsSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_positions_snapshot, client, messageHash, type)
+        else:
+            self.positions[type] = ArrayCacheBySymbolBySide()
+
+    async def load_positions_snapshot(self, client, messageHash, type):
+        positions = await self.fetch_positions(None, {'type': type})
+        self.positions[type] = ArrayCacheBySymbolBySide()
+        cache = self.positions[type]
+        for i in range(0, len(positions)):
+            position = positions[i]
+            cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(cache, type + ':position')
+
+    def handle_positions(self, client, message):
+        #
+        #    {
+        #        time: 1693158497,
+        #        time_ms: 1693158497204,
+        #        channel: 'futures.positions',
+        #        event: 'update',
+        #        result: [{
+        #            contract: 'XRP_USDT',
+        #            cross_leverage_limit: 0,
+        #            entry_price: 0.5253,
+        #            history_pnl: 0,
+        #            history_point: 0,
+        #            last_close_pnl: 0,
+        #            leverage: 0,
+        #            leverage_max: 50,
+        #            liq_price: 0.0361,
+        #            maintenance_rate: 0.01,
+        #            margin: 4.89609962852,
+        #            mode: 'single',
+        #            realised_pnl: -0.0026265,
+        #            realised_point: 0,
+        #            risk_limit: 500000,
+        #            size: 1,
+        #            time: 1693158497,
+        #            time_ms: 1693158497195,
+        #            update_id: 1,
+        #            user: '10444586'
+        #        }]
+        #    }
+        #
+        type = self.get_market_type_by_url(client.url)
+        data = self.safe_value(message, 'result', [])
+        cache = self.positions[type]
+        newPositions = []
+        for i in range(0, len(data)):
+            rawPosition = data[i]
+            position = self.parse_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, type + ':positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, type + ':positions')
+
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         watches information on multiple orders made by the user
@@ -971,6 +1099,7 @@ class gate(ccxt.async_support.gate):
             'usertrades': self.handle_my_trades,
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
+            'positions': self.handle_positions,
             'tickers': self.handle_ticker,
             'book_ticker': self.handle_ticker,
             'trades': self.handle_trades,
@@ -1003,6 +1132,20 @@ class gate(ccxt.async_support.gate):
             return url['btc'] if isInverse else url['usdt']
         else:
             return url
+
+    def get_market_type_by_url(self, url: str):
+        findBy = {
+            'op-': 'option',
+            'delivery': 'future',
+            'fx': 'swap',
+        }
+        keys = list(findBy.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            value = findBy[key]
+            if url.find(key) >= 0:
+                return value
+        return 'spot'
 
     def request_id(self):
         # their support said that reqid must be an int32, not documented

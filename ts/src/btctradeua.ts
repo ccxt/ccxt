@@ -153,7 +153,7 @@ export default class btctradeua extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name btctradeua#fetchBalance

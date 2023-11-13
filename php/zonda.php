@@ -394,7 +394,7 @@ class zonda extends Exchange {
         return $result;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/active-orders
          * fetch all unfilled currently open orders
@@ -527,7 +527,7 @@ class zonda extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/list-of-wallets
          * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -539,7 +539,7 @@ class zonda extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/orderbook-2
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -720,7 +720,7 @@ class zonda extends Exchange {
         return $this->parse_ticker($stats, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @ignore
          * v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
@@ -1168,7 +1168,7 @@ class zonda extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/candles-chart
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1293,7 +1293,7 @@ class zonda extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/last-transactions
          * get the list of most recent trades for a particular $symbol

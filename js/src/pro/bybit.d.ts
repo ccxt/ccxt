@@ -25,13 +25,17 @@ export default class bybit extends bybitRest {
     getPrivateType(url: any): "spot" | "unified" | "usdc";
     watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
+    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, symbols?: string[]): any;
+    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    handlePositions(client: any, message: any): void;
     watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsSpotOrder(order: any, market?: any): import("../base/types.js").Order;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
     parseWsBalance(balance: any, accountType?: any): void;
-    watchTopics(url: any, messageHash: any, topics?: any[], params?: {}): Promise<any>;
+    watchTopics(url: any, messageHash: any, topics: any, subscriptionHash: any, params?: {}): Promise<any>;
     authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;

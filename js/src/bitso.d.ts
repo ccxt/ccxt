@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitso
  * @extends Exchange
@@ -28,7 +28,7 @@ export default class bitso extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -47,7 +47,7 @@ export default class bitso extends Exchange {
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchDeposit(id: string, code?: string, params?: {}): Promise<Transaction>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

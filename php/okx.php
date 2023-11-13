@@ -65,6 +65,7 @@ class okx extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => true,
@@ -179,7 +180,7 @@ class okx extends Exchange {
                         'market/index-components' => 1,
                         'market/block-tickers' => 1,
                         'market/block-ticker' => 1,
-                        'market/block-trades' => 1,
+                        'public/block-trades' => 1,
                         'public/instruments' => 1,
                         'public/delivery-exercise-history' => 1 / 2,
                         'public/open-interest' => 1,
@@ -221,6 +222,7 @@ class okx extends Exchange {
                         'tradingBot/grid/min-investment' => 1,
                         'tradingBot/public/rsi-back-testing' => 1,
                         'asset/exchange-list' => 5 / 3,
+                        'finance/staking-defi/eth/apy-history' => 5 / 3,
                         'finance/savings/lending-rate-summary' => 5 / 3,
                         'finance/savings/lending-rate-history' => 5 / 3,
                         // public broker
@@ -331,6 +333,9 @@ class okx extends Exchange {
                         'finance/staking-defi/offers' => 10 / 3,
                         'finance/staking-defi/orders-active' => 10 / 3,
                         'finance/staking-defi/orders-history' => 10 / 3,
+                        // eth staking
+                        'finance/staking-defi/eth/balance' => 5 / 3,
+                        'finance/staking-defi/eth/purchase-redeem-history' => 5 / 3,
                         // copytrading
                         'copytrading/current-subpositions' => 4,
                         'copytrading/subpositions-history' => 10,
@@ -435,6 +440,9 @@ class okx extends Exchange {
                         'finance/staking-defi/purchase' => 3,
                         'finance/staking-defi/redeem' => 3,
                         'finance/staking-defi/cancel' => 3,
+                        // eth staking
+                        'finance/staking-defi/eth/purchase' => 5,
+                        'finance/staking-defi/eth/redeem' => 5,
                         // copytrading
                         'copytrading/algo-order' => 20,
                         'copytrading/close-subposition' => 4,
@@ -1288,7 +1296,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         //     {
         //         "alias" => "", // this_week, next_week, quarter, next_quarter
@@ -1641,7 +1649,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-order-book
@@ -1743,7 +1751,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-ticker
@@ -1833,7 +1841,7 @@ class okx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-get-tickers
@@ -1945,7 +1953,7 @@ class okx extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-trades
@@ -2047,7 +2055,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
@@ -2341,7 +2349,7 @@ class okx extends Exchange {
         return $this->parse_trading_fee($first, $market);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
@@ -2526,6 +2534,13 @@ class okx extends Exchange {
             $tradeMode = $margin ? $marginMode : 'cash';
             $request['tdMode'] = $tradeMode;
         } elseif ($contract) {
+            if ($market['swap'] || $market['future']) {
+                $positionSide = null;
+                list($positionSide, $params) = $this->handle_option_and_params($params, 'createOrder', 'positionSide');
+                if ($positionSide !== null) {
+                    $request['posSide'] = $positionSide;
+                }
+            }
             $request['tdMode'] = $marginMode;
         }
         $isMarketOrder = $type === 'market';
@@ -2702,7 +2717,7 @@ class okx extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the okx api endpoint
-         * @param {bool} [$params->reduceOnly] MARGIN orders only, or swap/future orders in net mode
+         * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [$params->postOnly] true to place a post only $order
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
@@ -2712,6 +2727,7 @@ class okx extends Exchange {
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->stopLoss.price] used for stop loss limit orders, not used for stop loss $market $price orders
          * @param {string} [$params->stopLoss.type] 'market' or 'limit' used to specify the stop loss $price $type
+         * @param {string} [$params->positionSide] if position mode is one-way => set to 'net', if position mode is hedge-mode => set to 'long' or 'short'
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
         $this->load_markets();
@@ -2731,7 +2747,14 @@ class okx extends Exchange {
             // because it has a lower ratelimit
             $request = array( $request );
         }
-        $response = $this->$method ($request);
+        $response = null;
+        if ($method === 'privatePostTradeOrder') {
+            $response = $this->privatePostTradeOrder ($request);
+        } elseif ($method === 'privatePostTradeOrderAlgo') {
+            $response = $this->privatePostTradeOrderAlgo ($request);
+        } else {
+            $response = $this->privatePostTradeBatchOrders ($request);
+        }
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0);
         $order = $this->parse_order($first, $market);
@@ -3398,7 +3421,7 @@ class okx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * Fetch orders that are still open
          * fetch all unfilled currently open orders
@@ -3728,7 +3751,7 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-get-order-history-last-7-days
@@ -4452,7 +4475,7 @@ class okx extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -4556,7 +4579,7 @@ class okx extends Exchange {
         return $this->parse_transaction($deposit, $currency);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
@@ -6831,6 +6854,113 @@ class okx extends Exchange {
         //
         $underlyings = $this->safe_value($response, 'data', array());
         return $underlyings[0];
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): Greeks {
+        /**
+         * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-option-$market-$data
+         * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $marketId = $market['id'];
+        $optionParts = explode('-', $marketId);
+        $request = array(
+            'uly' => $market['info']['uly'],
+            'instFamily' => $market['info']['instFamily'],
+            'expTime' => $this->safe_string($optionParts, 2),
+        );
+        $response = $this->publicGetPublicOptSummary (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "askVol" => "0",
+        //                 "bidVol" => "0",
+        //                 "delta" => "0.5105464486882039",
+        //                 "deltaBS" => "0.7325502184143025",
+        //                 "fwdPx" => "37675.80158694987186",
+        //                 "gamma" => "-0.13183515090501083",
+        //                 "gammaBS" => "0.000024139685826358558",
+        //                 "instId" => "BTC-USD-240329-32000-C",
+        //                 "instType" => "OPTION",
+        //                 "lever" => "4.504428015946619",
+        //                 "markVol" => "0.5916253554539876",
+        //                 "realVol" => "0",
+        //                 "theta" => "-0.0004202992014012855",
+        //                 "thetaBS" => "-18.52354631567909",
+        //                 "ts" => "1699586421976",
+        //                 "uly" => "BTC-USD",
+        //                 "vega" => "0.0020207455080045846",
+        //                 "vegaBS" => "74.44022302387287",
+        //                 "volLv" => "0.5948549730405797"
+        //             ),
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $entryMarketId = $this->safe_string($entry, 'instId');
+            if ($entryMarketId === $marketId) {
+                return $this->parse_greeks($entry, $market);
+            }
+        }
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        //
+        //     {
+        //         "askVol" => "0",
+        //         "bidVol" => "0",
+        //         "delta" => "0.5105464486882039",
+        //         "deltaBS" => "0.7325502184143025",
+        //         "fwdPx" => "37675.80158694987186",
+        //         "gamma" => "-0.13183515090501083",
+        //         "gammaBS" => "0.000024139685826358558",
+        //         "instId" => "BTC-USD-240329-32000-C",
+        //         "instType" => "OPTION",
+        //         "lever" => "4.504428015946619",
+        //         "markVol" => "0.5916253554539876",
+        //         "realVol" => "0",
+        //         "theta" => "-0.0004202992014012855",
+        //         "thetaBS" => "-18.52354631567909",
+        //         "ts" => "1699586421976",
+        //         "uly" => "BTC-USD",
+        //         "vega" => "0.0020207455080045846",
+        //         "vegaBS" => "74.44022302387287",
+        //         "volLv" => "0.5948549730405797"
+        //     }
+        //
+        $timestamp = $this->safe_integer($greeks, 'ts');
+        $marketId = $this->safe_string($greeks, 'instId');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => null,
+            'askSize' => null,
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bidVol'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'askVol'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'markVol'),
+            'bidPrice' => null,
+            'askPrice' => null,
+            'markPrice' => null,
+            'lastPrice' => null,
+            'underlyingPrice' => null,
+            'info' => $greeks,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

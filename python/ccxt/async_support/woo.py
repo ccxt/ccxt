@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -413,7 +413,7 @@ class woo(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -1074,7 +1074,7 @@ class woo(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'data', response)
         return self.parse_order(orders, market)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.woo.org/#get-orders
         :see: https://docs.woo.org/#get-algo-orders
@@ -1276,7 +1276,7 @@ class woo(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return status
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1312,7 +1312,7 @@ class woo(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.woo.org/#kline-public
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1502,7 +1502,7 @@ class woo(Exchange, ImplicitAPI):
             'type': accountId == 'main' if 'Main' else 'subaccount',
         }
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.woo.org/#get-current-holding-get-balance-new
@@ -1696,7 +1696,7 @@ class woo(Exchange, ImplicitAPI):
             currency = self.safe_currency(currencyId)
         return currency
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1710,7 +1710,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1724,7 +1724,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None

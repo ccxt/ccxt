@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Trade, Balances, Transaction } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Trade, Balances, Transaction, MarginMode, Tickers } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -59,7 +59,7 @@ export default class hitbtc extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -991,7 +991,7 @@ export default class hitbtc extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name hitbtc#fetchBalance
@@ -1060,7 +1060,7 @@ export default class hitbtc extends Exchange {
         return this.parseTicker (response, market) as Ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name hitbtc#fetchTickers
@@ -1481,7 +1481,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hitbtc#fetchDepositsWithdrawals
@@ -1495,7 +1495,7 @@ export default class hitbtc extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hitbtc#fetchDeposits
@@ -1509,7 +1509,7 @@ export default class hitbtc extends Exchange {
         return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hitbtc#fetchWithdrawals
@@ -2367,6 +2367,83 @@ export default class hitbtc extends Exchange {
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
         }, market);
+    }
+
+    async fetchMarginMode (symbol: string = undefined, params = {}): Promise<MarginMode> {
+        /**
+         * @method
+         * @name hitbtc#fetchMarginMode
+         * @description fetches margin mode of the user
+         * @see https://api.hitbtc.com/#get-margin-position-parameters
+         * @see https://api.hitbtc.com/#get-futures-position-parameters
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @returns {object} Struct of MarginMode
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarginMode', market, params);
+        let response = undefined;
+        if (marketType === 'margin') {
+            response = await this.privateGetMarginConfig (params);
+        } else if (marketType === 'swap') {
+            response = await this.privateGetFuturesConfig (params);
+        } else {
+            throw new BadSymbol (this.id + ' fetchMarginMode() supports swap contracts and margin only');
+        }
+        //
+        // margin
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD",
+        //             "margin_call_leverage_mul": "1.50",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "10.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.05",
+        //             "enabled": true,
+        //             "active": true,
+        //             "limit_base": "50000.00",
+        //             "limit_power": "2.2",
+        //             "unlimited_threshold": "10.0"
+        //         }]
+        //     }
+        //
+        // swap
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD_PERP",
+        //             "margin_call_leverage_mul": "1.20",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "100.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.001",
+        //             "enabled": true,
+        //             "active": false,
+        //             "limit_base": "5000000.000000000000",
+        //             "limit_power": "1.25",
+        //             "unlimited_threshold": "2.00"
+        //         }]
+        //     }
+        //
+        const config = this.safeValue (response, 'config', []);
+        const marginModes = [];
+        for (let i = 0; i < config.length; i++) {
+            const data = this.safeValue (config, i);
+            const marketId = this.safeString (data, 'symbol');
+            const marketInner = this.safeMarket (marketId);
+            marginModes.push ({
+                'info': data,
+                'symbol': this.safeString (marketInner, 'symbol'),
+                'marginMode': this.safeStringLower (data, 'margin_mode'),
+            });
+        }
+        const filteredMargin = this.filterBySymbol (marginModes, symbol);
+        return this.safeValue (filteredMargin, 0) as MarginMode;
     }
 
     async transfer (code: string, amount, fromAccount, toAccount, params = {}) {

@@ -21,7 +21,7 @@ interface okex {
     publicGetMarketIndexComponents(params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers(params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker(params?: {}): Promise<implicitReturnType>;
-    publicGetMarketBlockTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetPublicBlockTrades(params?: {}): Promise<implicitReturnType>;
     publicGetPublicInstruments(params?: {}): Promise<implicitReturnType>;
     publicGetPublicDeliveryExerciseHistory(params?: {}): Promise<implicitReturnType>;
     publicGetPublicOpenInterest(params?: {}): Promise<implicitReturnType>;
@@ -60,6 +60,7 @@ interface okex {
     publicGetTradingBotGridMinInvestment(params?: {}): Promise<implicitReturnType>;
     publicGetTradingBotPublicRsiBackTesting(params?: {}): Promise<implicitReturnType>;
     publicGetAssetExchangeList(params?: {}): Promise<implicitReturnType>;
+    publicGetFinanceStakingDefiEthApyHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateSummary(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSavingsLendingRateHistory(params?: {}): Promise<implicitReturnType>;
     publicGetFinanceSfpDcdProducts(params?: {}): Promise<implicitReturnType>;
@@ -157,6 +158,8 @@ interface okex {
     privateGetFinanceStakingDefiOffers(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiOrdersActive(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiOrdersHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments(params?: {}): Promise<implicitReturnType>;
@@ -249,6 +252,8 @@ interface okex {
     privatePostFinanceStakingDefiPurchase(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostFinanceStakingDefiCancel(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiEthPurchase(params?: {}): Promise<implicitReturnType>;
+    privatePostFinanceStakingDefiEthRedeem(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingAlgoOrder(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingCloseSubposition(params?: {}): Promise<implicitReturnType>;
     privatePostCopytradingSetInstruments(params?: {}): Promise<implicitReturnType>;

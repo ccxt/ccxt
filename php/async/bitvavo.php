@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitvavo extends Exchange {
 
@@ -317,8 +318,8 @@ class bitvavo extends Exchange {
              * @return {array[]} an array of objects representing $market data
              */
             $response = Async\await($this->publicGetMarkets ($params));
-            $currencies = $this->currencies;
-            $currenciesById = $this->index_by($currencies, 'symbol');
+            $currencies = Async\await($this->fetch_currencies());
+            $currenciesById = $this->index_by($currencies, 'id');
             //
             //     array(
             //         {
@@ -343,7 +344,8 @@ class bitvavo extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $status = $this->safe_string($market, 'status');
                 $baseCurrency = $this->safe_value($currenciesById, $baseId);
-                $result[] = array(
+                $basePrecision = $this->safe_integer($baseCurrency, 'precision');
+                $result[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
                     'base' => $base,
@@ -368,7 +370,7 @@ class bitvavo extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_integer($baseCurrency, 'decimals', 8),
+                        'amount' => $this->safe_integer($baseCurrency, 'decimals', $basePrecision),
                         'price' => $this->safe_integer($market, 'pricePrecision'),
                     ),
                     'limits' => array(
@@ -391,7 +393,7 @@ class bitvavo extends Exchange {
                     ),
                     'created' => null,
                     'info' => $market,
-                );
+                ));
             }
             return $result;
         }) ();
@@ -505,7 +507,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1ticker}124h/get
@@ -590,7 +592,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -622,7 +624,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1trades/get
@@ -807,7 +809,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1book/get
@@ -869,7 +871,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1candles/get
@@ -940,7 +942,7 @@ class bitvavo extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1259,7 +1261,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
@@ -1336,7 +1338,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1615,7 +1617,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1662,7 +1664,7 @@ class bitvavo extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account

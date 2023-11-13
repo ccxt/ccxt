@@ -24,6 +24,22 @@
                 "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-market\",\"client-order-id\":\"AA03022abc6dc8eac0-c980-4b1d-b4b0-6cf159701f7a\",\"amount\":\"10.5\"}"
             },
             {
+                "description": "Spot limit buy with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.huobi.pro/v1/order/orders/place?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-12T14%3A40%3A09&Signature=ckwouN1GVefB1eRCX%2B886qS0iwdjfgfLKwV7pyWylRc%3D",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.2,
+                  50,
+                  {
+                    "stopPrice": 100
+                  }
+                ],
+                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"stop-price\":\"100\",\"operator\":\"gte\",\"type\":\"buy-stop-limit\",\"client-order-id\":\"AA03022abc06339387-791f-4bfc-a5b5-e3641702cf7d\",\"amount\":\"0.2\",\"price\":\"50\"}"
+            },
+            {
                 "description": "Swap market buy",
                 "method": "createOrder",
                 "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-10-31T18%3A06%3A10&Signature=KtaWYexJ0MINBs3bpo75KXIsgSmN8FOwgzMZTNll0Uo%3D",
@@ -99,6 +115,150 @@
                     }
                 ],
                 "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"50\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"fok\",\"channel_code\":\"AA03022abc\"}"
+            },
+            {
+                "description": "Swap limit sell with takeProfitPrice",
+                "method": "createOrder",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_tpsl_order?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-12T14%3A42%3A59&Signature=zdDfba3x98FAdcLs99IQwxMNfbuJsZ9iHMNHLU03krY%3D",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "sell",
+                  1,
+                  100,
+                  {
+                    "takeProfitPrice": 101
+                  }
+                ],
+                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"direction\":\"sell\",\"tp_order_price_type\":\"limit\",\"tp_trigger_price\":\"101\",\"tp_order_price\":\"100\",\"channel_code\":\"AA03022abc\"}"
+              }
+        ],
+        "createOrders": [
+            {
+                "description": "Create multiple spot orders at the same time",
+                "method": "createOrders",
+                "url": "https://api.huobi.pro/v1/order/batch-orders?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-11T07%3A26%3A38&Signature=yCzPaPUyoKIduHHohBosoSRPaM8p2yUNNGnZ0NxtM%2Fw%3D",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.001,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.001,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "[{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"AA03022abcb14baaf0-6b3b-420b-95b2-e5250d5a2573\",\"amount\":\"0.001\",\"price\":\"25000\"},{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"AA03022abc19232010-2560-485d-a3ca-f5e478989560\",\"amount\":\"0.001\",\"price\":\"27000\"}]"
+            },
+            {
+                "description": "Create multiple cross linear swap orders at the same time",
+                "method": "createOrders",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_batchorder?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-11T07%3A30%3A33&Signature=XDx81UDyrl%2FotSbPz57%2B6pe4MIetKxP5B7vdwoFImTs%3D",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "{\"orders_data\":[{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"27000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
+            },
+            {
+                "description": "Create multiple isolated linear swap orders at the same time",
+                "method": "createOrders",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_batchorder?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-11T08%3A05%3A30&Signature=uvuxqiGdowyFriziQf1uP4lNfLFMLeXc49SPJg5at0g%3D",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 25000,
+                      "params": {
+                        "marginMode": "isolated"
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 10,
+                      "price": 27000,
+                      "params": {
+                        "marginMode": "isolated"
+                      }
+                    }
+                  ]
+                ],
+                "output": "{\"orders_data\":[{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC-USDT\",\"volume\":\"10\",\"direction\":\"buy\",\"price\":\"27000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
+            },
+            {
+                "description": "Create multiple inverse swap orders at the same time",
+                "method": "createOrders",
+                "url": "https://api.hbdm.com/swap-api/v1/swap_batchorder?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-11T07%3A34%3A29&Signature=z%2FdYEr9%2FmfVRwC9dcPYqLa7s%2BnuEzOwWpxBaoFWp2cs%3D",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USD:BTC",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USD:BTC",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "{\"orders_data\":[{\"contract_code\":\"BTC-USD\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC-USD\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"27000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
+            },
+            {
+                "description": "Create multiple inverse future orders at the same time",
+                "method": "createOrders",
+                "url": "https://api.hbdm.com/api/v1/contract_batchorder?AccessKeyId=bgbfh5tv3f-83da6485-1bbb64ae-3231b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2023-11-11T08%3A23%3A42&Signature=fgTvNuT9oGdzOQ70a6yIkTqRZ5OrSyslZXhMxt8Uwu8%3D",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USD:BTC-231124",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USD:BTC-231124",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "{\"orders_data\":[{\"contract_code\":\"BTC231124\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC231124\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"27000\",\"offset\":\"open\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
             }
         ],
         "fetchOrders": [

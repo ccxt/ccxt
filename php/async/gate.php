@@ -17,6 +17,7 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
+use React\Promise\PromiseInterface;
 
 class gate extends Exchange {
 
@@ -110,6 +111,7 @@ class gate extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
@@ -2313,7 +2315,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -2426,7 +2428,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -2583,7 +2585,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -2633,7 +2635,7 @@ class gate extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * @param {array} [$params] exchange specific parameters
@@ -2851,7 +2853,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -3034,7 +3036,7 @@ class gate extends Exchange {
         }
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -3465,7 +3467,7 @@ class gate extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -3504,7 +3506,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -4106,6 +4108,7 @@ class gate extends Exchange {
             /**
              * edit a trade order, gate currently only supports the modification of the $price or $amount fields
              * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+             * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -4117,9 +4120,6 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['spot']) {
-                throw new BadRequest($this->id . ' editOrder() supports only spot markets');
-            }
             list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
             $account = $this->convert_type_to_account($marketType);
             $isLimitOrder = ($type === 'limit');
@@ -4140,7 +4140,13 @@ class gate extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privateSpotPatchOrdersOrderId (array_merge($request, $query)));
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->privateSpotPatchOrdersOrderId (array_merge($request, $query)));
+            } else {
+                $request['settle'] = $market['settleId'];
+                $response = Async\await($this->privateFuturesPutSettleOrdersOrderId (array_merge($request, $query)));
+            }
             //
             //     {
             //         "id" => "243233276443",
@@ -4500,7 +4506,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -4518,7 +4524,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -5133,13 +5139,14 @@ class gate extends Exchange {
         $takerFee = '0.00075';
         $feePaid = Precise::string_mul($takerFee, $notional);
         $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
+        $timestamp = $this->safe_integer($position, 'time_ms');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $timestamp,
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
             'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
@@ -5148,6 +5155,7 @@ class gate extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
+            'realizedPnl' => $this->safe_number($position, 'realised_pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_value($market, 'contractSize'),
             // 'realisedPnl' => $position['realised_pnl'],
@@ -6713,6 +6721,100 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+             * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+             * @param {array} [$params] extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'underlying' => $market['info']['underlying'],
+            );
+            $response = Async\await($this->publicOptionsGetTickers (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "vega" => "1.78992",
+            //             "leverage" => "6.2096777055417",
+            //             "ask_iv" => "0.6245",
+            //             "delta" => "-0.69397",
+            //             "last_price" => "0",
+            //             "theta" => "-2.5723",
+            //             "bid1_price" => "222.9",
+            //             "mark_iv" => "0.5909",
+            //             "name" => "ETH_USDT-20231201-2300-P",
+            //             "bid_iv" => "0.5065",
+            //             "ask1_price" => "243.6",
+            //             "mark_price" => "236.57",
+            //             "position_size" => 0,
+            //             "bid1_size" => 368,
+            //             "ask1_size" => -335,
+            //             "gamma" => "0.00116"
+            //         ),
+            //     )
+            //
+            $marketId = $market['id'];
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $entryMarketId = $this->safe_string($entry, 'name');
+                if ($entryMarketId === $marketId) {
+                    return $this->parse_greeks($entry, $market);
+                }
+            }
+        }) ();
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        //
+        //     {
+        //         "vega" => "1.78992",
+        //         "leverage" => "6.2096777055417",
+        //         "ask_iv" => "0.6245",
+        //         "delta" => "-0.69397",
+        //         "last_price" => "0",
+        //         "theta" => "-2.5723",
+        //         "bid1_price" => "222.9",
+        //         "mark_iv" => "0.5909",
+        //         "name" => "ETH_USDT-20231201-2300-P",
+        //         "bid_iv" => "0.5065",
+        //         "ask1_price" => "243.6",
+        //         "mark_price" => "236.57",
+        //         "position_size" => 0,
+        //         "bid1_size" => 368,
+        //         "ask1_size" => -335,
+        //         "gamma" => "0.00116"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => $this->safe_number($greeks, 'bid1_size'),
+            'askSize' => $this->safe_number($greeks, 'ask1_size'),
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bid_iv'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'ask_iv'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'mark_iv'),
+            'bidPrice' => $this->safe_number($greeks, 'bid1_price'),
+            'askPrice' => $this->safe_number($greeks, 'ask1_price'),
+            'markPrice' => $this->safe_number($greeks, 'mark_price'),
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
+            'underlyingPrice' => $this->parse_number($market['info']['underlying_price']),
+            'info' => $greeks,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

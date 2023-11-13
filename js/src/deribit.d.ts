@@ -1,5 +1,5 @@
 import Exchange from './abstract/deribit.js';
-import { Balances, FundingRateHistory, Int, Liquidation, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Greeks, Int, Liquidation, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class deribit
  * @extends Exchange
@@ -41,12 +41,12 @@ export default class deribit extends Exchange {
     }>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
-    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OHLCV[]>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrderType(orderType: any): string;
@@ -60,8 +60,8 @@ export default class deribit extends Exchange {
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
@@ -150,6 +150,28 @@ export default class deribit extends Exchange {
     addPaginationCursorToResult(cursor: any, data: any): any;
     fetchMyLiquidations(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     parseLiquidation(liquidation: any, market?: any): Liquidation;
+    fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    parseGreeks(greeks: any, market?: any): {
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        delta: number;
+        gamma: number;
+        theta: number;
+        vega: number;
+        rho: number;
+        bidSize: number;
+        askSize: number;
+        bidImpliedVolatility: number;
+        askImpliedVolatility: number;
+        markImpliedVolatility: number;
+        bidPrice: number;
+        askPrice: number;
+        markPrice: number;
+        lastPrice: number;
+        underlyingPrice: number;
+        info: any;
+    };
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

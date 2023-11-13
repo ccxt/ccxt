@@ -6,7 +6,7 @@ import { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -489,7 +489,7 @@ export default class coinbasepro extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinbasepro#fetchBalance
@@ -623,7 +623,7 @@ export default class coinbasepro extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinbasepro#fetchTickers
@@ -1580,7 +1580,7 @@ export default class coinbasepro extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbasepro#fetchDepositsWithdrawals
@@ -1688,7 +1688,7 @@ export default class coinbasepro extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbasepro#fetchDeposits
@@ -1702,7 +1702,7 @@ export default class coinbasepro extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'type': 'deposit' }, params));
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbasepro#fetchWithdrawals

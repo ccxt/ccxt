@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.oceanex import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Trade
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -238,7 +238,7 @@ class oceanex(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://api.oceanex.pro/doc/v1/#ticker-post
@@ -272,7 +272,7 @@ class oceanex(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_ticker(data, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://api.oceanex.pro/doc/v1/#multiple-tickers-post
@@ -354,7 +354,7 @@ class oceanex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://api.oceanex.pro/doc/v1/#order-book-post
@@ -446,7 +446,7 @@ class oceanex(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(orderbook, symbol, timestamp)
         return result
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://api.oceanex.pro/doc/v1/#trades-post
@@ -584,7 +584,7 @@ class oceanex(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://api.oceanex.pro/doc/v1/#account-info-post
@@ -647,7 +647,7 @@ class oceanex(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://api.oceanex.pro/doc/v1/#order-status-get
@@ -662,7 +662,7 @@ class oceanex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://api.oceanex.pro/doc/v1/#order-status-get
@@ -677,7 +677,7 @@ class oceanex(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://api.oceanex.pro/doc/v1/#order-status-with-filters-post
@@ -727,7 +727,7 @@ class oceanex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://api.oceanex.pro/doc/v1/#k-line-post

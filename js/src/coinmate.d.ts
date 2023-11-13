@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinmate.js';
-import { Balances, Int, Order, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class coinmate
  * @extends Exchange
@@ -9,9 +9,9 @@ export default class coinmate extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;

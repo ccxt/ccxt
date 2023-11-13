@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction, Greeks
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -70,6 +70,7 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': True,
@@ -824,7 +825,7 @@ class deribit(Exchange, ImplicitAPI):
         result[currencyCode] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the deribit api endpoint
@@ -1033,7 +1034,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -1077,7 +1078,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result')
         return self.parse_ticker(result, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1130,7 +1131,7 @@ class deribit(Exchange, ImplicitAPI):
             tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1269,7 +1270,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.deribit.com/#private-get_user_trades_by_currency
         get the list of most recent trades for a particular symbol.
@@ -1430,7 +1431,7 @@ class deribit(Exchange, ImplicitAPI):
             parsedFees[symbol] = fee
         return parsedFees
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -1866,7 +1867,7 @@ class deribit(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return response
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1892,7 +1893,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2041,7 +2042,7 @@ class deribit(Exchange, ImplicitAPI):
         trades = self.safe_value(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -2084,7 +2085,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_value(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -2924,6 +2925,135 @@ class deribit(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://docs.deribit.com/#public-ticker
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the deribit api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "result": {
+        #             "estimated_delivery_price": 36552.72,
+        #             "best_bid_amount": 0.2,
+        #             "best_ask_amount": 9.1,
+        #             "interest_rate": 0.0,
+        #             "best_bid_price": 0.214,
+        #             "best_ask_price": 0.219,
+        #             "open_interest": 368.8,
+        #             "settlement_price": 0.22103022,
+        #             "last_price": 0.215,
+        #             "bid_iv": 60.51,
+        #             "ask_iv": 61.88,
+        #             "mark_iv": 61.27,
+        #             "underlying_index": "BTC-27SEP24",
+        #             "underlying_price": 38992.71,
+        #             "min_price": 0.1515,
+        #             "max_price": 0.326,
+        #             "mark_price": 0.2168,
+        #             "instrument_name": "BTC-27SEP24-40000-C",
+        #             "index_price": 36552.72,
+        #             "greeks": {
+        #                 "rho": 130.63998,
+        #                 "theta": -13.48784,
+        #                 "vega": 141.90146,
+        #                 "gamma": 0.00002,
+        #                 "delta": 0.59621
+        #             },
+        #             "stats": {
+        #                 "volume_usd": 100453.9,
+        #                 "volume": 12.0,
+        #                 "price_change": -2.2727,
+        #                 "low": 0.2065,
+        #                 "high": 0.238
+        #             },
+        #             "state": "open",
+        #             "timestamp": 1699578548021
+        #         },
+        #         "usIn": 1699578548308414,
+        #         "usOut": 1699578548308606,
+        #         "usDiff": 192,
+        #         "testnet": False
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_greeks(result, market)
+
+    def parse_greeks(self, greeks, market=None):
+        #
+        #     {
+        #         "estimated_delivery_price": 36552.72,
+        #         "best_bid_amount": 0.2,
+        #         "best_ask_amount": 9.1,
+        #         "interest_rate": 0.0,
+        #         "best_bid_price": 0.214,
+        #         "best_ask_price": 0.219,
+        #         "open_interest": 368.8,
+        #         "settlement_price": 0.22103022,
+        #         "last_price": 0.215,
+        #         "bid_iv": 60.51,
+        #         "ask_iv": 61.88,
+        #         "mark_iv": 61.27,
+        #         "underlying_index": "BTC-27SEP24",
+        #         "underlying_price": 38992.71,
+        #         "min_price": 0.1515,
+        #         "max_price": 0.326,
+        #         "mark_price": 0.2168,
+        #         "instrument_name": "BTC-27SEP24-40000-C",
+        #         "index_price": 36552.72,
+        #         "greeks": {
+        #             "rho": 130.63998,
+        #             "theta": -13.48784,
+        #             "vega": 141.90146,
+        #             "gamma": 0.00002,
+        #             "delta": 0.59621
+        #         },
+        #         "stats": {
+        #             "volume_usd": 100453.9,
+        #             "volume": 12.0,
+        #             "price_change": -2.2727,
+        #             "low": 0.2065,
+        #             "high": 0.238
+        #         },
+        #         "state": "open",
+        #         "timestamp": 1699578548021
+        #     }
+        #
+        timestamp = self.safe_integer(greeks, 'timestamp')
+        marketId = self.safe_string(greeks, 'instrument_name')
+        symbol = self.safe_symbol(marketId, market)
+        stats = self.safe_value(greeks, 'greeks', {})
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'delta': self.safe_number(stats, 'delta'),
+            'gamma': self.safe_number(stats, 'gamma'),
+            'theta': self.safe_number(stats, 'theta'),
+            'vega': self.safe_number(stats, 'vega'),
+            'rho': self.safe_number(stats, 'rho'),
+            'bidSize': self.safe_number(greeks, 'best_bid_amount'),
+            'askSize': self.safe_number(greeks, 'best_ask_amount'),
+            'bidImpliedVolatility': self.safe_number(greeks, 'bid_iv'),
+            'askImpliedVolatility': self.safe_number(greeks, 'ask_iv'),
+            'markImpliedVolatility': self.safe_number(greeks, 'mark_iv'),
+            'bidPrice': self.safe_number(greeks, 'best_bid_price'),
+            'askPrice': self.safe_number(greeks, 'best_ask_price'),
+            'markPrice': self.safe_number(greeks, 'mark_price'),
+            'lastPrice': self.safe_number(greeks, 'last_price'),
+            'underlyingPrice': self.safe_number(greeks, 'underlying_price'),
+            'info': greeks,
+        }
 
     def nonce(self):
         return self.milliseconds()

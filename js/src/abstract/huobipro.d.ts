@@ -344,7 +344,7 @@ interface huobi {
     contractPrivatePostApiV3ContractFinancialRecordExact(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancelAfter(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractOrder(params?: {}): Promise<implicitReturnType>;
-    contractPrivatePostV1ContractBatchorder(params?: {}): Promise<implicitReturnType>;
+    contractPrivatePostApiV1ContractBatchorder(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancel(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractCancelall(params?: {}): Promise<implicitReturnType>;
     contractPrivatePostApiV1ContractSwitchLeverRate(params?: {}): Promise<implicitReturnType>;

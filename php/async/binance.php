@@ -19,6 +19,7 @@ use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
+use React\Promise\PromiseInterface;
 
 class binance extends Exchange {
 
@@ -77,6 +78,7 @@ class binance extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchL3OrderBook' => false,
                 'fetchLastPrices' => true,
@@ -865,6 +867,7 @@ class binance extends Exchange {
                         'klines' => 0.4,
                         'uiKlines' => 0.4,
                         'ticker/24hr' => array( 'cost' => 0.4, 'noSymbol' => 16 ),
+                        'ticker' => array( 'cost' => 0.4, 'noSymbol' => 16 ),
                         'ticker/price' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'ticker/bookTicker' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'exchangeInfo' => 4, // Weight(IP) => 20 => cost = 0.2 * 20 = 4
@@ -965,7 +968,9 @@ class binance extends Exchange {
                     ),
                     'post' => array(
                         'um/order' => 1, // 0
+                        'um/conditional/order' => 1,
                         'cm/order' => 1, // 0
+                        'cm/conditional/order' => 1,
                         'margin/order' => 0.0133, // Weight(UID) => 2 => cost = 0.006667 * 2 = 0.013334
                         'marginLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
                         'repayLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
@@ -986,9 +991,13 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         'um/order' => 1, // 1
+                        'um/conditional/order' => 1,
                         'um/allOpenOrders' => 1, // 1
+                        'um/conditional/allOpenOrders' => 1,
                         'cm/order' => 1, // 1
+                        'cm/conditional/order' => 1,
                         'cm/allOpenOrders' => 1, // 1
+                        'cm/conditional/allOpenOrders' => 1,
                         'margin/order' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders' => 5, // 5
                         'margin/orderList' => 2, // 2
@@ -2251,7 +2260,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         $swap = false;
         $future = false;
         $option = false;
@@ -2510,7 +2519,7 @@ class binance extends Exchange {
         return $isolated ? $result : $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2761,7 +2770,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -3010,16 +3019,18 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+             * @see https://binance-docs.github.io/apidocs/spot/en/#$rolling-window-price-change-statistics      // spot
              * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
              * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
              * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @param {boolean} [$params->rolling] (spot only) default false, if true, uses the $rolling 24 hour ticker endpoint /api/v3/ticker
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
@@ -3035,7 +3046,13 @@ class binance extends Exchange {
             } elseif ($market['inverse']) {
                 $response = Async\await($this->dapiPublicGetTicker24hr (array_merge($request, $params)));
             } else {
-                $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+                $rolling = $this->safe_value($params, 'rolling', false);
+                $params = $this->omit($params, 'rolling');
+                if ($rolling) {
+                    $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+                } else {
+                    $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+                }
             }
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 $firstTicker = $this->safe_value($response, 0, array());
@@ -3182,7 +3199,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -3285,7 +3302,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -3617,7 +3634,7 @@ class binance extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -4719,7 +4736,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -4854,7 +4871,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
@@ -4926,7 +4943,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -5461,7 +5478,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
@@ -5575,7 +5592,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * @see https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
@@ -9449,5 +9466,82 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+             * @see https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+             * @param {string} $symbol unified $symbol of the $market to fetch greeks for
+             * @param {array} [$params] extra parameters specific to the binance api endpoint
+             * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure greeks structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->eapiPublicGetMark (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTC-231229-40000-C",
+            //             "markPrice" => "2012",
+            //             "bidIV" => "0.60236275",
+            //             "askIV" => "0.62267244",
+            //             "markIV" => "0.6125176",
+            //             "delta" => "0.39111646",
+            //             "theta" => "-32.13948531",
+            //             "gamma" => "0.00004656",
+            //             "vega" => "51.70062218",
+            //             "highPriceLimit" => "6474",
+            //             "lowPriceLimit" => "5"
+            //         }
+            //     )
+            //
+            return $this->parse_greeks($response[0], $market);
+        }) ();
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC-231229-40000-C",
+        //         "markPrice" => "2012",
+        //         "bidIV" => "0.60236275",
+        //         "askIV" => "0.62267244",
+        //         "markIV" => "0.6125176",
+        //         "delta" => "0.39111646",
+        //         "theta" => "-32.13948531",
+        //         "gamma" => "0.00004656",
+        //         "vega" => "51.70062218",
+        //         "highPriceLimit" => "6474",
+        //         "lowPriceLimit" => "5"
+        //     }
+        //
+        $marketId = $this->safe_string($greeks, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'delta' => $this->safe_number($greeks, 'delta'),
+            'gamma' => $this->safe_number($greeks, 'gamma'),
+            'theta' => $this->safe_number($greeks, 'theta'),
+            'vega' => $this->safe_number($greeks, 'vega'),
+            'rho' => null,
+            'bidSize' => null,
+            'askSize' => null,
+            'bidImpliedVolatility' => $this->safe_number($greeks, 'bidIV'),
+            'askImpliedVolatility' => $this->safe_number($greeks, 'askIV'),
+            'markImpliedVolatility' => $this->safe_number($greeks, 'markIV'),
+            'bidPrice' => null,
+            'askPrice' => null,
+            'markPrice' => $this->safe_number($greeks, 'markPrice'),
+            'lastPrice' => null,
+            'underlyingPrice' => null,
+            'info' => $greeks,
+        );
     }
 }

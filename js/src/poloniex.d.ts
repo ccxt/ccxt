@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Transaction, Ticker, Tickers } from './base/types.js';
 /**
  * @class poloniex
  * @extends Exchange
@@ -12,7 +12,7 @@ export default class poloniex extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchTime(params?: {}): Promise<number>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: any): Trade;
@@ -73,12 +73,12 @@ export default class poloniex extends Exchange {
     };
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchTransactionsHelper(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     parseDepositWithdrawFee(fee: any, currency?: any): any;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
     nonce(): number;

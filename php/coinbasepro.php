@@ -478,7 +478,7 @@ class coinbasepro extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the coinbasepro api endpoint
@@ -489,7 +489,7 @@ class coinbasepro extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -608,7 +608,7 @@ class coinbasepro extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
@@ -653,7 +653,7 @@ class coinbasepro extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -805,7 +805,7 @@ class coinbasepro extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
          * get the list of most recent trades for a particular $symbol
@@ -891,7 +891,7 @@ class coinbasepro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1102,7 +1102,7 @@ class coinbasepro extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * fetches information on multiple orders made by the user
@@ -1119,7 +1119,7 @@ class coinbasepro extends Exchange {
         return $this->fetch_open_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * fetch all unfilled currently open orders
@@ -1158,7 +1158,7 @@ class coinbasepro extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
          * fetches information on multiple closed orders made by the user
@@ -1213,7 +1213,7 @@ class coinbasepro extends Exchange {
         if ($clientOrderId !== null) {
             $request['client_oid'] = $clientOrderId;
         }
-        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop_price');
+        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
         if ($stopPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
         }
@@ -1225,7 +1225,7 @@ class coinbasepro extends Exchange {
         if ($postOnly) {
             $request['post_only'] = true;
         }
-        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only' ));
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice' ));
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['size'] = $this->amount_to_precision($symbol, $amount);
@@ -1529,7 +1529,7 @@ class coinbasepro extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1635,7 +1635,7 @@ class coinbasepro extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified currency $code
@@ -1647,7 +1647,7 @@ class coinbasepro extends Exchange {
         return $this->fetch_deposits_withdrawals($code, $since, $limit, array_merge(array( 'type' => 'deposit' ), $params));
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified currency $code

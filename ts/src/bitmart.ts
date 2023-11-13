@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, AccountSuspended, Permission
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Trade, Transaction, Ticker, OrderBook } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, OHLCV, Order, Trade, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -577,6 +577,7 @@ export default class bitmart extends Exchange {
                     'swap': 'swap',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
+                'brokerId': 'CCXTxBitmart000',
             },
         });
     }
@@ -1205,7 +1206,7 @@ export default class bitmart extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitmart#fetchTickers
@@ -1520,7 +1521,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://developer-pro.bitmart.com/en/spot/#get-latest-k-line-v3
+         * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
          * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1579,7 +1580,7 @@ export default class bitmart extends Exchange {
         if (market['swap']) {
             response = await this.publicGetContractPublicKline (this.extend (request, params));
         } else {
-            response = await this.publicGetSpotQuotationV3LiteKlines (this.extend (request, params));
+            response = await this.publicGetSpotQuotationV3Klines (this.extend (request, params));
         }
         //
         // spot
@@ -1805,7 +1806,7 @@ export default class bitmart extends Exchange {
         return account;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitmart#fetchBalance
@@ -1991,6 +1992,12 @@ export default class bitmart extends Exchange {
         //         "order_id": 2707217580
         //     }
         //
+        // swap
+        //   "data": {
+        //       "order_id": 231116359426639,
+        //       "price": "market price"
+        //    },
+        //
         // cancelOrder
         //
         //     "2707217580" // order id
@@ -2073,6 +2080,10 @@ export default class bitmart extends Exchange {
             type = 'limit';
             timeInForce = 'IOC';
         }
+        let priceString = this.safeString (order, 'price');
+        if (priceString === 'market price') {
+            priceString = undefined;
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': this.safeString (order, 'client_order_id'),
@@ -2085,7 +2096,7 @@ export default class bitmart extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': this.parseOrderSide (this.safeString (order, 'side')),
-            'price': this.omitZero (this.safeString (order, 'price')),
+            'price': this.omitZero (priceString),
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': this.omitZero (this.safeString (order, 'size')),
@@ -2142,6 +2153,7 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2149,72 +2161,28 @@ export default class bitmart extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitmart api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @param {string} [params.leverage] *swap only* leverage level
+         * @param {string} [params.clientOrderId] client order id of the order
+         * @param {boolean} [params.reduceOnly] *swap only* reduce only
+         * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
-        const timeInForce = this.safeString (params, 'timeInForce');
-        if (timeInForce === 'FOK') {
-            throw new InvalidOrder (this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
-        }
-        const mode = this.safeInteger (params, 'mode'); // only for swap
-        const isMarketOrder = type === 'market';
-        let postOnly = undefined;
-        const isExchangeSpecificPo = (type === 'limit_maker') || (mode === 4);
-        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
-        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
-        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
-        const isLimitOrder = (type === 'limit') || postOnly || ioc;
-        let method = undefined;
+        const result = this.handleMarginModeAndParams ('createOrder', params);
+        const marginMode = this.safeString (result, 0);
+        let response = undefined;
         if (market['spot']) {
-            request['symbol'] = market['id'];
-            request['side'] = side;
-            request['type'] = type;
-            method = 'privatePostSpotV2SubmitOrder';
-            if (isLimitOrder) {
-                request['size'] = this.amountToPrecision (symbol, amount);
-                request['price'] = this.priceToPrecision (symbol, price);
-            } else if (isMarketOrder) {
-                // for market buy it requires the amount of quote currency to spend
-                if (side === 'buy') {
-                    let notional = this.safeNumber (params, 'notional');
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price !== undefined) {
-                            if (notional === undefined) {
-                                const amountString = this.numberToString (amount);
-                                const priceString = this.numberToString (price);
-                                notional = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            }
-                        } else if (notional === undefined) {
-                            throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
-                        }
-                    } else {
-                        notional = (notional === undefined) ? amount : notional;
-                    }
-                    request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
-                } else if (side === 'sell') {
-                    request['size'] = this.amountToPrecision (symbol, amount);
-                }
+            const spotRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+            if (marginMode === 'isolated') {
+                response = await this.privatePostSpotV1MarginSubmitOrder (spotRequest);
+            } else {
+                response = await this.privatePostSpotV2SubmitOrder (spotRequest);
             }
-        } else if (market['swap']) {
-            throw new NotSupported (this.id + ' createOrder() does not accept swap orders, only spot orders are allowed');
+        } else {
+            const swapRequest = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostContractPrivateSubmitOrder (swapRequest);
         }
-        if (postOnly) {
-            request['type'] = 'limit_maker';
-        }
-        if (ioc) {
-            request['type'] = 'ioc';
-        }
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (marginMode !== undefined) {
-            if (marginMode !== 'isolated') {
-                throw new NotSupported (this.id + ' only isolated margin is supported');
-            }
-            method = 'privatePostSpotV1MarginSubmitOrder';
-        }
-        const response = await this[method] (this.extend (request, query));
         //
         // spot and margin
         //
@@ -2227,6 +2195,9 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
+        // swap
+        // {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
+        //
         const data = this.safeValue (response, 'data', {});
         const order = this.parseOrder (data, market);
         order['type'] = type;
@@ -2234,6 +2205,150 @@ export default class bitmart extends Exchange {
         order['amount'] = amount;
         order['price'] = price;
         return order;
+    }
+
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createSwapOrderRequest
+         * @description create a trade order
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {int} [params.leverage] leverage level
+         * @param {boolean} [params.reduceOnly] *swap only* reduce only
+         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+         *  @param {string} [params.clientOrderId] client order id of the order
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'type': type,
+            'size': parseInt (this.amountToPrecision (symbol, amount)),
+        };
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const mode = this.safeInteger (params, 'mode'); // only for swap
+        const isMarketOrder = type === 'market';
+        let postOnly = undefined;
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const isExchangeSpecificPo = (mode === 4);
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
+        params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
+        const ioc = ((timeInForce === 'IOC') || (mode === 3));
+        const isLimitOrder = (type === 'limit') || postOnly || ioc;
+        if (timeInForce === 'GTC') {
+            request['mode'] = 1;
+        } else if (timeInForce === 'FOK') {
+            request['mode'] = 2;
+        } else if (timeInForce === 'IOC') {
+            request['mode'] = 3;
+        }
+        if (postOnly) {
+            request['mode'] = 4;
+        }
+        if (isLimitOrder) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (side === 'buy') {
+            if (reduceOnly) {
+                request['side'] = 2; // sell close long
+            } else {
+                request['side'] = 1; // buy open long
+            }
+        } else if (side === 'sell') {
+            if (reduceOnly) {
+                request['side'] = 3; // sell close long
+            } else {
+                request['side'] = 4; // sell open short
+            }
+        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
+        request['open_type'] = marginMode;
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['client_order_id'] = clientOrderId;
+        }
+        const leverage = this.safeInteger (params, 'leverage', 1);
+        params = this.omit (params, 'leverage');
+        request['leverage'] = this.numberToString (leverage);
+        return this.extend (request, params);
+    }
+
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#createSpotOrderRequest
+         * @description create a spot order request
+         * @see https://developer-pro.bitmart.com/en/spot/#place-spot-order
+         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the bitmart api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated'
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+        };
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce === 'FOK') {
+            throw new InvalidOrder (this.id + ' createOrder() only accepts timeInForce parameter values of IOC or PO');
+        }
+        const mode = this.safeInteger (params, 'mode'); // only for swap
+        const isMarketOrder = type === 'market';
+        let postOnly = undefined;
+        const isExchangeSpecificPo = (type === 'limit_maker') || (mode === 4);
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, isExchangeSpecificPo, params);
+        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
+        const ioc = ((timeInForce === 'IOC') || (type === 'ioc'));
+        const isLimitOrder = (type === 'limit') || postOnly || ioc;
+        // method = 'privatePostSpotV2SubmitOrder';
+        if (isLimitOrder) {
+            request['size'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else if (isMarketOrder) {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                let notional = this.safeNumber (params, 'notional');
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price !== undefined) {
+                        if (notional === undefined) {
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            notional = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        }
+                    } else if (notional === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'notional' extra parameter (the exchange-specific behaviour)");
+                    }
+                } else {
+                    notional = (notional === undefined) ? amount : notional;
+                }
+                request['notional'] = this.decimalToPrecision (notional, TRUNCATE, market['precision']['price'], this.precisionMode);
+            } else if (side === 'sell') {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        if (postOnly) {
+            request['type'] = 'limit_maker';
+        }
+        if (ioc) {
+            request['type'] = 'ioc';
+        }
+        return this.extend (request, params);
     }
 
     async cancelOrder (id: string, symbol: string = undefined, params = {}) {
@@ -2899,7 +3014,7 @@ export default class bitmart extends Exchange {
         return this.parseTransaction (record);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitmart#fetchDeposits
@@ -2955,7 +3070,7 @@ export default class bitmart extends Exchange {
         return this.parseTransaction (record);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitmart#fetchWithdrawals
@@ -4093,9 +4208,11 @@ export default class bitmart extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
+            const brokerId = this.safeString (this.options, 'brokerId', 'CCXTxBitmart000');
             headers = {
                 'X-BM-KEY': this.apiKey,
                 'X-BM-TIMESTAMP': timestamp,
+                'X-BM-BROKER-ID': brokerId,
                 'Content-Type': 'application/json',
             };
             if (!getOrDelete) {

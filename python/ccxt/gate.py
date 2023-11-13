@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Order, OrderSide, OrderType, FundingHistory, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, FundingHistory, Ticker, Tickers, Trade, Transaction, Greeks
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -121,6 +121,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchLeverage': False,
@@ -2213,7 +2214,7 @@ class gate(Exchange, ImplicitAPI):
             'amount': self.safe_number(info, 'change'),
         }
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
@@ -2321,7 +2322,7 @@ class gate(Exchange, ImplicitAPI):
         result['nonce'] = nonce
         return result
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
@@ -2468,7 +2469,7 @@ class gate(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
@@ -2511,7 +2512,7 @@ class gate(Exchange, ImplicitAPI):
             account['debt'] = self.safe_string(entry, 'borrowed')
         return account
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         :param dict [params]: exchange specific parameters
         :param str [params.type]: spot, margin, swap or future, if not provided self.options['defaultType'] is used
@@ -2720,7 +2721,7 @@ class gate(Exchange, ImplicitAPI):
         returnResult = result if isolated else self.safe_balance(result)
         return returnResult
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://www.gate.io/docs/developers/apiv4/en/#market-candlesticks       # spot
@@ -2880,7 +2881,7 @@ class gate(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 'v'),    # trading volume, None for mark or index price
             ]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-market-trades
@@ -3286,7 +3287,7 @@ class gate(Exchange, ImplicitAPI):
             'fees': fees,
         }, market)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
@@ -3318,7 +3319,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
@@ -3853,6 +3854,7 @@ class gate(Exchange, ImplicitAPI):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
         :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+        :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -3864,8 +3866,6 @@ class gate(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
-            raise BadRequest(self.id + ' editOrder() supports only spot markets')
         marketType, query = self.handle_market_type_and_params('editOrder', market, params)
         account = self.convert_type_to_account(marketType)
         isLimitOrder = (type == 'limit')
@@ -3882,7 +3882,12 @@ class gate(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+        response = None
+        if market['spot']:
+            response = self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+        else:
+            request['settle'] = market['settleId']
+            response = self.privateFuturesPutSettleOrdersOrderId(self.extend(request, query))
         #
         #     {
         #         "id": "243233276443",
@@ -4222,7 +4227,7 @@ class gate(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
@@ -4237,7 +4242,7 @@ class gate(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-orders
@@ -4816,13 +4821,14 @@ class gate(Exchange, ImplicitAPI):
         takerFee = '0.00075'
         feePaid = Precise.string_mul(takerFee, notional)
         initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), feePaid)
+        timestamp = self.safe_integer(position, 'time_ms')
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
             'maintenanceMargin': self.parse_number(Precise.string_mul(maintenanceRate, notional)),
@@ -4831,6 +4837,7 @@ class gate(Exchange, ImplicitAPI):
             'notional': self.parse_number(notional),
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
+            'realizedPnl': self.safe_number(position, 'realised_pnl'),
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_value(market, 'contractSize'),
             # 'realisedPnl': position['realised_pnl'],
@@ -6282,6 +6289,94 @@ class gate(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the gate api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'underlying': market['info']['underlying'],
+        }
+        response = self.publicOptionsGetTickers(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "vega": "1.78992",
+        #             "leverage": "6.2096777055417",
+        #             "ask_iv": "0.6245",
+        #             "delta": "-0.69397",
+        #             "last_price": "0",
+        #             "theta": "-2.5723",
+        #             "bid1_price": "222.9",
+        #             "mark_iv": "0.5909",
+        #             "name": "ETH_USDT-20231201-2300-P",
+        #             "bid_iv": "0.5065",
+        #             "ask1_price": "243.6",
+        #             "mark_price": "236.57",
+        #             "position_size": 0,
+        #             "bid1_size": 368,
+        #             "ask1_size": -335,
+        #             "gamma": "0.00116"
+        #         },
+        #     ]
+        #
+        marketId = market['id']
+        for i in range(0, len(response)):
+            entry = response[i]
+            entryMarketId = self.safe_string(entry, 'name')
+            if entryMarketId == marketId:
+                return self.parse_greeks(entry, market)
+
+    def parse_greeks(self, greeks, market=None):
+        #
+        #     {
+        #         "vega": "1.78992",
+        #         "leverage": "6.2096777055417",
+        #         "ask_iv": "0.6245",
+        #         "delta": "-0.69397",
+        #         "last_price": "0",
+        #         "theta": "-2.5723",
+        #         "bid1_price": "222.9",
+        #         "mark_iv": "0.5909",
+        #         "name": "ETH_USDT-20231201-2300-P",
+        #         "bid_iv": "0.5065",
+        #         "ask1_price": "243.6",
+        #         "mark_price": "236.57",
+        #         "position_size": 0,
+        #         "bid1_size": 368,
+        #         "ask1_size": -335,
+        #         "gamma": "0.00116"
+        #     }
+        #
+        marketId = self.safe_string(greeks, 'name')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'delta': self.safe_number(greeks, 'delta'),
+            'gamma': self.safe_number(greeks, 'gamma'),
+            'theta': self.safe_number(greeks, 'theta'),
+            'vega': self.safe_number(greeks, 'vega'),
+            'rho': None,
+            'bidSize': self.safe_number(greeks, 'bid1_size'),
+            'askSize': self.safe_number(greeks, 'ask1_size'),
+            'bidImpliedVolatility': self.safe_number(greeks, 'bid_iv'),
+            'askImpliedVolatility': self.safe_number(greeks, 'ask_iv'),
+            'markImpliedVolatility': self.safe_number(greeks, 'mark_iv'),
+            'bidPrice': self.safe_number(greeks, 'bid1_price'),
+            'askPrice': self.safe_number(greeks, 'ask1_price'),
+            'markPrice': self.safe_number(greeks, 'mark_price'),
+            'lastPrice': self.safe_number(greeks, 'last_price'),
+            'underlyingPrice': self.parse_number(market['info']['underlying_price']),
+            'info': greeks,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

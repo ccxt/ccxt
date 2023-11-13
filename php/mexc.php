@@ -127,8 +127,8 @@ class mexc extends Exchange {
                 ),
                 'www' => 'https://www.mexc.com/',
                 'doc' => array(
-                    'https://mxcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mxcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
+                    'https://mexcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
                 ),
                 'fees' => array(
                     'https://www.mexc.com/fee',
@@ -875,7 +875,7 @@ class mexc extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1274,10 +1274,10 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
-         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1348,7 +1348,7 @@ class mexc extends Exchange {
         return array( $price, $amount );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-$trades-list
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-$trades-list
@@ -1610,7 +1610,7 @@ class mexc extends Exchange {
         return $id;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-$data
          * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-$data
@@ -1724,7 +1724,7 @@ class mexc extends Exchange {
         );
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
@@ -1810,7 +1810,7 @@ class mexc extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
@@ -2422,7 +2422,7 @@ class mexc extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
@@ -2649,7 +2649,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -2736,7 +2736,7 @@ class mexc extends Exchange {
         }
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
@@ -3484,12 +3484,12 @@ class mexc extends Exchange {
         return $account;
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
-         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [$params->symbols] // required for margin, $market id's separated by commas
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
@@ -4175,7 +4175,7 @@ class mexc extends Exchange {
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by $network
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-$address-supporting-$network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-$address-supporting-$network
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$address-structure $address structures} indexed by the $network
@@ -4213,7 +4213,7 @@ class mexc extends Exchange {
 
     public function create_deposit_address(string $code, $params = array ()) {
         /**
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * create a $currency deposit address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
@@ -4253,7 +4253,7 @@ class mexc extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()) {
         /**
          * fetch the deposit address for a currency associated with this account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure address structure}
@@ -4277,10 +4277,10 @@ class mexc extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -4336,10 +4336,10 @@ class mexc extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -4756,7 +4756,7 @@ class mexc extends Exchange {
     public function transfer(string $code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from
@@ -4890,7 +4890,7 @@ class mexc extends Exchange {
     public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -4900,7 +4900,7 @@ class mexc extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $this->check_address($address);
         $this->load_markets();
@@ -4915,7 +4915,7 @@ class mexc extends Exchange {
         }
         if ($network !== null) {
             $request['network'] = $network;
-            $params = $this->omit($params, 'network');
+            $params = $this->omit($params, array( 'network', 'chain' ));
         }
         $response = $this->spotPrivatePostCapitalWithdrawApply (array_merge($request, $params));
         //
@@ -4959,7 +4959,7 @@ class mexc extends Exchange {
     public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * create a loan to borrow margin
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {string} $symbol unified $market $symbol
@@ -4991,7 +4991,7 @@ class mexc extends Exchange {
     public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {string} $symbol unified $market $symbol
@@ -5029,7 +5029,7 @@ class mexc extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch deposit and withdrawal fees
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|null} $codes returns fees for all currencies if null
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}
@@ -5128,7 +5128,7 @@ class mexc extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdrawal fees
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|null} $codes returns fees for all currencies if null
          * @param {array} [$params] extra parameters specific to the mexc3 api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure fee structures}

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1142,7 +1142,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseMarket (market) {
+    parseMarket (market): Market {
         //
         // spot
         //
@@ -1665,7 +1665,7 @@ export default class bitget extends Exchange {
         return tiers;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitget#fetchDeposits
@@ -1822,7 +1822,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitget#fetchWithdrawals
@@ -2219,7 +2219,7 @@ export default class bitget extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitget#fetchTickers
@@ -2770,7 +2770,7 @@ export default class bitget extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitget#fetchBalance

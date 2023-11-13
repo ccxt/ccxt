@@ -21,6 +21,7 @@ use ccxt\ExchangeNotAvailable;
 use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class kraken extends Exchange {
 
@@ -692,7 +693,7 @@ class kraken extends Exchange {
         return array( $price, $amount, $timestamp );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -797,7 +798,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -835,7 +836,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -882,7 +883,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1001,7 +1002,6 @@ class kraken extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
              * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
              * @param {string} $code unified $currency $code, default is null
@@ -1185,7 +1185,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -1263,7 +1263,7 @@ class kraken extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1982,10 +1982,9 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
              * fetch all unfilled currently open $orders
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
              * @param {string} $symbol unified $market $symbol
@@ -2016,10 +2015,9 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * fetches information on multiple closed $orders made by the user
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
@@ -2221,10 +2219,9 @@ class kraken extends Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
              * fetch all deposits made to an account
              * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
              * @param {string} $code unified $currency $code
@@ -2284,7 +2281,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account

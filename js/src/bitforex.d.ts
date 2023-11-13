@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitforex.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 /**
  * @class bitforex
  * @extends Exchange
@@ -16,7 +16,7 @@ export default class bitforex extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseOrderStatus(status: any): any;
     parseSide(sideId: any): "buy" | "sell";
     parseOrder(order: any, market?: any): Order;

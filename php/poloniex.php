@@ -400,7 +400,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.poloniex.com/#public-endpoints-$market-data-candles
@@ -624,7 +624,7 @@ class poloniex extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://docs.poloniex.com/#public-endpoints-market-data-ticker
@@ -794,7 +794,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.poloniex.com/#public-endpoints-$market-data-ticker
@@ -925,7 +925,7 @@ class poloniex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://docs.poloniex.com/#public-endpoints-$market-data-$trades
@@ -1173,7 +1173,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
@@ -1563,7 +1563,7 @@ class poloniex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
@@ -1626,7 +1626,7 @@ class poloniex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.poloniex.com/#public-endpoints-$market-data-order-book
@@ -1956,7 +1956,7 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of $deposits and $withdrawals
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
@@ -1980,7 +1980,7 @@ class poloniex extends Exchange {
         return $this->filter_by_currency_since_limit($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all $withdrawals made from an account
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
@@ -2125,7 +2125,7 @@ class poloniex extends Exchange {
         return $depositWithdrawFee;
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all $deposits made to an account
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records

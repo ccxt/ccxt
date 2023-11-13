@@ -600,7 +600,7 @@ class kuna extends Exchange {
         return $markets;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @see https://docs.kuna.io/docs/get-public-orders-book
@@ -687,7 +687,7 @@ class kuna extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
          * @see https://docs.kuna.io/docs/get-market-info-by-tickers
@@ -729,7 +729,7 @@ class kuna extends Exchange {
         return $this->parse_tickers($data, $symbols, $params);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.kuna.io/docs/get-$market-info-by-tickers
@@ -780,7 +780,7 @@ class kuna extends Exchange {
         return $this->fetch_order_book($symbol, $limit, $params);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://docs.kuna.io/docs/get-public-trades-book
@@ -899,7 +899,7 @@ class kuna extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the kuna api endpoint
@@ -1184,7 +1184,7 @@ class kuna extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.kuna.io/docs/get-active-client-orders-private
@@ -1243,7 +1243,7 @@ class kuna extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.kuna.io/docs/get-private-orders-history
@@ -1421,7 +1421,7 @@ class kuna extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made to an account
          * @see https://docs.kuna.io/docs/get-withdraw-history
@@ -1613,7 +1613,7 @@ class kuna extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://docs.kuna.io/docs/get-deposit-history
