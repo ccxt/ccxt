@@ -64,7 +64,7 @@ build_and_test_all () {
   fi
   ## install pyenv
   pyenv install 3.7 3.8 3.9 3.10 3.11
-  ppyenv local 3.7 3.8 3.9 3.10 3.11
+  pyenv local 3.7 3.8 3.9 3.10 3.11
   cd python && tox run-parallel && cd ..
   exit
 }
