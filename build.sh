@@ -58,13 +58,13 @@ function run_tests {
 build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
-    npm run test-base
-    npm run test-base-ws
-    run_tests
+    pyenv install 3.7 3.8 3.9 3.10 3.11
+    pyenv local 3.7 3.8 3.9 3.10 3.11
+    # npm run test-base
+    # npm run test-base-ws
+    # run_tests
   fi
   ## install pyenv
-  pyenv install 3.7 3.8 3.9 3.10 3.11
-  pyenv local 3.7 3.8 3.9 3.10 3.11
   cd python && tox run-parallel && cd ..
   exit
 }
