@@ -30,9 +30,9 @@ export default class bitrue extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': undefined, // has but unimplemented
-                'future': undefined,
+                'future': true,
                 'option': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createStopLimitOrder': true,
@@ -2235,6 +2235,49 @@ export default class bitrue extends Exchange {
         //     }
         //
         return this.parseOrder (data, market);
+    }
+
+    async cancelAllOrders (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        let response = undefined;
+        let data = undefined;
+        if (market['future']) {
+            const request = {
+                'contractName': market['id'],
+            };
+            if (this.isLinear (type, subType)) {
+                response = await this.fapiV2PrivatePostAllOpenOrders (this.extend (request, params));
+            } else if (this.isInverse (type, subType)) {
+                response = await this.dapiV2PrivatePostAllOpenOrders (this.extend (request, params));
+            }
+            data = this.safeValue (response, 'data', []);
+        } else {
+            throw new NotSupported (this.id + 'cancelAllOrders only support future markets');
+        }
+        //
+        // future
+        //
+        //      {
+        //          'code': '0',
+        //          'msg': 'Success',
+        //          'data': null
+        //      }
+        //
+        return this.parseOrders (data, market);
     }
 
     async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
