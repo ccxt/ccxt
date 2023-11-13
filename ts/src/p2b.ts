@@ -858,9 +858,7 @@ export default class p2b extends Exchange {
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires argument ' + symbol);
-        }
+        this.checkRequiredArgument ('cancelOrder', symbol, 'symbol');
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
