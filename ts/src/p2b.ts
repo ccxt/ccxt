@@ -112,8 +112,8 @@ export default class p2b extends Exchange {
                 'referral': '',  // TODO
                 'logo': 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
                 'api': {
-                    'public': ' https://api.p2pb2b.com/api/v2/public',
-                    'private': ' https://api.p2pb2b.com/api/v2',
+                    'public': 'https://api.p2pb2b.com/api/v2/public',
+                    'private': 'https://api.p2pb2b.com/api/v2',
                 },
                 'www': 'https://p2pb2b.com/',
                 'doc': 'https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md',
