@@ -31,6 +31,36 @@
                 "output": "{\"contract\":\"LTC_USDT\",\"size\":1,\"price\":\"50\"}"
             }
         ],
+        "editOrder": [
+            {
+                "description": "Edit amount on spot order",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/435305377913?currency_pair=LTC_USDT&account=spot&amount=0.11",
+                "input": [
+                  "435305377913",
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.11,
+                  null
+                ],
+                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"spot\",\"amount\":\"0.11\"}"
+            },
+            {
+                "description": "Edit price on swap order",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders/362934422366",
+                "input": [
+                  "362934422366",
+                  "LTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  null,
+                  55
+                ],
+                "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"price\":\"55\"}"
+              }
+        ],
         "fetchPositions": [
             {
                 "description": "Fetch positions without parameters (all usdt positions)",

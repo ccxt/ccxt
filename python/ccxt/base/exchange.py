@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.46'
+__version__ = '4.1.50'
 
 # -----------------------------------------------------------------------------
 
@@ -1890,6 +1890,9 @@ class Exchange(object):
     def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
+    def fetch_margin_mode(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
+
     def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
@@ -3693,6 +3696,9 @@ class Exchange(object):
     def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
 
+    def fetch_greeks(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
+
     def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         fetch history of deposits and withdrawals
@@ -4672,3 +4678,6 @@ class Exchange(object):
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_greeks(self, greeks, market=None):
+        raise NotSupported(self.id + ' parseGreeks() is not supported yet')

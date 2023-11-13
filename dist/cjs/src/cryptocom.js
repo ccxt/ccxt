@@ -55,6 +55,7 @@ class cryptocom extends cryptocom$1 {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,

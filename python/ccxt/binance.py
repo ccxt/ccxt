@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction, Greeks
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -93,6 +93,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchL3OrderBook': False,
                 'fetchLastPrices': True,
@@ -982,7 +983,9 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'um/order': 1,  # 0
+                        'um/conditional/order': 1,
                         'cm/order': 1,  # 0
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133,  # Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
                         'marginLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
                         'repayLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
@@ -1003,9 +1006,13 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'um/order': 1,  # 1
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1,  # 1
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1,  # 1
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,  # 1
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1,  # Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5,  # 5
                         'margin/orderList': 2,  # 2
@@ -2219,7 +2226,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         swap = False
         future = False
         option = False
@@ -3101,7 +3108,7 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
@@ -8771,3 +8778,76 @@ class binance(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.eapiPublicGetMark(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "BTC-231229-40000-C",
+        #             "markPrice": "2012",
+        #             "bidIV": "0.60236275",
+        #             "askIV": "0.62267244",
+        #             "markIV": "0.6125176",
+        #             "delta": "0.39111646",
+        #             "theta": "-32.13948531",
+        #             "gamma": "0.00004656",
+        #             "vega": "51.70062218",
+        #             "highPriceLimit": "6474",
+        #             "lowPriceLimit": "5"
+        #         }
+        #     ]
+        #
+        return self.parse_greeks(response[0], market)
+
+    def parse_greeks(self, greeks, market=None):
+        #
+        #     {
+        #         "symbol": "BTC-231229-40000-C",
+        #         "markPrice": "2012",
+        #         "bidIV": "0.60236275",
+        #         "askIV": "0.62267244",
+        #         "markIV": "0.6125176",
+        #         "delta": "0.39111646",
+        #         "theta": "-32.13948531",
+        #         "gamma": "0.00004656",
+        #         "vega": "51.70062218",
+        #         "highPriceLimit": "6474",
+        #         "lowPriceLimit": "5"
+        #     }
+        #
+        marketId = self.safe_string(greeks, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'delta': self.safe_number(greeks, 'delta'),
+            'gamma': self.safe_number(greeks, 'gamma'),
+            'theta': self.safe_number(greeks, 'theta'),
+            'vega': self.safe_number(greeks, 'vega'),
+            'rho': None,
+            'bidSize': None,
+            'askSize': None,
+            'bidImpliedVolatility': self.safe_number(greeks, 'bidIV'),
+            'askImpliedVolatility': self.safe_number(greeks, 'askIV'),
+            'markImpliedVolatility': self.safe_number(greeks, 'markIV'),
+            'bidPrice': None,
+            'askPrice': None,
+            'markPrice': self.safe_number(greeks, 'markPrice'),
+            'lastPrice': None,
+            'underlyingPrice': None,
+            'info': greeks,
+        }

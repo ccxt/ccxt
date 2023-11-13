@@ -574,7 +574,7 @@ class probit extends Exchange {
         return $this->parse_order_book($dataBySide, $market['symbol'], null, 'buy', 'sell', 'price', 'quantity');
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://docs-en.probit.com/reference/ticker
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market

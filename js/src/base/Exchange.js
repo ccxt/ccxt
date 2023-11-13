@@ -1345,6 +1345,9 @@ export default class Exchange {
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMarginMode() is not supported yet');
+    }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
@@ -3437,6 +3440,9 @@ export default class Exchange {
     async fetchOHLCVWs(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOHLCVWs() is not supported yet');
     }
+    async fetchGreeks(symbol, params = {}) {
+        throw new NotSupported(this.id + ' fetchGreeks() is not supported yet');
+    }
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -4596,6 +4602,9 @@ export default class Exchange {
         const sorted = this.sortBy(result, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    parseGreeks(greeks, market = undefined) {
+        throw new NotSupported(this.id + ' parseGreeks () is not supported yet');
     }
 }
 export { Exchange, };

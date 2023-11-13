@@ -1,64 +1,12 @@
 import Exchange from './abstract/bingx.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchSwapMarkets(params: any): Promise<any[]>;
-    parseMarket(market: any): {
-        id: string;
-        symbol: string;
-        base: any;
-        quote: any;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: string;
-        type: string;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: boolean;
-        inverse: boolean;
-        taker: any;
-        maker: any;
-        contractSize: number;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: number;
-            price: number;
-            base: any;
-            quote: any;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: number;
-            };
-            amount: {
-                min: number;
-                max: number;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: number;
-                max: number;
-            };
-        };
-        created: any;
-        info: any;
-    };
+    parseMarket(market: any): Market;
     fetchMarkets(params?: {}): Promise<any>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
@@ -107,7 +55,7 @@ export default class bingx extends Exchange {
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
