@@ -4,6 +4,10 @@
             "fetchOrder": [
                 {
                     "description": "Fetch swap limit canceled order",
+                    "input": [
+                        "8caeea8c-cf80-4b06-83e8-bb7df45fc122",
+                        "LTC/USDT"
+                    ],
                     "httpResponse": {
                       "retCode": 0,
                       "retMsg": "OK",
@@ -138,6 +142,7 @@
             "fetchOpenOrders": [
                 {
                     "description": "Fetch spot limit open orders with postOnly",
+                    "input": ["LTC/USDT"],
                     "httpResponse": [
                       {
                         "symbol": "LTCUSDT",
@@ -212,6 +217,7 @@
                 },
                 {
                     "description": "Swap open orders with postOnly",
+                    "input": ["LTC/USDT:USDT"],
                     "httpResponse": [
                       {
                         "orderId": 653277220,
@@ -297,6 +303,9 @@
             "fetchPositions": [
                 {
                     "method": "fetchPositions",
+                    "input": [
+                        ["LTC/USDT:USDT"]
+                    ],
                     "description": "Fetch linear position",
                     "httpResponse": [
                       {
@@ -366,7 +375,7 @@
                         "percentage": -59.96
                       }
                     ]
-                  }
+                }
             ]
     }
 }

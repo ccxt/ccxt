@@ -921,7 +921,7 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    assertStaticOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -962,6 +962,12 @@ export default class testMainClass extends baseMainTestClass {
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
+    assertStaticResponseOutput (exchange, computedResult, storedResult) {
+        const stringifiedComputed = jsonStringify (computedResult);
+        const stringifiedStored = jsonStringify (storedResult);
+        this.assertStaticError (stringifiedComputed === stringifiedStored, 'response mismatch', stringifiedStored, stringifiedComputed);
+    }
+
     sanitizeDataInput (input) {
         // remove nulls and replace with unefined instead
         if (input === undefined) {
@@ -995,11 +1001,25 @@ export default class testMainClass extends baseMainTestClass {
         }
         try {
             const callOutput = exchange.safeValue (data, 'output');
-            this.assertStaticOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
+            this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
         }
         catch (e) {
             this.staticTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
+            dump (errorMessage);
+        }
+    }
+
+    async testResponseStatically (exchange, method: string, data: object) {
+        const expectedResult = exchange.safeValue (data, 'parsedResponse');
+        const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
+        try {
+            const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+            this.assertStaticResponseOutput (mockedExchange, unifiedResult, expectedResult);
+        }
+        catch (e) {
+            this.staticTestsFailed = true;
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
     }
@@ -1032,7 +1052,22 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
-        return; // tbd
+        const exchange = this.initOfflineExchange (exchangeName);
+        const methods = exchange.safeValue (exchangeData, 'methods', {});
+        const methodsNames = Object.keys (methods);
+        for (let i = 0; i < methodsNames.length; i++) {
+            const method = methodsNames[i];
+            const results = methods[method];
+            for (let j = 0; j < results.length; j++) {
+                const result = results[j];
+                const description = exchange.safeValue (result, 'description');
+                if ((testName !== undefined) && (testName !== description)) {
+                    continue;
+                }
+                await this.testResponseStatically (exchange, method, result);
+            }
+        }
+        await close (exchange);
     }
 
     getNumberOfTestsFromExchange (exchange, exchangeData: object) {
@@ -1080,7 +1115,7 @@ export default class testMainClass extends baseMainTestClass {
         if (this.staticTestsFailed || this.responseTestsFailed) {
             exitScript (1);
         } else {
-            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static' + type + ' tests passed.';
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
             dump (successMessage);
             exitScript (0);
         }
