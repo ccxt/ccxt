@@ -1136,7 +1136,8 @@ class testMainClass extends baseMainTestClass {
                 $this->test_bitget(),
                 $this->test_mexc(),
                 $this->test_huobi(),
-                $this->test_woo()
+                $this->test_woo(),
+                $this->test_bitmart()
             );
             Async\await(Promise\all($promises));
             $successMessage = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
@@ -1362,6 +1363,23 @@ class testMainClass extends baseMainTestClass {
             $clientOrderIdSpot = $stopOrderRequest['brokerId'];
             assert (str_starts_with($clientOrderIdSpot, $id), 'brokerId does not start with id');
             Async\await(close ($woo));
+        }) ();
+    }
+
+    public function test_bitmart() {
+        return Async\async(function ()  {
+            $bitmart = $this->init_offline_exchange('bitmart');
+            $reqHeaders = null;
+            $id = 'CCXTxBitmart000';
+            assert ($bitmart->options['brokerId'] === $id, 'id not in options');
+            Async\await($bitmart->load_markets());
+            try {
+                Async\await($bitmart->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch (Exception $e) {
+                $reqHeaders = $bitmart->last_request_headers;
+            }
+            assert ($reqHeaders['X-BM-BROKER-ID'] === $id, 'id not in headers');
+            Async\await(close ($bitmart));
         }) ();
     }
 }

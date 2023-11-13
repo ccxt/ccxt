@@ -536,7 +536,7 @@ class yobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market

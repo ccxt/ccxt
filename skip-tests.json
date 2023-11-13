@@ -124,6 +124,8 @@
         }
     },
     "bit2c": {
+        "skip": "temporary certificate issues",
+        "until": "2023-11-25",
         "skipMethods": {
             "loadMarkets": {
                 "precision": "not provided",
@@ -646,6 +648,8 @@
         "skipMethods": {
             "loadMarkets": "precision key has an null value, but is expected to have a value| taker key missing from structure (markets are created from constructor .options, so needs to fill with default values in base)",
             "fetchTickers": {
+                "ask": "broken bid-ask",
+                "bid": "broken bid-ask",
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             }
         }

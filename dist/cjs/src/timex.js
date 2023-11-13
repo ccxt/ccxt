@@ -1185,7 +1185,7 @@ class timex extends timex$1 {
         const minBase = this.safeString(market, 'baseMinSize');
         const minAmount = Precise["default"].stringMax(amountIncrement, minBase);
         const priceIncrement = this.safeString(market, 'tickSize');
-        const minCost = this.safeString(market, 'quoteMinSize');
+        const minCost = this.safeNumber(market, 'quoteMinSize');
         return {
             'id': id,
             'symbol': base + '/' + quote,
