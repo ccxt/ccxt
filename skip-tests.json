@@ -1249,7 +1249,8 @@
             "loadMarkets": {
                 "taker":"is undefined",
                 "maker":"is undefined"
-            }
+            },
+            "fetchTrades": "requires order id"
         }
     },
     "paymium": {

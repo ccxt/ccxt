@@ -1209,7 +1209,7 @@ export default class p2b extends Exchange {
             'remaining': this.safeString (order, 'left'),
             'status': undefined,
             'fee': {
-                'currency': market['base'],
+                'currency': market['quote'],
                 'cost': this.safeString (order, 'dealFee'),
             },
             'trades': undefined,
