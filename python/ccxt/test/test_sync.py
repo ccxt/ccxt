@@ -989,7 +989,8 @@ class testMainClass(baseMainTestClass):
             self.test_mexc(),
             self.test_huobi(),
             self.test_woo(),
-            self.test_bitmart()
+            self.test_bitmart(),
+            self.test_coinex()
         ]
         (promises)
         successMessage = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
@@ -1182,6 +1183,19 @@ class testMainClass(baseMainTestClass):
             reqHeaders = bitmart.last_request_headers
         assert reqHeaders['X-BM-BROKER-ID'] == id, 'id not in headers'
         close(bitmart)
+
+    def test_coinex(self):
+        exchange = self.init_offline_exchange('coinex')
+        id = 'x-167673045'
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        spotOrderRequest = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(exchange.last_request_body)
+        clientOrderId = spotOrderRequest['client_id']
+        assert clientOrderId.startswith(id), 'clientOrderId does not start with id'
+        close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************
