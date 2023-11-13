@@ -490,7 +490,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'costmin'),
                         'max': undefined,
                     },
                 },
