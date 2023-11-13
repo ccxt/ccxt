@@ -2225,6 +2225,9 @@ export default class kraken extends Exchange {
         const request = {
             'asset': currency['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         const response = await this.privatePostDepositStatus (this.extend (request, params));
         //
         //     {  error: [],
