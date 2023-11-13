@@ -498,6 +498,7 @@ export default class coinmate extends Exchange {
             'tagTo': undefined,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,

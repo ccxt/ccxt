@@ -2064,6 +2064,8 @@ export default class coinlist extends Exchange {
             'status': undefined,
             'updated': undefined,
             'fee': fee,
+            'comment': this.safeString (transaction, 'description'),
+            'internal': undefined,
         };
     }
 

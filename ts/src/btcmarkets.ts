@@ -344,7 +344,8 @@ export default class btcmarkets extends Exchange {
             'currency': code,
             'status': status,
             'updated': lastUpdate,
-            'comment': undefined,
+            'comment': this.safeString (transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (fee),

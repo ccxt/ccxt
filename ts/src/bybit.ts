@@ -5169,6 +5169,8 @@ export default class bybit extends Exchange {
             'status': status,
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
         };
     }
 

@@ -1680,6 +1680,8 @@ export default class hollaex extends Exchange {
             'currency': currency['code'],
             'status': status,
             'updated': updated,
+            'comment': this.safeString (transaction, 'message'),
+            'internal': undefined,
             'fee': fee,
         };
     }

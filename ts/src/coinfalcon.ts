@@ -984,6 +984,8 @@ export default class coinfalcon extends Exchange {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),
             },
+            'internal': undefined,
+            'comment': undefined,
         };
     }
 

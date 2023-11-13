@@ -1417,6 +1417,7 @@ export default class bitopro extends Exchange {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.safeNumber (transaction, 'fee'),

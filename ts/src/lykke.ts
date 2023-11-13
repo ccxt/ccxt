@@ -1186,6 +1186,8 @@ export default class lykke extends Exchange {
             'currency': code,
             'status': undefined,
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

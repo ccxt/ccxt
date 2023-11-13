@@ -555,6 +555,7 @@ export default class btcalpha extends Exchange {
             'type': undefined,
             'status': this.parseTransactionStatus (statusId),
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'updated': undefined,
         };

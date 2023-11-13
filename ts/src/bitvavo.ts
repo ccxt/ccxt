@@ -1798,6 +1798,8 @@ export default class bitvavo extends Exchange {
             'updated': undefined,
             'fee': fee,
             'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
         };
     }
 

@@ -1373,6 +1373,8 @@ export default class bitpanda extends Exchange {
             'type': undefined,
             'updated': undefined,
             'txid': this.safeString (transaction, 'blockchain_transaction_id'),
+            'comment': undefined,
+            'internal': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,

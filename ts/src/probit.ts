@@ -5,7 +5,7 @@ import Exchange from './abstract/probit.js';
 import { ExchangeError, ExchangeNotAvailable, BadResponse, BadRequest, InvalidOrder, InsufficientFunds, AuthenticationError, InvalidAddress, RateLimitExceeded, DDoSProtection, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -240,7 +240,7 @@ export default class probit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}) : Promise<Market[]> {
         /**
          * @method
          * @name probit#fetchMarkets
@@ -305,8 +305,8 @@ export default class probit extends Exchange {
                 'option': false,
                 'active': !closed,
                 'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'linear': 'rfwf',
+                'inverse': 3,
                 'taker': this.parseNumber (taker),
                 'maker': this.parseNumber (maker),
                 'contractSize': undefined,
@@ -1615,6 +1615,8 @@ export default class probit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
             'info': transaction,
         };

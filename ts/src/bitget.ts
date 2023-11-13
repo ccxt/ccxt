@@ -1937,6 +1937,7 @@ export default class bitget extends Exchange {
             'tag': tag,
             'tagTo': tag,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

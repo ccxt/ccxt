@@ -1507,6 +1507,7 @@ export default class latoken extends Exchange {
             'status': status,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

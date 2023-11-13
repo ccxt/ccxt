@@ -135,7 +135,7 @@ export interface Ticker {
 export interface Transaction {
     info: any;
     id: string;
-    txid?: string;
+    txid: string;
     timestamp: number;
     datetime: string;
     address: string;
@@ -151,8 +151,8 @@ export interface Transaction {
     updated: number;
     fee: Fee;
     network: string,
-    comment?: string,
-    internal?: boolean
+    comment: string,
+    internal: boolean
 }
 
 export interface Tickers extends Dictionary<Ticker> {
