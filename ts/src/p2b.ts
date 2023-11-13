@@ -307,8 +307,8 @@ export default class p2b extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeString (limits, 'step_size'),
-                    'price': this.safeString (limits, 'tick_size'),
+                    'amount': this.safeNumber (limits, 'step_size'),
+                    'price': this.safeNumber (limits, 'tick_size'),
                     'base': this.parsePrecision (this.safeString (precision, 'stock')),
                     'quote': this.parsePrecision (this.safeString (precision, 'money')),
                 },
@@ -318,12 +318,12 @@ export default class p2b extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeString (limits, 'min_amount'),
-                        'max': Precise.stringEq (maxAmount, '0') ? undefined : maxAmount,
+                        'min': this.safeNumber (limits, 'min_amount'),
+                        'max': Precise.stringEq (maxAmount, '0') ? undefined : this.parseNumber (maxAmount),
                     },
                     'price': {
                         'min': this.safeString (limits, 'min_price'),
-                        'max': Precise.stringEq (maxPrice, '0') ? undefined : maxPrice,
+                        'max': Precise.stringEq (maxPrice, '0') ? undefined : this.parseNumber (maxPrice),
                     },
                     'cost': {
                         'min': undefined,
