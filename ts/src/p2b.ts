@@ -644,13 +644,13 @@ export default class p2b extends Exchange {
             'symbol': this.safeString (market, 'symbol'),
             'order': this.safeString2 (trade, 'dealOrderId', 'deal_order_id'),
             'type': undefined,
-            'side': this.safeString (trade, 'type'),
+            'side': this.safeString2 (trade, 'type', 'side'),
             'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'amount'),
             'cost': this.safeString (trade, 'deal'),
             'fee': {
-                'currency': market['base'],
+                'currency': market['quote'],
                 'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
             },
         }, market);
@@ -1019,15 +1019,9 @@ export default class p2b extends Exchange {
         await this.loadMarkets ();
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
-        if (symbol === undefined) {
-            throw new BadRequest (this.id + ' fetchClosedOrders must have a symbol argument');
-        }
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchClosedOrders must have a since argument');
-        }
-        if (until === undefined) {
-            throw new BadRequest (this.id + ' fetchClosedOrders must have an extra argument params["until"]');
-        }
+        this.checkRequiredArgument ('fetchMyTrades', symbol, 'symbol');
+        this.checkRequiredArgument ('fetchMyTrades', since, 'since');
+        this.checkRequiredArgument ('fetchMyTrades', until, 'until');
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
