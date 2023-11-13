@@ -1,11 +1,6 @@
 language: python
 dist: jammy
-python:
-- 3.7
-- 3.8
-- 3.9
-- 3.10
-- 3.11
+
 git:
   depth: 2
 cache:
@@ -23,11 +18,12 @@ before_install:
 - git checkout package.json package-lock.json
 - git config pull.rebase false
 - git fetch --depth=1 --no-tags --verbose --progress
-- pip install tox-travis cryptography requests ruff # common packages
+- pip install tox cryptography requests ruff # common packages
 - pip install twine # used to publish python package
 - pip install pyopenssl aiohttp # used to run real-time tests
 - php -i | grep php.ini
 - composer install
+
 script:
 - ./build.sh 2>&1
 - git checkout master composer.json
