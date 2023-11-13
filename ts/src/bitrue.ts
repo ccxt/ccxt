@@ -457,6 +457,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a [status structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#exchange-status-structure}
          */
@@ -483,6 +484,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -800,6 +802,8 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchMarkets
          * @description retrieves data on all markets for bitrue
+         * @see https://www.bitrue.com/api-docs#current-open-contract
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -968,6 +972,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+         * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
          * @param {string} [params.subType] 'linear', 'inverse'
@@ -1076,6 +1083,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+         * @see https://www.bitrue.com/api-docs#order-book
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
@@ -1103,7 +1113,7 @@ export default class bitrue extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 response = await this.dapiV1PublicGetDepth (this.extend (request, params));
             }
-        } else {
+        } else if (market['spot']) {
             const request = {
                 'symbol': market['id'],
             };
@@ -1114,6 +1124,8 @@ export default class bitrue extends Exchange {
                 request['limit'] = limit; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
             response = await this.spotV1PublicGetDepth (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchOrderBook only support spot & future markets');
         }
         //
         // spot
@@ -1220,6 +1232,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+         * @see https://www.bitrue.com/api-docs#ticker
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1242,12 +1257,14 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV1PublicGetTicker (this.extend (request, params));
             }
             data = response;
-        } else {
+        } else if (market['spot']) {
             const request = {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
             data = this.safeValue (response, 0, {});
+        } else {
+            throw new NotSupported (this.id + ' fetchTicker only support spot & future markets');
         }
         //
         // spot
@@ -1295,6 +1312,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
+         * @see https://www.bitrue.com/api-docs#kline-candlestick-data
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1330,7 +1350,7 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV1PublicGetKlines (this.extend (request, params));
             }
             data = response;
-        } else {
+        } else if (market['spot']) {
             const timeframesSpot = this.safeValue (timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
@@ -1348,6 +1368,8 @@ export default class bitrue extends Exchange {
             }
             response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
             data = this.safeValue (response, 'data', []);
+        } else {
+            throw new NotSupported (this.id + ' fetchOHLCV only support spot & future markets');
         }
         //
         // spot
@@ -1425,6 +1447,8 @@ export default class bitrue extends Exchange {
          * @name bitrue#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+         * @see https://www.bitrue.com/api-docs#ticker
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1450,11 +1474,13 @@ export default class bitrue extends Exchange {
             } else if (this.isInverse (type, subType)) {
                 response = await this.dapiV1PublicGetTicker (this.extend (request, params));
             }
-        } else {
+        } else if (market['spot']) {
             const request = {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTickerBookTicker (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchBidsAsks only support spot & future markets');
         }
         //
         // spot
@@ -1490,6 +1516,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+         * @see https://www.bitrue.com/api-docs#ticker
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -1515,10 +1544,12 @@ export default class bitrue extends Exchange {
                 }
                 response['symbol'] = market['id'];
                 data = [ response ];
-            } else {
+            } else if (market['spot']) {
                 request['symbol'] = market['id'];
                 response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
                 data = response;
+            } else {
+                throw new NotSupported (this.id + ' fetchTickers only support spot & future markets');
             }
         } else {
             response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
@@ -1673,6 +1704,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1692,7 +1724,7 @@ export default class bitrue extends Exchange {
             }
             response = await this.spotV1PublicGetTrades (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + 'fetchTrades only support spot markets');
+            throw new NotSupported (this.id + ' fetchTrades only support spot markets');
         }
         //
         // spot
@@ -1850,7 +1882,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#createOrder
          * @description create a trade order
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#signed-endpoint-examples-for-post-apiv1order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+         * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+         * @see @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1902,7 +1936,7 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV2PrivatePostOrder (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', '{}');
-        } else {
+        } else if (market['spot']) {
             request['symbol'] = market['id'];
             request['quantity'] = this.amountToPrecision (symbol, amount);
             const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
@@ -1921,6 +1955,8 @@ export default class bitrue extends Exchange {
             }
             response = await this.spotV1PrivatePostOrder (this.extend (request, params));
             data = response;
+        } else {
+            throw new NotSupported (this.id + ' createOrder only support spot & future markets');
         }
         //
         // spot
@@ -1951,6 +1987,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
+         * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -1983,10 +2022,12 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV2PrivateGetOrder (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', {});
-        } else {
+        } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOrder (this.extend (request, params));
             data = response;
+        } else {
+            throw new NotSupported (this.id + ' fetchOrder only support spot & future markets');
         }
         //
         // spot
@@ -2039,6 +2080,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -2048,7 +2090,7 @@ export default class bitrue extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
-            throw new NotSupported (this.id + 'fetchTrades only support spot markets');
+            throw new NotSupported (this.id + ' fetchClosedOrders only support spot markets');
         }
         const request = {
             'symbol': market['id'],
@@ -2094,6 +2136,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
+         * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2117,10 +2162,12 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV2PrivateGetOpenOrders (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', []);
-        } else {
+        } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOpenOrders (this.extend (request, params));
             data = response;
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders only support spot & future markets');
         }
         //
         // spot
@@ -2176,6 +2223,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+         * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
@@ -2209,10 +2259,12 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV2PrivatePostCancel (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', {});
-        } else {
+        } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateDeleteOrder (this.extend (request, params));
             data = response;
+        } else {
+            throw new NotSupported (this.id + ' cancelOrder only support spot & future markets');
         }
         //
         // spot
@@ -2242,6 +2294,8 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
@@ -2266,7 +2320,7 @@ export default class bitrue extends Exchange {
             }
             data = this.safeValue (response, 'data', []);
         } else {
-            throw new NotSupported (this.id + 'cancelAllOrders only support future markets');
+            throw new NotSupported (this.id + ' cancelAllOrders only support future markets');
         }
         //
         // future
@@ -2285,6 +2339,9 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
+         * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2317,10 +2374,12 @@ export default class bitrue extends Exchange {
                 response = await this.dapiV2PrivateGetMyTrades (this.extend (request, params));
             }
             data = this.safeValue (response, 'data', []);
-        } else {
+        } else if (market['spot']) {
             request['symbol'] = market['id'];
             response = await this.spotV2PrivateGetMyTrades (this.extend (request, params));
             data = response;
+        } else {
+            throw new NotSupported (this.id + ' fetchMyTrades only support spot & future markets');
         }
         //
         // spot
@@ -2375,6 +2434,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2447,6 +2507,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2639,6 +2700,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#withdraw
          * @description make a withdrawal
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
