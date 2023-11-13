@@ -68,7 +68,7 @@ export default class coinfalcon extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradinFee': false,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,

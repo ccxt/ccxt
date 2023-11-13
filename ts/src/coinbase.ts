@@ -65,7 +65,6 @@ export default class coinbase extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchL2OrderBook': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,

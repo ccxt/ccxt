@@ -53,7 +53,6 @@ export default class phemex extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistories': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
