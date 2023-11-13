@@ -1857,14 +1857,32 @@ export default class bitmex extends Exchange {
             'ordType': orderType,
             'text': brokerId,
         };
-        if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
-            const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice parameter for the ' + orderType + ' order type');
-            } else {
-                request['stopPx'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
-                params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        const customTriggerType = (orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched');
+        // support for unified trigger format
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        if ((triggerPrice !== undefined) && !customTriggerType) {
+            params = this.omit (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+            request['stopPx'] = parseFloat (this.priceToPrecision (symbol, triggerPrice));
+            const triggerIf = this.safeString (params, 'triggerIf');
+            this.checkRequiredArgument ('createOrder', triggerIf, 'triggerIf', [ 'above', 'below' ]);
+            this.checkRequiredArgument ('createOrder', side, 'side', [ 'buy', 'sell' ]);
+            if (type === 'limit') {
+                request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+                if (side === 'buy') {
+                    request['ordType'] = (triggerIf === 'above') ? 'StopLimit' : 'LimitIfTouched';
+                } else {
+                    request['ordType'] = (triggerIf === 'above') ? 'LimitIfTouched' : 'StopLimit';
+                }
+            } else if (type === 'market') {
+                if (side === 'buy') {
+                    request['ordType'] = (triggerIf === 'above') ? 'Stop' : 'MarketIfTouched';
+                } else {
+                    request['ordType'] = (triggerIf === 'above') ? 'MarketIfTouched' : 'Stop';
+                }
             }
+        } else if (customTriggerType && (triggerPrice === undefined)) {
+            // if exchange specific trigger types were provided
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice (stopPx|stopPrice) parameter for the ' + orderType + ' order type');
         }
         if ((orderType === 'Limit') || (orderType === 'StopLimit') || (orderType === 'LimitIfTouched')) {
             request['price'] = parseFloat (this.priceToPrecision (symbol, price));
