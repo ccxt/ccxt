@@ -23,7 +23,7 @@ interface Exchange {
     privateGetUserBitcoinAddress (params?: {}): Promise<implicitReturnType>;
     privateGetUser (params?: {}): Promise<implicitReturnType>;
     privateGetUserDeposit (params?: {}): Promise<implicitReturnType>;
-    privateGetUserDepositId (params?: {}): Promise<implicitReturnType>;
+    privateGetUserDepositsId (params?: {}): Promise<implicitReturnType>;
     privateGetUserWithdraw (params?: {}): Promise<implicitReturnType>;
     privateGetUserWithdrawalsId (params?: {}): Promise<implicitReturnType>;
     privatePostFutures (params?: {}): Promise<implicitReturnType>;
@@ -35,6 +35,9 @@ interface Exchange {
     privatePostUserTransfer (params?: {}): Promise<implicitReturnType>;
     privatePutFutures (params?: {}): Promise<implicitReturnType>;
     privatePutOptions (params?: {}): Promise<implicitReturnType>;
+    privateDeleteFutures (params?: {}): Promise<implicitReturnType>;
+    privateDeleteFuturesCloseAll (params?: {}): Promise<implicitReturnType>;
+    privateDeleteOptions (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
