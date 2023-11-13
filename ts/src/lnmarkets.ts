@@ -40,7 +40,7 @@ export default class lnmarkets extends Exchange {
                         'user/bitcoin/address',
                         'user',
                         'user/deposit',
-                        'user/deposit/{id}',
+                        'user/deposits/{id}',
                         'user/withdraw',
                         'user/withdrawals/{id}',
                     ],
@@ -55,6 +55,11 @@ export default class lnmarkets extends Exchange {
                     ],
                     'put': [
                         'futures',
+                        'options',
+                    ],
+                    'delete': [
+                        'futures',
+                        'futures/close-all',
                         'options',
                     ],
                 },
@@ -136,6 +141,52 @@ export default class lnmarkets extends Exchange {
          * @example bitcoinToSatoshi ('0.0001') // '10000'
          */
         return Precise.stringMul (amount, '100000000');
+    }
+
+    async closeAllPositions (symbol: string = 'BTC/USD:BTC') {
+        /**
+         * @method
+         * @name lnmarkets#closeAllPositions
+         * @description Closes all futures positions - Futures only.
+         * @see https://docs.lnmarkets.com/api/v2#tag/Futures/operation/futures-closeAllTrades
+         * @param {string} [symbol] - The symbol of the positions to close. Defaults to "BTC/USD:BTC".
+         * @returns {Promise<object[]>} An array of position structures
+         */
+        await this.loadMarkets ();
+        symbol = this.safeSymbol (symbol);
+        if (symbol !== 'BTC/USD:BTC') {
+            throw new BadSymbol ('Only BTC/USD:BTC is supported');
+        }
+        const response = await this.privateDeleteFuturesCloseAll ();
+        return this.parsePositions (response['trades'], [ 'BTC/USD:BTC' ]);
+    }
+
+    async closePosition (symbol: string, id: string) {
+        /**
+         * @method
+         * @name lnmarkets#closePosition
+         * @description Closes a futures position
+         * @see https://docs.lnmarkets.com/api/v2#tag/Futures/operation/futures-closeTrade
+         * @see https://docs.lnmarkets.com/api/v2#tag/Options/operation/options-closeTrade
+         * @param {string} symbol - The symbol of the position to close
+         * @param {string} id - The id of the position to close
+         * @returns {Promise<object>} A position structure
+         */
+        await this.loadMarkets ();
+        symbol = this.safeSymbol (symbol);
+        if (symbol !== 'BTC/USD:BTC') {
+            throw new BadSymbol ('Only BTC/USD:BTC is supported');
+        }
+        const request = {
+            'id': id,
+        };
+        if (symbol === 'BTC/USD:BTC') {
+            const response = await this.privateDeleteFutures (request);
+            return this.parsePosition (response, symbol);
+        } else {
+            const response = await this.privateDeleteOptions (request);
+            return this.parsePosition (response, symbol);
+        }
     }
 
     async createDepositAddress (code = 'BTC', params = {}) {
@@ -285,10 +336,11 @@ export default class lnmarkets extends Exchange {
         /**
          * @method
          * @name lnmarkets#costToPrecision
-         * @description Overrides the default costToPrecision method to use the cost precision instead of the price precision
+         * @description Overrides the default costToPrecision method.
+         *     Since cost precision is always 8 on LN Markets, this value is hardcoded,
+         *     which makes it easier to parse positions of expired options (e.g. when calling fetchClosedOrders)
          */
-        const market = this.market (symbol);
-        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['cost'], this.precisionMode, this.paddingMode);
+        return this.decimalToPrecision (cost, TRUNCATE, 8, this.precisionMode, this.paddingMode);
     }
 
     async editOrder (id: string, symbol, type, side, amount = undefined, price = undefined, params = {}): Promise<Order> {
@@ -328,7 +380,7 @@ export default class lnmarkets extends Exchange {
             }
             const request = {
                 'id': id,
-                'type': this.unCamelCase (this.safeString (params, 'type')),
+                'type': (this.safeString (params, 'type')).toLowerCase (),
                 'value': this.parseNumber (this.priceToPrecision (symbol, this.safeNumber (params, 'value'))),
             };
             const response = await this.privatePutFutures (request);
@@ -535,7 +587,7 @@ export default class lnmarkets extends Exchange {
          * @returns {Promise<object>} A transaction structure
          */
         await this.loadMarkets ();
-        const response = await this.privateGetUserDepositId ({ 'id': id });
+        const response = await this.privateGetUserDepositsId ({ 'id': id });
         return this.parseTransaction (response, undefined);
     }
 
