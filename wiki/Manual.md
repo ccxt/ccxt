@@ -3678,7 +3678,7 @@ if exchange.has['fetchOrder']:
     order = exchange.fetch_order(id)
     print(order)
 
-# Python 3.5+ asyncio (asynchronous)
+# Python 3.7+ asyncio (asynchronous)
 import asyncio
 import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:
