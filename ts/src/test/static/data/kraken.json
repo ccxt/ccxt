@@ -133,6 +133,28 @@
                 ],
                 "output": "nonce=1699460637341&asset=USDT"
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch deposit",
+                "method": "fetchDeposits",
+                "url": "https://api.kraken.com/0/private/DepositStatus",
+                "input": [
+                    "USDT"
+                ],
+                "output": "nonce=1699458295995&asset=USDT"
+            },
+            {
+                "description": "Fetch deposit",
+                "method": "fetchDeposits",
+                "url": "https://api.kraken.com/0/private/DepositStatus",
+                "input": [
+                    "USDT",
+                    1670935203
+
+                ],
+                "output": "nonce=1699458295995&asset=USDT&start=1670935203"
+            }
         ]
     }
 }

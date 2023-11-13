@@ -617,6 +617,25 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "reason": "cancelled_by_user"
         //    }
         //
+        //     {
+        //         feed: 'open_orders',
+        //         order: {
+        //         instrument: 'PF_XBTUSD',
+        //         time: 1698159920097,
+        //         last_update_time: 1699835622988,
+        //         qty: 1.1,
+        //         filled: 0,
+        //         limit_price: 20000,
+        //         stop_price: 0,
+        //         type: 'limit',
+        //         order_id: '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        //         direction: 0,
+        //         reduce_only: false
+        //         },
+        //         is_cancel: false,
+        //         reason: 'edited_by_user'
+        //     }
+        //
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
