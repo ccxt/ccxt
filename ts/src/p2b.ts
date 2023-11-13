@@ -1007,21 +1007,29 @@ export default class p2b extends Exchange {
          * @description fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} since the earliest time in ms to fetch orders for
+         * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
          * @param {int} [limit] 1-100, default=50
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @param {int} params.until the latest time in ms to fetch orders for
+         * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
          */
         await this.loadMarkets ();
-        const until = this.safeInteger (params, 'until');
+        let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         this.checkRequiredArgument ('fetchMyTrades', symbol, 'symbol');
-        this.checkRequiredArgument ('fetchMyTrades', since, 'since');
-        this.checkRequiredArgument ('fetchMyTrades', until, 'until');
+        if (until === undefined) {
+            if (since === undefined) {
+                until = this.milliseconds ();
+            } else {
+                until = since + 86400000;
+            }
+        }
+        if (since === undefined) {
+            since = until - 86400000;
+        }
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
@@ -1073,27 +1081,31 @@ export default class p2b extends Exchange {
          * @description fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
          * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market
          * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} since the earliest time in ms to fetch orders for
+         * @param {int} [since] the earliest time in ms to fetch orders for, default = params["until"] - 86400000
          * @param {int} [limit] 1-100, default=50
          * @param {object} [params] extra parameters specific to the p2b api endpoint
-         * @param {int} params.until the latest time in ms to fetch orders for
+         * @param {int} [params.until] the latest time in ms to fetch orders for, default = current timestamp or since + 86400000
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {int} [params.offset] 0-10000, default=0
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const until = this.safeInteger (params, 'until');
+        let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if (since === undefined) {
-            throw new BadRequest (this.id + ' fetchClosedOrders must have a since argument');
-        }
         if (until === undefined) {
-            throw new BadRequest (this.id + ' fetchClosedOrders must have an extra argument params["until"]');
+            if (since === undefined) {
+                until = this.milliseconds ();
+            } else {
+                until = since + 86400000;
+            }
+        }
+        if (since === undefined) {
+            since = until - 86400000;
         }
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
