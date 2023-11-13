@@ -1255,10 +1255,7 @@
     },
     "p2b": {
         "skipMethods": {
-            "loadMarkets": {
-                "taker":"is undefined",
-                "maker":"is undefined"
-            },
+            "loadMarkets": "invalid URL",
             "fetchTrades": "requires order id"
         }
     },
