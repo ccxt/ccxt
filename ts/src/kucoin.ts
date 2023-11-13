@@ -1776,8 +1776,8 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.kucoin.com/#get-part-order-book-aggregated
-         * @see https://docs.kucoin.com/#get-full-order-book-aggregated
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kucoin api endpoint
@@ -1787,7 +1787,6 @@ export default class kucoin extends Exchange {
         const market = this.market (symbol);
         const level = this.safeInteger (params, 'level', 2);
         const request = { 'symbol': market['id'] };
-        let method = 'publicGetMarketOrderbookLevelLevelLimit';
         const isAuthenticated = this.checkRequiredCredentials (false);
         let response = undefined;
         if (!isAuthenticated || limit !== undefined) {
@@ -1802,10 +1801,10 @@ export default class kucoin extends Exchange {
                 }
                 request['limit'] = limit ? limit : 100;
             }
+            response = await this.publicGetMarketOrderbookLevelLevelLimit (this.extend (request, params));
         } else {
-            method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
+            response = await this.privateGetMarketOrderbookLevel2 (this.extend (request, params));
         }
-        response = await this[method] (this.extend (request, params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
