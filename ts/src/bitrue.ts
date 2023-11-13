@@ -72,6 +72,7 @@ export default class bitrue extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -2297,7 +2298,7 @@ export default class bitrue extends Exchange {
          * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
          * @param {string} symbol unified market symbol of the market to cancel orders in
-         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -2863,7 +2864,7 @@ export default class bitrue extends Exchange {
          * @param {string} code unified currency code of the currency transferred
          * @param {int} [since] the earliest time in ms to fetch transfers for
          * @param {int} [limit] the maximum number of transfers structures to retrieve
-         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {int} [params.until] the latest time in ms to fetch transfers for
          * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
@@ -2920,7 +2921,7 @@ export default class bitrue extends Exchange {
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
          * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
          */
@@ -2942,6 +2943,46 @@ export default class bitrue extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseTransfer (data, currency);
+    }
+
+    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitrue#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the bitrue api endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('setLeverage', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setLeverage', market, params);
+        let response = undefined;
+        const request = {
+            'contractName': market['id'],
+            'leverage': leverage,
+        };
+        if (!market['future']) {
+            throw new NotSupported (this.id + ' setLeverage only support future markets');
+        }
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiV2PrivatePostLevelEdit (this.extend (request, params));
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiV2PrivatePostLevelEdit (this.extend (request, params));
+        }
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
