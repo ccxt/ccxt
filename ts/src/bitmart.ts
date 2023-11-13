@@ -363,7 +363,6 @@ export default class bitmart extends Exchange {
                     '58001': BadRequest, // 415, Unsupported Media Type
                     '59001': ExchangeError, // 500, User account not found
                     '59002': ExchangeError, // 500, Internal Server Error
-                    '53007': PermissionDenied, // {"message":"Please complete your personal verification(Advanced).","code":53007,"trace":"6591fc7b508845359d5fa442e3b3a4fb.52.16998965321206647","data":{}}
                     // contract errors
                     '40001': ExchangeError, // 400, Cloud account not found
                     '40002': ExchangeError, // 400, out_trade_no not found
@@ -400,6 +399,13 @@ export default class bitmart extends Exchange {
                     '40033': InvalidOrder, // 400, The plan order's life cycle is too short.
                     '40034': BadSymbol, // 400, This contract is not found
                     '53002': PermissionDenied, // 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53003': PermissionDenied, // 403 No permission, please contact the main account
+                    '53005': PermissionDenied, // 403 Don't have permission to access the interface
+                    '53006': PermissionDenied, // 403 Please complete your personal verification(Starter)
+                    '53007': PermissionDenied, // 403 Please complete your personal verification(Advanced)
+                    '53008': PermissionDenied, // 403 Services is not available in your countries and areas
+                    '53009': PermissionDenied, // 403 Your account has not yet completed the qr code certification, please complete first
+                    '53010': PermissionDenied, // 403 This account is restricted from borrowing
                 },
                 'broad': {},
             },
