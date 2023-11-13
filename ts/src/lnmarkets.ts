@@ -143,7 +143,7 @@ export default class lnmarkets extends Exchange {
         return Precise.stringMul (amount, '100000000');
     }
 
-    async closeAllPositions (symbol: string = 'BTC/USD:BTC') {
+    async closeAllPositions (symbol: string) {
         /**
          * @method
          * @name lnmarkets#closeAllPositions
@@ -378,9 +378,10 @@ export default class lnmarkets extends Exchange {
             if (amount !== undefined) {
                 throw new BadRequest ('Amount must not be provided');
             }
+            const typeString = this.safeString (params, 'type');
             const request = {
                 'id': id,
-                'type': (this.safeString (params, 'type')).toLowerCase (),
+                'type': typeString.toLowerCase (),
                 'value': this.parseNumber (this.priceToPrecision (symbol, this.safeNumber (params, 'value'))),
             };
             const response = await this.privatePutFutures (request);
