@@ -73,6 +73,7 @@ export default class bitrue extends Exchange {
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'setMargin': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -2983,6 +2984,58 @@ export default class bitrue extends Exchange {
             response = await this.dapiV2PrivatePostLevelEdit (this.extend (request, params));
         }
         return response;
+    }
+
+    parseMarginModification (data, market = undefined) {
+        return {
+            'info': data,
+            'type': undefined,
+            'amount': undefined,
+            'code': undefined,
+            'symbol': market['symbol'],
+            'status': undefined,
+        };
+    }
+
+    async setMargin (symbol: string, amount, params = {}) {
+        /**
+         * @method
+         * @name bitrue#setMargin
+         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+         * @param {string} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {object} [params] parameters specific to the bitrue api endpoint
+         * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['future']) {
+            throw new NotSupported (this.id + ' setMargin only support future markets');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('setMargin', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setMargin', market, params);
+        let response = undefined;
+        const request = {
+            'contractName': market['id'],
+            'amount': this.parseNumber (amount),
+        };
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiV2PrivatePostPositionMargin (this.extend (request, params));
+        } else if (this.isInverse (type, subType)) {
+            response = await this.dapiV2PrivatePostPositionMargin (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
+        return this.parseMarginModification (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
