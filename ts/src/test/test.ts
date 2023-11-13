@@ -30,7 +30,8 @@ class baseMainTestClass {
     lang = 'JS';
     idTests = false;
     staticTestsFailed = false;
-    staticTests = false;
+    responseTestsFailed = false;
+    requestTests = false;
     responseTests = false;
     info = false;
     verbose = false;
@@ -169,7 +170,7 @@ export default class testMainClass extends baseMainTestClass {
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
         this.idTests = getCliArgValue ('--idTests');
-        this.staticTests = getCliArgValue ('--static');
+        this.requestTests = getCliArgValue ('--requestTests');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
         this.debug = getCliArgValue ('--debug');
@@ -181,11 +182,11 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
         if (this.responseTests) {
-            await this.runMockResponseTests (exchangeId, symbol);
+            await this.runStaticResponseTests (exchangeId, symbol);
             return;
         }
-        if (this.staticTests) {
-            await this.runStaticTests (exchangeId, symbol); // symbol here is the testname
+        if (this.requestTests) {
+            await this.runStaticRequestTests (exchangeId, symbol); // symbol here is the testname
             return;
         }
         if (this.idTests) {
@@ -823,8 +824,7 @@ export default class testMainClass extends baseMainTestClass {
         return content;
     }
 
-    loadStaticData (targetExchange: string = undefined) {
-        const folder = this.rootDir + './ts/src/test/static/data/';
+    loadStaticData (folder: string, targetExchange: string = undefined) {
         const result = {};
         if (targetExchange) {
             // read a single exchange
@@ -1009,7 +1009,7 @@ export default class testMainClass extends baseMainTestClass {
         return initExchange (exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
     }
 
-    async testExchangeStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
+    async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         const exchange = this.initOfflineExchange (exchangeName);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
@@ -1031,6 +1031,10 @@ export default class testMainClass extends baseMainTestClass {
         await close (exchange);
     }
 
+    async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
+        return; // tbd
+    }
+
     getNumberOfTestsFromExchange (exchange, exchangeData: object) {
         let sum = 0;
         const methods = exchangeData['methods'];
@@ -1044,8 +1048,13 @@ export default class testMainClass extends baseMainTestClass {
         return sum;
     }
 
-    async runStaticTests (targetExchange: string = undefined, testName: string = undefined) {
-        const staticData = this.loadStaticData (targetExchange);
+    async runStaticRequestTests (targetExchange: string = undefined, testName: string = undefined) {
+        await this.runStaticTests ('request', targetExchange, testName);
+    }
+
+    async runStaticTests (type: string, targetExchange: string = undefined, testName: string = undefined) {
+        const folder = this.rootDir + './ts/src/test/static/' + type + '/';
+        const staticData = this.loadStaticData (folder, targetExchange);
         const exchanges = Object.keys (staticData);
         const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
         const promises = [];
@@ -1061,28 +1070,27 @@ export default class testMainClass extends baseMainTestClass {
             const exchangeData = staticData[exchangeName];
             const numberOfTests = this.getNumberOfTestsFromExchange (exchange, exchangeData);
             sum = exchange.sum (sum, numberOfTests);
-            promises.push (this.testExchangeStatically (exchangeName, exchangeData, testName));
+            if (type === 'request') {
+                promises.push (this.testExchangeRequestStatically (exchangeName, exchangeData, testName));
+            } else {
+                promises.push (this.testExchangeResponseStatically (exchangeName, exchangeData, testName));
+            }
         }
         await Promise.all (promises);
-        if (this.staticTestsFailed) {
+        if (this.staticTestsFailed || this.responseTestsFailed) {
             exitScript (1);
         } else {
-            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static tests passed.';
+            const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static' + type + ' tests passed.';
             dump (successMessage);
             exitScript (0);
         }
     }
 
-    async runMockResponseTests (exchangeName = undefined, test = undefined) {
+    async runStaticResponseTests (exchangeName = undefined, test = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
-        const exchange = this.initOfflineExchange ('binance');
-        const data = [ { 'orderId': 'teste' } ];
-        const mockedExchange = setFetchResponse (exchange, data);
-        // const order = await callOverridenMethod (mockedExchange, 'fetchOrders', [ 'BTC/USDT' ]);
-        const order = await mockedExchange.fetchOrders ('BTC/USDT');
-        dump (order);
+        await this.runStaticTests ('response', exchangeName, test);
     }
 
     async runBrokerIdTests () {
