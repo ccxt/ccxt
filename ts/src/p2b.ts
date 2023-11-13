@@ -723,9 +723,9 @@ export default class p2b extends Exchange {
         return [
             this.safeIntegerProduct (ohlcv, 0, 1000),
             this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 5),
         ];
     }
