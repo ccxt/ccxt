@@ -7037,6 +7037,7 @@ export default class okx extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
+        return undefined;
     }
 
     parseGreeks (greeks, market = undefined) {

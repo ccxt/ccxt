@@ -6755,6 +6755,7 @@ export default class gate extends Exchange {
                 return this.parseGreeks (entry, market);
             }
         }
+        return undefined;
     }
 
     parseGreeks (greeks, market = undefined) {
