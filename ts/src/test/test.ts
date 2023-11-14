@@ -64,7 +64,7 @@ function jsonParse (elem) {
 }
 
 function jsonStringify (elem) {
-    return JSON.stringify (elem);
+    return JSON.stringify (elem,  (k, v) => (v === undefined ? null : v)); // preserve undefined values and convert them to null
 }
 
 function getCliArgValue (arg) {
@@ -924,8 +924,12 @@ export default class testMainClass extends baseMainTestClass {
             }
         } else {
             // built-in types like strings, numbers, booleans
-            const messageError = 'output value mismatch:' + newOutput.toString () + ' != ' + storedOutput.toString ();
-            this.assertStaticError (newOutput === storedOutput, messageError, storedOutput, newOutput);
+            const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
+            const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
+            const newOutputString = newOutput ? newOutput.toString () : undefined;
+            const storedOutputString = storedOutput ? storedOutput.toString () : undefined;
+            const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
+            this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
         }
     }
 
@@ -971,9 +975,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     assertStaticResponseOutput (exchange, computedResult, storedResult) {
-        const stringifiedComputed = jsonStringify (computedResult);
-        const stringifiedStored = jsonStringify (storedResult);
-        this.assertStaticError (stringifiedComputed === stringifiedStored, 'response mismatch', stringifiedStored, stringifiedComputed);
+        this.assertNewAndStoredOutput (exchange, [], computedResult, storedResult);
     }
 
     sanitizeDataInput (input) {
@@ -1030,12 +1032,15 @@ export default class testMainClass extends baseMainTestClass {
             const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
+        setFetchResponse (exchange, undefined); // reset state
     }
 
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        return initExchange (exchangeName, { 'markets': markets, 'currencies': currencies,  'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const exchange = initExchange (exchangeName, { 'markets': markets,  'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        exchange.currencies = currencies; // not working in python if assigned  in the config dict
+        return exchange;
     }
 
     async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
