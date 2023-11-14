@@ -877,6 +877,7 @@ export default class coinbase extends Exchange {
         let v3Amount = this.safeString (trade, 'size');
         if (sizeInQuote) {
             // calculate base size
+            v3Cost = v3Amount;
             v3Amount = Precise.stringDiv (v3Amount, v3Price);
         }
         const v3FeeCost = this.safeString (trade, 'commission');
