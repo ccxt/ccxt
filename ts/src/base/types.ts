@@ -18,6 +18,8 @@ export interface Fee {
 
 export interface Market {
     id: string;
+    uppercaseId?: string;
+    lowercaseId?: string;
     symbol: string;
     base: string;
     quote: string;
@@ -36,6 +38,7 @@ export interface Market {
     contractSize?: number | undefined;
     linear?: boolean | undefined;
     inverse?: boolean | undefined;
+    quanto?: boolean;
     expiry?: number | undefined;
     expiryDatetime?: string | undefined;
     strike?: number | undefined;
