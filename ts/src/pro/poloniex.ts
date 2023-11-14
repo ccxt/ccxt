@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { BadRequest, AuthenticationError, ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
@@ -24,6 +24,15 @@ export default class poloniex extends poloniexRest {
                 'watchStatus': false,
                 'watchOrders': true,
                 'watchMyTrades': true,
+                'createOrderWs': true,
+                'editOrderWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'cancelOrderWs': undefined,
+                'cancelOrdersWs': undefined,
+                'cancelAllOrdersWs': undefined,
+                'fetchTradesWs': false,
+                'fetchBalanceWs': false,
             },
             'urls': {
                 'api': {
@@ -153,6 +162,105 @@ export default class poloniex extends poloniexRest {
         }
         const request = this.extend (subscribe, params);
         return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    async tradeRequest (name: string, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description Connects to a websocket channel
+         * @param {string} name name of the channel
+         * @param {string[]|undefined} symbols CCXT market symbols
+         * @param {object} [params] extra parameters specific to the poloniex api
+         * @returns {object} data from the websocket stream
+         */
+        const url = this.urls['api']['ws']['private'];
+        const messageHash = this.nonce ();
+        const subscribe = {
+            'id': messageHash,
+            'event': name,
+            'params': params,
+        };
+        return await this.watch (url, messageHash, subscribe, messageHash);
+    }
+
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#createOrderWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {string} [params.timeInForce] GTC (default), IOC, FOK
+         * @param {string} [params.clientOrderId] Maximum 64-character length.*
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [params.amount] quote units for the order
+         * @param {boolean} [params.allowBorrow] allow order to be placed by borrowing funds (Default: false)
+         * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
+         * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+        */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        let uppercaseType = type.toUpperCase ();
+        const uppercaseSide = side.toUpperCase ();
+        const isPostOnly = this.isPostOnly (uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
+        if (isPostOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (),
+        };
+        if ((uppercaseType === 'MARKET') && (uppercaseSide === 'BUY')) {
+            let quoteAmount = this.safeString (params, 'amount');
+            if (quoteAmount === undefined) {
+                if (price === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrderWs () requires a price argument for market buy orders');
+                }
+                const priceString = price.toString ();
+                const amountString = amount.toString ();
+                quoteAmount = Precise.stringMul (priceString, amountString);
+            }
+            request['amount'] = this.amountToPrecision (market['symbol'], quoteAmount);
+        } else {
+            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        return await this.tradeRequest ('createOrder', this.extend (request, params));
+    }
+
+    handleCreateOrder (client: Client, message) {
+        //
+        //    {
+        //        "id": "1234567",
+        //        "data": [{
+        //           "orderId": 205343650954092544,
+        //           "clientOrderId": "",
+        //           "message": "",
+        //           "code": 200
+        //        }]
+        //    }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const data = this.safeValue (message, 'data', []);
+        const orders = [];
+        for (let i = 0; i < data.length; i++) {
+            const order = data[i];
+            const parsedOrder = this.parseWsOrder (order);
+            orders.push (parsedOrder);
+        }
+        client.resolve (orders, messageHash);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -981,6 +1089,10 @@ export default class poloniex extends poloniexRest {
         client.resolve (trades, symbolMessageHash);
     }
 
+    handlePong (client: Client) {
+        client.lastPong = this.milliseconds ();
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -1011,10 +1123,23 @@ export default class poloniex extends poloniexRest {
             'trades': this.handleTrade,
             'orders': this.handleOrder,
             'balances': this.handleBalance,
+            'createOrder': this.handleCreateOrder,
+            'cancelOrder': this.handleCreateOrder,
+            'cancelAllOrders': this.handleCreateOrder,
+            'auth': this.handleAuthenticate,
         };
         const method = this.safeValue (methods, type);
         if (type === 'auth') {
             this.handleAuthenticate (client, message);
+        } else if (type === undefined) {
+            const data = this.safeValue (message, 'data');
+            const item = this.safeValue (data, 0);
+            const orderId = this.safeString (item, 'orderId');
+            if (orderId === '0') {
+                this.handleAuthenticate (client, item);
+            } else {
+                return this.handleCreateOrder (client, message);
+            }
         } else {
             const data = this.safeValue (message, 'data', []);
             const dataLength = data.length;
@@ -1026,9 +1151,26 @@ export default class poloniex extends poloniexRest {
 
     handleErrorMessage (client: Client, message) {
         //
-        // { message: 'Invalid channel value ["ordersss"]', event: 'error' }
+        //    {
+        //        message: 'Invalid channel value ["ordersss"]',
+        //        event: 'error'
+        //    }
+        //
+        //    {
+        //        "orderId": 0,
+        //        "clientOrderId": null,
+        //        "message": "Currency trade disabled",
+        //        "code": 21352
+        //    }
+        //
+        //    {
+        //       "event": "error",
+        //       "message": "Platform in maintenance mode"
+        //    }
+        //
         const event = this.safeString (message, 'event');
-        if (event === 'error') {
+        const orderId = this.safeString (message, 'orderId');
+        if ((event === 'error') || (orderId === '0')) {
             const error = this.safeString (message, 'message');
             throw new ExchangeError (this.id + ' error: ' + this.json (error));
         }
