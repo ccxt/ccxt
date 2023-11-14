@@ -319,7 +319,10 @@ export default class bitvavo extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
-        const currencies = await this.fetchCurrencies ();
+        let currencies = this.currencies;
+        if (this.currencies === undefined) {
+            currencies = await this.fetchCurrencies ();
+        }
         const currenciesById = this.indexBy (currencies, 'id');
         //
         //     [
