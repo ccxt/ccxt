@@ -2525,7 +2525,7 @@ export default class binance extends binanceRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol (marketId),
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'future'),
             'notional': undefined,
             'marginMode': this.safeString (position, 'mt'),
             'liquidationPrice': undefined,
