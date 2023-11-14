@@ -893,7 +893,7 @@ export default class testMainClass extends baseMainTestClass {
         return result;
     }
 
-    assertNewAndStoredOutput (exchange, skipKeys: string[], newOutput, storedOutput) {
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true) {
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
@@ -911,7 +911,7 @@ export default class testMainClass extends baseMainTestClass {
                 }
                 const storedValue = storedOutput[key];
                 const newValue = newOutput[key];
-                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue);
+                this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck);
             }
         } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
@@ -920,7 +920,7 @@ export default class testMainClass extends baseMainTestClass {
             for (let i = 0; i < storedOutput.length; i++) {
                 const storedItem = storedOutput[i];
                 const newItem = newOutput[i];
-                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem);
+                this.assertNewAndStoredOutput (exchange, skipKeys, newItem, storedItem, strictTypeCheck);
             }
         } else {
             // built-in types like strings, numbers, booleans
@@ -929,7 +929,22 @@ export default class testMainClass extends baseMainTestClass {
             const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
             const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
-            this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
+            if (strictTypeCheck) {
+                // upon building the request we want strict type check to make sure all the types are correct
+                // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
+            } else {
+                const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
+                const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
+                const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
+                if (isBoolean || isString || isUndefined)  {
+                    this.assertStaticError (newOutputString === storedOutputString, messageError, storedOutput, newOutput);
+                } else {
+                    const numericNewOutput =  exchange.parseToNumeric (newOutputString);
+                    const numericStoredOutput = exchange.parseToNumeric (storedOutputString);
+                    this.assertStaticError (numericNewOutput === numericStoredOutput, messageError, storedOutput, newOutput);
+                }
+            }
         }
     }
 
@@ -975,7 +990,7 @@ export default class testMainClass extends baseMainTestClass {
     }
 
     assertStaticResponseOutput (exchange, computedResult, storedResult) {
-        this.assertNewAndStoredOutput (exchange, [], computedResult, storedResult);
+        this.assertNewAndStoredOutput (exchange, [], computedResult, storedResult, false);
     }
 
     sanitizeDataInput (input) {
