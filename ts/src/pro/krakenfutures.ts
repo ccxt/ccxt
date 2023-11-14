@@ -3,11 +3,11 @@
 import krakenfuturesRest from '../krakenfutures.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { Int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -531,30 +531,17 @@ export default class krakenfutures extends krakenfuturesRest {
     parseWsOrderTrade (trade, market = undefined) {
         //
         //    {
-        //        "symbol": "BTC_USDT",
-        //        "type": "LIMIT",
-        //        "quantity": "1",
-        //        "orderId": "32471407854219264",
-        //        "tradeFee": "0",
-        //        "clientOrderId": "",
-        //        "accountType": "SPOT",
-        //        "feeCurrency": "",
-        //        "eventType": "place",
-        //        "source": "API",
-        //        "side": "BUY",
-        //        "filledQuantity": "0",
-        //        "filledAmount": "0",
-        //        "matchRole": "MAKER",
-        //        "state": "NEW",
-        //        "tradeTime": 0,
-        //        "tradeAmount": "0",
-        //        "orderAmount": "0",
-        //        "createTime": 1648708186922,
-        //        "price": "47112.1",
-        //        "tradeQty": "0",
-        //        "tradePrice": "0",
-        //        "tradeId": "0",
-        //        "ts": 1648708187469
+        //        "instrument": "PI_XBTUSD",
+        //        "time": 1567597581495,
+        //        "last_update_time": 1567597581495,
+        //        "qty": 102.0,
+        //        "filled": 0.0,
+        //        "limit_price": 10601.0,
+        //        "stop_price": 0.0,
+        //        "type": "limit",
+        //        "order_id": "fa9806c9-cba9-4661-9f31-8c5fd045a95d",
+        //        "direction": 0,
+        //        "reduce_only": false
         //    }
         //
         const timestamp = this.safeInteger (trade, 'tradeTime');
@@ -567,15 +554,15 @@ export default class krakenfutures extends krakenfuturesRest {
             'datetime': this.iso8601 (timestamp),
             'order': this.safeString (trade, 'orderId'),
             'type': this.safeStringLower (trade, 'type'),
-            'side': this.safeString (trade, 'side'),
-            'takerOrMaker': this.safeString (trade, 'matchRole'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'tradeAmount'), // ? tradeQty?
+            'side': undefined,
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'limit_price'),
+            'amount': undefined,
             'cost': undefined,
             'fee': {
                 'rate': undefined,
-                'cost': this.safeString (trade, 'tradeFee'),
-                'currency': this.safeString (trade, 'feeCurrency'),
+                'cost': undefined,
+                'currency': undefined,
             },
         }, market);
     }
@@ -660,58 +647,10 @@ export default class krakenfutures extends krakenfuturesRest {
             const marketId = this.safeString (order, 'instrument');
             const messageHash = 'orders';
             const symbol = this.safeSymbol (marketId);
-            const orderId = this.safeString (order, 'order_id');
-            const previousOrders = this.safeValue (orders.hashmap, symbol, {});
-            const previousOrder = this.safeValue (previousOrders, orderId);
-            const reason = this.safeString (message, 'reason');
-            if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
-                const parsed = this.parseWsOrder (order);
-                orders.append (parsed);
-                client.resolve (orders, messageHash);
-                client.resolve (orders, messageHash + ':' + symbol);
-            } else {
-                const trade = this.parseWsTrade (order);
-                if (previousOrder['trades'] === undefined) {
-                    previousOrder['trades'] = [];
-                }
-                previousOrder['trades'].push (trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
-                let totalCost = '0';
-                let totalAmount = '0';
-                const trades = previousOrder['trades'];
-                for (let i = 0; i < trades.length; i++) {
-                    const currentTrade = trades[i];
-                    totalCost = Precise.stringAdd (totalCost, this.numberToString (currentTrade['cost']));
-                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (currentTrade['amount']));
-                }
-                if (Precise.stringGt (totalAmount, '0')) {
-                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
-                }
-                previousOrder['cost'] = totalCost;
-                if (previousOrder['filled'] !== undefined) {
-                    const stringOrderFilled = this.numberToString (previousOrder['filled']);
-                    previousOrder['filled'] = Precise.stringAdd (stringOrderFilled, this.numberToString (trade['amount']));
-                    if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (this.numberToString (previousOrder['amount']), stringOrderFilled);
-                    }
-                }
-                if (previousOrder['fee'] === undefined) {
-                    previousOrder['fee'] = {
-                        'rate': undefined,
-                        'cost': '0',
-                        'currency': this.numberToString (trade['fee']['currency']),
-                    };
-                }
-                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
-                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
-                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
-                }
-                // update the newUpdates count
-                orders.append (this.safeOrder (previousOrder));
-                client.resolve (orders, messageHash + ':' + symbol);
-                client.resolve (orders, messageHash);
-            }
+            const parsed = this.handlePreviousOrder (order, orders, symbol);
+            orders.append (parsed);
+            client.resolve (orders, messageHash + ':' + symbol);
+            client.resolve (orders, messageHash);
         } else {
             const isCancel = this.safeValue (message, 'is_cancel');
             if (isCancel) {

@@ -4678,6 +4678,89 @@ export default class Exchange {
         return market;
     }
 
+    handlePreviousOrder (order, symbol: string, hasTradeStats: boolean = false): Order {
+        /**
+         * @ignore
+         * @method
+         * @desc *requires implementation of parseWsOrderTrade and parseWsOrder* used within handleOrder to parse an order with information calculated about the trades associated with the order
+         * @param {object} order the part of the response object containing order information
+         * @param {string} symbol unified CCXT market symbol
+         * @param {boolean} hasTradeStats true if data about a trade is contained within order
+         * @returns {Order} a parsed order with information calculated about the orders trades
+         */
+        const orders = this.orders;
+        const previousOrders = this.safeValue (orders.hashmap, symbol, {});
+        const parsedOrder = this.parseWsOrder (order);
+        const orderId = this.safeString (parsedOrder, 'orderId');
+        const previousOrder = this.safeValue (previousOrders, orderId);
+        if (previousOrder === undefined) {
+            return parsedOrder;
+        } else {
+            const trade = this.parseWsOrderTrade (order);
+            if (previousOrder['trades'] === undefined) {
+                previousOrder['trades'] = [];
+            }
+            if (hasTradeStats) {
+                previousOrder['trades'].push (trade);
+                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                let totalCost = '0';
+                let totalAmount = '0';
+                const trades = previousOrder['trades'];
+                for (let i = 0; i < trades.length; i++) {
+                    const item = trades[i];
+                    totalCost = Precise.stringAdd (totalCost, this.numberToString (item['cost'])) as string;
+                    totalAmount = Precise.stringAdd (totalAmount, this.numberToString (item['amount'])) as string;
+                }
+                if (Precise.stringGt (totalAmount, '0')) {
+                    previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
+                }
+                previousOrder['cost'] = totalCost;
+                if (previousOrder['filled'] !== undefined) {
+                    previousOrder['filled'] = Precise.stringAdd (this.numberToString (previousOrder['filled']), this.numberToString (trade['amount']));
+                    if (previousOrder['amount'] !== undefined) {
+                        previousOrder['remaining'] = Precise.stringSub (this.numberToString (previousOrder['amount']), this.numberToString (previousOrder['filled']));
+                    }
+                } else {
+                    previousOrder['filled'] = this.numberToString (trade['amount']);
+                }
+                if (previousOrder['fee'] === undefined) {
+                    previousOrder['fee'] = {
+                        'rate': undefined,
+                        'cost': '0',
+                        'currency': this.numberToString (trade['fee']['currency']),
+                    };
+                }
+                if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
+                    const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                    const stringTradeCost = this.numberToString (trade['fee']['cost']);
+                    previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
+                }
+                // update the newUpdates count
+            } else {
+                const parsedAmount = this.safeString (parsedOrder, 'amount');
+                const previousAmount = this.safeString (previousOrder, 'amount');
+                if ((parsedAmount !== undefined) && (previousAmount !== undefined)) {
+                    trade['amount'] = this.parseNumber (Precise.stringSub (parsedAmount, previousAmount));
+                }
+                const parsedCost = this.safeString (parsedOrder, 'cost');
+                const previousCost = this.safeString (previousOrder, 'cost');
+                if ((parsedCost !== undefined) && (previousCost !== undefined)) {
+                    trade['cost'] = this.parseNumber (Precise.stringSub (parsedCost, previousCost));
+                }
+                const previousFee = this.safeValue (previousOrder, 'fee');
+                const parsedFee = this.safeValue (parsedOrder, 'fee');
+                const previousFeeCost = this.safeString (previousFee, 'cost');
+                const parsedFeeCost = this.safeString (parsedFee, 'cost');
+                if ((previousFeeCost !== undefined) && (parsedFeeCost !== undefined)) {
+                    trade['fee']['cost'] = this.parseNumber (Precise.stringSub (parsedFeeCost, previousFeeCost));
+                }
+            }
+            previousOrder['trades'].push (trade);
+            previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+        }
+        return this.safeOrder (previousOrder);
+    }
+
     parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
