@@ -1,0 +1,839 @@
+{
+    "BTC": {
+        "info": {
+            "coin": "BTC",
+            "name": "BTC",
+            "networkList": [
+                {
+                    "name": "BTC",
+                    "network": "BTC",
+                    "isDefault": true,
+                    "minConfirm": "2",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00035",
+                    "withdrawMax": "1.37925",
+                    "withdrawMin": "0.0005"
+                },
+                {
+                    "name": "BTC",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00003",
+                    "withdrawMax": "1.37925",
+                    "withdrawMin": "0.00003000000000000001"
+                }
+            ]
+        },
+        "code": "BTC",
+        "id": "BTC",
+        "name": "BTC",
+        "active": true,
+        "withdraw": true,
+        "networks": {
+            "BTC": {
+                "info": {
+                    "name": "BTC",
+                    "network": "BTC",
+                    "isDefault": true,
+                    "minConfirm": "2",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00035",
+                    "withdrawMax": "1.37925",
+                    "withdrawMin": "0.0005"
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "fee": 0.00035,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.0005,
+                        "max": 1.37925
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "name": "BTC",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00003",
+                    "withdrawMax": "1.37925",
+                    "withdrawMin": "0.00003000000000000001"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "fee": 0.00035,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.00003000000000000001,
+                        "max": 1.37925
+                    }
+                }
+            }
+        },
+        "fee": 0.00035,
+        "limits": {
+            "amounts": {
+                "min": 0.0005,
+                "max": 1.37925
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "coin": "USDT",
+            "name": "USDT",
+            "networkList": [
+                {
+                    "name": "USDT",
+                    "network": "ERC20",
+                    "isDefault": false,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "6",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "25"
+                },
+                {
+                    "name": "USDT",
+                    "network": "TRC20",
+                    "isDefault": false,
+                    "minConfirm": "2",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "8"
+                },
+                {
+                    "name": "USDT",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDT",
+                    "network": "SOL",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "1.00000000000000000001"
+                },
+                {
+                    "name": "USDT",
+                    "network": "POLYGON",
+                    "isDefault": false,
+                    "minConfirm": "256",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDT",
+                    "network": "ARBITRUM",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "1.00000000000000000001"
+                },
+                {
+                    "name": "USDT",
+                    "network": "OPTIMISM",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "1.1"
+                }
+            ]
+        },
+        "code": "USDT",
+        "id": "USDT",
+        "name": "USDT",
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "USDT",
+                    "network": "ERC20",
+                    "isDefault": false,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "6",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "25"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 25,
+                        "max": 50000
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "name": "USDT",
+                    "network": "TRC20",
+                    "isDefault": false,
+                    "minConfirm": "2",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "8"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 8,
+                        "max": 50000
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "name": "USDT",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "10"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50000
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "name": "USDT",
+                    "network": "SOL",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "1.00000000000000000001"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 1,
+                        "max": 50000
+                    }
+                }
+            },
+            "POLYGON": {
+                "info": {
+                    "name": "USDT",
+                    "network": "POLYGON",
+                    "isDefault": false,
+                    "minConfirm": "256",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "10"
+                },
+                "id": "POLYGON",
+                "network": "POLYGON",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50000
+                    }
+                }
+            },
+            "ARBITRUM": {
+                "info": {
+                    "name": "USDT",
+                    "network": "ARBITRUM",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "1.00000000000000000001"
+                },
+                "id": "ARBITRUM",
+                "network": "ARBITRUM",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 1,
+                        "max": 50000
+                    }
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "name": "USDT",
+                    "network": "OPTIMISM",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "1.1"
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 1.1,
+                        "max": 50000
+                    }
+                }
+            }
+        },
+        "limits": {}
+    },
+    "LTC": {
+        "info": {
+            "coin": "LTC",
+            "name": "LTC",
+            "networkList": [
+                {
+                    "name": "LTC",
+                    "network": "BEP20",
+                    "isDefault": true,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0027",
+                    "withdrawMax": "707.1135",
+                    "withdrawMin": "0.00270000000000000001"
+                }
+            ]
+        },
+        "code": "LTC",
+        "id": "LTC",
+        "name": "LTC",
+        "active": true,
+        "withdraw": true,
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "name": "LTC",
+                    "network": "BEP20",
+                    "isDefault": true,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0027",
+                    "withdrawMax": "707.1135",
+                    "withdrawMin": "0.00270000000000000001"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "fee": 0.0027,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.0027,
+                        "max": 707.1135
+                    }
+                }
+            }
+        },
+        "fee": 0.0027,
+        "limits": {
+            "amounts": {
+                "min": 0.0027,
+                "max": 707.1135
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "coin": "ETH",
+            "name": "ETH",
+            "networkList": [
+                {
+                    "name": "ETH",
+                    "network": "ERC20",
+                    "isDefault": true,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0015",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.02"
+                },
+                {
+                    "name": "ETH",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00100000000000000001"
+                },
+                {
+                    "name": "ETH",
+                    "network": "ARBITRUM",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00010000000000000001"
+                },
+                {
+                    "name": "ETH",
+                    "network": "OPTIMISM",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00010000000000000001"
+                },
+                {
+                    "name": "ETH",
+                    "network": "ZKSYNCERA",
+                    "isDefault": false,
+                    "minConfirm": "32",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0.0003",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00030000000000000001"
+                },
+                {
+                    "name": "ETH",
+                    "network": "LINEA",
+                    "isDefault": false,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.002"
+                },
+                {
+                    "name": "ETH",
+                    "network": "BASE",
+                    "isDefault": false,
+                    "minConfirm": "32",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0002",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00020000000000000001"
+                },
+                {
+                    "name": "ETH",
+                    "network": "STARKNET",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00010000000000000001"
+                }
+            ]
+        },
+        "code": "ETH",
+        "id": "ETH",
+        "name": "ETH",
+        "active": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "ETH",
+                    "network": "ERC20",
+                    "isDefault": true,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0015",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.02"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.02,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "name": "ETH",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00100000000000000001"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.001,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "ARBITRUM": {
+                "info": {
+                    "name": "ETH",
+                    "network": "ARBITRUM",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00010000000000000001"
+                },
+                "id": "ARBITRUM",
+                "network": "ARBITRUM",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.0001,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "name": "ETH",
+                    "network": "OPTIMISM",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00010000000000000001"
+                },
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.0001,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "ZKSYNCERA": {
+                "info": {
+                    "name": "ETH",
+                    "network": "ZKSYNCERA",
+                    "isDefault": false,
+                    "minConfirm": "32",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0.0003",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00030000000000000001"
+                },
+                "id": "ZKSYNCERA",
+                "network": "ZKSYNCERA",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": false,
+                "limits": {
+                    "amounts": {
+                        "min": 0.00030000000000000003,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "LINEA": {
+                "info": {
+                    "name": "ETH",
+                    "network": "LINEA",
+                    "isDefault": false,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.002"
+                },
+                "id": "LINEA",
+                "network": "LINEA",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.002,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "BASE": {
+                "info": {
+                    "name": "ETH",
+                    "network": "BASE",
+                    "isDefault": false,
+                    "minConfirm": "32",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0002",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00020000000000000001"
+                },
+                "id": "BASE",
+                "network": "BASE",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.0002,
+                        "max": 24.627994
+                    }
+                }
+            },
+            "STARKNET": {
+                "info": {
+                    "name": "ETH",
+                    "network": "STARKNET",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0001",
+                    "withdrawMax": "24.627994",
+                    "withdrawMin": "0.00010000000000000001"
+                },
+                "id": "STARKNET",
+                "network": "STARKNET",
+                "fee": 0.0015,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.0001,
+                        "max": 24.627994
+                    }
+                }
+            }
+        },
+        "fee": 0.0015,
+        "limits": {
+            "amounts": {
+                "min": 0.02,
+                "max": 24.627994
+            }
+        }
+    },
+    "ADA": {
+        "info": {
+            "coin": "ADA",
+            "name": "ADA",
+            "networkList": [
+                {
+                    "name": "ADA",
+                    "network": "BEP20",
+                    "isDefault": true,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.54",
+                    "withdrawMax": "140449.43",
+                    "withdrawMin": "0.54000000000000000001"
+                },
+                {
+                    "name": "ADA",
+                    "network": "ADA",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "140449.43",
+                    "withdrawMin": "0.80000000000000000001"
+                }
+            ]
+        },
+        "code": "ADA",
+        "id": "ADA",
+        "name": "ADA",
+        "active": true,
+        "withdraw": true,
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "name": "ADA",
+                    "network": "BEP20",
+                    "isDefault": true,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.54",
+                    "withdrawMax": "140449.43",
+                    "withdrawMin": "0.54000000000000000001"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "fee": 0.54,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.54,
+                        "max": 140449.43
+                    }
+                }
+            },
+            "ADA": {
+                "info": {
+                    "name": "ADA",
+                    "network": "ADA",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "140449.43",
+                    "withdrawMin": "0.80000000000000000001"
+                },
+                "id": "ADA",
+                "network": "ADA",
+                "fee": 0.54,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.8,
+                        "max": 140449.43
+                    }
+                }
+            }
+        },
+        "fee": 0.54,
+        "limits": {
+            "amounts": {
+                "min": 0.54,
+                "max": 140449.43
+            }
+        }
+    },
+    "XRP": {
+        "info": {
+            "coin": "XRP",
+            "name": "XRP",
+            "networkList": [
+                {
+                    "name": "XRP",
+                    "network": "XRP",
+                    "isDefault": true,
+                    "minConfirm": "5",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawMax": "76852.13",
+                    "withdrawMin": "0.20000000000000000001"
+                },
+                {
+                    "name": "XRP",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.29",
+                    "withdrawMax": "76852.13",
+                    "withdrawMin": "0.29000000000000000001"
+                }
+            ]
+        },
+        "code": "XRP",
+        "id": "XRP",
+        "name": "XRP",
+        "active": true,
+        "withdraw": true,
+        "networks": {
+            "XRP": {
+                "info": {
+                    "name": "XRP",
+                    "network": "XRP",
+                    "isDefault": true,
+                    "minConfirm": "5",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawMax": "76852.13",
+                    "withdrawMin": "0.20000000000000000001"
+                },
+                "id": "XRP",
+                "network": "XRP",
+                "fee": 0.2,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.2,
+                        "max": 76852.13
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "name": "XRP",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.29",
+                    "withdrawMax": "76852.13",
+                    "withdrawMin": "0.29000000000000000001"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "fee": 0.2,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.29,
+                        "max": 76852.13
+                    }
+                }
+            }
+        },
+        "fee": 0.2,
+        "limits": {
+            "amounts": {
+                "min": 0.2,
+                "max": 76852.13
+            }
+        }
+    }
+}
