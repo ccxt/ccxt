@@ -40,7 +40,7 @@ import { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountS
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.1.49';
+const version = '4.1.51';
 
 (Exchange as any).ccxtVersion = version
 
@@ -82,7 +82,6 @@ import blockchaincom from  './src/blockchaincom.js'
 import btcalpha from  './src/btcalpha.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
-import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
 import cex from  './src/cex.js'
@@ -91,7 +90,6 @@ import coinbaseprime from  './src/coinbaseprime.js'
 import coinbasepro from  './src/coinbasepro.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
-import coinfalcon from  './src/coinfalcon.js'
 import coinlist from  './src/coinlist.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
@@ -255,7 +253,6 @@ const exchanges = {
     'btcalpha':               btcalpha,
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
-    'btctradeua':             btctradeua,
     'btcturk':                btcturk,
     'bybit':                  bybit,
     'cex':                    cex,
@@ -264,7 +261,6 @@ const exchanges = {
     'coinbasepro':            coinbasepro,
     'coincheck':              coincheck,
     'coinex':                 coinex,
-    'coinfalcon':             coinfalcon,
     'coinlist':               coinlist,
     'coinmate':               coinmate,
     'coinone':                coinone,
@@ -506,7 +502,6 @@ export {
     btcalpha,
     btcbox,
     btcmarkets,
-    btctradeua,
     btcturk,
     bybit,
     cex,
@@ -515,7 +510,6 @@ export {
     coinbasepro,
     coincheck,
     coinex,
-    coinfalcon,
     coinlist,
     coinmate,
     coinone,

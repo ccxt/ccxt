@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, Insuf
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -172,68 +172,67 @@ export default class btcalpha extends Exchange {
         //        },
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'currency1');
-            const quoteId = this.safeString (market, 'currency2');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const pricePrecision = this.safeString (market, 'price_precision');
-            const priceLimit = this.parsePrecision (pricePrecision);
-            const amountLimit = this.safeString (market, 'minimum_order_size');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
-                    'price': this.parseNumber (this.parsePrecision ((pricePrecision))),
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'name');
+        const baseId = this.safeString (market, 'currency1');
+        const quoteId = this.safeString (market, 'currency2');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const pricePrecision = this.safeString (market, 'price_precision');
+        const priceLimit = this.parsePrecision (pricePrecision);
+        const amountLimit = this.safeString (market, 'minimum_order_size');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
+                'price': this.parseNumber (this.parsePrecision ((pricePrecision))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.parseNumber (amountLimit),
-                        'max': this.safeNumber (market, 'maximum_order_size'),
-                    },
-                    'price': {
-                        'min': this.parseNumber (priceLimit),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.parseNumber (Precise.stringMul (priceLimit, amountLimit)),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.parseNumber (amountLimit),
+                    'max': this.safeNumber (market, 'maximum_order_size'),
                 },
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': this.parseNumber (priceLimit),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.parseNumber (Precise.stringMul (priceLimit, amountLimit)),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
@@ -555,6 +554,7 @@ export default class btcalpha extends Exchange {
             'type': undefined,
             'status': this.parseTransactionStatus (statusId),
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'updated': undefined,
         };

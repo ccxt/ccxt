@@ -1711,7 +1711,8 @@ export default class ascendex extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            let orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit (orderRequest, 'marginMode');
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol);
@@ -2632,6 +2633,7 @@ export default class ascendex extends Exchange {
                 'cost': this.parseNumber (feeCostString),
                 'rate': undefined,
             },
+            'internal': false,
         };
     }
 

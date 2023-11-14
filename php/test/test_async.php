@@ -1142,11 +1142,24 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function run_broker_id_tests() {
-        //  -----------------------------------------------------------------------------
-        //  --- Init of brokerId tests functions-----------------------------------------
-        //  -----------------------------------------------------------------------------
-        return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart()];
+        return Async\async(function ()  {
+            //  -----------------------------------------------------------------------------
+            //  --- Init of brokerId tests functions-----------------------------------------
+            //  -----------------------------------------------------------------------------
+            $promises = array(
+                $this->test_binance(),
+                $this->test_okx(),
+                $this->test_cryptocom(),
+                $this->test_bybit(),
+                $this->test_kucoin(),
+                $this->test_kucoinfutures(),
+                $this->test_bitget(),
+                $this->test_mexc(),
+                $this->test_huobi(),
+                $this->test_woo(),
+                $this->test_bitmart(),
+                $this->test_coinex()
+            );
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump($success_message);
@@ -1390,6 +1403,23 @@ class testMainClass extends baseMainTestClass {
             }
             assert($req_headers['X-BM-BROKER-ID'] === $id, 'id not in headers');
             Async\await(close($bitmart));
+        }) ();
+    }
+
+    public function test_coinex() {
+        return Async\async(function ()  {
+            $exchange = $this->init_offline_exchange('coinex');
+            $id = 'x-167673045';
+            assert ($exchange->options['brokerId'] === $id, 'id not in options');
+            $spotOrderRequest = null;
+            try {
+                Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
+            } catch (Exception $e) {
+                $spotOrderRequest = json_parse ($exchange->last_request_body);
+            }
+            $clientOrderId = $spotOrderRequest['client_id'];
+            assert (str_starts_with($clientOrderId, $id), 'clientOrderId does not start with id');
+            Async\await(close ($exchange));
         }) ();
     }
 }

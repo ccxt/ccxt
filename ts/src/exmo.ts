@@ -2306,6 +2306,7 @@ export default class exmo extends Exchange {
             'tagTo': undefined,
             'updated': this.safeTimestamp (transaction, 'updated'),
             'comment': comment,
+            'internal': undefined,
             'fee': fee,
         };
     }

@@ -213,12 +213,6 @@ class kraken(Exchange, ImplicitAPI):
                         'WithdrawInfo': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
-                        # staking
-                        'Stake': 3,
-                        'Unstake': 3,
-                        'Staking/Assets': 3,
-                        'Staking/Pending': 3,
-                        'Staking/Transactions': 3,
                         # sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -508,7 +502,7 @@ class kraken(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'costmin'),
                         'max': None,
                     },
                 },
@@ -1219,7 +1213,7 @@ class kraken(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):
         """
-        :see: https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1522,7 +1516,7 @@ class kraken(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol, type, side, amount=None, price=None, params={}):
         """
         edit a trade order
-        :see: https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+        :see: https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2066,6 +2060,8 @@ class kraken(Exchange, ImplicitAPI):
         request = {
             'asset': currency['id'],
         }
+        if since is not None:
+            request['start'] = since
         response = self.privatePostDepositStatus(self.extend(request, params))
         #
         #     { error: [],
@@ -2274,7 +2270,7 @@ class kraken(Exchange, ImplicitAPI):
             request = {
                 'asset': currency['id'],
                 'amount': amount,
-                # 'address': address,  # they don't allow withdrawals to direct addresses
+                'address': address,
             }
             response = self.privatePostWithdraw(self.extend(request, params))
             #

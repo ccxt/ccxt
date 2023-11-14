@@ -911,7 +911,20 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart()]
+        promises = [
+            self.test_binance(),
+            self.test_okx(),
+            self.test_cryptocom(),
+            self.test_bybit(),
+            self.test_kucoin(),
+            self.test_kucoinfutures(),
+            self.test_bitget(),
+            self.test_mexc(),
+            self.test_huobi(),
+            self.test_woo(),
+            self.test_bitmart(),
+            self.test_coinex()
+        ]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump(success_message)
@@ -1105,6 +1118,19 @@ class testMainClass(baseMainTestClass):
             req_headers = bitmart.last_request_headers
         assert req_headers['X-BM-BROKER-ID'] == id, 'id not in headers'
         close(bitmart)
+
+    def test_coinex(self):
+        exchange = self.init_offline_exchange('coinex')
+        id = 'x-167673045'
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        spotOrderRequest = None
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(exchange.last_request_body)
+        clientOrderId = spotOrderRequest['client_id']
+        assert clientOrderId.startswith(id), 'clientOrderId does not start with id'
+        close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

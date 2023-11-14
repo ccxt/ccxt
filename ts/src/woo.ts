@@ -1910,6 +1910,7 @@ export default class woo extends Exchange {
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.safeTimestamp (transaction, 'updated_time'),
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
             'network': undefined,
         };

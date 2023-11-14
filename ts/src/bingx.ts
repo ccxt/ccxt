@@ -503,13 +503,9 @@ export default class bingx extends Exchange {
         //         }
         //    }
         //
-        const result = [];
         const data = this.safeValue (response, 'data');
         const markets = this.safeValue (data, 'symbols', []);
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
     async fetchSwapMarkets (params) {
@@ -537,12 +533,8 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const result = [];
-        const markets = this.safeValue (response, 'data');
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        const markets = this.safeValue (response, 'data', []);
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market): Market {
@@ -2872,6 +2864,7 @@ export default class bingx extends Exchange {
                 'cost': this.safeNumber (transaction, 'transactionFee'),
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
 

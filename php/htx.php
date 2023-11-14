@@ -35,6 +35,7 @@ class htx extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => null,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
@@ -629,7 +630,7 @@ class htx extends Exchange {
                             // Future Trade Interface
                             'api/v1/contract-cancel-after' => 1,
                             'api/v1/contract_order' => 1,
-                            'v1/contract_batchorder' => 1,
+                            'api/v1/contract_batchorder' => 1,
                             'api/v1/contract_cancel' => 1,
                             'api/v1/contract_cancelall' => 1,
                             'api/v1/contract_switch_lever_rate' => 1,
@@ -4606,7 +4607,41 @@ class htx extends Exchange {
         //         "trade_partition" => "USDT"
         //     }
         //
-        $id = $this->safe_string_2($order, 'id', 'order_id_str');
+        // spot => createOrders
+        //
+        //     array(
+        //         array(
+        //             "order-$id" => 936847569789079,
+        //             "client-$order-$id" => "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //         ),
+        //         {
+        //             "client-$order-$id" => "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //             "err-code" => "account-frozen-balance-insufficient-error",
+        //             "err-msg" => "trade account balance is not enough, left => `89`"
+        //         }
+        //     )
+        //
+        // swap and future => createOrders
+        //
+        //     array(
+        //         array(
+        //             "index" => 2,
+        //             "err_code" => 1047,
+        //             "err_msg" => "Insufficient margin available."
+        //         ),
+        //         {
+        //             "order_id" => 1172923090632953857,
+        //             "index" => 1,
+        //             "order_id_str" => "1172923090632953857"
+        //         }
+        //     )
+        //
+        $rejectedCreateOrders = $this->safe_string_2($order, 'err_code', 'err-code');
+        $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
+        if ($rejectedCreateOrders !== null) {
+            $status = 'rejected';
+        }
+        $id = $this->safe_string_n($order, array( 'id', 'order_id_str', 'order-id' ));
         $side = $this->safe_string($order, 'direction');
         $type = $this->safe_string($order, 'order_price_type');
         if (is_array($order) && array_key_exists('type', $order)) {
@@ -4614,7 +4649,6 @@ class htx extends Exchange {
             $side = $orderType[0];
             $type = $orderType[1];
         }
-        $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_n($order, array( 'created_at', 'created-at', 'create_date' ));
@@ -4654,7 +4688,10 @@ class htx extends Exchange {
         $average = $this->safe_string($order, 'trade_avg_price');
         $trades = $this->safe_value($order, 'trades');
         $reduceOnlyInteger = $this->safe_integer($order, 'reduce_only');
-        $reduceOnly = ($reduceOnlyInteger === 0) ? false : true;
+        $reduceOnly = null;
+        if ($reduceOnlyInteger !== null) {
+            $reduceOnly = ($reduceOnlyInteger === 0) ? false : true;
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -4682,57 +4719,18 @@ class htx extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the huobi api endpoint
-         * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
-         * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
-         * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
-         * @param {float} [$params->takeProfitPrice] *contract only* the $price a take-profit order is triggered at
-         * @param {string} [$params->operator] *spot and margin only* gte or lte, trigger $price condition
-         * @param {string} [$params->offset] *contract only* 'open', 'close', or 'both', required in hedge mode
-         * @param {bool} [$params->postOnly] *contract only* true or false
-         * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
-         * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
-         */
-        $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        if ($marketType === 'spot') {
-            return $this->create_spot_order($symbol, $type, $side, $amount, $price, $query);
-        } else {
-            return $this->create_contract_order($symbol, $type, $side, $amount, $price, $query);
-        }
-    }
-
-    public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_spot_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @ignore
-         * create a spot trade order
-         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order
+         * helper function to build $request
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @param {array} [$params] extra parameters specific to the htx api endpoint
+         * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
+         * @return {array} $request to be sent to the exchange
          */
         $this->load_markets();
         $this->load_accounts();
@@ -4825,51 +4823,21 @@ class htx extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
-        $response = $this->spotPrivatePostV1OrderOrdersPlace (array_merge($request, $params));
-        //
-        // spot
-        //
-        //     array("status":"ok","data":"438398393065481")
-        //
-        $id = $this->safe_string($response, 'data');
-        return $this->safe_order(array(
-            'info' => $response,
-            'id' => $id,
-            'timestamp' => null,
-            'datetime' => null,
-            'lastTradeTimestamp' => null,
-            'status' => null,
-            'symbol' => null,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
-            'cost' => null,
-            'trades' => null,
-            'fee' => null,
-            'clientOrderId' => null,
-            'average' => null,
-        ), $market);
+        return array_merge($request, $params);
     }
 
-    public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
          * @ignore
-         * create a contract trade order
-         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order
-         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order
-         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order
+         * helper function to build $request
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the huobi api endpoint
+         * @param {array} [$params] extra parameters specific to the htx api endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
-         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         * @return {array} $request to be sent to the exchange
          */
         $market = $this->market($symbol);
         $request = array(
@@ -4937,51 +4905,103 @@ class htx extends Exchange {
             $request['lever_rate'] = $leverRate;
             $request['order_price_type'] = $type;
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ));
         $broker = $this->safe_value($this->options, 'broker', array());
         $brokerId = $this->safe_string($broker, 'id');
         $request['channel_code'] = $brokerId;
+        $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce' ));
+        return array_merge($request, $params);
+    }
+
+    public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the huobi api endpoint
+         * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
+         * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
+         * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] *contract only* the $price a take-profit order is triggered at
+         * @param {string} [$params->operator] *spot and margin only* gte or lte, trigger $price condition
+         * @param {string} [$params->offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {bool} [$params->postOnly] *contract only* true or false
+         * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
+         * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
+        $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
+        $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
+        $isStop = $triggerPrice !== null;
+        $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
+        $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
         $response = null;
-        if ($market['linear']) {
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
-            $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
-            if ($marginMode === 'isolated') {
-                if ($isStop) {
-                    $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerOrder (array_merge($request, $params));
-                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                    $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslOrder (array_merge($request, $params));
-                } else {
-                    $response = $this->contractPrivatePostLinearSwapApiV1SwapOrder (array_merge($request, $params));
+        if ($market['spot']) {
+            $spotRequest = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = $this->spotPrivatePostV1OrderOrdersPlace ($spotRequest);
+        } else {
+            $contractRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
+            if ($market['linear']) {
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                if ($marginMode === 'isolated') {
+                    if ($isStop) {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapTriggerOrder ($contractRequest);
+                    } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapTpslOrder ($contractRequest);
+                    } else {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapOrder ($contractRequest);
+                    }
+                } elseif ($marginMode === 'cross') {
+                    if ($isStop) {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder ($contractRequest);
+                    } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder ($contractRequest);
+                    } else {
+                        $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOrder ($contractRequest);
+                    }
                 }
-            } elseif ($marginMode === 'cross') {
-                if ($isStop) {
-                    $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (array_merge($request, $params));
-                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                    $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (array_merge($request, $params));
-                } else {
-                    $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossOrder (array_merge($request, $params));
-                }
-            }
-        } elseif ($market['inverse']) {
-            if ($market['swap']) {
-                if ($isStop) {
-                    $response = $this->contractPrivatePostSwapApiV1SwapTriggerOrder (array_merge($request, $params));
-                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                    $response = $this->contractPrivatePostSwapApiV1SwapTpslOrder (array_merge($request, $params));
-                } else {
-                    $response = $this->contractPrivatePostSwapApiV1SwapOrder (array_merge($request, $params));
-                }
-            } elseif ($market['future']) {
-                if ($isStop) {
-                    $response = $this->contractPrivatePostApiV1ContractTriggerOrder (array_merge($request, $params));
-                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
-                    $response = $this->contractPrivatePostApiV1ContractTpslOrder (array_merge($request, $params));
-                } else {
-                    $response = $this->contractPrivatePostApiV1ContractOrder (array_merge($request, $params));
+            } elseif ($market['inverse']) {
+                if ($market['swap']) {
+                    if ($isStop) {
+                        $response = $this->contractPrivatePostSwapApiV1SwapTriggerOrder ($contractRequest);
+                    } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+                        $response = $this->contractPrivatePostSwapApiV1SwapTpslOrder ($contractRequest);
+                    } else {
+                        $response = $this->contractPrivatePostSwapApiV1SwapOrder ($contractRequest);
+                    }
+                } elseif ($market['future']) {
+                    if ($isStop) {
+                        $response = $this->contractPrivatePostApiV1ContractTriggerOrder ($contractRequest);
+                    } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
+                        $response = $this->contractPrivatePostApiV1ContractTpslOrder ($contractRequest);
+                    } else {
+                        $response = $this->contractPrivatePostApiV1ContractOrder ($contractRequest);
+                    }
                 }
             }
         }
+        //
+        // spot
+        //
+        //     array("status":"ok","data":"438398393065481")
+        //
+        // swap and future
         //
         //     {
         //         "status" => "ok",
@@ -5008,7 +5028,28 @@ class htx extends Exchange {
         //
         $data = null;
         $result = null;
-        if ($isStopLossTriggerOrder) {
+        if ($market['spot']) {
+            return $this->safe_order(array(
+                'info' => $response,
+                'id' => $this->safe_string($response, 'data'),
+                'timestamp' => null,
+                'datetime' => null,
+                'lastTradeTimestamp' => null,
+                'status' => null,
+                'symbol' => null,
+                'type' => $type,
+                'side' => $side,
+                'price' => $price,
+                'amount' => $amount,
+                'filled' => null,
+                'remaining' => null,
+                'cost' => null,
+                'trades' => null,
+                'fee' => null,
+                'clientOrderId' => null,
+                'average' => null,
+            ), $market);
+        } elseif ($isStopLossTriggerOrder) {
             $data = $this->safe_value($response, 'data', array());
             $result = $this->safe_value($data, 'sl_order', array());
         } elseif ($isTakeProfitTriggerOrder) {
@@ -5018,6 +5059,133 @@ class htx extends Exchange {
             $result = $this->safe_value($response, 'data', array());
         }
         return $this->parse_order($result, $market);
+    }
+
+    public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-$orders
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-$orders
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-$orders
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-$orders
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-$orders
+         * @param {array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the htx api endpoint
+         * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+         */
+        $this->load_markets();
+        $ordersRequests = array();
+        $symbol = null;
+        $market = null;
+        $marginMode = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            if ($symbol === null) {
+                $symbol = $marketId;
+            } else {
+                if ($symbol !== $marketId) {
+                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                }
+            }
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
+            $currentMarginMode = $marginResult[0];
+            if ($currentMarginMode !== null) {
+                if ($marginMode === null) {
+                    $marginMode = $currentMarginMode;
+                } else {
+                    if ($marginMode !== $currentMarginMode) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same margin mode (isolated or cross)');
+                    }
+                }
+            }
+            $market = $this->market($symbol);
+            $orderRequest = null;
+            if ($market['spot']) {
+                $orderRequest = $this->create_spot_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            } else {
+                $orderRequest = $this->create_contract_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            }
+            $orderRequest = $this->omit($orderRequest, 'marginMode');
+            $ordersRequests[] = $orderRequest;
+        }
+        $request = array();
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->privatePostOrderBatchOrders ($ordersRequests);
+        } else {
+            $request['orders_data'] = $ordersRequests;
+            if ($market['linear']) {
+                $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
+                if ($marginMode === 'isolated') {
+                    $response = $this->contractPrivatePostLinearSwapApiV1SwapBatchorder ($request);
+                } elseif ($marginMode === 'cross') {
+                    $response = $this->contractPrivatePostLinearSwapApiV1SwapCrossBatchorder ($request);
+                }
+            } elseif ($market['inverse']) {
+                if ($market['swap']) {
+                    $response = $this->contractPrivatePostSwapApiV1SwapBatchorder ($request);
+                } elseif ($market['future']) {
+                    $response = $this->contractPrivatePostApiV1ContractBatchorder ($request);
+                }
+            }
+        }
+        //
+        // spot
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             array(
+        //                 "order-id" => 936847569789079,
+        //                 "client-order-id" => "AA03022abc3a55e82c-0087-4fc2-beac-112fdebb1ee9"
+        //             ),
+        //             {
+        //                 "client-order-id" => "AA03022abcdb3baefb-3cfa-4891-8009-082b3d46ca82",
+        //                 "err-code" => "account-frozen-balance-insufficient-error",
+        //                 "err-msg" => "trade account balance is not enough, left => `89`"
+        //             }
+        //         )
+        //     }
+        //
+        // swap and future
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => {
+        //             "errors" => array(
+        //                 {
+        //                     "index" => 2,
+        //                     "err_code" => 1047,
+        //                     "err_msg" => "Insufficient margin available."
+        //                 }
+        //             ),
+        //             "success" => array(
+        //                 array(
+        //                     "order_id" => 1172923090632953857,
+        //                     "index" => 1,
+        //                     "order_id_str" => "1172923090632953857"
+        //                 }
+        //             )
+        //         ),
+        //         "ts" => 1699688256671
+        //     }
+        //
+        $result = null;
+        if ($market['spot']) {
+            $result = $this->safe_value($response, 'data', array());
+        } else {
+            $data = $this->safe_value($response, 'data', array());
+            $success = $this->safe_value($data, 'success', array());
+            $errors = $this->safe_value($data, 'errors', array());
+            $result = $this->array_concat($success, $errors);
+        }
+        return $this->parse_orders($result, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

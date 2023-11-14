@@ -1782,11 +1782,8 @@ export default class coinsph extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger (transaction, 'transferType') as any;
-        if (internal !== undefined) {
-            internal = internal ? true : false;
-        }
         const network = this.safeString (transaction, 'network');
+        const internal = network === 'Internal';
         return {
             'info': transaction,
             'id': id,
@@ -1806,6 +1803,7 @@ export default class coinsph extends Exchange {
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': undefined,
             'fee': fee,
         };
     }

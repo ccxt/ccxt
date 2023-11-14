@@ -1633,7 +1633,7 @@ export default class digifinex extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams ('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
@@ -1644,7 +1644,8 @@ export default class digifinex extends Exchange {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            let orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit (orderRequest, 'marginMode');
             ordersRequests.push (orderRequest);
         }
         const market = this.market (symbol);
@@ -2801,6 +2802,8 @@ export default class digifinex extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

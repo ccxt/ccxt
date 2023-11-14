@@ -457,6 +457,8 @@ export default class timex extends Exchange {
             'currency': this.safeCurrencyCode (undefined, currency),
             'status': 'ok',
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': undefined,
         };
     }

@@ -577,6 +577,25 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        "reason": "cancelled_by_user"
         #    }
         #
+        #     {
+        #         "feed": 'open_orders',
+        #         "order": {
+        #         "instrument": 'PF_XBTUSD',
+        #         "time": 1698159920097,
+        #         "last_update_time": 1699835622988,
+        #         "qty": 1.1,
+        #         "filled": 0,
+        #         "limit_price": 20000,
+        #         "stop_price": 0,
+        #         "type": 'limit',
+        #         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        #         "direction": 0,
+        #         "reduce_only": False
+        #         },
+        #         "is_cancel": False,
+        #         "reason": 'edited_by_user'
+        #     }
+        #
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
@@ -590,7 +609,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             orderId = self.safe_string(order, 'order_id')
             previousOrders = self.safe_value(orders.hashmap, symbol, {})
             previousOrder = self.safe_value(previousOrders, orderId)
-            if previousOrder is None:
+            reason = self.safe_string(message, 'reason')
+            if (previousOrder is None) or (reason == 'edited_by_user'):
                 parsed = self.parse_ws_order(order)
                 orders.append(parsed)
                 client.resolve(orders, messageHash)
@@ -612,9 +632,10 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     previousOrder['average'] = Precise.string_div(totalCost, totalAmount)
                 previousOrder['cost'] = totalCost
                 if previousOrder['filled'] is not None:
-                    previousOrder['filled'] = Precise.string_add(previousOrder['filled'], self.number_to_string(trade['amount']))
+                    stringOrderFilled = self.number_to_string(previousOrder['filled'])
+                    previousOrder['filled'] = Precise.string_add(stringOrderFilled, self.number_to_string(trade['amount']))
                     if previousOrder['amount'] is not None:
-                        previousOrder['remaining'] = Precise.string_sub(previousOrder['amount'], previousOrder['filled'])
+                        previousOrder['remaining'] = Precise.string_sub(self.number_to_string(previousOrder['amount']), stringOrderFilled)
                 if previousOrder['fee'] is None:
                     previousOrder['fee'] = {
                         'rate': None,

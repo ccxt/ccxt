@@ -1059,11 +1059,24 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart()];
-        Promise\all($promises);
-        $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
-        dump($success_message);
-        exit_script(0);
+        $promises = array(
+            $this->test_binance(),
+            $this->test_okx(),
+            $this->test_cryptocom(),
+            $this->test_bybit(),
+            $this->test_kucoin(),
+            $this->test_kucoinfutures(),
+            $this->test_bitget(),
+            $this->test_mexc(),
+            $this->test_huobi(),
+            $this->test_woo(),
+            $this->test_bitmart(),
+            $this->test_coinex()
+        );
+        $promises;
+        $successMessage = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
+        dump ($successMessage);
+        exit_script (0);
     }
 
     public function test_binance() {
@@ -1281,6 +1294,21 @@ class testMainClass extends baseMainTestClass {
         }
         assert($req_headers['X-BM-BROKER-ID'] === $id, 'id not in headers');
         close($bitmart);
+    }
+
+    public function test_coinex() {
+        $exchange = $this->init_offline_exchange('coinex');
+        $id = 'x-167673045';
+        assert ($exchange->options['brokerId'] === $id, 'id not in options');
+        $spotOrderRequest = null;
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (Exception $e) {
+            $spotOrderRequest = json_parse ($exchange->last_request_body);
+        }
+        $clientOrderId = $spotOrderRequest['client_id'];
+        assert (str_starts_with($clientOrderId, $id), 'clientOrderId does not start with id');
+        close ($exchange);
     }
 }
 

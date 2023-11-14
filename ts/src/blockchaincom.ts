@@ -901,7 +901,7 @@ export default class blockchaincom extends Exchange {
         }
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'txhash');
-        const result = {
+        return {
             'info': transaction,
             'id': id,
             'txid': txid,
@@ -920,9 +920,9 @@ export default class blockchaincom extends Exchange {
             'status': this.parseTransactionState (state), // 'status':   'pending',   // 'ok', 'failed', 'canceled', string
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
-        return result;
     }
 
     async fetchWithdrawalWhitelist (params = {}) {

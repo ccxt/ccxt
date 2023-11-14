@@ -702,6 +702,7 @@ export default class zaif extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

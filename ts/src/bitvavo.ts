@@ -22,7 +22,7 @@ export default class bitvavo extends Exchange {
             'countries': [ 'NL' ], // Netherlands
             'rateLimit': 60, // 1000 requests per minute
             'version': 'v2',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -1798,6 +1798,8 @@ export default class bitvavo extends Exchange {
             'updated': undefined,
             'fee': fee,
             'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
         };
     }
 
