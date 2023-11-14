@@ -56,7 +56,7 @@ class baseMainTestClass {
     public $request_tests = false;
     public $root_dir = root_dir;
     public $env_vars = envVars;
-    public $rootDir_for_skips = rootDirForSkips;
+    public $root_dir_for_skips = rootDirForSkips;
     public $ext = ext;
     public $LOG_CHARS_LENGTH = LOG_CHARS_LENGTH;
 }
@@ -864,7 +864,7 @@ class testMainClass extends baseMainTestClass {
         return $result;
     }
 
-    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output) {
+    public function assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output, $strict_type_check = true) {
         if ((is_array($stored_output)) && (is_array($new_output))) {
             $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
@@ -882,7 +882,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 $stored_value = $stored_output[$key];
                 $new_value = $new_output[$key];
-                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value);
+                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check);
             }
         } elseif (gettype($stored_output) === 'array' && array_keys($stored_output) === array_keys(array_keys($stored_output)) && (gettype($new_output) === 'array' && array_keys($new_output) === array_keys(array_keys($new_output)))) {
             $stored_array_length = count($stored_output);
@@ -891,12 +891,31 @@ class testMainClass extends baseMainTestClass {
             for ($i = 0; $i < count($stored_output); $i++) {
                 $stored_item = $stored_output[$i];
                 $new_item = $new_output[$i];
-                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_item, $stored_item);
+                $this->assert_new_and_stored_output($exchange, $skip_keys, $new_item, $stored_item, $strict_type_check);
             }
         } else {
             // built-in types like strings, numbers, booleans
-            $message_error = 'output value mismatch:' . ((string) $new_output) . ' != ' . ((string) $stored_output);
-            $this->assert_static_error($new_output === $stored_output, $message_error, $stored_output, $new_output);
+            $sanitized_new_output = (!$new_output) ? null : $new_output; // we store undefined as nulls in the json file so we need to convert it back
+            $sanitized_stored_output = (!$stored_output) ? null : $stored_output;
+            $new_output_string = $sanitized_new_output ? ((string) $sanitized_new_output) : 'undefined';
+            $stored_output_string = $sanitized_stored_output ? ((string) $sanitized_stored_output) : 'undefined';
+            $message_error = 'output value mismatch:' . $new_output_string . ' != ' . $stored_output_string;
+            if ($strict_type_check) {
+                // upon building the request we want strict type check to make sure all the types are correct
+                // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output);
+            } else {
+                $is_boolean = (is_bool($sanitized_new_output)) || (is_bool($sanitized_stored_output));
+                $is_string = (is_string($sanitized_new_output)) || (is_string($sanitized_stored_output));
+                $is_undefined = ($sanitized_new_output === null) || ($sanitized_stored_output === null); // undefined is a perfetly valid value
+                if ($is_boolean || $is_string || $is_undefined) {
+                    $this->assert_static_error($new_output_string === $stored_output_string, $message_error, $stored_output, $new_output);
+                } else {
+                    $numeric_new_output = $exchange->parse_to_numeric($new_output_string);
+                    $numeric_stored_output = $exchange->parse_to_numeric($stored_output_string);
+                    $this->assert_static_error($numeric_new_output === $numeric_stored_output, $message_error, $stored_output, $new_output);
+                }
+            }
         }
     }
 
@@ -940,10 +959,8 @@ class testMainClass extends baseMainTestClass {
         $this->assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output);
     }
 
-    public function assert_static_response_output($exchange, $computed_result, $stored_result) {
-        $stringified_computed = json_stringify($computed_result);
-        $stringified_stored = json_stringify($stored_result);
-        $this->assert_static_error($stringified_computed === $stringified_stored, 'response mismatch', $stringified_stored, $stringified_computed);
+    public function assert_static_response_output($exchange, $skip_keys, $computed_result, $stored_result) {
+        $this->assert_new_and_stored_output($exchange, $skip_keys, $computed_result, $stored_result, false);
     }
 
     public function sanitize_data_input($input) {
@@ -987,28 +1004,27 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
-    public function test_response_statically($exchange, $method, $data) {
-        return Async\async(function () use ($exchange, $method, $data) {
+    public function test_response_statically($exchange, $method, $skip_keys, $data) {
+        return Async\async(function () use ($exchange, $method, $skip_keys, $data) {
             $expected_result = $exchange->safe_value($data, 'parsedResponse');
             $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
             try {
                 $unified_result = Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
-                print_r('Hereeee');
-                $this->assert_static_response_output($mocked_exchange, $unified_result, $expected_result);
+                $this->assert_static_response_output($mocked_exchange, $skip_keys, $unified_result, $expected_result);
             } catch(Exception $e) {
                 $this->request_tests_failed = true;
                 $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
                 dump($error_message);
             }
+            set_fetch_response($exchange, null); // reset state
         }) ();
     }
 
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
-        return init_exchange($exchange_name, array(
+        $exchange = init_exchange($exchange_name, array(
             'markets' => $markets,
-            'currencies' => $currencies,
             'rateLimit' => 1,
             'httpsProxy' => 'http://fake:8080',
             'apiKey' => 'key',
@@ -1026,6 +1042,8 @@ class testMainClass extends baseMainTestClass {
                 'leverageBrackets' => array(),
             ),
         ));
+        $exchange->currencies = $currencies; // not working in python if assigned  in the config dict
+        return $exchange;
     }
 
     public function test_exchange_request_statically($exchange_name, $exchange_data, $test_name = null) {
@@ -1068,7 +1086,8 @@ class testMainClass extends baseMainTestClass {
                     if (($test_name !== null) && ($test_name !== $description)) {
                         continue;
                     }
-                    Async\await($this->test_response_statically($exchange, $method, $result));
+                    $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                    Async\await($this->test_response_statically($exchange, $method, $skip_keys, $result));
                 }
             }
             Async\await(close($exchange));
@@ -1142,24 +1161,11 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function run_broker_id_tests() {
-        return Async\async(function ()  {
-            //  -----------------------------------------------------------------------------
-            //  --- Init of brokerId tests functions-----------------------------------------
-            //  -----------------------------------------------------------------------------
-            $promises = array(
-                $this->test_binance(),
-                $this->test_okx(),
-                $this->test_cryptocom(),
-                $this->test_bybit(),
-                $this->test_kucoin(),
-                $this->test_kucoinfutures(),
-                $this->test_bitget(),
-                $this->test_mexc(),
-                $this->test_huobi(),
-                $this->test_woo(),
-                $this->test_bitmart(),
-                $this->test_coinex()
-            );
+        //  -----------------------------------------------------------------------------
+        //  --- Init of brokerId tests functions-----------------------------------------
+        //  -----------------------------------------------------------------------------
+        return Async\async(function () {
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_huobi(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump($success_message);
@@ -1407,19 +1413,19 @@ class testMainClass extends baseMainTestClass {
     }
 
     public function test_coinex() {
-        return Async\async(function ()  {
+        return Async\async(function () {
             $exchange = $this->init_offline_exchange('coinex');
             $id = 'x-167673045';
-            assert ($exchange->options['brokerId'] === $id, 'id not in options');
-            $spotOrderRequest = null;
+            assert($exchange->options['brokerId'] === $id, 'id not in options');
+            $spot_order_request = null;
             try {
                 Async\await($exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000));
-            } catch (Exception $e) {
-                $spotOrderRequest = json_parse ($exchange->last_request_body);
+            } catch(Exception $e) {
+                $spot_order_request = json_parse($exchange->last_request_body);
             }
-            $clientOrderId = $spotOrderRequest['client_id'];
-            assert (str_starts_with($clientOrderId, $id), 'clientOrderId does not start with id');
-            Async\await(close ($exchange));
+            $client_order_id = $spot_order_request['client_id'];
+            assert(str_starts_with($client_order_id, $id), 'clientOrderId does not start with id');
+            Async\await(close($exchange));
         }) ();
     }
 }
