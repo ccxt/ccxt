@@ -1887,7 +1887,7 @@ export default class bitrue extends Exchange {
          * @description create a trade order
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
          * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-         * @see @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1896,7 +1896,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
-         *
+         * @param {decimal|undefined} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {decimal} [params.icebergQty]
          * @param {long} [params.recvWindow]
@@ -1932,7 +1932,8 @@ export default class bitrue extends Exchange {
             request['volume'] = this.parseNumber (amount);
             request['positionType'] = 1;
             request['open'] = 'OPEN';
-            request['leverage'] = 5;
+            request['leverage'] = this.safeNumber (params, 'leverage');
+            params = this.omit (params, 'leverage');
             if (this.isLinear (marketType, subType)) {
                 response = await this.fapiV2PrivatePostOrder (this.extend (request, params));
             } else if (this.isInverse (marketType, subType)) {
@@ -2027,6 +2028,7 @@ export default class bitrue extends Exchange {
             }
             data = this.safeValue (response, 'data', {});
         } else if (market['spot']) {
+            request['orderId'] = id; // spot market id is mandatory
             request['symbol'] = market['id'];
             response = await this.spotV1PrivateGetOrder (this.extend (request, params));
             data = response;
