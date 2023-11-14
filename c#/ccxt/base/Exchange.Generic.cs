@@ -7,9 +7,10 @@ using list = List<object>;
 
 public partial class Exchange
 {
-    public List<object> sortBy(object array, object value1, object desc2 = null)
+    public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {
         desc2 ??= false;
+        var defaultValue = defaultValue2 ?? "";
         var desc = (bool)desc2;
         var list = (List<object>)array;
 
@@ -27,7 +28,7 @@ public partial class Exchange
                 {
                     return ((list)x)[value];
                 }
-                return "";
+                return defaultValue;
             }).ToList();
 
             if (desc)
