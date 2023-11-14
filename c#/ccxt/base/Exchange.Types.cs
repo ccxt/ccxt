@@ -869,4 +869,50 @@ public partial class Exchange
             this.marginMode = SafeString(marginMode, "marginMode");
         }
     }
+
+
+    public struct Greeks
+    {
+        public Dictionary<string, object>? info;
+        public Int64? timestamp;
+        public string? datetime;
+        public double? delta;
+        public double? gamma;
+        public double? theta;
+        public double? vega;
+        public double? rho;
+        public double? bidSize;
+        public double? askSize;
+        public double? bidImpliedVolatility;
+        public double? askImpliedVolatility;
+        public double? markImpliedVolatility;
+        public double? bidPrice;
+        public double? askPrice;
+        public double? markPrice;
+        public double? lastPrice;
+        public double? underlyingPrice;
+
+        public Greeks(object greeks)
+        {
+            info = SafeValue(greeks, "info") != null ? (Dictionary<string, object>)SafeValue(greeks, "info") : null;
+            timestamp = SafeInteger(greeks, "timestamp");
+            datetime = SafeString(greeks, "datetime"); ;
+            delta = SafeFloat(greeks, "delta");
+            gamma = SafeFloat(greeks, "gamma");
+            theta = SafeFloat(greeks, "theta");
+            vega = SafeFloat(greeks, "vega");
+            rho = SafeFloat(greeks, "rho");
+            bidSize = SafeFloat(greeks, "bidSize");
+            askSize = SafeFloat(greeks, "askSize");
+            bidImpliedVolatility = SafeFloat(greeks, "bidImpliedVolatility");
+            askImpliedVolatility = SafeFloat(greeks, "askImpliedVolatility");
+            markImpliedVolatility = SafeFloat(greeks, "markImpliedVolatility");
+            bidPrice = SafeFloat(greeks, "bidPrice");
+            askPrice = SafeFloat(greeks, "askPrice");
+            askPrice = SafeFloat(greeks, "askPrice");
+            markPrice = SafeFloat(greeks, "markPrice");
+            lastPrice = SafeFloat(greeks, "lastPrice");
+            underlyingPrice = SafeFloat(greeks, "underlyingPrice");
+        }
+    }
 }
