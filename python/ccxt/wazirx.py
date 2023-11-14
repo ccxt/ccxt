@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -295,7 +294,7 @@ class wazirx(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://docs.wazirx.com/#kline-candlestick-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -343,7 +342,7 @@ class wazirx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://docs.wazirx.com/#order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -407,7 +406,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         :see: https://docs.wazirx.com/#24hr-tickers-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -442,7 +441,7 @@ class wazirx(Exchange, ImplicitAPI):
             result[symbol] = parsedTicker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://docs.wazirx.com/#recent-trades-list
         get the list of most recent trades for a particular symbol
@@ -629,7 +628,7 @@ class wazirx(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.wazirx.com/#all-orders-user_data
         fetches information on multiple orders made by the user
@@ -683,7 +682,7 @@ class wazirx(Exchange, ImplicitAPI):
         orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://docs.wazirx.com/#current-open-orders-user_data
         fetch all unfilled currently open orders
@@ -730,7 +729,7 @@ class wazirx(Exchange, ImplicitAPI):
         orders = self.parse_orders(response, market, since, limit)
         return orders
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         :see: https://docs.wazirx.com/#cancel-all-open-orders-on-a-symbol-trade
         cancel all open orders in a market
@@ -746,7 +745,7 @@ class wazirx(Exchange, ImplicitAPI):
         }
         return self.privateDeleteOpenOrders(self.extend(request, params))
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://docs.wazirx.com/#cancel-order-trade
         cancels an open order

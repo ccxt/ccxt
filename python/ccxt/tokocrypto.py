@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -788,7 +787,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             result.append(entry)
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://www.tokocrypto.com/apidocs/#order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -984,7 +983,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://www.tokocrypto.com/apidocs/#recent-trades-list
         :see: https://www.tokocrypto.com/apidocs/#compressedaggregate-trades-list
@@ -1143,7 +1142,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1181,7 +1180,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             return self.parse_ticker(firstTicker, market)
         return self.parse_ticker(response, market)
 
-    def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_bids_asks(self, symbols: List[str] = None, params={}):
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#symbol-order-book-ticker
         fetches the bid and ask price and volume for multiple markets
@@ -1237,7 +1236,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1681,7 +1680,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder, market)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on an order made by the user
@@ -1728,7 +1727,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(list, 0, {})
         return self.parse_order(rawOrder)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple orders made by the user
@@ -1793,7 +1792,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         orders = self.safe_value(data, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetch all unfilled currently open orders
@@ -1806,7 +1805,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         request = {'type': 1}  # -1 = all, 1 = open, 2 = closed
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://www.tokocrypto.com/apidocs/#all-orders-signed
         fetches information on multiple closed orders made by the user
@@ -1819,7 +1818,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         request = {'type': 2}  # -1 = all, 1 = open, 2 = closed
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#cancel-order-signed
         cancels an open order
@@ -1862,7 +1861,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         rawOrder = self.safe_value(response, 'data', {})
         return self.parse_order(rawOrder)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://www.tokocrypto.com/apidocs/#account-trade-list-signed
         fetch all trades made by the user
@@ -1968,7 +1967,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.tokocrypto.com/apidocs/#deposit-history-signed
         fetch all deposits made to an account
@@ -2023,7 +2022,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         :see: https://www.tokocrypto.com/apidocs/#withdraw-signed
         fetch all withdrawals made from an account

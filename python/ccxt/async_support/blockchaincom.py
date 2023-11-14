@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -351,7 +350,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -361,7 +360,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         """
         return await self.fetch_l3_order_book(symbol, limit, params)
 
-    async def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified market symbol
@@ -379,7 +378,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.publicGetL3Symbol(self.extend(request, params))
         return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'px', 'qty')
 
-    async def fetch_l2_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_l2_order_book(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -442,7 +441,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.publicGetTickersSymbol(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -571,7 +570,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -588,7 +587,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
@@ -638,7 +637,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -650,7 +649,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'CANCELED'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -662,7 +661,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'FILLED'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -674,7 +673,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'OPEN'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_orders_by_state(self, state, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_by_state(self, state, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request = {
             # 'to': unix epoch ms
@@ -734,7 +733,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -927,7 +926,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -949,7 +948,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: String = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -964,7 +963,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetWithdrawalsWithdrawalId(self.extend(request, params))
         return self.parse_transaction(response)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -986,7 +985,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: String = None, params={}):
         """
         fetch information on a deposit
         :param str id: deposit id
@@ -1044,7 +1043,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by blockchaincom fetchOrder

@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 
 
 class bitrue(ccxt.async_support.bitrue):
@@ -162,7 +162,7 @@ class bitrue(ccxt.async_support.bitrue):
                 self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on user orders
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
@@ -282,7 +282,7 @@ class bitrue(ccxt.async_support.bitrue):
             },
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']

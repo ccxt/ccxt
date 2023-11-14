@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, IndexType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderRequest, OrderSide, OrderType, IndexType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1269,7 +1268,7 @@ class mexc(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
@@ -1338,7 +1337,7 @@ class mexc(Exchange, ImplicitAPI):
             return [price, amount, count]
         return [price, amount]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
@@ -1578,7 +1577,7 @@ class mexc(Exchange, ImplicitAPI):
                 id += '-' + orderType
         return id
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#k-line-data
@@ -1682,7 +1681,7 @@ class mexc(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -1945,7 +1944,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_bids_asks(self, symbols: List[str] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -2219,7 +2218,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -2330,7 +2329,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2492,7 +2491,7 @@ class mexc(Exchange, ImplicitAPI):
             merged = self.array_concat(ordersOfTrigger, ordersOfRegular)
             return self.parse_orders(merged, market, since, limit, params)
 
-    def fetch_orders_by_ids(self, ids, symbol: Optional[str] = None, params={}):
+    def fetch_orders_by_ids(self, ids, symbol: String = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -2542,7 +2541,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
             return self.parse_orders(data, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -2623,7 +2622,7 @@ class mexc(Exchange, ImplicitAPI):
             # TO_DO: another possible way is through: open_orders/{symbol}, but have same ratelimits, and less granularity, i think historical orders are more convenient, supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
             return self.fetch_orders_by_state(2, symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2634,7 +2633,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state(3, symbol, since, limit, params)
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -2645,7 +2644,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state(4, symbol, since, limit, params)
 
-    def fetch_orders_by_state(self, state, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders_by_state(self, state, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         request = {}
         market = None
@@ -2658,7 +2657,7 @@ class mexc(Exchange, ImplicitAPI):
             request['states'] = state
             return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2754,7 +2753,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
         return self.parse_order(data, market)
 
-    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    def cancel_orders(self, ids, symbol: String = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -2785,7 +2784,7 @@ class mexc(Exchange, ImplicitAPI):
             data = self.safe_value(response, 'data')
             return self.parse_orders(data, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -3452,7 +3451,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.custom_parse_balance(response, marketType)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -3531,7 +3530,7 @@ class mexc(Exchange, ImplicitAPI):
             trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -3642,7 +3641,7 @@ class mexc(Exchange, ImplicitAPI):
         """
         return self.modify_margin_helper(symbol, amount, 'ADD', params)
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: String = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -3669,7 +3668,7 @@ class mexc(Exchange, ImplicitAPI):
             request['positionId'] = positionId
         return self.contractPrivatePostPositionChangeLeverage(self.extend(request, params))
 
-    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :param str symbol: unified market symbol
@@ -3810,7 +3809,7 @@ class mexc(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
@@ -3872,7 +3871,7 @@ class mexc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def fetch_leverage_tiers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
@@ -4076,7 +4075,7 @@ class mexc(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform')
         return result
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
@@ -4129,7 +4128,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
@@ -4311,7 +4310,7 @@ class mexc(Exchange, ImplicitAPI):
         response = self.fetch_positions(None, self.extend(request, params))
         return self.safe_value(response, 0)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
@@ -4420,7 +4419,7 @@ class mexc(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
         })
 
-    def fetch_transfer(self, id: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfer(self, id: str, since: Int = None, limit: Int = None, params={}):
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
         self.load_markets()
         if marketType == 'spot':
@@ -4447,7 +4446,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         return None
 
-    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4686,7 +4685,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+    def set_position_mode(self, hedged, symbol: String = None, params={}):
         request = {
             'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
         }
@@ -4699,7 +4698,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_position_mode(self, symbol: Optional[str] = None, params={}):
+    def fetch_position_mode(self, symbol: String = None, params={}):
         response = self.contractPrivateGetPositionPositionMode(params)
         #
         #     {
@@ -4714,7 +4713,7 @@ class mexc(Exchange, ImplicitAPI):
             'hedged': (positionMode == 1),
         }
 
-    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
         """
         create a loan to borrow margin
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
@@ -4745,7 +4744,7 @@ class mexc(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: String = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
@@ -4874,7 +4873,7 @@ class mexc(Exchange, ImplicitAPI):
             result[networkCode] = fee
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
         """
         fetch deposit and withdrawal fees
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bittrex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -409,7 +408,7 @@ class bittrex(Exchange, ImplicitAPI):
         response = self.privateGetBalances(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -565,7 +564,7 @@ class bittrex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -653,7 +652,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_bids_asks(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_bids_asks(self, symbols: List[str] = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -765,7 +764,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'serverTime')
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -876,7 +875,7 @@ class bittrex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -936,7 +935,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1002,7 +1001,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1187,7 +1186,7 @@ class bittrex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -1264,7 +1263,7 @@ class bittrex(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1308,7 +1307,7 @@ class bittrex(Exchange, ImplicitAPI):
             orders.append(result)
         return self.parse_orders(orders, market)
 
-    def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
+    def fetch_deposit(self, id: str, code: String = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         :param str id: deposit id
@@ -1327,7 +1326,7 @@ class bittrex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1366,7 +1365,7 @@ class bittrex(Exchange, ImplicitAPI):
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
 
-    def fetch_pending_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_pending_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all pending deposits made from an account
         :param str code: unified currency code
@@ -1381,7 +1380,7 @@ class bittrex(Exchange, ImplicitAPI):
         self.load_markets()
         return self.fetch_deposits(code, since, limit, self.extend(params, {'status': 'pending'}))
 
-    def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    def fetch_withdrawal(self, id: str, code: String = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :param str id: withdrawal id
@@ -1400,7 +1399,7 @@ class bittrex(Exchange, ImplicitAPI):
         transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1436,7 +1435,7 @@ class bittrex(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    def fetch_pending_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_pending_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all pending withdrawals made from an account
         :param str code: unified currency code
@@ -1697,7 +1696,7 @@ class bittrex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_orders(self, orders, market=None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def parse_orders(self, orders, market=None, since: Int = None, limit: Int = None, params={}):
         if self.options['fetchClosedOrdersFilterBySince']:
             return super(bittrex, self).parse_orders(orders, market, since, limit, params)
         else:
@@ -1712,7 +1711,7 @@ class bittrex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1744,7 +1743,7 @@ class bittrex(Exchange, ImplicitAPI):
             raise e
         return self.parse_order(response, market)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1768,7 +1767,7 @@ class bittrex(Exchange, ImplicitAPI):
         trades = self.parse_trades(response, market, since, limit)
         return trades
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1947,7 +1946,7 @@ class bittrex(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
         """
         fetch deposit and withdraw fees
         :param str[]|None codes: list of unified currency codes

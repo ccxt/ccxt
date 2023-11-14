@@ -3163,17 +3163,7 @@ export default class Exchange {
         return await this.fetchPartialBalance('total', params);
     }
     async fetchStatus(params = {}) {
-        if (this.has['fetchTime']) {
-            const time = await this.fetchTime(params);
-            this.status = this.extend(this.status, {
-                'updated': time,
-                'info': time,
-            });
-        }
-        if (!('info' in this.status)) {
-            this.status['info'] = undefined;
-        }
-        return this.status;
+        throw new NotSupported(this.id + ' fetchStatus() is not supported yet');
     }
     async fetchFundingFee(code, params = {}) {
         const warnOnFetchFundingFee = this.safeValue(this.options, 'warnOnFetchFundingFee', true);
