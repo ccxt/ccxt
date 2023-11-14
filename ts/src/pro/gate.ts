@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import { Int, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -561,7 +561,7 @@ export default class gate extends gateRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchMyTrades
@@ -914,7 +914,7 @@ export default class gate extends gateRest {
         client.resolve (newPositions, type + ':positions');
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name gate#watchOrders

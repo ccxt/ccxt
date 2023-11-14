@@ -5,7 +5,7 @@ import Exchange from './abstract/bitforex.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -378,7 +378,7 @@ export default class bitforex extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchMyTrades
@@ -692,7 +692,7 @@ export default class bitforex extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#fetchOrder
@@ -713,7 +713,7 @@ export default class bitforex extends Exchange {
         return order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitforex#fetchOpenOrders
@@ -735,7 +735,7 @@ export default class bitforex extends Exchange {
         return this.parseOrders (response['data'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitforex#fetchClosedOrders
@@ -793,7 +793,7 @@ export default class bitforex extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitforex#cancelOrder

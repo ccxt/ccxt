@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -401,7 +401,7 @@ export default class zonda extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name zonda#fetchOpenOrders
@@ -471,7 +471,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchMyTrades
@@ -811,7 +811,7 @@ export default class zonda extends Exchange {
         return this.parseTickers (items, symbols);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchLedger
@@ -1473,7 +1473,7 @@ export default class zonda extends Exchange {
         });
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name zonda#cancelOrder

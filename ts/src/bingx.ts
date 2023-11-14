@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeEr
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, String, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1081,7 +1081,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchFundingRateHistory
@@ -2046,7 +2046,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelOrder
@@ -2123,7 +2123,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelAllOrders
@@ -2175,7 +2175,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids: Int[], symbol: string = undefined, params = {}) {
+    async cancelOrders (ids: Int[], symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelOrders
@@ -2239,7 +2239,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchOrder
@@ -2320,7 +2320,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#fetchOpenOrders
@@ -2406,7 +2406,7 @@ export default class bingx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#fetchClosedOrders
@@ -2541,7 +2541,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchTransfers
@@ -2690,7 +2690,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bingx#fetchDeposits
@@ -2737,7 +2737,7 @@ export default class bingx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bingx#fetchWithdrawals
@@ -2887,7 +2887,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setMarginMode
@@ -2984,7 +2984,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setLeverage
@@ -3018,7 +3018,7 @@ export default class bingx extends Exchange {
         return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchMyTrades
@@ -3219,7 +3219,7 @@ export default class bingx extends Exchange {
         return sortedParams;
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchMyLiquidations

@@ -6,7 +6,7 @@ import { ExchangeError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, OrderBook, OrderSide, OrderType, String, Ticker, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -426,7 +426,7 @@ export default class paymium extends Exchange {
         }, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name paymium#cancelOrder

@@ -1479,7 +1479,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#cancelOrder
@@ -1528,7 +1528,7 @@ export default class wavesexchange extends Exchange {
         };
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchOrder
@@ -1562,7 +1562,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wavesexchange#fetchOrders
@@ -1613,7 +1613,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wavesexchange#fetchOpenOrders
@@ -1639,7 +1639,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wavesexchange#fetchClosedOrders
@@ -1998,7 +1998,7 @@ export default class wavesexchange extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchMyTrades

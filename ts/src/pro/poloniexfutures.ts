@@ -5,7 +5,7 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -117,7 +117,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return requestId;
     }
 
-    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, subscription = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: String = undefined, subscription = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -296,7 +296,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchOrders

@@ -3,7 +3,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, Exchange
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 /**
  * @class coinlist
@@ -1140,7 +1140,7 @@ export default class coinlist extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#fetchMyTrades
@@ -1204,7 +1204,7 @@ export default class coinlist extends Exchange {
         return this.parseTrades (fills, market, since, limit);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchOrderTrades (id: string, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinlist#fetchOrderTrades
@@ -1223,7 +1223,7 @@ export default class coinlist extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinlist#fetchOrders
@@ -1292,7 +1292,7 @@ export default class coinlist extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#fetchOrder
@@ -1335,7 +1335,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinlist#fetchOpenOrders
@@ -1355,7 +1355,7 @@ export default class coinlist extends Exchange {
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinlist#fetchClosedOrders
@@ -1375,7 +1375,7 @@ export default class coinlist extends Exchange {
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchCanceledOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchCanceledOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#fetchCanceledOrders
@@ -1395,7 +1395,7 @@ export default class coinlist extends Exchange {
         return this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#cancelAllOrders
@@ -1423,7 +1423,7 @@ export default class coinlist extends Exchange {
         return this.parseOrders (orders, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#cancelOrder
@@ -1449,7 +1449,7 @@ export default class coinlist extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#cancelOrders
@@ -1776,7 +1776,7 @@ export default class coinlist extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#fetchTransfers
@@ -1898,7 +1898,7 @@ export default class coinlist extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinlist#fetchDepositsWithdrawals
@@ -2077,7 +2077,7 @@ export default class coinlist extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinlist#fetchLedger

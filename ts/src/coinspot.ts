@@ -5,7 +5,7 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -359,7 +359,7 @@ export default class coinspot extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#fetchMyTrades
@@ -516,7 +516,7 @@ export default class coinspot extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinspot#cancelOrder

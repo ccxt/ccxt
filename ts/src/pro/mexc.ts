@@ -5,7 +5,7 @@ import mexcRest from '../mexc.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -607,7 +607,7 @@ export default class mexc extends mexcRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchMyTrades
@@ -735,7 +735,7 @@ export default class mexc extends mexcRest {
         }, market);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name mexc3#watchOrders

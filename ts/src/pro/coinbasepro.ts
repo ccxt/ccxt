@@ -5,7 +5,7 @@ import coinbaseproRest from '../coinbasepro.js';
 import { AuthenticationError, ExchangeError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Ticker } from '../base/types.js';
+import { Int, Ticker, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -199,7 +199,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchMyTrades
@@ -273,7 +273,7 @@ export default class coinbasepro extends coinbaseproRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinbasepro#watchOrders

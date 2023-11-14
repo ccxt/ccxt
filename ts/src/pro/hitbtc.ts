@@ -5,7 +5,7 @@ import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Int, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Trade } from '../base/types';
+import { String, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError } from '../base/errors.js';
 
@@ -134,7 +134,7 @@ export default class hitbtc extends hitbtcRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribePrivate (name: string, symbol: string = undefined, params = {}) {
+    async subscribePrivate (name: string, symbol: String = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -706,7 +706,7 @@ export default class hitbtc extends hitbtcRest {
         ];
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hitbtc#watchOrders

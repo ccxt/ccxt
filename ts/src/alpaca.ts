@@ -3,7 +3,7 @@
 import Exchange from './abstract/alpaca.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade } from './base/types.js';
+import { Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -592,7 +592,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#cancelOrder
@@ -615,7 +615,7 @@ export default class alpaca extends Exchange {
         return this.safeValue (response, 'message', {});
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name alpaca#fetchOrder
@@ -634,7 +634,7 @@ export default class alpaca extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name alpaca#fetchOpenOrders

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, String, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2135,7 +2135,7 @@ export default class kucoin extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelOrder
@@ -2187,7 +2187,7 @@ export default class kucoin extends Exchange {
         return await this[method] (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#cancelAllOrders
@@ -2231,7 +2231,7 @@ export default class kucoin extends Exchange {
         return await this[method] (this.extend (request, query));
     }
 
-    async fetchOrdersByStatus (status, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrdersByStatus
@@ -2345,7 +2345,7 @@ export default class kucoin extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kucoin#fetchClosedOrders
@@ -2376,7 +2376,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name kucoin#fetchOpenOrders
@@ -2410,7 +2410,7 @@ export default class kucoin extends Exchange {
         return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrder
@@ -2663,7 +2663,7 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOrderTrades
@@ -2683,7 +2683,7 @@ export default class kucoin extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchMyTrades
@@ -3188,7 +3188,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kucoin#fetchDeposits
@@ -3274,7 +3274,7 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name kucoin#fetchWithdrawals
@@ -3799,7 +3799,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchLedger
@@ -3932,7 +3932,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: string = undefined, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: String = undefined, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchBorrowInterest
@@ -4109,7 +4109,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async borrowMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#borrowMargin
@@ -4161,7 +4161,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#repayMargin

@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Transaction, Ticker, Tickers, Market } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, String, Transaction, Ticker, Tickers, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -838,7 +838,7 @@ export default class bitmex extends Exchange {
         return result as OrderBook;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchOrder
@@ -860,7 +860,7 @@ export default class bitmex extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchOrders
@@ -908,7 +908,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchOpenOrders
@@ -927,7 +927,7 @@ export default class bitmex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.deepExtend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchClosedOrders
@@ -943,7 +943,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false) as Order[];
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchMyTrades
@@ -1154,7 +1154,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchLedger
@@ -1206,7 +1206,7 @@ export default class bitmex extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitmex#fetchDepositsWithdrawals
@@ -1901,7 +1901,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelOrder
@@ -1932,7 +1932,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelOrders
@@ -1957,7 +1957,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#cancelAllOrders
@@ -2376,7 +2376,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#fetchFundingRateHistory
@@ -2459,7 +2459,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#setLeverage
@@ -2485,7 +2485,7 @@ export default class bitmex extends Exchange {
         return await this.privatePostPositionLeverage (this.extend (request, params));
     }
 
-    async setMarginMode (marginMode, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitmex#setMarginMode

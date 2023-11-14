@@ -4,7 +4,7 @@
 import kucoinRest from '../kucoin.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -642,7 +642,7 @@ export default class kucoin extends kucoinRest {
         return message;
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchOrders
@@ -811,7 +811,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#watchMyTrades

@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -535,7 +535,7 @@ export default class coinone extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchOrder
@@ -703,7 +703,7 @@ export default class coinone extends Exchange {
         }, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinone#fetchOpenOrders
@@ -746,7 +746,7 @@ export default class coinone extends Exchange {
         return this.parseOrders (limitOrders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name coinone#fetchMyTrades
@@ -788,7 +788,7 @@ export default class coinone extends Exchange {
         return this.parseTrades (completeOrders, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name coinone#cancelOrder

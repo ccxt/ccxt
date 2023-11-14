@@ -3,7 +3,7 @@
 import wazirxRest from '../wazirx.js';
 import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -359,7 +359,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#watchMyTrades
@@ -560,7 +560,7 @@ export default class wazirx extends wazirxRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);

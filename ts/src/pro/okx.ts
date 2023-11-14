@@ -5,7 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType } from '../base/types.js';
+import { Int, OrderSide, OrderType, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -831,7 +831,7 @@ export default class okx extends okxRest {
         }, market);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchMyTrades
@@ -995,7 +995,7 @@ export default class okx extends okxRest {
         }
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name okx#watchOrders
@@ -1315,7 +1315,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrderWs
@@ -1352,7 +1352,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelOrdersWs
@@ -1390,7 +1390,7 @@ export default class okx extends okxRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name okx#cancelAllOrdersWs

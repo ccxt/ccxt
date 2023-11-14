@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int, Trade } from '../base/types.js';
+import { Int, String, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -456,14 +456,14 @@ export default class bitfinex extends bitfinexRest {
         }
     }
 
-    async watchOrder (id, symbol: string = undefined, params = {}) {
+    async watchOrder (id, symbol: String = undefined, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['private'];
         await this.authenticate ();
         return await this.watch (url, id, undefined, 1);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitfinex#watchOrders

@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -173,7 +173,7 @@ export default class btcmarkets extends Exchange {
         });
     }
 
-    async fetchTransactionsWithMethod (method, code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method, code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (limit !== undefined) {
@@ -190,7 +190,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name btcmarkets#fetchDepositsWithdrawals
@@ -204,7 +204,7 @@ export default class btcmarkets extends Exchange {
         return await this.fetchTransactionsWithMethod ('privateGetTransfers', code, since, limit, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name btcmarkets#fetchDeposits
@@ -218,7 +218,7 @@ export default class btcmarkets extends Exchange {
         return await this.fetchTransactionsWithMethod ('privateGetDeposits', code, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name btcmarkets#fetchWithdrawals
@@ -876,7 +876,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrders (ids, symbol: string = undefined, params = {}) {
+    async cancelOrders (ids, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#cancelOrders
@@ -896,7 +896,7 @@ export default class btcmarkets extends Exchange {
         return await this.privateDeleteBatchordersIds (this.extend (request, params));
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#cancelOrder
@@ -1017,7 +1017,7 @@ export default class btcmarkets extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchOrder
@@ -1034,7 +1034,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcmarkets#fetchOrders
@@ -1064,7 +1064,7 @@ export default class btcmarkets extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcmarkets#fetchOpenOrders
@@ -1079,7 +1079,7 @@ export default class btcmarkets extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcmarkets#fetchClosedOrders
@@ -1094,7 +1094,7 @@ export default class btcmarkets extends Exchange {
         return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name btcmarkets#fetchMyTrades

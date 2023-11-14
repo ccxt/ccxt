@@ -6,7 +6,7 @@ import { InvalidNonce, BadRequest, ExchangeError, AuthenticationError } from '..
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
-import { Int } from '../base/types.js';
+import { Int, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ export default class bittrex extends bittrexRest {
         return await this.signalrGetStart (request);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchOrders
@@ -555,7 +555,7 @@ export default class bittrex extends bittrexRest {
         client.resolve (stored, messageHash);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#watchMyTrades

@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, ExchangeError, NotSupported, Permissio
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1382,7 +1382,7 @@ export default class bitstamp extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelOrder
@@ -1399,7 +1399,7 @@ export default class bitstamp extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#cancelAllOrders
@@ -1430,7 +1430,7 @@ export default class bitstamp extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOrderStatus (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrderStatus (id: string, symbol: String = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         const request = {};
@@ -1444,7 +1444,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchOrder
@@ -1488,7 +1488,7 @@ export default class bitstamp extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchMyTrades
@@ -1516,7 +1516,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitstamp#fetchDepositsWithdrawals
@@ -1567,7 +1567,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitstamp#fetchWithdrawals
@@ -1934,7 +1934,7 @@ export default class bitstamp extends Exchange {
         }
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchLedger
@@ -1958,7 +1958,7 @@ export default class bitstamp extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitstamp#fetchOpenOrders

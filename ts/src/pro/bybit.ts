@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, String } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -122,7 +122,7 @@ export default class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol: string = undefined, isPrivate = false, method = undefined, params = {}) {
+    getUrlByMarketType (symbol: String = undefined, isPrivate = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -856,7 +856,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchMyTrades
@@ -1126,7 +1126,7 @@ export default class bybit extends bybitRest {
         client.resolve (newPositions, 'positions');
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bybit#watchOrders

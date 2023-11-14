@@ -324,7 +324,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#cancelOrder
@@ -422,7 +422,7 @@ export default class btcbox extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
         /**
          * @method
          * @name btcbox#fetchOrder
@@ -457,7 +457,7 @@ export default class btcbox extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrdersByType (type, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByType (type, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol === undefined) {
@@ -492,7 +492,7 @@ export default class btcbox extends Exchange {
         return orders;
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcbox#fetchOrders
@@ -506,7 +506,7 @@ export default class btcbox extends Exchange {
         return await this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name btcbox#fetchOpenOrders
