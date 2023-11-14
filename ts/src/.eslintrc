@@ -84,7 +84,7 @@
     "no-shadow": ["error", {
       "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
       "hoist": "all", // just for cleanest practices
-      "allow": [], // no need to allow any
+      "allow": [ "String" ], // allow String type
       "ignoreOnInitialization": false // don't ignore lambdas and etc.
     }],
     "no-useless-concat": "off",
