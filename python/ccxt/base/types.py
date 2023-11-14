@@ -44,7 +44,7 @@ Numeric = Union[None, str, float, int, Decimal]
 String = Optional[str]
 Int = Optional[int]
 Bool = Optional[bool]
-Fee = Optional[dict[str, Any]]
+Fee = Optional[Dict[str, Any]]
 
 
 class Balance(TypedDict):
