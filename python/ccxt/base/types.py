@@ -7,9 +7,7 @@ if sys.version_info.minor > 7:
     from typing import TypedDict, Literal, Dict
 else:
     from typing import Dict
-    from typing_extensions import Literal
-    TypedDict = Dict
-
+    from typing_extensions import Literal, TypedDict
 
 OrderSide = Literal['buy', 'sell']
 OrderType = Literal['limit', 'market']
