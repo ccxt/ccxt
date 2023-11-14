@@ -989,8 +989,8 @@ export default class testMainClass extends baseMainTestClass {
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
-    assertStaticResponseOutput (exchange, computedResult, storedResult) {
-        this.assertNewAndStoredOutput (exchange, [], computedResult, storedResult, false);
+    assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult, storedResult) {
+        this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
     }
 
     sanitizeDataInput (input) {
@@ -1035,12 +1035,12 @@ export default class testMainClass extends baseMainTestClass {
         }
     }
 
-    async testResponseStatically (exchange, method: string, data: object) {
+    async testResponseStatically (exchange, method: string, skipKeys: string[], data: object) {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
         const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
         try {
             const unifiedResult = await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
-            this.assertStaticResponseOutput (mockedExchange, unifiedResult, expectedResult);
+            this.assertStaticResponseOutput (mockedExchange, skipKeys, unifiedResult, expectedResult);
         }
         catch (e) {
             this.requestTestsFailed = true;
@@ -1095,7 +1095,8 @@ export default class testMainClass extends baseMainTestClass {
                 if ((testName !== undefined) && (testName !== description)) {
                     continue;
                 }
-                await this.testResponseStatically (exchange, method, result);
+                const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
+                await this.testResponseStatically (exchange, method, skipKeys, result);
             }
         }
         await close (exchange);

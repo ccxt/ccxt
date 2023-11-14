@@ -233,7 +233,7 @@ class testMainClass(baseMainTestClass):
     def parse_cli_args(self):
         self.response_tests = get_cli_arg_value('--responseTests')
         self.id_tests = get_cli_arg_value('--idTests')
-        self.static_tests = get_cli_arg_value('--static')
+        self.request_tests = get_cli_arg_value('--requestTests')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -244,10 +244,10 @@ class testMainClass(baseMainTestClass):
     async def init(self, exchange_id, symbol):
         self.parse_cli_args()
         if self.response_tests:
-            await self.run_mock_response_tests(exchange_id, symbol)
+            await self.run_static_response_tests(exchange_id, symbol)
             return
-        if self.static_tests:
-            await self.run_static_tests(exchange_id, symbol)  # symbol here is the testname
+        if self.request_tests:
+            await self.run_static_request_tests(exchange_id, symbol)  # symbol here is the testname
             return
         if self.id_tests:
             await self.run_broker_id_tests()
@@ -699,8 +699,12 @@ class testMainClass(baseMainTestClass):
         content = io_file_read(filename)
         return content
 
-    def load_static_data(self, target_exchange=None):
-        folder = self.root_dir + './ts/src/test/static/data/'
+    def load_currencies_from_file(self, id):
+        filename = self.root_dir + './ts/src/test/static/currencies/' + id + '.json'
+        content = io_file_read(filename)
+        return content
+
+    def load_static_data(self, folder, target_exchange=None):
         result = {}
         if target_exchange:
             # read a single exchange
@@ -749,7 +753,7 @@ class testMainClass(baseMainTestClass):
             result[key] = value
         return result
 
-    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output):
+    def assert_new_and_stored_output(self, exchange, skip_keys, new_output, stored_output, strict_type_check=True):
         if (isinstance(stored_output, dict)) and (isinstance(new_output, dict)):
             stored_output_keys = list(stored_output.keys())
             new_output_keys = list(new_output.keys())
@@ -765,7 +769,7 @@ class testMainClass(baseMainTestClass):
                     self.assert_static_error(False, 'output key missing: ' + key, stored_output, new_output)
                 stored_value = stored_output[key]
                 new_value = new_output[key]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value)
+                self.assert_new_and_stored_output(exchange, skip_keys, new_value, stored_value, strict_type_check)
         elif isinstance(stored_output, list) and (isinstance(new_output, list)):
             stored_array_length = len(stored_output)
             new_array_length = len(new_output)
@@ -773,13 +777,30 @@ class testMainClass(baseMainTestClass):
             for i in range(0, len(stored_output)):
                 stored_item = stored_output[i]
                 new_item = new_output[i]
-                self.assert_new_and_stored_output(exchange, skip_keys, new_item, stored_item)
+                self.assert_new_and_stored_output(exchange, skip_keys, new_item, stored_item, strict_type_check)
         else:
             # built-in types like strings, numbers, booleans
-            message_error = 'output value mismatch:' + str(new_output) + ' != ' + str(stored_output)
-            self.assert_static_error(new_output == stored_output, message_error, stored_output, new_output)
+            sanitized_new_output = None if (not new_output) else new_output  # we store undefined as nulls in the json file so we need to convert it back
+            sanitized_stored_output = None if (not stored_output) else stored_output
+            new_output_string = str(sanitized_new_output) if sanitized_new_output else 'undefined'
+            stored_output_string = str(sanitized_stored_output) if sanitized_stored_output else 'undefined'
+            message_error = 'output value mismatch:' + new_output_string + ' != ' + stored_output_string
+            if strict_type_check:
+                # upon building the request we want strict type check to make sure all the types are correct
+                # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
+                self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output)
+            else:
+                is_boolean = (isinstance(sanitized_new_output, bool)) or (isinstance(sanitized_stored_output, bool))
+                is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
+                is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
+                if is_boolean or is_string or is_undefined:
+                    self.assert_static_error(new_output_string == stored_output_string, message_error, stored_output, new_output)
+                else:
+                    numeric_new_output = exchange.parse_to_numeric(new_output_string)
+                    numeric_stored_output = exchange.parse_to_numeric(stored_output_string)
+                    self.assert_static_error(numeric_new_output == numeric_stored_output, message_error, stored_output, new_output)
 
-    def assert_static_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
+    def assert_static_request_output(self, exchange, type, skip_keys, stored_url, request_url, stored_output, new_output):
         if stored_url != request_url:
             # remove the host part from the url
             first_path = self.remove_hostnamefrom_url(stored_url)
@@ -811,6 +832,9 @@ class testMainClass(baseMainTestClass):
             new_output = self.urlencoded_to_dict(new_output)
         self.assert_new_and_stored_output(exchange, skip_keys, new_output, stored_output)
 
+    def assert_static_response_output(self, exchange, computed_result, stored_result):
+        self.assert_new_and_stored_output(exchange, [], computed_result, stored_result, False)
+
     def sanitize_data_input(self, input):
         # remove nulls and replace with unefined instead
         if input is None:
@@ -836,15 +860,28 @@ class testMainClass(baseMainTestClass):
             request_url = exchange.last_request_url
         try:
             call_output = exchange.safe_value(data, 'output')
-            self.assert_static_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
+            self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
         except Exception as e:
-            self.static_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            self.request_tests_failed = True
+            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump(error_message)
+
+    async def test_response_statically(self, exchange, method, data):
+        expected_result = exchange.safe_value(data, 'parsedResponse')
+        mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
+        try:
+            unified_result = await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
+            self.assert_static_response_output(mocked_exchange, unified_result, expected_result)
+        except Exception as e:
+            self.request_tests_failed = True
+            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            dump(error_message)
+        set_fetch_response(exchange, None)  # reset state
 
     def init_offline_exchange(self, exchange_name):
         markets = self.load_markets_from_file(exchange_name)
-        return init_exchange(exchange_name, {
+        currencies = self.load_currencies_from_file(exchange_name)
+        exchange = init_exchange(exchange_name, {
             'markets': markets,
             'rateLimit': 1,
             'httpsProxy': 'http://fake:8080',
@@ -863,8 +900,10 @@ class testMainClass(baseMainTestClass):
                 'leverageBrackets': {},
             },
         })
+        exchange.currencies = currencies  # not working in python if assigned  in the config dict
+        return exchange
 
-    async def test_exchange_statically(self, exchange_name, exchange_data, test_name=None):
+    async def test_exchange_request_statically(self, exchange_name, exchange_data, test_name=None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchange_name)
         methods = exchange.safe_value(exchange_data, 'methods', {})
@@ -882,6 +921,23 @@ class testMainClass(baseMainTestClass):
                 await self.test_method_statically(exchange, method, result, type, skip_keys)
         await close(exchange)
 
+    async def test_exchange_response_statically(self, exchange_name, exchange_data, test_name=None):
+        exchange = self.init_offline_exchange(exchange_name)
+        methods = exchange.safe_value(exchange_data, 'methods', {})
+        options = exchange.safe_value(exchange_data, 'options', {})
+        exchange.options = exchange.deep_extend(exchange.options, options)  # custom options to be used in the tests
+        methods_names = list(methods.keys())
+        for i in range(0, len(methods_names)):
+            method = methods_names[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                description = exchange.safe_value(result, 'description')
+                if (test_name is not None) and (test_name != description):
+                    continue
+                await self.test_response_statically(exchange, method, result)
+        await close(exchange)
+
     def get_number_of_tests_from_exchange(self, exchange, exchange_data):
         sum = 0
         methods = exchange_data['methods']
@@ -893,8 +949,12 @@ class testMainClass(baseMainTestClass):
             sum = exchange.sum(sum, results_length)
         return sum
 
-    async def run_static_tests(self, target_exchange=None, test_name=None):
-        static_data = self.load_static_data(target_exchange)
+    async def run_static_request_tests(self, target_exchange=None, test_name=None):
+        await self.run_static_tests('request', target_exchange, test_name)
+
+    async def run_static_tests(self, type, target_exchange=None, test_name=None):
+        folder = self.root_dir + './ts/src/test/static/' + type + '/'
+        static_data = self.load_static_data(folder, target_exchange)
         exchanges = list(static_data.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling this code
         promises = []
@@ -908,46 +968,29 @@ class testMainClass(baseMainTestClass):
             exchange_data = static_data[exchange_name]
             number_of_tests = self.get_number_of_tests_from_exchange(exchange, exchange_data)
             sum = exchange.sum(sum, number_of_tests)
-            promises.append(self.test_exchange_statically(exchange_name, exchange_data, test_name))
+            if type == 'request':
+                promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
+            else:
+                promises.append(self.test_exchange_response_statically(exchange_name, exchange_data, test_name))
         await asyncio.gather(*promises)
-        if self.static_tests_failed:
+        if self.request_tests_failed or self.response_tests_failed:
             exit_script(1)
         else:
-            success_message = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static tests passed.'
+            success_message = '[' + self.lang + '][TEST_SUCCESS] ' + str(sum) + ' static ' + type + ' tests passed.'
             dump(success_message)
             exit_script(0)
 
-    async def run_mock_response_tests(self, exchange_name=None, test=None):
+    async def run_static_response_tests(self, exchange_name=None, test=None):
         #  -----------------------------------------------------------------------------
         #  --- Init of mockResponses tests functions------------------------------------
         #  -----------------------------------------------------------------------------
-        exchange = self.init_offline_exchange('binance')
-        data = [{
-    'orderId': 'teste',
-}]
-        mocked_exchange = set_fetch_response(exchange, data)
-        # const order = await call_overriden_method (mockedExchange, 'fetchOrders', [ 'BTC/USDT' ]);
-        order = await mocked_exchange.fetch_orders('BTC/USDT')
-        dump(order)
+        await self.run_static_tests('response', exchange_name, test)
 
     async def run_broker_id_tests(self):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [
-            self.test_binance(),
-            self.test_okx(),
-            self.test_cryptocom(),
-            self.test_bybit(),
-            self.test_kucoin(),
-            self.test_kucoinfutures(),
-            self.test_bitget(),
-            self.test_mexc(),
-            self.test_huobi(),
-            self.test_woo(),
-            self.test_bitmart(),
-            self.test_coinex()
-        ]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_huobi(), self.test_woo(), self.test_bitmart(), self.test_coinex()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump(success_message)
@@ -1146,13 +1189,13 @@ class testMainClass(baseMainTestClass):
         exchange = self.init_offline_exchange('coinex')
         id = 'x-167673045'
         assert exchange.options['brokerId'] == id, 'id not in options'
-        spotOrderRequest = None
+        spot_order_request = None
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            spotOrderRequest = json_parse(exchange.last_request_body)
-        clientOrderId = spotOrderRequest['client_id']
-        assert clientOrderId.startswith(id), 'clientOrderId does not start with id'
+            spot_order_request = json_parse(exchange.last_request_body)
+        client_order_id = spot_order_request['client_id']
+        assert client_order_id.startswith(id), 'clientOrderId does not start with id'
         await close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****
@@ -1160,4 +1203,5 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
+    argv.exchange = 'binance'
     asyncio.run(testMainClass().init(argv.exchange, argv.symbol))
