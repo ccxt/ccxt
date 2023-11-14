@@ -1578,20 +1578,19 @@ class Transpiler {
                 } else {
                     let variable = parts[0]
                     const secondPart = parts[1].split ('=')
-                    let nullable = false
+                    // let nullable = false
                     let endpart = ''
                     if (secondPart.length === 2) {
                         const trimmed = secondPart[1].trim ()
-                        nullable = trimmed === 'undefined'
+                        // nullable = trimmed === 'undefined'
                         endpart = ' = ' + trimmed
                     }
-                    nullable = nullable || variable.slice (-1) === '?'
+                    // nullable = nullable || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
-                    const ignore = (resolveType === 'mixed' || type === 'Str' || type === 'Int')
-                    return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
+                    return resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')

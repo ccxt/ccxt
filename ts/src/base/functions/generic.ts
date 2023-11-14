@@ -157,8 +157,8 @@ const sum = (...xs) => {
     return (ns.length > 0) ? ns.reduce ((a, b) => a + b, 0) : undefined;
 };
 
-const deepExtend = function deepExtend (...xs): object {
-    let out;
+const deepExtend = function deepExtend (...xs) {
+    let out = undefined;
     for (const x of xs) {
         if (isDictionary (x)) {
             if (!isDictionary (out)) {
