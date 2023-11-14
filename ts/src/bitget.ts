@@ -1812,7 +1812,7 @@ export default class bitget extends Exchange {
             result['addressTo'] = address;
             result['network'] = chain;
         }
-        return result;
+        return result as Transaction;
     }
 
     async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

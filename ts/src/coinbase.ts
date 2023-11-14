@@ -684,7 +684,7 @@ export default class coinbase extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, market = undefined) {
+    parseTransaction (transaction, market = undefined): Transaction {
         //
         // fiat deposit
         //
@@ -788,7 +788,7 @@ export default class coinbase extends Exchange {
             'status': status,
             'updated': updated,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTrade (trade, market = undefined): Trade {

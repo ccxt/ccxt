@@ -2047,7 +2047,7 @@ export default class lbank2 extends Exchange {
                 'cost': undefined,
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status, type) {
