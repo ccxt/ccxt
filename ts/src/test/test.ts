@@ -29,10 +29,11 @@ const OnMaintenance = ccxt.OnMaintenance;
 class baseMainTestClass {
     lang = 'JS';
     idTests = false;
-    staticTestsFailed = false;
+    requestTestsFailed = false;
     responseTestsFailed = false;
     requestTests = false;
     responseTests = false;
+    staticTests = false;
     info = false;
     verbose = false;
     debug = false;
@@ -181,6 +182,17 @@ export default class testMainClass extends baseMainTestClass {
 
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
+
+        if (this.staticTests) {
+            // run both static tests
+            // request and response tests
+            await Promise.all ([
+                this.runStaticRequestTests (exchangeId, symbol),
+                this.runStaticResponseTests (exchangeId, symbol),
+            ]);
+            return;
+        }
+
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbol);
             return;
@@ -824,6 +836,12 @@ export default class testMainClass extends baseMainTestClass {
         return content;
     }
 
+    loadCurrenciesFromFile (id: string) {
+        const filename = this.rootDir + './ts/src/test/static/currencies/' + id + '.json';
+        const content = ioFileRead (filename);
+        return content;
+    }
+
     loadStaticData (folder: string, targetExchange: string = undefined) {
         const result = {};
         if (targetExchange) {
@@ -1004,7 +1022,7 @@ export default class testMainClass extends baseMainTestClass {
             this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
         }
         catch (e) {
-            this.staticTestsFailed = true;
+            this.requestTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
@@ -1018,7 +1036,7 @@ export default class testMainClass extends baseMainTestClass {
             this.assertStaticResponseOutput (mockedExchange, unifiedResult, expectedResult);
         }
         catch (e) {
-            this.staticTestsFailed = true;
+            this.requestTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString ();
             dump (errorMessage);
         }
@@ -1026,7 +1044,8 @@ export default class testMainClass extends baseMainTestClass {
 
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
-        return initExchange (exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const currencies = this.loadCurrenciesFromFile (exchangeName);
+        return initExchange (exchangeName, { 'markets': markets, 'currencies': currencies,  'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [ { 'id': 'myAccount' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
     }
 
     async testExchangeRequestStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
@@ -1112,7 +1131,7 @@ export default class testMainClass extends baseMainTestClass {
             }
         }
         await Promise.all (promises);
-        if (this.staticTestsFailed || this.responseTestsFailed) {
+        if (this.requestTestsFailed || this.responseTestsFailed) {
             exitScript (1);
         } else {
             const successMessage = '[' + this.lang + '][TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
