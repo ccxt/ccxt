@@ -1562,7 +1562,7 @@ class Transpiler {
             const phpTypes = {
                 'any': 'mixed',
                 'string': 'string',
-                'String': '?string',
+                'Str': '?string',
                 'number': 'float',
                 'boolean': 'bool',
                 'IndexType': 'int|string',
@@ -1620,7 +1620,7 @@ class Transpiler {
             // remove excessive spacing from argument defaults in Python method signature
             const pythonTypes = {
                 'string': 'str',
-                'String': 'String',
+                'Str': 'String',
                 'number': 'float',
                 'any': 'Any',
                 'boolean': 'bool',

@@ -3,7 +3,7 @@
 import kucoinfuturesRest from '../kucoinfutures.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, String } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -191,7 +191,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchPosition (symbol: String = undefined, params = {}) {
+    async watchPosition (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchPosition
@@ -679,7 +679,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         return message;
     }
 
-    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#watchOrders

@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import { Int, OrderSide, OrderType, String } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -197,7 +197,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrdersWs (ids: string[], symbol: String = undefined, params = {}) {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelOrdersWs
@@ -222,7 +222,7 @@ export default class kraken extends krakenRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: String = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelOrderWs
@@ -262,7 +262,7 @@ export default class kraken extends krakenRest {
         client.resolve (message, reqId);
     }
 
-    async cancelAllOrdersWs (symbol: String = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelAllOrdersWs
@@ -817,7 +817,7 @@ export default class kraken extends krakenRest {
         return this.safeString (subscription, 'token');
     }
 
-    async watchPrivate (name, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchPrivate (name, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
         const subscriptionHash = name;
@@ -844,7 +844,7 @@ export default class kraken extends krakenRest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchMyTrades
@@ -1008,7 +1008,7 @@ export default class kraken extends krakenRest {
         };
     }
 
-    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name kraken#watchOrders

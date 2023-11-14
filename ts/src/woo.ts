@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, String, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -980,7 +980,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelOrder
@@ -1035,7 +1035,7 @@ export default class woo extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
-    async cancelAllOrders (symbol: String = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelAllOrders
@@ -1069,7 +1069,7 @@ export default class woo extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrder
@@ -1137,7 +1137,7 @@ export default class woo extends Exchange {
         return this.parseOrder (orders, market);
     }
 
-    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name woo#fetchOrders
@@ -1462,7 +1462,7 @@ export default class woo extends Exchange {
         ];
     }
 
-    async fetchOrderTrades (id: string, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrderTrades
@@ -1505,7 +1505,7 @@ export default class woo extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchMyTrades
@@ -1692,7 +1692,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async getAssetHistoryRows (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
         let currency = undefined;
@@ -1749,7 +1749,7 @@ export default class woo extends Exchange {
         return [ currency, this.safeValue (response, 'rows', {}) ];
     }
 
-    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchLedger
@@ -1816,7 +1816,7 @@ export default class woo extends Exchange {
         return currency;
     }
 
-    async fetchDeposits (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woo#fetchDeposits
@@ -1833,7 +1833,7 @@ export default class woo extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
 
-    async fetchWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woo#fetchWithdrawals
@@ -1850,7 +1850,7 @@ export default class woo extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
 
-    async fetchDepositsWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woo#fetchDepositsWithdrawals
@@ -1965,7 +1965,7 @@ export default class woo extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchTransfers
@@ -2100,7 +2100,7 @@ export default class woo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: String = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#repayMargin
@@ -2271,7 +2271,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2395,7 +2395,7 @@ export default class woo extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchFundingRateHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchFundingRateHistory
@@ -2502,7 +2502,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: String = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         if ((leverage < 1) || (leverage > 20)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 20');
@@ -2513,7 +2513,7 @@ export default class woo extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    async fetchPosition (symbol: String = undefined, params = {}) {
+    async fetchPosition (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

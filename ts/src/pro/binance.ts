@@ -5,7 +5,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { Int, OrderSide, OrderType, String, Trade } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
@@ -1877,7 +1877,7 @@ export default class binance extends binanceRest {
         client.resolve (order, messageHash);
     }
 
-    async cancelOrderWs (id: string, symbol: String = undefined, params = {}) {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelOrderWs
@@ -1921,7 +1921,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async cancelAllOrdersWs (symbol: String = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelAllOrdersWs
@@ -1952,7 +1952,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async fetchOrderWs (id: string, symbol: String = undefined, params = {}) {
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrderWs
@@ -1993,7 +1993,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    async fetchOrdersWs (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOrdersWs
@@ -2035,7 +2035,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async fetchOpenOrdersWs (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchOpenOrdersWs
@@ -2072,7 +2072,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
-    async watchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchOrders
@@ -2551,7 +2551,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    async fetchMyTradesWs (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#fetchMyTradesWs
@@ -2631,7 +2631,7 @@ export default class binance extends binanceRest {
         client.resolve (trades, messageHash);
     }
 
-    async watchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name binance#watchMyTrades

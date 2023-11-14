@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, String, Ticker, OrderBook, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Ticker, OrderBook, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1019,7 +1019,7 @@ export default class krakenfutures extends Exchange {
         return order;
     }
 
-    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#cancelOrder
@@ -1041,7 +1041,7 @@ export default class krakenfutures extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    async cancelOrders (ids: string[], symbol: String = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#cancelOrders
@@ -1105,7 +1105,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrders (batchStatus);
     }
 
-    async cancelAllOrders (symbol: String = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#cancelAllOrders
@@ -1123,7 +1123,7 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name krakenfutures#fetchOpenOrders
@@ -1535,7 +1535,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchMyTrades
@@ -1887,7 +1887,7 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchFundingRateHistory
@@ -2273,7 +2273,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async setLeverage (leverage, symbol: String = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#setLeverage
@@ -2296,7 +2296,7 @@ export default class krakenfutures extends Exchange {
         return await this.privatePutLeveragepreferences (this.extend (request, params));
     }
 
-    async fetchLeverage (symbol: String = undefined, params = {}) {
+    async fetchLeverage (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#fetchLeverage

@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, String, Transaction, Ticker, OrderBook, Tickers, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1551,7 +1551,7 @@ export default class htx extends Exchange {
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
-    parseTradingLimits (limits, symbol: String = undefined, params = {}) {
+    parseTradingLimits (limits, symbol: Str = undefined, params = {}) {
         //
         //   {                                "symbol": "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -2469,7 +2469,7 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async fetchOrderTrades (id: string, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrderTrades
@@ -2493,7 +2493,7 @@ export default class htx extends Exchange {
         return await this.fetchSpotOrderTrades (id, symbol, since, limit, params);
     }
 
-    async fetchSpotOrderTrades (id: string, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'order-id': id,
@@ -2502,7 +2502,7 @@ export default class htx extends Exchange {
         return this.parseTrades (response['data'], undefined, since, limit);
     }
 
-    async fetchMyTrades (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchMyTrades
@@ -3467,7 +3467,7 @@ export default class htx extends Exchange {
         return result as Balances;
     }
 
-    async fetchOrder (id: string, symbol: String = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchOrder
@@ -3687,7 +3687,7 @@ export default class htx extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             this.checkRequiredSymbol ('fetchOrders', symbol);
@@ -3754,15 +3754,15 @@ export default class htx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchSpotOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchSpotOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchClosedSpotOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         return await this.fetchSpotOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchContractOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         this.checkRequiredSymbol ('fetchContractOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3985,14 +3985,14 @@ export default class htx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedContractOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedContractOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const request = {
             'status': '5,6,7', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
         };
         return await this.fetchContractOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#fetchOrders
@@ -4030,7 +4030,7 @@ export default class htx extends Exchange {
         }
     }
 
-    async fetchClosedOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#fetchClosedOrders
@@ -4068,7 +4068,7 @@ export default class htx extends Exchange {
         }
     }
 
-    async fetchOpenOrders (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobi#fetchOpenOrders
@@ -5235,7 +5235,7 @@ export default class htx extends Exchange {
         return this.parseOrders (result, market);
     }
 
-    async cancelOrder (id: string, symbol: String = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#cancelOrder
@@ -5362,7 +5362,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async cancelOrders (ids, symbol: String = undefined, params = {}) {
+    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#cancelOrders
@@ -5525,7 +5525,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    async cancelAllOrders (symbol: String = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#cancelAllOrders
@@ -5753,7 +5753,7 @@ export default class htx extends Exchange {
         return addresses;
     }
 
-    async fetchDeposits (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name huobi#fetchDeposits
@@ -5813,7 +5813,7 @@ export default class htx extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name huobi#fetchWithdrawals
@@ -6294,7 +6294,7 @@ export default class htx extends Exchange {
         return rates;
     }
 
-    async fetchFundingRateHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingRateHistory
@@ -6502,7 +6502,7 @@ export default class htx extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchBorrowInterest (code: String = undefined, symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchBorrowInterest
@@ -6783,7 +6783,7 @@ export default class htx extends Exchange {
         return undefined;
     }
 
-    async fetchFundingHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchFundingHistory
@@ -6873,7 +6873,7 @@ export default class htx extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    async setLeverage (leverage, symbol: String = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#setLeverage
@@ -7505,7 +7505,7 @@ export default class htx extends Exchange {
         };
     }
 
-    async fetchLedger (code: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchLedger
@@ -8004,7 +8004,7 @@ export default class htx extends Exchange {
         }, market);
     }
 
-    async borrowMargin (code: string, amount, symbol: String = undefined, params = {}) {
+    async borrowMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#borrowMargin
@@ -8057,7 +8057,7 @@ export default class htx extends Exchange {
         });
     }
 
-    async repayMargin (code: string, amount, symbol: String = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name huobi#repayMargin
@@ -8137,7 +8137,7 @@ export default class htx extends Exchange {
         };
     }
 
-    async fetchSettlementHistory (symbol: String = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name huobi#fetchSettlementHistory
