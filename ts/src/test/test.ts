@@ -926,8 +926,8 @@ export default class testMainClass extends baseMainTestClass {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (!newOutput) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (!storedOutput) ? undefined : storedOutput;
-            const newOutputString = newOutput ? newOutput.toString () : undefined;
-            const storedOutputString = storedOutput ? storedOutput.toString () : undefined;
+            const newOutputString = sanitizedNewOutput ? sanitizedNewOutput.toString () : "undefined";
+            const storedOutputString = sanitizedStoredOutput ? sanitizedStoredOutput.toString () : "undefined";
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
             this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput);
         }
