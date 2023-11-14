@@ -825,6 +825,7 @@ export default class bitget extends Exchange {
                     '40017': ExchangeError,
                     '40018': PermissionDenied,
                     '40019': BadRequest,
+                    '40031': AccountSuspended,
                     '40037': AuthenticationError,
                     '40102': BadRequest,
                     '40103': BadRequest,
@@ -1130,13 +1131,6 @@ export default class bitget extends Exchange {
         let result = promises[0];
         for (let i = 1; i < promises.length; i++) {
             result = this.arrayConcat(result, promises[i]);
-        }
-        return result;
-    }
-    parseMarkets(markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
         }
         return result;
     }
@@ -1935,6 +1929,7 @@ export default class bitget extends Exchange {
             'tag': tag,
             'tagTo': tag,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -3469,7 +3464,7 @@ export default class bitget extends Exchange {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {

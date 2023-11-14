@@ -1616,7 +1616,7 @@ export default class currencycom extends Exchange {
             fee['currency'] = code;
             fee['cost'] = feeCost;
         }
-        const result = {
+        return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
             'txid': this.safeString(transaction, 'blockchainTransactionHash'),
@@ -1634,10 +1634,10 @@ export default class currencycom extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': undefined,
+            'internal': undefined,
             'comment': undefined,
             'fee': fee,
         };
-        return result;
     }
     parseTransactionStatus(status) {
         const statuses = {

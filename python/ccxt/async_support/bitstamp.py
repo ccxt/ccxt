@@ -1610,6 +1610,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'tagTo': tag,
             'updated': None,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
 

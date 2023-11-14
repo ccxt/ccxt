@@ -1162,6 +1162,8 @@ class lykke extends lykke$1 {
             'currency': code,
             'status': undefined,
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

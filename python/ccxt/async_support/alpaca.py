@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Trade
+from ccxt.base.types import Market, Order, OrderBook, OrderSide, OrderType, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -253,71 +253,70 @@ class alpaca(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        markets = []
-        for i in range(0, len(assets)):
-            asset = assets[i]
-            marketId = self.safe_string(asset, 'symbol')
-            parts = marketId.split('/')
-            baseId = self.safe_string(parts, 0)
-            quoteId = self.safe_string(parts, 1)
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            status = self.safe_string(asset, 'status')
-            active = (status == 'active')
-            minAmount = self.safe_number(asset, 'min_order_size')
-            amount = self.safe_number(asset, 'min_trade_increment')
-            price = self.safe_number(asset, 'price_increment')
-            markets.append({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': None,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': active,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': amount,
-                    'price': price,
+        return self.parse_markets(assets)
+
+    def parse_market(self, asset) -> Market:
+        marketId = self.safe_string(asset, 'symbol')
+        parts = marketId.split('/')
+        baseId = self.safe_string(parts, 0)
+        quoteId = self.safe_string(parts, 1)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        status = self.safe_string(asset, 'status')
+        active = (status == 'active')
+        minAmount = self.safe_number(asset, 'min_order_size')
+        amount = self.safe_number(asset, 'min_trade_increment')
+        price = self.safe_number(asset, 'price_increment')
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': None,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': active,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': amount,
+                'price': price,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': None,
                 },
-                'created': None,
-                'info': asset,
-            })
-        return markets
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': asset,
+        }
 
     async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """

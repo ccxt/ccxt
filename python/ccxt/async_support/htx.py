@@ -5575,6 +5575,8 @@ class htx(Exchange, ImplicitAPI):
         txHash = self.safe_string(transaction, 'tx-hash')
         if networkId == 'ETH' and txHash.find('0x') < 0:
             txHash = '0x' + txHash
+        subType = self.safe_string(transaction, 'sub-type')
+        internal = subType == 'FAST'
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'data'),
@@ -5593,6 +5595,8 @@ class htx(Exchange, ImplicitAPI):
             'currency': code,
             'status': self.parse_transaction_status(self.safe_string(transaction, 'state')),
             'updated': self.safe_integer(transaction, 'updated-at'),
+            'comment': None,
+            'internal': internal,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),

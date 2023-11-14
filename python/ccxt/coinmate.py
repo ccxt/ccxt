@@ -481,6 +481,7 @@ class coinmate(Exchange, ImplicitAPI):
             'tagTo': None,
             'updated': None,
             'comment': None,
+            'internal': None,
             'fee': {
                 'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,

@@ -1469,6 +1469,7 @@ class latoken extends Exchange {
             'status' => $status,
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }

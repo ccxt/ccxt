@@ -1,5 +1,5 @@
 import Exchange from './abstract/btcmarkets.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class btcmarkets
  * @extends Exchange
@@ -13,7 +13,8 @@ export default class btcmarkets extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransactionType(type: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarket(market: any): Market;
     fetchTime(params?: {}): Promise<number>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;

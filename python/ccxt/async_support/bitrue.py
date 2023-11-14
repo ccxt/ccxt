@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitrue import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -639,78 +639,74 @@ class bitrue(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
         markets = self.safe_value(response, 'symbols', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            filters = self.safe_value(market, 'filters', [])
-            filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string(market, 'status')
-            priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-            amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-            defaultPricePrecision = self.safe_string(market, 'pricePrecision')
-            defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
-            pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
-            amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
-            entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'TRADING'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
-                    'price': self.parse_number(self.parse_precision(pricePrecision)),
-                    'base': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
-                    'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+        return self.parse_markets(markets)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'symbol')
+        lowercaseId = self.safe_string_lower(market, 'symbol')
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        filters = self.safe_value(market, 'filters', [])
+        filtersByType = self.index_by(filters, 'filterType')
+        status = self.safe_string(market, 'status')
+        priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+        amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+        defaultPricePrecision = self.safe_string(market, 'pricePrecision')
+        defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
+        pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
+        amountPrecision = self.safe_string(amountFilter, 'volumeScale', defaultAmountPrecision)
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (status == 'TRADING'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                'price': self.parse_number(self.parse_precision(pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(amountFilter, 'minQty'),
-                        'max': self.safe_number(amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': self.safe_number(priceFilter, 'minPrice'),
-                        'max': self.safe_number(priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': self.safe_number(amountFilter, 'minVal'),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(amountFilter, 'minQty'),
+                    'max': self.safe_number(amountFilter, 'maxQty'),
                 },
-                'created': None,
-                'info': market,
-            }
-            result.append(entry)
-        return result
+                'price': {
+                    'min': self.safe_number(priceFilter, 'minPrice'),
+                    'max': self.safe_number(priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': self.safe_number(amountFilter, 'minVal'),
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def parse_balance(self, response) -> Balances:
         result = {
@@ -1758,6 +1754,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'internal': False,
+            'comment': None,
             'fee': fee,
         }
 

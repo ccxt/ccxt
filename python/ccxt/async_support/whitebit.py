@@ -1722,6 +1722,7 @@ class whitebit(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'description'),
+            'internal': None,
             'fee': {
                 'cost': self.safe_number(transaction, 'fee'),
                 'currency': self.safe_currency_code(currencyId, currency),

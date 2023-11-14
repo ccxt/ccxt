@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.51';
+$version = '4.1.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.51';
+    const VERSION = '4.1.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -400,7 +400,6 @@ class Exchange {
         'btcalpha',
         'btcbox',
         'btcmarkets',
-        'btctradeua',
         'btcturk',
         'bybit',
         'cex',
@@ -409,7 +408,6 @@ class Exchange {
         'coinbasepro',
         'coincheck',
         'coinex',
-        'coinfalcon',
         'coinlist',
         'coinmate',
         'coinone',
@@ -2412,6 +2410,18 @@ class Exchange {
 
     public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
+    }
+
+    public function parse_market($market) {
+        throw new NotSupported($this->id . ' parseMarket() is not supported yet');
+    }
+
+    public function parse_markets($markets) {
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $result[] = $this->parseMarket ($markets[$i]);
+        }
+        return $result;
     }
 
     public function parse_ticker(array $ticker, $market = null) {

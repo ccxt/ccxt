@@ -9,9 +9,8 @@ export default class bitget extends Exchange {
     setSandboxMode(enabled: any): void;
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<any>;
-    parseMarkets(markets: any): any[];
     parseMarket(market: any): Market;
-    fetchMarketsByType(type: any, params?: {}): Promise<any[]>;
+    fetchMarketsByType(type: any, params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any[]>;
     parseMarketLeverageTiers(info: any, market?: any): any[];

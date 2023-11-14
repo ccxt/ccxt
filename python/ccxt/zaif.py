@@ -657,6 +657,7 @@ class zaif(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': fee,
             'info': transaction,
         }

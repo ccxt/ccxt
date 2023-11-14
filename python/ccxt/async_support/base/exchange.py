@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.51'
+__version__ = '4.1.52'
 
 # -----------------------------------------------------------------------------
 
@@ -701,6 +701,15 @@ class Exchange(BaseExchange):
 
     async def fetch_trading_limits(self, symbols: Optional[List[str]] = None, params={}):
         raise NotSupported(self.id + ' fetchTradingLimits() is not supported yet')
+
+    def parse_market(self, market):
+        raise NotSupported(self.id + ' parseMarket() is not supported yet')
+
+    def parse_markets(self, markets):
+        result = []
+        for i in range(0, len(markets)):
+            result.append(self.parseMarket(markets[i]))
+        return result
 
     def parse_ticker(self, ticker: object, market=None):
         raise NotSupported(self.id + ' parseTicker() is not supported yet')

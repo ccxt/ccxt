@@ -1578,6 +1578,8 @@ class hollaex(Exchange, ImplicitAPI):
             'currency': currency['code'],
             'status': status,
             'updated': updated,
+            'comment': self.safe_string(transaction, 'message'),
+            'internal': None,
             'fee': fee,
         }
 

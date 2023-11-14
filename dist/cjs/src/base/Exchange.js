@@ -1376,6 +1376,16 @@ class Exchange {
     async fetchTradingLimits(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
     }
+    parseMarket(market) {
+        throw new errors.NotSupported(this.id + ' parseMarket() is not supported yet');
+    }
+    parseMarkets(markets) {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push(this.parseMarket(markets[i]));
+        }
+        return result;
+    }
     parseTicker(ticker, market = undefined) {
         throw new errors.NotSupported(this.id + ' parseTicker() is not supported yet');
     }

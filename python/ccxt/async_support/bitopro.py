@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -306,70 +306,68 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            active = not self.safe_value(market, 'maintain')
-            id = self.safe_string(market, 'pair')
-            uppercaseId = id.upper()
-            baseId = self.safe_string(market, 'base')
-            quoteId = self.safe_string(market, 'quote')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minLimitBaseAmount'),
-                    'max': self.safe_number(market, 'maxLimitBaseAmount'),
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-                'leverage': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            result.append({
-                'id': id,
-                'uppercaseId': uppercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'settle': None,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'derivative': False,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'limits': limits,
-                'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
-                },
-                'active': active,
-                'created': None,
-                'info': market,
-            })
-        return result
+        return self.parse_markets(markets)
+
+    def parse_market(self, market) -> Market:
+        active = not self.safe_value(market, 'maintain')
+        id = self.safe_string(market, 'pair')
+        uppercaseId = id.upper()
+        baseId = self.safe_string(market, 'base')
+        quoteId = self.safe_string(market, 'quote')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        limits = {
+            'amount': {
+                'min': self.safe_number(market, 'minLimitBaseAmount'),
+                'max': self.safe_number(market, 'maxLimitBaseAmount'),
+            },
+            'price': {
+                'min': None,
+                'max': None,
+            },
+            'cost': {
+                'min': None,
+                'max': None,
+            },
+            'leverage': {
+                'min': None,
+                'max': None,
+            },
+        }
+        return {
+            'id': id,
+            'uppercaseId': uppercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': base,
+            'quoteId': quote,
+            'settle': None,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'limits': limits,
+            'precision': {
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+            },
+            'active': active,
+            'created': None,
+            'info': market,
+        }
 
     def parse_ticker(self, ticker, market=None) -> Ticker:
         #
@@ -1333,6 +1331,7 @@ class bitopro(Exchange, ImplicitAPI):
             'tagTo': tag,
             'updated': None,
             'comment': None,
+            'internal': None,
             'fee': {
                 'currency': code,
                 'cost': self.safe_number(transaction, 'fee'),

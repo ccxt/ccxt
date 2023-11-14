@@ -1566,7 +1566,7 @@ class digifinex(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_value(rawOrder, 'params', {})
-            marginResult = self.handle_margin_mode_and_params('createOrders', params)
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
             currentMarginMode = marginResult[0]
             if currentMarginMode is not None:
                 if marginMode is None:
@@ -1575,6 +1575,7 @@ class digifinex(Exchange, ImplicitAPI):
                     if marginMode != currentMarginMode:
                         raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            orderRequest = self.omit(orderRequest, 'marginMode')
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
         request = {}
@@ -2625,6 +2626,8 @@ class digifinex(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': None,
+            'comment': None,
             'fee': fee,
         }
 

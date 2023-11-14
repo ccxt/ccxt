@@ -1813,6 +1813,7 @@ class coinbasepro extends Exchange {
             'tagTo' => null,
             'updated' => $this->parse8601($this->safe_string($transaction, 'processed_at')),
             'comment' => null,
+            'internal' => false,
             'fee' => $fee,
         );
     }

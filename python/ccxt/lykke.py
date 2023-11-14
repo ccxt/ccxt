@@ -1123,6 +1123,8 @@ class lykke(Exchange, ImplicitAPI):
             'currency': code,
             'status': None,
             'updated': None,
+            'internal': None,
+            'comment': None,
             'fee': fee,
         }
 

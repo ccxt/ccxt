@@ -1670,10 +1670,8 @@ class coinsph(Exchange, ImplicitAPI):
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        internal = self.safe_integer(transaction, 'transferType')
-        if internal is not None:
-            internal = True if internal else False
         network = self.safe_string(transaction, 'network')
+        internal = network == 'Internal'
         return {
             'info': transaction,
             'id': id,
@@ -1693,6 +1691,7 @@ class coinsph(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': None,
             'fee': fee,
         }
 

@@ -2120,6 +2120,7 @@ class exmo(Exchange, ImplicitAPI):
             'tagTo': None,
             'updated': self.safe_timestamp(transaction, 'updated'),
             'comment': comment,
+            'internal': None,
             'fee': fee,
         }
 

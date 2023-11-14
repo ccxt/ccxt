@@ -2065,6 +2065,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'tagTo': tag,
             'updated': updated,
             'comment': comment,
+            'internal': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),

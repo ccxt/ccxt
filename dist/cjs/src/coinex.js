@@ -4016,6 +4016,8 @@ class coinex extends coinex$1 {
         const networkId = this.safeString(transaction, 'smart_contract_name');
         const amount = this.safeNumber(transaction, 'actual_amount');
         let feeCost = this.safeString(transaction, 'tx_fee');
+        const transferMethod = this.safeString(transaction, 'transfer_method');
+        const internal = transferMethod === 'local';
         let addressTo = undefined;
         let addressFrom = undefined;
         if (type === 'deposit') {
@@ -4048,6 +4050,8 @@ class coinex extends coinex$1 {
             'status': status,
             'updated': undefined,
             'fee': fee,
+            'comment': undefined,
+            'internal': internal,
         };
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

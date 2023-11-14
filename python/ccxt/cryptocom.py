@@ -2241,6 +2241,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'status': status,
             'updated': self.safe_integer(transaction, 'update_time'),
             'internal': None,
+            'comment': self.safe_string(transaction, 'client_wid'),
             'fee': fee,
         }
 

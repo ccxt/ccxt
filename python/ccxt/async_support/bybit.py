@@ -3415,7 +3415,7 @@ class bybit(Exchange, ImplicitAPI):
             triggerPrice = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['reduceOnly'] = True
-        elif isStopLoss or isTakeProfit:
+        if isStopLoss or isTakeProfit:
             if isStopLoss:
                 slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
                 request['stopLoss'] = self.price_to_precision(symbol, slTriggerPrice)
@@ -4862,6 +4862,8 @@ class bybit(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'fee': fee,
+            'internal': None,
+            'comment': None,
         }
 
     async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):

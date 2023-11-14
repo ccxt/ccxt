@@ -3595,7 +3595,7 @@ export default class bybit extends Exchange {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
-        else if (isStopLoss || isTakeProfit) {
+        if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -5193,6 +5193,8 @@ export default class bybit extends Exchange {
             'status': status,
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
         };
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {

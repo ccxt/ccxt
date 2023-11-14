@@ -1721,8 +1721,8 @@ class kucoin(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.kucoin.com/#get-part-order-book-aggregated
-        :see: https://docs.kucoin.com/#get-full-order-book-aggregated
+        :see: https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
+        :see: https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the kucoin api endpoint
@@ -1732,7 +1732,6 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         level = self.safe_integer(params, 'level', 2)
         request = {'symbol': market['id']}
-        method = 'publicGetMarketOrderbookLevelLevelLimit'
         isAuthenticated = self.check_required_credentials(False)
         response = None
         if not isAuthenticated or limit is not None:
@@ -1744,9 +1743,9 @@ class kucoin(Exchange, ImplicitAPI):
                     else:
                         raise ExchangeError(self.id + ' fetchOrderBook() limit argument must be 20 or 100')
                 request['limit'] = limit if limit else 100
+            response = await self.publicGetMarketOrderbookLevelLevelLimit(self.extend(request, params))
         else:
-            method = 'privateGetMarketOrderbookLevel2'  # recommended(v3)
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privateGetMarketOrderbookLevel2(self.extend(request, params))
         #
         # public(v1) market/orderbook/level2_20 and market/orderbook/level2_100
         #
@@ -2978,6 +2977,7 @@ class kucoin(Exchange, ImplicitAPI):
                 timestamp = timestamp * 1000
             if updated is not None:
                 updated = updated * 1000
+        internal = self.safe_value(transaction, 'isInner')
         tag = self.safe_string(transaction, 'memo')
         return {
             'info': transaction,
@@ -2997,6 +2997,7 @@ class kucoin(Exchange, ImplicitAPI):
             'type': type,
             'status': self.parse_transaction_status(rawStatus),
             'comment': self.safe_string(transaction, 'remark'),
+            'internal': internal,
             'fee': fee,
             'updated': updated,
         }

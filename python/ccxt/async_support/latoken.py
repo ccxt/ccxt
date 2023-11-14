@@ -1419,6 +1419,7 @@ class latoken(Exchange, ImplicitAPI):
             'status': status,
             'updated': None,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
 

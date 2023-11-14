@@ -5556,6 +5556,7 @@ class binance(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': None,
             'fee': fee,
         }
 

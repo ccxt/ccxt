@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitpanda import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -380,67 +380,66 @@ class bitpanda(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            baseAsset = self.safe_value(market, 'base', {})
-            quoteAsset = self.safe_value(market, 'quote', {})
-            baseId = self.safe_string(baseAsset, 'code')
-            quoteId = self.safe_string(quoteAsset, 'code')
-            id = baseId + '_' + quoteId
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            state = self.safe_string(market, 'state')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (state == 'ACTIVE'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        baseAsset = self.safe_value(market, 'base', {})
+        quoteAsset = self.safe_value(market, 'quote', {})
+        baseId = self.safe_string(baseAsset, 'code')
+        quoteId = self.safe_string(quoteAsset, 'code')
+        id = baseId + '_' + quoteId
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        state = self.safe_string(market, 'state')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (state == 'ACTIVE'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'market_precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'min_size'),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'min_size'),
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def fetch_trading_fees(self, params={}):
         """
@@ -1303,6 +1302,8 @@ class bitpanda(Exchange, ImplicitAPI):
             'type': None,
             'updated': None,
             'txid': self.safe_string(transaction, 'blockchain_transaction_id'),
+            'comment': None,
+            'internal': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': fee,

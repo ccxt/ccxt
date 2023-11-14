@@ -1780,6 +1780,7 @@ class woo(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'updated': self.safe_timestamp(transaction, 'updated_time'),
             'comment': None,
+            'internal': None,
             'fee': fee,
             'network': None,
         }

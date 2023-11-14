@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.51';
+$version = '4.1.52';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.51';
+    const VERSION = '4.1.52';
 
     public $browser;
     public $marketsLoading = null;
@@ -567,6 +567,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
+    }
+
+    public function parse_market($market) {
+        throw new NotSupported($this->id . ' parseMarket() is not supported yet');
+    }
+
+    public function parse_markets($markets) {
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $result[] = $this->parseMarket ($markets[$i]);
+        }
+        return $result;
     }
 
     public function parse_ticker(array $ticker, $market = null) {

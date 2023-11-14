@@ -740,6 +740,7 @@ class coincheck(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': None,
             'internal': None,
             'fee': fee,
         }

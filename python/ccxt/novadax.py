@@ -1359,6 +1359,7 @@ class novadax(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'comment': None,
+            'internal': None,
             'fee': {
                 'currency': None,
                 'cost': None,

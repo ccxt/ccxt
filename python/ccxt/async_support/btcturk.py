@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcturk import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -195,80 +195,79 @@ class btcturk(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         markets = self.safe_value(data, 'symbols', [])
-        result = []
-        for i in range(0, len(markets)):
-            entry = markets[i]
-            id = self.safe_string(entry, 'name')
-            baseId = self.safe_string(entry, 'numerator')
-            quoteId = self.safe_string(entry, 'denominator')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            filters = self.safe_value(entry, 'filters', [])
-            minPrice = None
-            maxPrice = None
-            minAmount = None
-            maxAmount = None
-            minCost = None
-            for j in range(0, len(filters)):
-                filter = filters[j]
-                filterType = self.safe_string(filter, 'filterType')
-                if filterType == 'PRICE_FILTER':
-                    minPrice = self.safe_number(filter, 'minPrice')
-                    maxPrice = self.safe_number(filter, 'maxPrice')
-                    minAmount = self.safe_number(filter, 'minAmount')
-                    maxAmount = self.safe_number(filter, 'maxAmount')
-                    minCost = self.safe_number(filter, 'minExchangeValue')
-            status = self.safe_string(entry, 'status')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'TRADING'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'numeratorScale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'denominatorScale'))),
+        return self.parse_markets(markets)
+
+    def parse_market(self, entry) -> Market:
+        id = self.safe_string(entry, 'name')
+        baseId = self.safe_string(entry, 'numerator')
+        quoteId = self.safe_string(entry, 'denominator')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        filters = self.safe_value(entry, 'filters', [])
+        minPrice = None
+        maxPrice = None
+        minAmount = None
+        maxAmount = None
+        minCost = None
+        for j in range(0, len(filters)):
+            filter = filters[j]
+            filterType = self.safe_string(filter, 'filterType')
+            if filterType == 'PRICE_FILTER':
+                minPrice = self.safe_number(filter, 'minPrice')
+                maxPrice = self.safe_number(filter, 'maxPrice')
+                minAmount = self.safe_number(filter, 'minAmount')
+                maxAmount = self.safe_number(filter, 'maxAmount')
+                minCost = self.safe_number(filter, 'minExchangeValue')
+        status = self.safe_string(entry, 'status')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (status == 'TRADING'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'numeratorScale'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'denominatorScale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
                 },
-                'created': None,
-                'info': entry,
-            })
-        return result
+                'price': {
+                    'min': minPrice,
+                    'max': maxPrice,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': entry,
+        }
 
     def parse_balance(self, response) -> Balances:
         data = self.safe_value(response, 'data', [])

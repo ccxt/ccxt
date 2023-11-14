@@ -835,7 +835,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             fee = {'currency': code, 'cost': feeCost}
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'txhash')
-        result = {
+        return {
             'info': transaction,
             'id': id,
             'txid': txid,
@@ -854,9 +854,9 @@ class blockchaincom(Exchange, ImplicitAPI):
             'status': self.parse_transaction_state(state),  # 'status':   'pending',   # 'ok', 'failed', 'canceled', string
             'updated': None,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
-        return result
 
     async def fetch_withdrawal_whitelist(self, params={}):
         """

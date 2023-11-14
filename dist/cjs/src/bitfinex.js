@@ -1501,6 +1501,7 @@ class bitfinex extends bitfinex$1 {
             'tagTo': undefined,
             'updated': this.safeTimestamp(transaction, 'timestamp'),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCost),

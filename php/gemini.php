@@ -1584,6 +1584,8 @@ class gemini extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($statusRaw),
             'updated' => null,
+            'internal' => null,
+            'comment' => $this->safe_string($transaction, 'message'),
             'fee' => $fee,
         );
     }

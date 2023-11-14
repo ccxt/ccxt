@@ -1663,6 +1663,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             'tagTo': None,
             'updated': self.parse8601(self.safe_string(transaction, 'processed_at')),
             'comment': None,
+            'internal': False,
             'fee': fee,
         }
 
