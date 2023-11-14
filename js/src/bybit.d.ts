@@ -1,5 +1,5 @@
 import Exchange from './abstract/bybit.js';
-import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Transaction, Ticker, OrderBook, Tickers, Greeks } from './base/types.js';
 /**
  * @class bybit
  * @extends Exchange
@@ -66,9 +66,9 @@ export default class bybit extends Exchange {
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchFutureMarkets(params: any): Promise<any[]>;
     fetchOptionMarkets(params: any): Promise<any[]>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseFundingRate(ticker: any, market?: any): {
@@ -93,12 +93,10 @@ export default class bybit extends Exchange {
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseTrade(trade: any, market?: any): Trade;
-    parseSpotTrade(trade: any, market?: any): Trade;
-    parseContractTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     parseOrderStatus(status: any): string;
     parseTimeInForce(timeInForce: any): string;
     parseOrder(order: any, market?: any): Order;
@@ -137,29 +135,10 @@ export default class bybit extends Exchange {
         network: string;
         info: any;
     }>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        address: any;
-        addressTo: string;
-        addressFrom: any;
-        tag: string;
-        tagTo: any;
-        tagFrom: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: number;
-        fee: any;
-    };
+    parseTransaction(transaction: any, currency?: any): Transaction;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
@@ -179,26 +158,7 @@ export default class bybit extends Exchange {
         info: any;
     };
     parseLedgerEntryType(type: any): string;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: string;
-        address: any;
-        addressTo: string;
-        addressFrom: any;
-        tag: string;
-        tagTo: any;
-        tagFrom: any;
-        type: string;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: number;
-        fee: any;
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchUsdcPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
@@ -304,6 +264,28 @@ export default class bybit extends Exchange {
     parseSettlements(settlements: any, market: any): any[];
     fetchVolatilityHistory(code: string, params?: {}): Promise<any[]>;
     parseVolatilityHistory(volatility: any): any[];
+    fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    parseGreeks(greeks: any, market?: any): {
+        symbol: any;
+        timestamp: any;
+        datetime: any;
+        delta: number;
+        gamma: number;
+        theta: number;
+        vega: number;
+        rho: any;
+        bidSize: number;
+        askSize: number;
+        bidImpliedVolatility: number;
+        askImpliedVolatility: number;
+        markImpliedVolatility: number;
+        bidPrice: number;
+        askPrice: number;
+        markPrice: number;
+        lastPrice: number;
+        underlyingPrice: number;
+        info: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

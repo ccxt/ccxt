@@ -4,7 +4,7 @@
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, ArgumentsRequired, BadRequest } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Int, OrderSide, OrderType, Trade } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -26,6 +26,7 @@ export default class binance extends binanceRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -99,6 +100,10 @@ export default class binance extends binanceRest {
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
@@ -1487,6 +1492,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type);
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
         const awaitBalanceSnapshot = this.safeValue (options, 'awaitBalanceSnapshot', true);
@@ -1562,6 +1568,9 @@ export default class binance extends binanceRest {
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
         const messageHash = accountType + ':balance';
+        if (this.balance[accountType] === undefined) {
+            this.balance[accountType] = {};
+        }
         this.balance[accountType]['info'] = message;
         const event = this.safeString (message, 'e');
         if (event === 'balanceUpdate') {
@@ -2100,6 +2109,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type);
         const message = undefined;
         const orders = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -2349,6 +2359,198 @@ export default class binance extends binanceRest {
         this.handleOrder (client, message);
     }
 
+    async watchPositions (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchPositions
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate (params);
+        let market = undefined;
+        let messageHash = '';
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            market = this.getMarketFromSymbols (symbols);
+            messageHash = '::' + symbols.join (',');
+        }
+        let type = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        if (type === 'spot' || type === 'margin') {
+            type = 'future';
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        messageHash = type + ':positions' + messageHash;
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
+        const client = this.client (url);
+        this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type, symbols);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.safeValue ('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.safeValue (this.positions, type);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+            const snapshot = await client.future (type + ':fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watch (url, messageHash, undefined, type);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: string[] = undefined) {
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (type in this.positions) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.positions[type] = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash, type) {
+        const positions = await this.fetchPositions (undefined, { 'type': type });
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions[type];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, type + ':position');
+    }
+
+    handlePositions (client, message) {
+        //
+        //     {
+        //         e: 'ACCOUNT_UPDATE',
+        //         T: 1667881353112,
+        //         E: 1667881353115,
+        //         a: {
+        //             B: [{
+        //                 a: 'USDT',
+        //                 wb: '1127.95750089',
+        //                 cw: '1040.82091149',
+        //                 bc: '0'
+        //             }],
+        //             P: [{
+        //                 s: 'BTCUSDT',
+        //                 pa: '-0.089',
+        //                 ep: '19700.03933',
+        //                 cr: '-1260.24809979',
+        //                 up: '1.53058860',
+        //                 mt: 'isolated',
+        //                 iw: '87.13658940',
+        //                 ps: 'BOTH',
+        //                 ma: 'USDT'
+        //             }],
+        //             m: 'ORDER'
+        //         }
+        //     }
+        //
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        const subscriptions = Object.keys (client.subscriptions);
+        const accountType = subscriptions[0];
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (!(accountType in this.positions)) {
+            this.positions[accountType] = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions[accountType];
+        const data = this.safeValue (message, 'a', {});
+        const rawPositions = this.safeValue (data, 'P', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition (rawPosition);
+            const timestamp = this.safeInteger (message, 'E');
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601 (timestamp);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, accountType + ':positions');
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         "s": "BTCUSDT", // Symbol
+        //         "pa": "0", // Position Amount
+        //         "ep": "0.00000", // Entry Price
+        //         "cr": "200", // (Pre-fee) Accumulated Realized
+        //         "up": "0", // Unrealized PnL
+        //         "mt": "isolated", // Margin Type
+        //         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        //         "ps": "BOTH" // Position Side
+        //     }
+        //
+        const marketId = this.safeString (position, 's');
+        const positionSide = this.safeStringLower (position, 'ps');
+        const hedged = positionSide !== 'both';
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'future'),
+            'notional': undefined,
+            'marginMode': this.safeString (position, 'mt'),
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber (position, 'ep'),
+            'unrealizedPnl': this.safeNumber (position, 'up'),
+            'percentage': undefined,
+            'contracts': this.safeNumber (position, 'pa'),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': positionSide,
+            'hedged': hedged,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
+    }
+
     async fetchMyTradesWs (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -2469,6 +2671,7 @@ export default class binance extends binanceRest {
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
+        this.setPositionsCache (client, type);
         const message = undefined;
         const trades = await this.watch (url, messageHash, message, type);
         if (this.newUpdates) {
@@ -2579,6 +2782,11 @@ export default class binance extends binanceRest {
         }
     }
 
+    handleAcountUpdate (client, message) {
+        this.handleBalance (client, message);
+        this.handlePositions (client, message);
+    }
+
     handleWsError (client: Client, message) {
         //
         //    {
@@ -2647,7 +2855,7 @@ export default class binance extends binanceRest {
             'bookTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
-            'ACCOUNT_UPDATE': this.handleBalance,
+            'ACCOUNT_UPDATE': this.handleAcountUpdate,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
         };

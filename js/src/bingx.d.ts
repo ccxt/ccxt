@@ -1,70 +1,18 @@
 import Exchange from './abstract/bingx.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 export default class bingx extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchSpotMarkets(params: any): Promise<any[]>;
     fetchSwapMarkets(params: any): Promise<any[]>;
-    parseMarket(market: any): {
-        id: string;
-        symbol: string;
-        base: any;
-        quote: any;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: string;
-        type: string;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: boolean;
-        inverse: boolean;
-        taker: any;
-        maker: any;
-        contractSize: number;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: number;
-            price: number;
-            base: any;
-            quote: any;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: number;
-            };
-            amount: {
-                min: number;
-                max: number;
-            };
-            price: {
-                min: any;
-                max: any;
-            };
-            cost: {
-                min: number;
-                max: number;
-            };
-        };
-        created: any;
-        info: any;
-    };
+    parseMarket(market: any): Market;
     fetchMarkets(params?: {}): Promise<any>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{
         info: any;
         symbol: any;
@@ -106,11 +54,11 @@ export default class bingx extends Exchange {
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    parseBalance(response: any): import("./base/types.js").Balances;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchBalance(params?: {}): Promise<Balances>;
+    parseBalance(response: any): Balances;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
     createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
@@ -156,39 +104,15 @@ export default class bingx extends Exchange {
         network: string;
         info: any;
     };
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: number;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: string;
-        addressFrom: any;
-        addressTo: string;
-        tag: string;
-        tagFrom: string;
-        tagTo: any;
-        updated: any;
-        comment: string;
-        fee: {
-            currency: any;
-            cost: number;
-            rate: any;
-        };
-    };
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatus(status: any): string;
     setMarginMode(marginMode: string, symbol?: string, params?: {}): Promise<any>;
     setMargin(symbol: string, amount: any, params?: {}): Promise<any>;
     fetchLeverage(symbol: string, params?: {}): Promise<any>;
     setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseDepositWithdrawFee(fee: any, currency?: any): {
         info: any;
         withdraw: {

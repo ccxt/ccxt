@@ -6,8 +6,9 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcmarkets import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -191,7 +192,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -202,7 +203,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_with_method('privateGetTransfers', code, since, limit, params)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -213,7 +214,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_with_method('privateGetDeposits', code, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -241,7 +242,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, type, type)
 
-    def parse_transaction(self, transaction, currency=None):
+    def parse_transaction(self, transaction, currency=None) -> Transaction:
         #
         #    {
         #         "id": "6500230339",
@@ -442,7 +443,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse8601(self.safe_string(response, 'timestamp'))
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -454,7 +455,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the btcmarkets api endpoint
@@ -484,7 +485,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -519,7 +520,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -554,7 +555,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'snapshotId')
         return orderbook
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # fetchTicker
         #
@@ -604,7 +605,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -643,7 +644,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         response = await self.publicGetMarketsMarketIdTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -707,7 +708,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -962,7 +963,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -986,7 +987,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -998,7 +999,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         request = {'status': 'open'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in

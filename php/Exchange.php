@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.43';
+$version = '4.1.51';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.43';
+    const VERSION = '4.1.51';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -144,7 +144,7 @@ class Exchange {
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
-    public $positions = array();
+    public $positions = null;
     public $ohlcvs = array();
     public $exceptions = array();
     public $accounts = array();
@@ -428,6 +428,7 @@ class Exchange {
         'hitbtc',
         'hitbtc3',
         'hollaex',
+        'htx',
         'huobi',
         'huobijp',
         'huobipro',
@@ -2246,7 +2247,7 @@ class Exchange {
         return $result;
     }
 
-    public function filter_by_limit(mixed $array, ?int $limit = null, int|string $key = 'timestamp') {
+    public function filter_by_limit(array $array, ?int $limit = null, int|string $key = 'timestamp') {
         if ($this->valueIsDefined ($limit)) {
             $arrayLength = count($array);
             if ($arrayLength > 0) {
@@ -2264,7 +2265,7 @@ class Exchange {
         return $array;
     }
 
-    public function filter_by_since_limit(mixed $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
+    public function filter_by_since_limit(array $array, ?int $since = null, ?int $limit = null, int|string $key = 'timestamp', $tail = false) {
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
         $result = $parsedArray;
@@ -2284,7 +2285,7 @@ class Exchange {
         return $this->filter_by_limit($result, $limit, $key);
     }
 
-    public function filter_by_value_since_limit(mixed $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_value_since_limit(array $array, int|string $field, $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->valueIsDefined ($value);
         $sinceIsDefined = $this->valueIsDefined ($since);
         $parsedArray = $this->to_array($array);
@@ -2380,6 +2381,10 @@ class Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function fetch_margin_mode(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarginMode() is not supported yet');
     }
 
     public function fetch_rest_order_book_safe($symbol, $limit = null, $params = array ()) {
@@ -3756,7 +3761,7 @@ class Exchange {
         );
     }
 
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs(array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
@@ -3814,7 +3819,7 @@ class Exchange {
         $symbol = $this->safe_string($position, 'symbol');
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market ($symbol);
+            $market = $this->safe_value($this->markets, $symbol);
         }
         if ($contractSize === null && $market !== null) {
             $contractSize = $this->safe_number($market, 'contractSize');
@@ -4054,6 +4059,18 @@ class Exchange {
 
     public function fetch_position(string $symbol, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function watch_position(?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchPosition() is not supported yet');
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' watchPositions() is not supported yet');
+    }
+
+    public function watch_position_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->watchPositions ($symbols, $since, $limit, $params);
     }
 
     public function fetch_positions_by_symbol(string $symbol, $params = array ()) {
@@ -4568,6 +4585,10 @@ class Exchange {
 
     public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet');
+    }
+
+    public function fetch_greeks(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchGreeks() is not supported yet');
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5381,7 +5402,7 @@ class Exchange {
         return $market;
     }
 
-    public function parse_ws_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ws_ohlcvs(array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ws_ohlcv($ohlcvs[$i], $market);
@@ -5768,5 +5789,9 @@ class Exchange {
         $sorted = $this->sort_by($result, 'timestamp');
         $symbol = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function parse_greeks($greeks, $market = null) {
+        throw new NotSupported($this->id . ' parseGreeks () is not supported yet');
     }
 }

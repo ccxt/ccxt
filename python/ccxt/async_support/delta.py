@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Greeks
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -54,6 +54,7 @@ class delta(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
                 'fetchLeverage': True,
@@ -806,7 +807,7 @@ class delta(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_ticker(self, ticker, market=None):
+    def parse_ticker(self, ticker, market=None) -> Ticker:
         #
         # spot: fetchTicker, fetchTickers
         #
@@ -950,7 +951,7 @@ class delta(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
@@ -1091,7 +1092,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.delta.exchange/#get-tickers-for-products
@@ -1240,7 +1241,7 @@ class delta(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.delta.exchange/#get-l2-orderbook
@@ -1278,7 +1279,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_order_book(result, market['symbol'], None, 'buy', 'sell', 'price', 'size')
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         # public fetchTrades
         #
@@ -1373,7 +1374,7 @@ class delta(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.delta.exchange/#get-public-trades
@@ -1427,7 +1428,7 @@ class delta(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.delta.exchange/#get-ohlc-candles
@@ -1475,7 +1476,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'result', [])
         result = {'info': response}
         currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId', {})
@@ -1490,7 +1491,7 @@ class delta(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.delta.exchange/#get-wallet-balances
@@ -1838,8 +1839,8 @@ class delta(Exchange, ImplicitAPI):
         request = {
             'id': int(id),
             'product_id': market['numericId'],
-            # 'limit_price': self.price_to_precision(symbol, price),
-            # 'size': self.amount_to_precision(symbol, amount),
+            # "limit_price": self.price_to_precision(symbol, price),
+            # "size": self.amount_to_precision(symbol, amount),
         }
         if amount is not None:
             request['size'] = int(self.amount_to_precision(symbol, amount))
@@ -1947,7 +1948,7 @@ class delta(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.delta.exchange/#get-active-orders
@@ -1959,7 +1960,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.delta.exchange/#get-order-history-cancelled-and-closed
@@ -2573,7 +2574,7 @@ class delta(Exchange, ImplicitAPI):
         :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
         :param str symbol: unified market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure:
+        :returns dict} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure:
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2910,6 +2911,152 @@ class delta(Exchange, ImplicitAPI):
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))
         return result
+
+    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the delta api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetTickersSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "result": {
+        #             "close": 6793.0,
+        #             "contract_type": "call_options",
+        #             "greeks": {
+        #                 "delta": "0.94739174",
+        #                 "gamma": "0.00002206",
+        #                 "rho": "11.00890725",
+        #                 "spot": "36839.58124652",
+        #                 "theta": "-18.18365310",
+        #                 "vega": "7.85209698"
+        #             },
+        #             "high": 7556.0,
+        #             "low": 6793.0,
+        #             "mark_price": "6955.70698909",
+        #             "mark_vol": "0.66916863",
+        #             "oi": "1.8980",
+        #             "oi_change_usd_6h": "110.4600",
+        #             "oi_contracts": "1898",
+        #             "oi_value": "1.8980",
+        #             "oi_value_symbol": "BTC",
+        #             "oi_value_usd": "69940.7319",
+        #             "open": 7.2e3,
+        #             "price_band": {
+        #                 "lower_limit": "5533.89814767",
+        #                 "upper_limit": "11691.37688371"
+        #             },
+        #             "product_id": 129508,
+        #             "quotes": {
+        #                 "ask_iv": "0.90180438",
+        #                 "ask_size": "1898",
+        #                 "best_ask": "7210",
+        #                 "best_bid": "6913",
+        #                 "bid_iv": "0.60881706",
+        #                 "bid_size": "3163",
+        #                 "impact_mid_price": null,
+        #                 "mark_iv": "0.66973549"
+        #             },
+        #             "size": 5,
+        #             "spot_price": "36839.58153868",
+        #             "strike_price": "30000",
+        #             "symbol": "C-BTC-30000-241123",
+        #             "timestamp": 1699584998504530,
+        #             "turnover": 184.41206804,
+        #             "turnover_symbol": "USDT",
+        #             "turnover_usd": 184.41206804,
+        #             "volume": 0.005
+        #         },
+        #         "success": True
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_greeks(result, market)
+
+    def parse_greeks(self, greeks, market=None):
+        #
+        #     {
+        #         "close": 6793.0,
+        #         "contract_type": "call_options",
+        #         "greeks": {
+        #             "delta": "0.94739174",
+        #             "gamma": "0.00002206",
+        #             "rho": "11.00890725",
+        #             "spot": "36839.58124652",
+        #             "theta": "-18.18365310",
+        #             "vega": "7.85209698"
+        #         },
+        #         "high": 7556.0,
+        #         "low": 6793.0,
+        #         "mark_price": "6955.70698909",
+        #         "mark_vol": "0.66916863",
+        #         "oi": "1.8980",
+        #         "oi_change_usd_6h": "110.4600",
+        #         "oi_contracts": "1898",
+        #         "oi_value": "1.8980",
+        #         "oi_value_symbol": "BTC",
+        #         "oi_value_usd": "69940.7319",
+        #         "open": 7.2e3,
+        #         "price_band": {
+        #             "lower_limit": "5533.89814767",
+        #             "upper_limit": "11691.37688371"
+        #         },
+        #         "product_id": 129508,
+        #         "quotes": {
+        #             "ask_iv": "0.90180438",
+        #             "ask_size": "1898",
+        #             "best_ask": "7210",
+        #             "best_bid": "6913",
+        #             "bid_iv": "0.60881706",
+        #             "bid_size": "3163",
+        #             "impact_mid_price": null,
+        #             "mark_iv": "0.66973549"
+        #         },
+        #         "size": 5,
+        #         "spot_price": "36839.58153868",
+        #         "strike_price": "30000",
+        #         "symbol": "C-BTC-30000-241123",
+        #         "timestamp": 1699584998504530,
+        #         "turnover": 184.41206804,
+        #         "turnover_symbol": "USDT",
+        #         "turnover_usd": 184.41206804,
+        #         "volume": 0.005
+        #     }
+        #
+        timestamp = self.safe_integer_product(greeks, 'timestamp', 0.001)
+        marketId = self.safe_string(greeks, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        stats = self.safe_value(greeks, 'greeks', {})
+        quotes = self.safe_value(greeks, 'quotes', {})
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'delta': self.safe_number(stats, 'delta'),
+            'gamma': self.safe_number(stats, 'gamma'),
+            'theta': self.safe_number(stats, 'theta'),
+            'vega': self.safe_number(stats, 'vega'),
+            'rho': self.safe_number(stats, 'rho'),
+            'bidSize': self.safe_number(quotes, 'bid_size'),
+            'askSize': self.safe_number(quotes, 'ask_size'),
+            'bidImpliedVolatility': self.safe_number(quotes, 'bid_iv'),
+            'askImpliedVolatility': self.safe_number(quotes, 'ask_iv'),
+            'markImpliedVolatility': self.safe_number(quotes, 'mark_iv'),
+            'bidPrice': self.safe_number(quotes, 'best_bid'),
+            'askPrice': self.safe_number(quotes, 'best_ask'),
+            'markPrice': self.safe_number(greeks, 'mark_price'),
+            'lastPrice': None,
+            'underlyingPrice': self.safe_number(greeks, 'spot_price'),
+            'info': greeks,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         requestPath = '/' + self.version + '/' + self.implode_params(path, params)

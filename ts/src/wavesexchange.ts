@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/wavesexchange.js';
-import { ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
+import { AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ export default class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -589,7 +589,7 @@ export default class wavesexchange extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name wavesexchange#fetchOrderBook
@@ -849,7 +849,7 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name wavesexchange#fetchTicker
@@ -893,7 +893,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTicker (dataTicker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name wavesexchange#fetchTickers
@@ -935,7 +935,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name wavesexchange#fetchOHLCV
@@ -1562,22 +1562,20 @@ export default class wavesexchange extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wavesexchange#fetchOrders
          * @description fetches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the wavesexchange api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timestamp = this.milliseconds ();
@@ -1615,7 +1613,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wavesexchange#fetchOpenOrders
@@ -1641,7 +1639,7 @@ export default class wavesexchange extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name wavesexchange#fetchClosedOrders
@@ -1849,7 +1847,7 @@ export default class wavesexchange extends Exchange {
         }
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name wavesexchange#fetchBalance
@@ -2093,7 +2091,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name wavesexchange#fetchTrades
@@ -2618,6 +2616,7 @@ export default class wavesexchange extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

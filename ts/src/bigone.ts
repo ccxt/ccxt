@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/bigone.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -514,86 +514,66 @@ export default class bigone extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'name');
-            const uuid = this.safeString (market, 'id');
-            const baseAsset = this.safeValue (market, 'base_asset', {});
-            const quoteAsset = this.safeValue (market, 'quote_asset', {});
-            const baseId = this.safeString (baseAsset, 'symbol');
-            const quoteId = this.safeString (quoteAsset, 'symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const entry = {
-                'id': id,
-                'uuid': uuid,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_quote_value'),
-                        'max': this.safeNumber (market, 'max_quote_value'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            };
-            result.push (entry);
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByUuid = this.safeValue (this.options, 'marketsByUuid');
-        if ((marketsByUuid === undefined) || reload) {
-            marketsByUuid = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const uuid = this.safeString (market, 'uuid');
-                marketsByUuid[uuid] = market;
-            }
-            this.options['marketsByUuid'] = marketsByUuid;
-        }
-        return markets;
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'name');
+        const baseAsset = this.safeValue (market, 'base_asset', {});
+        const quoteAsset = this.safeValue (market, 'quote_asset', {});
+        const baseId = this.safeString (baseAsset, 'symbol');
+        const quoteId = this.safeString (quoteAsset, 'symbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_quote_value'),
+                    'max': this.safeNumber (market, 'max_quote_value'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseTicker (ticker, market = undefined): Ticker {
@@ -640,7 +620,7 @@ export default class bigone extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bigone#fetchTicker
@@ -675,7 +655,7 @@ export default class bigone extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bigone#fetchTickers
@@ -752,7 +732,7 @@ export default class bigone extends Exchange {
         return this.parseToInt (timestamp / 1000000);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bigone#fetchOrderBook
@@ -928,7 +908,7 @@ export default class bigone extends Exchange {
         return this.safeTrade (result as any, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bigone#fetchTrades
@@ -991,7 +971,7 @@ export default class bigone extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bigone#fetchOHLCV
@@ -1066,7 +1046,7 @@ export default class bigone extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bigone#fetchBalance
@@ -1351,7 +1331,7 @@ export default class bigone extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bigone#fetchOrders
@@ -1362,9 +1342,7 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1413,10 +1391,8 @@ export default class bigone extends Exchange {
          * @param {object} [params] extra parameters specific to the bigone api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = {
             'asset_pair_name': market['id'],
@@ -1473,7 +1449,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bigone#fetchOpenOrders
@@ -1490,7 +1466,7 @@ export default class bigone extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bigone#fetchClosedOrders
@@ -1673,6 +1649,7 @@ export default class bigone extends Exchange {
         const address = this.safeString (transaction, 'target_address');
         const tag = this.safeString (transaction, 'memo');
         const type = ('customer_id' in transaction) ? 'withdrawal' : 'deposit';
+        const internal = this.safeValue (transaction, 'is_internal');
         return {
             'info': transaction,
             'id': id,
@@ -1692,10 +1669,12 @@ export default class bigone extends Exchange {
             'status': status,
             'updated': updated,
             'fee': undefined,
+            'comment': undefined,
+            'internal': internal,
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bigone#fetchDeposits
@@ -1747,7 +1726,7 @@ export default class bigone extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bigone#fetchWithdrawals

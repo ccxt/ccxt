@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name idex#fetchTicker
@@ -357,7 +357,7 @@ export default class idex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name idex#fetchTickers
@@ -435,7 +435,7 @@ export default class idex extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name idex#fetchOHLCV
@@ -498,7 +498,7 @@ export default class idex extends Exchange {
         return [ timestamp, open, high, low, close, volume ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name idex#fetchTrades
@@ -659,7 +659,7 @@ export default class idex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name idex#fetchOrderBook
@@ -791,7 +791,7 @@ export default class idex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name idex#fetchBalance
@@ -916,7 +916,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, undefined, undefined, this.extend (request, params)) as Order;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#fetchOpenOrders
@@ -933,7 +933,7 @@ export default class idex extends Exchange {
         return await this.fetchOrdersHelper (symbol, since, limit, this.extend (request, params)) as Order[];
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name idex#fetchClosedOrders
@@ -1509,7 +1509,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name idex#fetchDeposits
@@ -1562,7 +1562,7 @@ export default class idex extends Exchange {
         return this.parseTransaction (response, code);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name idex#fetchWithdrawals
@@ -1699,6 +1699,8 @@ export default class idex extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

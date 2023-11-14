@@ -10,6 +10,7 @@ use ccxt\async\abstract\lykke as Exchange;
 use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class lykke extends Exchange {
 
@@ -351,7 +352,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, $market = null) {
+    public function parse_ticker($ticker, $market = null): array {
         //
         // fetchTickers
         //
@@ -420,7 +421,7 @@ class lykke extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -474,7 +475,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -506,7 +507,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -529,15 +530,15 @@ class lykke extends Exchange {
             //     {
             //         "payload":array(
             //             {
-            //                 assetPairId => 'BTCUSD',
-            //                 $timestamp => '1643298038203',
-            //                 bids => array(
+            //                 "assetPairId" => "BTCUSD",
+            //                 "timestamp" => "1643298038203",
+            //                 "bids" => array(
             //                     {
             //                         "v":0.59034382,
             //                         "p":36665.329
             //                     }
             //                 ),
-            //                 asks => array(
+            //                 "asks" => array(
             //                     {
             //                         "v":-0.003,
             //                         "p":36729.686
@@ -554,7 +555,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, $market = null) {
+    public function parse_trade($trade, $market = null): array {
         //
         //  public fetchTrades
         //
@@ -612,7 +613,7 @@ class lykke extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -652,7 +653,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_balance($response) {
+    public function parse_balance($response): array {
         //
         //     array(
         //         {
@@ -678,7 +679,7 @@ class lykke extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -934,7 +935,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -983,7 +984,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1130,7 +1131,7 @@ class lykke extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, $currency = null) {
+    public function parse_transaction($transaction, $currency = null): array {
         //
         // withdraw
         //     "3035b1ad-2005-4587-a986-1f7966be78e0"
@@ -1189,7 +1190,7 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals

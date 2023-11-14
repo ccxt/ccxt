@@ -5,7 +5,7 @@ import Exchange from './abstract/bittrex.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, OnMaintenance, BadRequest, InvalidAddress } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Order, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -316,65 +316,64 @@ export default class bittrex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseId = this.safeString (market, 'baseCurrencySymbol');
-            const quoteId = this.safeString (market, 'quoteCurrencySymbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const status = this.safeString (market, 'status');
-            result.push ({
-                'id': this.safeString (market, 'symbol'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'ONLINE'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber ('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const baseId = this.safeString (market, 'baseCurrencySymbol');
+        const quoteId = this.safeString (market, 'quoteCurrencySymbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const status = this.safeString (market, 'status');
+        return {
+            'id': this.safeString (market, 'symbol'),
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'ONLINE'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber ('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minTradeSize'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber (market, 'minTradeSize'),
+                    'max': undefined,
                 },
-                'created': this.parse8601 (this.safeString (market, 'createdAt')),
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601 (this.safeString (market, 'createdAt')),
+            'info': market,
+        };
     }
 
     parseBalance (response): Balances {
@@ -393,7 +392,7 @@ export default class bittrex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bittrex#fetchBalance
@@ -406,7 +405,7 @@ export default class bittrex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bittrex#fetchOrderBook
@@ -573,7 +572,7 @@ export default class bittrex extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bittrex#fetchTickers
@@ -623,7 +622,7 @@ export default class bittrex extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bittrex#fetchTicker
@@ -791,7 +790,7 @@ export default class bittrex extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bittrex#fetchTrades
@@ -915,7 +914,7 @@ export default class bittrex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bittrex#fetchOHLCV
@@ -984,7 +983,7 @@ export default class bittrex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bittrex#fetchOpenOrders
@@ -1418,7 +1417,7 @@ export default class bittrex extends Exchange {
         return this.safeValue (transactions, 0);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bittrex#fetchDeposits
@@ -1505,7 +1504,7 @@ export default class bittrex extends Exchange {
         return this.safeValue (transactions, 0);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bittrex#fetchWithdrawals
@@ -1680,6 +1679,8 @@ export default class bittrex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
@@ -1917,7 +1918,7 @@ export default class bittrex extends Exchange {
         return trades;
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bittrex#fetchClosedOrders

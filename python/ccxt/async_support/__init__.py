@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.43'
+__version__ = '4.1.51'
 
 # -----------------------------------------------------------------------------
 
@@ -121,6 +121,7 @@ from ccxt.async_support.gemini import gemini                                    
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hitbtc3 import hitbtc3                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
+from ccxt.async_support.htx import htx                                          # noqa: F401
 from ccxt.async_support.huobi import huobi                                      # noqa: F401
 from ccxt.async_support.huobijp import huobijp                                  # noqa: F401
 from ccxt.async_support.huobipro import huobipro                                # noqa: F401
@@ -229,6 +230,7 @@ exchanges = [
     'hitbtc',
     'hitbtc3',
     'hollaex',
+    'htx',
     'huobi',
     'huobijp',
     'huobipro',

@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Transaction, Ticker, OrderBook, Tickers, Greeks } from './base/types.js';
 
 /**
  * @class gate
@@ -102,6 +102,7 @@ export default class gate extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -2303,7 +2304,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name gate#fetchOrderBook
@@ -2416,7 +2417,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name gate#fetchTicker
@@ -2573,7 +2574,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name gate#fetchTickers
@@ -2623,7 +2624,7 @@ export default class gate extends Exchange {
         return account;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @param {object} [params] exchange specific parameters
          * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
@@ -2839,7 +2840,7 @@ export default class gate extends Exchange {
         return returnResult as Balances;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name gateio#fetchOHLCV
@@ -2939,9 +2940,7 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
@@ -3022,7 +3021,7 @@ export default class gate extends Exchange {
         }
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name gate#fetchTrades
@@ -3453,7 +3452,7 @@ export default class gate extends Exchange {
         }, market);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name gate#fetchDeposits
@@ -3492,7 +3491,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name gate#fetchWithdrawals
@@ -3673,6 +3672,8 @@ export default class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),
@@ -4095,6 +4096,7 @@ export default class gate extends Exchange {
          * @name gate#editOrder
          * @description edit a trade order, gate currently only supports the modification of the price or amount fields
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -4106,9 +4108,6 @@ export default class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
-            throw new BadRequest (this.id + ' editOrder() supports only spot markets');
-        }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
         const account = this.convertTypeToAccount (marketType);
         const isLimitOrder = (type === 'limit');
@@ -4129,7 +4128,13 @@ export default class gate extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+        } else {
+            request['settle'] = market['settleId'];
+            response = await this.privateFuturesPutSettleOrdersOrderId (this.extend (request, query));
+        }
         //
         //     {
         //         "id": "243233276443",
@@ -4488,7 +4493,7 @@ export default class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name gate#fetchOpenOrders
@@ -4506,7 +4511,7 @@ export default class gate extends Exchange {
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params) as Order[];
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name gate#fetchClosedOrders
@@ -4986,9 +4991,7 @@ export default class gate extends Exchange {
          * @param {object} [params] extra parameters specific to the gate api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 0) || (leverage > 100)) {
@@ -5121,13 +5124,14 @@ export default class gate extends Exchange {
         const takerFee = '0.00075';
         const feePaid = Precise.stringMul (takerFee, notional);
         const initialMarginString = Precise.stringAdd (Precise.stringDiv (notional, leverage), feePaid);
+        const timestamp = this.safeInteger (position, 'time_ms');
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
             'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
@@ -5136,6 +5140,7 @@ export default class gate extends Exchange {
             'notional': this.parseNumber (notional),
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'realizedPnl': this.safeNumber (position, 'realised_pnl'),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
             // 'realisedPnl': position['realised_pnl'],
@@ -6700,6 +6705,100 @@ export default class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+        /**
+         * @method
+         * @name gate#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the gate api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'underlying': market['info']['underlying'],
+        };
+        const response = await this.publicOptionsGetTickers (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "vega": "1.78992",
+        //             "leverage": "6.2096777055417",
+        //             "ask_iv": "0.6245",
+        //             "delta": "-0.69397",
+        //             "last_price": "0",
+        //             "theta": "-2.5723",
+        //             "bid1_price": "222.9",
+        //             "mark_iv": "0.5909",
+        //             "name": "ETH_USDT-20231201-2300-P",
+        //             "bid_iv": "0.5065",
+        //             "ask1_price": "243.6",
+        //             "mark_price": "236.57",
+        //             "position_size": 0,
+        //             "bid1_size": 368,
+        //             "ask1_size": -335,
+        //             "gamma": "0.00116"
+        //         },
+        //     ]
+        //
+        const marketId = market['id'];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const entryMarketId = this.safeString (entry, 'name');
+            if (entryMarketId === marketId) {
+                return this.parseGreeks (entry, market);
+            }
+        }
+    }
+
+    parseGreeks (greeks, market = undefined) {
+        //
+        //     {
+        //         "vega": "1.78992",
+        //         "leverage": "6.2096777055417",
+        //         "ask_iv": "0.6245",
+        //         "delta": "-0.69397",
+        //         "last_price": "0",
+        //         "theta": "-2.5723",
+        //         "bid1_price": "222.9",
+        //         "mark_iv": "0.5909",
+        //         "name": "ETH_USDT-20231201-2300-P",
+        //         "bid_iv": "0.5065",
+        //         "ask1_price": "243.6",
+        //         "mark_price": "236.57",
+        //         "position_size": 0,
+        //         "bid1_size": 368,
+        //         "ask1_size": -335,
+        //         "gamma": "0.00116"
+        //     }
+        //
+        const marketId = this.safeString (greeks, 'name');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'delta': this.safeNumber (greeks, 'delta'),
+            'gamma': this.safeNumber (greeks, 'gamma'),
+            'theta': this.safeNumber (greeks, 'theta'),
+            'vega': this.safeNumber (greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': this.safeNumber (greeks, 'bid1_size'),
+            'askSize': this.safeNumber (greeks, 'ask1_size'),
+            'bidImpliedVolatility': this.safeNumber (greeks, 'bid_iv'),
+            'askImpliedVolatility': this.safeNumber (greeks, 'ask_iv'),
+            'markImpliedVolatility': this.safeNumber (greeks, 'mark_iv'),
+            'bidPrice': this.safeNumber (greeks, 'bid1_price'),
+            'askPrice': this.safeNumber (greeks, 'ask1_price'),
+            'markPrice': this.safeNumber (greeks, 'mark_price'),
+            'lastPrice': this.safeNumber (greeks, 'last_price'),
+            'underlyingPrice': this.parseNumber (market['info']['underlying_price']),
+            'info': greeks,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

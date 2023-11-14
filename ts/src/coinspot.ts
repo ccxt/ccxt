@@ -5,7 +5,7 @@ import Exchange from './abstract/coinspot.js';
 import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -170,7 +170,7 @@ export default class coinspot extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinspot#fetchBalance
@@ -200,7 +200,7 @@ export default class coinspot extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinspot#fetchOrderBook
@@ -255,7 +255,7 @@ export default class coinspot extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinspot#fetchTicker
@@ -286,7 +286,7 @@ export default class coinspot extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinspot#fetchTickers
@@ -330,7 +330,7 @@ export default class coinspot extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinspot#fetchTrades

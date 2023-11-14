@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Transaction, Balances, Tickers } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -645,7 +645,7 @@ export default class coinbase extends Exchange {
         return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbase#fetchWithdrawals
@@ -660,7 +660,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinbase#fetchDeposits
@@ -873,8 +873,13 @@ export default class coinbase extends Exchange {
         }
         const sizeInQuote = this.safeValue (trade, 'size_in_quote');
         const v3Price = this.safeString (trade, 'price');
-        const v3Amount = (sizeInQuote) ? undefined : this.safeString (trade, 'size');
-        const v3Cost = (sizeInQuote) ? this.safeString (trade, 'size') : undefined;
+        let v3Cost = undefined;
+        let v3Amount = this.safeString (trade, 'size');
+        if (sizeInQuote) {
+            // calculate base size
+            v3Cost = v3Amount;
+            v3Amount = Precise.stringDiv (v3Amount, v3Price);
+        }
         const v3FeeCost = this.safeString (trade, 'commission');
         const amountString = this.safeString (amountObject, 'amount', v3Amount);
         const costString = this.safeString (subtotalObject, 'amount', v3Cost);
@@ -1216,7 +1221,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinbase#fetchTickers
@@ -1320,7 +1325,7 @@ export default class coinbase extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinbase#fetchTicker
@@ -1548,7 +1553,7 @@ export default class coinbase extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinbase#fetchBalance
@@ -2447,7 +2452,7 @@ export default class coinbase extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit = 100, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOrders
@@ -2616,7 +2621,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchOpenOrders
@@ -2639,7 +2644,7 @@ export default class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinbase#fetchClosedOrders
@@ -2677,7 +2682,7 @@ export default class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('CANCELLED', symbol, since, limit, params);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coinbase#fetchOHLCV
@@ -2763,7 +2768,7 @@ export default class coinbase extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinbase#fetchTrades
@@ -2877,7 +2882,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinbase#fetchOrderBook

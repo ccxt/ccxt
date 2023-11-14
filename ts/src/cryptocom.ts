@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest, Balances, Transaction } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -56,6 +56,7 @@ export default class cryptocom extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -572,7 +573,7 @@ export default class cryptocom extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name cryptocom#fetchTickers
@@ -630,7 +631,7 @@ export default class cryptocom extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name cryptocom#fetchTicker
@@ -646,7 +647,7 @@ export default class cryptocom extends Exchange {
         return this.safeValue (tickers, symbol) as Ticker;
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cryptocom#fetchOrders
@@ -728,7 +729,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name cryptocom#fetchTrades
@@ -788,7 +789,7 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name cryptocom#fetchOHLCV
@@ -852,7 +853,7 @@ export default class cryptocom extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name cryptocom#fetchOrderBook
@@ -914,7 +915,7 @@ export default class cryptocom extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name cryptocom#fetchBalance
@@ -1439,7 +1440,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrders (result, market, undefined, undefined, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name cryptocom#fetchOpenOrders
@@ -1733,7 +1734,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name cryptocom#fetchDeposits
@@ -1793,7 +1794,7 @@ export default class cryptocom extends Exchange {
         return this.parseTransactions (depositList, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name cryptocom#fetchWithdrawals
@@ -2405,6 +2406,7 @@ export default class cryptocom extends Exchange {
             'status': status,
             'updated': this.safeInteger (transaction, 'update_time'),
             'internal': undefined,
+            'comment': this.safeString (transaction, 'client_wid'),
             'fee': fee,
         };
     }
@@ -3180,7 +3182,7 @@ export default class cryptocom extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'hedged': undefined,
             'side': undefined,
-            'contracts': undefined,
+            'contracts': this.safeNumber (position, 'quantity'),
             'contractSize': market['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,

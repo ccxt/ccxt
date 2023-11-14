@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -707,7 +707,7 @@ export default class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name whitebit#fetchTicker
@@ -797,7 +797,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name whitebit#fetchTickers
@@ -832,7 +832,7 @@ export default class whitebit extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name whitebit#fetchOrderBook
@@ -875,7 +875,7 @@ export default class whitebit extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name whitebit#fetchTrades
@@ -1061,7 +1061,7 @@ export default class whitebit extends Exchange {
         }, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name whitebit#fetchOHLCV
@@ -1259,9 +1259,7 @@ export default class whitebit extends Exchange {
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1293,7 +1291,7 @@ export default class whitebit extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name whitebit#fetchBalance
@@ -1343,20 +1341,18 @@ export default class whitebit extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name whitebit#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the whitebit api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1389,7 +1385,7 @@ export default class whitebit extends Exchange {
         return this.parseOrders (response, market, since, limit, { 'status': 'open' });
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name whitebit#fetchClosedOrders
@@ -1846,6 +1842,7 @@ export default class whitebit extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber (transaction, 'fee'),
                 'currency': this.safeCurrencyCode (currencyId, currency),
@@ -1941,7 +1938,7 @@ export default class whitebit extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name whitebit#fetchDeposits

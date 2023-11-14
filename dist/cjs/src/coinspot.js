@@ -372,28 +372,28 @@ class coinspot extends coinspot$1 {
         }
         const response = await this.privatePostRoMyTransactions(this.extend(request, params));
         //  {
-        //   status: 'ok',
-        //   buyorders: [
+        //   "status": "ok",
+        //   "buyorders": [
         //     {
-        //       otc: false,
-        //       market: 'ALGO/AUD',
-        //       amount: 386.95197925,
-        //       created: '2022-10-20T09:56:44.502Z',
-        //       audfeeExGst: 1.80018002,
-        //       audGst: 0.180018,
-        //       audtotal: 200
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200
         //     },
         //   ],
-        //   sellorders: [
+        //   "sellorders": [
         //     {
-        //       otc: false,
-        //       market: 'SOLO/ALGO',
-        //       amount: 154.52345614,
-        //       total: 115.78858204658796,
-        //       created: '2022-04-16T09:36:43.698Z',
-        //       audfeeExGst: 1.08995731,
-        //       audGst: 0.10899573,
-        //       audtotal: 118.7
+        //       "otc": false,
+        //       "market": "SOLO/ALGO",
+        //       "amount": 154.52345614,
+        //       "total": 115.78858204658796,
+        //       "created": "2022-04-16T09:36:43.698Z",
+        //       "audfeeExGst": 1.08995731,
+        //       "audGst": 0.10899573,
+        //       "audtotal": 118.7
         //     },
         //   ]
         // }
@@ -423,16 +423,16 @@ class coinspot extends coinspot$1 {
         //
         // private fetchMyTrades
         //     {
-        //       otc: false,
-        //       market: 'ALGO/AUD',
-        //       amount: 386.95197925,
-        //       created: '2022-10-20T09:56:44.502Z',
-        //       audfeeExGst: 1.80018002,
-        //       audGst: 0.180018,
-        //       audtotal: 200,
-        //       total: 200,
-        //       side: 'buy',
-        //       price: 0.5168600000125209
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200,
+        //       "total": 200,
+        //       "side": "buy",
+        //       "price": 0.5168600000125209
         //     }
         let timestamp = undefined;
         let priceString = undefined;

@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, R
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Transaction, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -405,7 +405,7 @@ export default class poloniex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name poloniex#fetchOHLCV
@@ -635,7 +635,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name poloniex#fetchTickers
@@ -809,7 +809,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name poloniex#fetchTicker
@@ -942,7 +942,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name poloniex#fetchTrades
@@ -1194,7 +1194,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name poloniex#fetchOpenOrders
@@ -1596,7 +1596,7 @@ export default class poloniex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name poloniex#fetchBalance
@@ -1663,7 +1663,7 @@ export default class poloniex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name poloniex#fetchOrderBook
@@ -2003,7 +2003,7 @@ export default class poloniex extends Exchange {
         return response;
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name poloniex#fetchDepositsWithdrawals
@@ -2029,7 +2029,7 @@ export default class poloniex extends Exchange {
         return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name poloniex#fetchWithdrawals
@@ -2178,7 +2178,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFee;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name poloniex#fetchDeposits
@@ -2284,6 +2284,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),

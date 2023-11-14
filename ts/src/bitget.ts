@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -824,6 +824,7 @@ export default class bitget extends Exchange {
                     '40017': ExchangeError, // Parameter verification failed
                     '40018': PermissionDenied, // Invalid IP
                     '40019': BadRequest, // {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40031': AccountSuspended, // The account has been cancelled and cannot be used again
                     '40037': AuthenticationError, // Apikey does not exist
                     '40102': BadRequest, // Contract configuration does not exist, please check the parameters
                     '40103': BadRequest, // Request method cannot be empty
@@ -1134,15 +1135,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    parseMarkets (markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
-    }
-
-    parseMarket (market) {
+    parseMarket (market): Market {
         //
         // spot
         //
@@ -1665,7 +1658,7 @@ export default class bitget extends Exchange {
         return tiers;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitget#fetchDeposits
@@ -1822,7 +1815,7 @@ export default class bitget extends Exchange {
         return result;
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitget#fetchWithdrawals
@@ -1937,6 +1930,7 @@ export default class bitget extends Exchange {
             'tag': tag,
             'tagTo': tag,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -2012,7 +2006,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitget#fetchOrderBook
@@ -2173,7 +2167,7 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitget#fetchTicker
@@ -2219,7 +2213,7 @@ export default class bitget extends Exchange {
         return this.parseTicker (data, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitget#fetchTickers
@@ -2412,7 +2406,7 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitget#fetchTrades
@@ -2660,7 +2654,7 @@ export default class bitget extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitget#fetchOHLCV
@@ -2770,7 +2764,7 @@ export default class bitget extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitget#fetchBalance
@@ -3447,7 +3441,7 @@ export default class bitget extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeValue (rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams ('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
@@ -3992,7 +3986,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitget#fetchOpenOrders
@@ -4227,7 +4221,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitget#fetchClosedOrders

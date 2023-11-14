@@ -196,12 +196,6 @@ export default class kraken extends Exchange {
                         'WithdrawInfo': 3,
                         'WithdrawStatus': 3,
                         'WalletTransfer': 3,
-                        // staking
-                        'Stake': 3,
-                        'Unstake': 3,
-                        'Staking/Assets': 3,
-                        'Staking/Pending': 3,
-                        'Staking/Transactions': 3,
                         // sub accounts
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
@@ -495,7 +489,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber(market, 'costmin'),
                         'max': undefined,
                     },
                 },
@@ -627,28 +621,28 @@ export default class kraken extends Exchange {
         const response = await this.privatePostTradeVolume(this.extend(request, params));
         //
         //     {
-        //        error: [],
-        //        result: {
-        //          currency: 'ZUSD',
-        //          volume: '0.0000',
-        //          fees: {
-        //            XXBTZUSD: {
-        //              fee: '0.2600',
-        //              minfee: '0.1000',
-        //              maxfee: '0.2600',
-        //              nextfee: '0.2400',
-        //              tiervolume: '0.0000',
-        //              nextvolume: '50000.0000'
+        //        "error": [],
+        //        "result": {
+        //          "currency": 'ZUSD',
+        //          "volume": '0.0000',
+        //          "fees": {
+        //            "XXBTZUSD": {
+        //              "fee": '0.2600',
+        //              "minfee": '0.1000',
+        //              "maxfee": '0.2600',
+        //              "nextfee": '0.2400',
+        //              "tiervolume": '0.0000',
+        //              "nextvolume": '50000.0000'
         //            }
         //          },
-        //          fees_maker: {
-        //            XXBTZUSD: {
-        //              fee: '0.1600',
-        //              minfee: '0.0000',
-        //              maxfee: '0.1600',
-        //              nextfee: '0.1400',
-        //              tiervolume: '0.0000',
-        //              nextvolume: '50000.0000'
+        //          "fees_maker": {
+        //            "XXBTZUSD": {
+        //              "fee": '0.1600',
+        //              "minfee": '0.0000',
+        //              "maxfee": '0.1600',
+        //              "nextfee": '0.1400',
+        //              "tiervolume": '0.0000',
+        //              "nextvolume": '50000.0000'
         //            }
         //          }
         //        }
@@ -928,14 +922,14 @@ export default class kraken extends Exchange {
         //
         //     {
         //         'LTFK7F-N2CUX-PNY4SX': {
-        //             refid: "TSJTGT-DT7WN-GPPQMJ",
-        //             time:  1520102320.555,
-        //             type: "trade",
-        //             aclass: "currency",
-        //             asset: "XETH",
-        //             amount: "0.1087194600",
-        //             fee: "0.0000000000",
-        //             balance: "0.2855851000"
+        //             "refid": "TSJTGT-DT7WN-GPPQMJ",
+        //             "time":  1520102320.555,
+        //             "type": "trade",
+        //             "aclass": "currency",
+        //             "asset": "XETH",
+        //             "amount": "0.1087194600",
+        //             "fee": "0.0000000000",
+        //             "balance": "0.2855851000"
         //         },
         //         ...
         //     }
@@ -981,7 +975,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchLedger
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} code unified currency code, default is undefined
@@ -1005,14 +998,14 @@ export default class kraken extends Exchange {
         [request, params] = this.handleUntilOption('end', request, params);
         const response = await this.privatePostLedgers(this.extend(request, params));
         // {  error: [],
-        //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                                   time:  1520103488.314,
-        //                                                   type: "withdrawal",
-        //                                                 aclass: "currency",
-        //                                                  asset: "XETH",
-        //                                                 amount: "-0.2805800000",
-        //                                                    fee: "0.0050000000",
-        //                                                balance: "0.0000051000"           },
+        //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                                   "time":  1520103488.314,
+        //                                                   "type": "withdrawal",
+        //                                                 "aclass": "currency",
+        //                                                  "asset": "XETH",
+        //                                                 "amount": "-0.2805800000",
+        //                                                    "fee": "0.0050000000",
+        //                                                "balance": "0.0000051000"           },
         const result = this.safeValue(response, 'result', {});
         const ledger = this.safeValue(result, 'ledger', {});
         const keys = Object.keys(ledger);
@@ -1034,14 +1027,14 @@ export default class kraken extends Exchange {
         }, params);
         const response = await this.privatePostQueryLedgers(request);
         // {  error: [],
-        //   result: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
-        //                                         time:  1520103488.314,
-        //                                         type: "withdrawal",
-        //                                       aclass: "currency",
-        //                                        asset: "XETH",
-        //                                       amount: "-0.2805800000",
-        //                                          fee: "0.0050000000",
-        //                                      balance: "0.0000051000"           } } }
+        //   "result": { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
+        //                                         "time":  1520103488.314,
+        //                                         "type": "withdrawal",
+        //                                       "aclass": "currency",
+        //                                        "asset": "XETH",
+        //                                       "amount": "-0.2805800000",
+        //                                          "fee": "0.0050000000",
+        //                                      "balance": "0.0000051000"           } } }
         const result = response['result'];
         const keys = Object.keys(result);
         const items = [];
@@ -1073,19 +1066,19 @@ export default class kraken extends Exchange {
         // fetchOrderTrades (private)
         //
         //     {
-        //         id: 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
-        //         ordertxid: 'OQRPN2-LRHFY-HIFA7D',
-        //         postxid: 'TKH2SE-M7IF5-CFI7LT',
-        //         pair: 'USDCUSDT',
-        //         time: 1586340086.457,
-        //         type: 'sell',
-        //         ordertype: 'market',
-        //         price: '0.99860000',
-        //         cost: '22.16892001',
-        //         fee: '0.04433784',
-        //         vol: '22.20000000',
-        //         margin: '0.00000000',
-        //         misc: ''
+        //         "id": 'TIMIRG-WUNNE-RRJ6GT', // injected from outside
+        //         "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+        //         "postxid": 'TKH2SE-M7IF5-CFI7LT',
+        //         "pair": 'USDCUSDT',
+        //         "time": 1586340086.457,
+        //         "type": 'sell',
+        //         "ordertype": 'market',
+        //         "price": '0.99860000',
+        //         "cost": '22.16892001',
+        //         "fee": '0.04433784',
+        //         "vol": '22.20000000',
+        //         "margin": '0.00000000',
+        //         "misc": ''
         //     }
         //
         let timestamp = undefined;
@@ -1267,7 +1260,7 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#createOrder
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1291,10 +1284,10 @@ export default class kraken extends Exchange {
         const response = await this.privatePostAddOrder(this.extend(orderRequest[0], orderRequest[1]));
         //
         //     {
-        //         error: [],
-        //         result: {
-        //             descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //             txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //         "error": [],
+        //         "result": {
+        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //             "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //         }
         //     }
         //
@@ -1362,8 +1355,8 @@ export default class kraken extends Exchange {
         // createOrder for regular orders
         //
         //     {
-        //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //         "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //     }
         //     {
         //         "txid": [ "TX_ID_HERE" ],
@@ -1399,11 +1392,11 @@ export default class kraken extends Exchange {
         //     }
         //  ws - createOrder
         //    {
-        //        descr: 'sell 0.00010000 XBTUSDT @ market',
-        //        event: 'addOrderStatus',
-        //        reqid: 1,
-        //        status: 'ok',
-        //        txid: 'OAVXZH-XIE54-JCYYDG'
+        //        "descr": 'sell 0.00010000 XBTUSDT @ market',
+        //        "event": 'addOrderStatus',
+        //        "reqid": 1,
+        //        "status": 'ok',
+        //        "txid": 'OAVXZH-XIE54-JCYYDG'
         //    }
         //  ws - editOrder
         //    {
@@ -1610,7 +1603,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#editOrder
          * @description edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1777,21 +1770,21 @@ export default class kraken extends Exchange {
             const response = await this.privatePostQueryTrades(request);
             //
             //     {
-            //         error: [],
-            //         result: {
+            //         "error": [],
+            //         "result": {
             //             'TIMIRG-WUNNE-RRJ6GT': {
-            //                 ordertxid: 'OQRPN2-LRHFY-HIFA7D',
-            //                 postxid: 'TKH2SE-M7IF5-CFI7LT',
-            //                 pair: 'USDCUSDT',
-            //                 time: 1586340086.457,
-            //                 type: 'sell',
-            //                 ordertype: 'market',
-            //                 price: '0.99860000',
-            //                 cost: '22.16892001',
-            //                 fee: '0.04433784',
-            //                 vol: '22.20000000',
-            //                 margin: '0.00000000',
-            //                 misc: ''
+            //                 "ordertxid": 'OQRPN2-LRHFY-HIFA7D',
+            //                 "postxid": 'TKH2SE-M7IF5-CFI7LT',
+            //                 "pair": 'USDCUSDT',
+            //                 "time": 1586340086.457,
+            //                 "type": 'sell',
+            //                 "ordertype": 'market',
+            //                 "price": '0.99860000',
+            //                 "cost": '22.16892001',
+            //                 "fee": '0.04433784',
+            //                 "vol": '22.20000000',
+            //                 "margin": '0.00000000',
+            //                 "misc": ''
             //             }
             //         }
             //     }
@@ -1957,7 +1950,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchOpenOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} symbol unified market symbol
@@ -1990,7 +1982,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchClosedOrders
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
@@ -2077,16 +2068,16 @@ export default class kraken extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         method: "Ether (Hex)",
-        //         aclass: "currency",
-        //         asset: "XETH",
-        //         refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        //         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //         amount: "7.9999257900",
-        //         fee: "0.0000000000",
-        //         time:  1529223212,
-        //         status: "Success"
+        //         "method": "Ether (Hex)",
+        //         "aclass": "currency",
+        //         "asset": "XETH",
+        //         "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //         "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //         "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //         "amount": "7.9999257900",
+        //         "fee": "0.0000000000",
+        //         "time":  1529223212,
+        //         "status": "Success"
         //     }
         //
         // there can be an additional 'status-prop' field present
@@ -2094,17 +2085,17 @@ export default class kraken extends Exchange {
         // the deposit is initiated by the exchange => 'return'
         //
         //      {
-        //          type: 'deposit',
-        //          method: 'Fidor Bank AG (Wire Transfer)',
-        //          aclass: 'currency',
-        //          asset: 'ZEUR',
-        //          refid: 'xxx-xxx-xxx',
-        //          txid: '12341234',
-        //          info: 'BANKCODEXXX',
-        //          amount: '38769.08',
-        //          fee: '0.0000',
-        //          time: 1644306552,
-        //          status: 'Success',
+        //          "type": 'deposit',
+        //          "method": 'Fidor Bank AG (Wire Transfer)',
+        //          "aclass": 'currency',
+        //          "asset": 'ZEUR',
+        //          "refid": 'xxx-xxx-xxx',
+        //          "txid": '12341234',
+        //          "info": 'BANKCODEXXX',
+        //          "amount": '38769.08',
+        //          "fee": '0.0000',
+        //          "time": 1644306552,
+        //          "status": 'Success',
         //          status-prop: 'on-hold'
         //      }
         //
@@ -2112,16 +2103,16 @@ export default class kraken extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         method: "Ether",
-        //         aclass: "currency",
-        //         asset: "XETH",
-        //         refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
-        //         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //         amount: "9.9950000000",
-        //         fee: "0.0050000000",
-        //         time:  1530481750,
-        //         status: "Success"
+        //         "method": "Ether",
+        //         "aclass": "currency",
+        //         "asset": "XETH",
+        //         "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        //         "txid": "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //         "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //         "amount": "9.9950000000",
+        //         "fee": "0.0050000000",
+        //         "time":  1530481750,
+        //         "status": "Success"
         //         status-prop: 'on-hold' // this field might not be present in some cases
         //     }
         //
@@ -2191,7 +2182,6 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchDeposits
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @description fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} code unified currency code
@@ -2209,19 +2199,22 @@ export default class kraken extends Exchange {
         const request = {
             'asset': currency['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         const response = await this.privatePostDepositStatus(this.extend(request, params));
         //
         //     {  error: [],
-        //       result: [ { method: "Ether (Hex)",
-        //                   aclass: "currency",
-        //                    asset: "XETH",
-        //                    refid: "Q2CANKL-LBFVEE-U4Y2WQ",
-        //                     txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
-        //                     info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
-        //                   amount: "7.9999257900",
-        //                      fee: "0.0000000000",
-        //                     time:  1529223212,
-        //                   status: "Success"                                                       } ] }
+        //       "result": [ { "method": "Ether (Hex)",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                       "txid": "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                       "info": "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                     "amount": "7.9999257900",
+        //                        "fee": "0.0000000000",
+        //                       "time":  1529223212,
+        //                     "status": "Success"                                                       } ] }
         //
         return this.parseTransactionsByType('deposit', response['result'], code, since, limit);
     }
@@ -2272,16 +2265,16 @@ export default class kraken extends Exchange {
         const response = await this.privatePostWithdrawStatus(this.extend(request, params));
         //
         //     {  error: [],
-        //       result: [ { method: "Ether",
-        //                   aclass: "currency",
-        //                    asset: "XETH",
-        //                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //                     txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
-        //                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
-        //                   amount: "9.9950000000",
-        //                      fee: "0.0050000000",
-        //                     time:  1530481750,
-        //                   status: "Success"                                                             } ] }
+        //       "result": [ { "method": "Ether",
+        //                     "aclass": "currency",
+        //                      "asset": "XETH",
+        //                      "refid": "A2BF34S-O7LBNQ-UE4Y4O",
+        //                       "txid": "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
+        //                       "info": "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                     "amount": "9.9950000000",
+        //                        "fee": "0.0050000000",
+        //                       "time":  1530481750,
+        //                     "status": "Success"                                                             } ] }
         //
         return this.parseTransactionsByType('withdrawal', response['result'], code, since, limit);
     }
@@ -2435,7 +2428,7 @@ export default class kraken extends Exchange {
             const request = {
                 'asset': currency['id'],
                 'amount': amount,
-                // 'address': address, // they don't allow withdrawals to direct addresses
+                'address': address,
             };
             const response = await this.privatePostWithdraw(this.extend(request, params));
             //
@@ -2472,24 +2465,24 @@ export default class kraken extends Exchange {
         // no consolidation
         //
         //     {
-        //         error: [],
-        //         result: {
+        //         "error": [],
+        //         "result": {
         //             'TGUFMY-FLESJ-VYIX3J': {
-        //                 ordertxid: "O3LRNU-ZKDG5-XNCDFR",
-        //                 posstatus: "open",
-        //                 pair: "ETHUSDT",
-        //                 time:  1611557231.4584,
-        //                 type: "buy",
-        //                 ordertype: "market",
-        //                 cost: "28.49800",
-        //                 fee: "0.07979",
-        //                 vol: "0.02000000",
-        //                 vol_closed: "0.00000000",
-        //                 margin: "14.24900",
-        //                 terms: "0.0200% per 4 hours",
-        //                 rollovertm: "1611571631",
-        //                 misc: "",
-        //                 oflags: ""
+        //                 "ordertxid": "O3LRNU-ZKDG5-XNCDFR",
+        //                 "posstatus": "open",
+        //                 "pair": "ETHUSDT",
+        //                 "time":  1611557231.4584,
+        //                 "type": "buy",
+        //                 "ordertype": "market",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900",
+        //                 "terms": "0.0200% per 4 hours",
+        //                 "rollovertm": "1611571631",
+        //                 "misc": "",
+        //                 "oflags": ""
         //             }
         //         }
         //     }
@@ -2497,18 +2490,18 @@ export default class kraken extends Exchange {
         // consolidation by market
         //
         //     {
-        //         error: [],
-        //         result: [
+        //         "error": [],
+        //         "result": [
         //             {
-        //                 pair: "ETHUSDT",
-        //                 positions: "1",
-        //                 type: "buy",
-        //                 leverage: "2.00000",
-        //                 cost: "28.49800",
-        //                 fee: "0.07979",
-        //                 vol: "0.02000000",
-        //                 vol_closed: "0.00000000",
-        //                 margin: "14.24900"
+        //                 "pair": "ETHUSDT",
+        //                 "positions": "1",
+        //                 "type": "buy",
+        //                 "leverage": "2.00000",
+        //                 "cost": "28.49800",
+        //                 "fee": "0.07979",
+        //                 "vol": "0.02000000",
+        //                 "vol_closed": "0.00000000",
+        //                 "margin": "14.24900"
         //             }
         //         ]
         //     }

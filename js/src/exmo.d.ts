@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV } from './base/types.js';
+import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Transaction, Ticker, Tickers } from './base/types.js';
 /**
  * @class exmo
  * @extends Exchange
@@ -53,13 +53,13 @@ export default class exmo extends Exchange {
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: any, market?: any): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -81,110 +81,14 @@ export default class exmo extends Exchange {
         info: any;
     }>;
     getMarketFromTrades(trades: any): any;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: string;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: any): string;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: string;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    };
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: string;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
-    fetchDeposit(id?: any, code?: string, params?: {}): Promise<{
-        info: any;
-        id: string;
-        txid: string;
-        type: string;
-        currency: any;
-        network: string;
-        amount: string;
-        status: string;
-        timestamp: number;
-        datetime: string;
-        address: any;
-        addressFrom: any;
-        addressTo: any;
-        tag: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: number;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawal(id: string, code?: string, params?: {}): Promise<Transaction>;
+    fetchDeposit(id?: any, code?: string, params?: {}): Promise<Transaction>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

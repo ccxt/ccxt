@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Greeks, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class delta
  * @extends Exchange
@@ -64,16 +64,16 @@ export default class delta extends Exchange {
     fetchCurrencies(params?: {}): Promise<{}>;
     loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Market>>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTicker(ticker: any, market?: any): Ticker;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     fetchPosition(symbol: string, params?: {}): Promise<import("./base/types.js").Position>;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
@@ -86,7 +86,7 @@ export default class delta extends Exchange {
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersWithMethod(method: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: any, currency?: any): {
@@ -208,6 +208,28 @@ export default class delta extends Exchange {
         datetime: string;
     };
     parseSettlements(settlements: any, market: any): any[];
+    fetchGreeks(symbol: string, params?: {}): Promise<Greeks>;
+    parseGreeks(greeks: any, market?: any): {
+        symbol: any;
+        timestamp: number;
+        datetime: string;
+        delta: number;
+        gamma: number;
+        theta: number;
+        vega: number;
+        rho: number;
+        bidSize: number;
+        askSize: number;
+        bidImpliedVolatility: number;
+        askImpliedVolatility: number;
+        markImpliedVolatility: number;
+        bidPrice: number;
+        askPrice: number;
+        markPrice: number;
+        lastPrice: any;
+        underlyingPrice: number;
+        info: any;
+    };
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

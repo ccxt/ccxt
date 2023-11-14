@@ -827,8 +827,16 @@ export default class testMainClass extends baseMainTestClass {
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const keyValue = part.split('=');
+            const keysLength = keyValue.length;
+            if (keysLength !== 2) {
+                continue;
+            }
             const key = keyValue[0];
-            const value = keyValue[1];
+            let value = keyValue[1];
+            if ((value !== undefined) && ((value.startsWith('[')) || (value.startsWith('{')))) {
+                // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
+                value = jsonParse(value);
+            }
             result[key] = value;
         }
         return result;
@@ -911,11 +919,28 @@ export default class testMainClass extends baseMainTestClass {
         }
         this.assertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput);
     }
+    sanitizeDataInput(input) {
+        // remove nulls and replace with unefined instead
+        if (input === undefined) {
+            return undefined;
+        }
+        const newInput = [];
+        for (let i = 0; i < input.length; i++) {
+            const current = input[i];
+            if (current === null) { // noqa: E711
+                newInput.push(undefined);
+            }
+            else {
+                newInput.push(current);
+            }
+        }
+        return newInput;
+    }
     async testMethodStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
         try {
-            await callExchangeMethodDynamically(exchange, method, data['input']);
+            await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(data['input']));
         }
         catch (e) {
             if (!(e instanceof NetworkError)) {
@@ -938,7 +963,7 @@ export default class testMainClass extends baseMainTestClass {
     }
     initOfflineExchange(exchangeName) {
         const markets = this.loadMarketsFromFile(exchangeName);
-        return initExchange(exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999 } });
+        return initExchange(exchangeName, { 'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{ 'id': 'myAccount' }], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {} } });
     }
     async testExchangeStatically(exchangeName, exchangeData, testName = undefined) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
@@ -1016,7 +1041,9 @@ export default class testMainClass extends baseMainTestClass {
             this.testBitget(),
             this.testMexc(),
             this.testHuobi(),
-            this.testWoo()
+            this.testWoo(),
+            this.testBitmart(),
+            this.testCoinex()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1228,6 +1255,36 @@ export default class testMainClass extends baseMainTestClass {
         const clientOrderIdSpot = stopOrderRequest['brokerId'];
         assert(clientOrderIdSpot.startsWith(id), 'brokerId does not start with id');
         await close(woo);
+    }
+    async testBitmart() {
+        const bitmart = this.initOfflineExchange('bitmart');
+        let reqHeaders = undefined;
+        const id = 'CCXTxBitmart000';
+        assert(bitmart.options['brokerId'] === id, 'id not in options');
+        await bitmart.loadMarkets();
+        try {
+            await bitmart.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            reqHeaders = bitmart.last_request_headers;
+        }
+        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'id not in headers');
+        await close(bitmart);
+    }
+    async testCoinex() {
+        const exchange = this.initOfflineExchange('coinex');
+        const id = 'x-167673045';
+        assert(exchange.options['brokerId'] === id, 'id not in options');
+        let spotOrderRequest = undefined;
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        const clientOrderId = spotOrderRequest['client_id'];
+        assert(clientOrderId.startsWith(id), 'clientOrderId does not start with id');
+        await close(exchange);
     }
 }
 // ***** AUTO-TRANSPILER-END *****

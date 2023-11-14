@@ -74,6 +74,7 @@ export default class binance extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
@@ -862,6 +863,7 @@ export default class binance extends Exchange {
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 },
+                        'ticker': { 'cost': 0.4, 'noSymbol': 16 },
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'exchangeInfo': 4,
@@ -962,7 +964,9 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'um/order': 1,
+                        'um/conditional/order': 1,
                         'cm/order': 1,
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133,
                         'marginLoan': 0.1333,
                         'repayLoan': 0.1333,
@@ -983,9 +987,13 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'um/order': 1,
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1,
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1,
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1,
                         'margin/allOpenOrders': 5,
                         'margin/orderList': 2,
@@ -2590,16 +2598,16 @@ export default class binance extends Exchange {
         // spot
         //
         //     {
-        //         makerCommission: 10,
-        //         takerCommission: 10,
-        //         buyerCommission: 0,
-        //         sellerCommission: 0,
-        //         canTrade: true,
-        //         canWithdraw: true,
-        //         canDeposit: true,
-        //         updateTime: 1575357359602,
-        //         accountType: "MARGIN",
-        //         balances: [
+        //         "makerCommission": 10,
+        //         "takerCommission": 10,
+        //         "buyerCommission": 0,
+        //         "sellerCommission": 0,
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "canDeposit": true,
+        //         "updateTime": 1575357359602,
+        //         "accountType": "MARGIN",
+        //         "balances": [
         //             { asset: "BTC", free: "0.00219821", locked: "0.00000000"  },
         //         ]
         //     }
@@ -2624,43 +2632,43 @@ export default class binance extends Exchange {
         // margin (isolated)
         //
         //    {
-        //        info: {
-        //            assets: [
+        //        "info": {
+        //            "assets": [
         //                {
-        //                    baseAsset: {
-        //                        asset: '1INCH',
-        //                        borrowEnabled: true,
-        //                        borrowed: '0',
-        //                        free: '0',
-        //                        interest: '0',
-        //                        locked: '0',
-        //                        netAsset: '0',
-        //                        netAssetOfBtc: '0',
-        //                        repayEnabled: true,
-        //                        totalAsset: '0'
+        //                    "baseAsset": {
+        //                        "asset": "1INCH",
+        //                        "borrowEnabled": true,
+        //                        "borrowed": "0",
+        //                        "free": "0",
+        //                        "interest": "0",
+        //                        "locked": "0",
+        //                        "netAsset": "0",
+        //                        "netAssetOfBtc": "0",
+        //                        "repayEnabled": true,
+        //                        "totalAsset": "0"
         //                    },
-        //                    quoteAsset: {
-        //                        asset: 'USDT',
-        //                        borrowEnabled: true,
-        //                        borrowed: '0',
-        //                        free: '11',
-        //                        interest: '0',
-        //                        locked: '0',
-        //                        netAsset: '11',
-        //                        netAssetOfBtc: '0.00054615',
-        //                        repayEnabled: true,
-        //                        totalAsset: '11'
+        //                    "quoteAsset": {
+        //                        "asset": "USDT",
+        //                        "borrowEnabled": true,
+        //                        "borrowed": "0",
+        //                        "free": "11",
+        //                        "interest": "0",
+        //                        "locked": "0",
+        //                        "netAsset": "11",
+        //                        "netAssetOfBtc": "0.00054615",
+        //                        "repayEnabled": true,
+        //                        "totalAsset": "11"
         //                    },
-        //                    symbol: '1INCHUSDT',
-        //                    isolatedCreated: true,
-        //                    marginLevel: '999',
-        //                    marginLevelStatus: 'EXCESSIVE',
-        //                    marginRatio: '5',
-        //                    indexPrice: '0.59184331',
-        //                    liquidatePrice: '0',
-        //                    liquidateRate: '0',
-        //                    tradeEnabled: true,
-        //                    enabled: true
+        //                    "symbol": "1INCHUSDT",
+        //                    "isolatedCreated": true,
+        //                    "marginLevel": "999",
+        //                    "marginLevelStatus": "EXCESSIVE",
+        //                    "marginRatio": "5",
+        //                    "indexPrice": "0.59184331",
+        //                    "liquidatePrice": "0",
+        //                    "liquidateRate": "0",
+        //                    "tradeEnabled": true,
+        //                    "enabled": true
         //                },
         //            ]
         //        }
@@ -2852,49 +2860,49 @@ export default class binance extends Exchange {
     parseTicker(ticker, market = undefined) {
         //
         //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
         //     }
         //
         // coinm
         //
         //     {
-        //         baseVolume: '214549.95171161',
-        //         closeTime: '1621965286847',
-        //         count: '1283779',
-        //         firstId: '152560106',
-        //         highPrice: '39938.3',
-        //         lastId: '153843955',
-        //         lastPrice: '37993.4',
-        //         lastQty: '1',
-        //         lowPrice: '36457.2',
-        //         openPrice: '37783.4',
-        //         openTime: '1621878840000',
-        //         pair: 'BTCUSD',
-        //         priceChange: '210.0',
-        //         priceChangePercent: '0.556',
-        //         symbol: 'BTCUSD_PERP',
-        //         volume: '81990451',
-        //         weightedAvgPrice: '38215.08713747'
+        //         "baseVolume": "214549.95171161",
+        //         "closeTime": "1621965286847",
+        //         "count": "1283779",
+        //         "firstId": "152560106",
+        //         "highPrice": "39938.3",
+        //         "lastId": "153843955",
+        //         "lastPrice": "37993.4",
+        //         "lastQty": "1",
+        //         "lowPrice": "36457.2",
+        //         "openPrice": "37783.4",
+        //         "openTime": "1621878840000",
+        //         "pair": "BTCUSD",
+        //         "priceChange": "210.0",
+        //         "priceChangePercent": "0.556",
+        //         "symbol": "BTCUSD_PERP",
+        //         "volume": "81990451",
+        //         "weightedAvgPrice": "38215.08713747"
         //     }
         //
         // eapi: fetchTicker, fetchTickers
@@ -3029,11 +3037,13 @@ export default class binance extends Exchange {
          * @name binance#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics      // spot
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets();
@@ -3052,7 +3062,14 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetTicker24hr(this.extend(request, params));
         }
         else {
-            response = await this.publicGetTicker24hr(this.extend(request, params));
+            const rolling = this.safeValue(params, 'rolling', false);
+            params = this.omit(params, 'rolling');
+            if (rolling) {
+                response = await this.publicGetTicker(this.extend(request, params));
+            }
+            else {
+                response = await this.publicGetTicker24hr(this.extend(request, params));
+            }
         }
         if (Array.isArray(response)) {
             const firstTicker = this.safeValue(response, 0, {});
@@ -3725,7 +3742,7 @@ export default class binance extends Exchange {
         //   to the maximum limit may be returned to satisfy other parameters
         // - if both limit and time window is set and time window contains more
         //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        // - "tradeId" accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
         const response = await this[method](this.extend(request, params));
@@ -5234,9 +5251,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrderTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.safeString(params, 'type', market['type']);
@@ -5886,7 +5901,7 @@ export default class binance extends Exchange {
         //
         // withdraw
         //
-        //    { id: '9a67628b16ba4988ae20d329333f16bc' }
+        //    { id: "9a67628b16ba4988ae20d329333f16bc" }
         //
         const id = this.safeString2(transaction, 'id', 'orderNo');
         const address = this.safeString(transaction, 'address');
@@ -5924,9 +5939,10 @@ export default class binance extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        let internal = this.safeInteger(transaction, 'transferType');
-        if (internal !== undefined) {
-            internal = internal ? true : false;
+        const internalInteger = this.safeInteger(transaction, 'transferType');
+        let internal = undefined;
+        if (internalInteger !== undefined) {
+            internal = internalInteger ? true : false;
         }
         const network = this.safeString(transaction, 'network');
         return {
@@ -5968,12 +5984,12 @@ export default class binance extends Exchange {
         // fetchTransfers
         //
         //     {
-        //         timestamp: 1614640878000,
-        //         asset: 'USDT',
-        //         amount: '25',
-        //         type: 'MAIN_UMFUTURE',
-        //         status: 'CONFIRMED',
-        //         tranId: 43000126248
+        //         "timestamp": 1614640878000,
+        //         "asset": "USDT",
+        //         "amount": "25",
+        //         "type": "MAIN_UMFUTURE",
+        //         "status": "CONFIRMED",
+        //         "tranId": 43000126248
         //     }
         //
         const id = this.safeString(transfer, 'tranId');
@@ -6193,15 +6209,15 @@ export default class binance extends Exchange {
         const response = await this.sapiGetAssetTransfer(this.extend(request, params));
         //
         //     {
-        //         total: 3,
-        //         rows: [
+        //         "total": 3,
+        //         "rows": [
         //             {
-        //                 timestamp: 1614640878000,
-        //                 asset: 'USDT',
-        //                 amount: '25',
-        //                 type: 'MAIN_UMFUTURE',
-        //                 status: 'CONFIRMED',
-        //                 tranId: 43000126248
+        //                 "timestamp": 1614640878000,
+        //                 "asset": "USDT",
+        //                 "amount": "25",
+        //                 "type": "MAIN_UMFUTURE",
+        //                 "status": "CONFIRMED",
+        //                 "tranId": 43000126248
         //             },
         //         ]
         //     }
@@ -6237,14 +6253,14 @@ export default class binance extends Exchange {
         const response = await this.sapiGetCapitalDepositAddress(this.extend(request, params));
         //
         //     {
-        //         currency: 'XRP',
-        //         address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        //         tag: '108618262',
-        //         info: {
-        //             coin: 'XRP',
-        //             address: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
-        //             tag: '108618262',
-        //             url: 'https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh'
+        //         "currency": "XRP",
+        //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag": "108618262",
+        //         "info": {
+        //             "coin": "XRP",
+        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag": "108618262",
+        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
         //         }
         //     }
         //
@@ -6300,79 +6316,79 @@ export default class binance extends Exchange {
         //
         //  [
         //     {
-        //       coin: 'BAT',
-        //       depositAllEnable: true,
-        //       withdrawAllEnable: true,
-        //       name: 'Basic Attention Token',
-        //       free: '0',
-        //       locked: '0',
-        //       freeze: '0',
-        //       withdrawing: '0',
-        //       ipoing: '0',
-        //       ipoable: '0',
-        //       storage: '0',
-        //       isLegalMoney: false,
-        //       trading: true,
-        //       networkList: [
+        //       "coin": "BAT",
+        //       "depositAllEnable": true,
+        //       "withdrawAllEnable": true,
+        //       "name": "Basic Attention Token",
+        //       "free": "0",
+        //       "locked": "0",
+        //       "freeze": "0",
+        //       "withdrawing": "0",
+        //       "ipoing": "0",
+        //       "ipoable": "0",
+        //       "storage": "0",
+        //       "isLegalMoney": false,
+        //       "trading": true,
+        //       "networkList": [
         //         {
-        //           network: 'BNB',
-        //           coin: 'BAT',
-        //           withdrawIntegerMultiple: '0.00000001',
-        //           isDefault: false,
-        //           depositEnable: true,
-        //           withdrawEnable: true,
-        //           depositDesc: '',
-        //           withdrawDesc: '',
-        //           specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        //           name: 'BEP2',
-        //           resetAddressStatus: false,
-        //           addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        //           memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        //           withdrawFee: '0.27',
-        //           withdrawMin: '0.54',
-        //           withdrawMax: '10000000000',
-        //           minConfirm: '1',
-        //           unLockConfirm: '0'
+        //           "network": "BNB",
+        //           "coin": "BAT",
+        //           "withdrawIntegerMultiple": "0.00000001",
+        //           "isDefault": false,
+        //           "depositEnable": true,
+        //           "withdrawEnable": true,
+        //           "depositDesc": '',
+        //           "withdrawDesc": '',
+        //           "specialTips": "The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.",
+        //           "name": "BEP2",
+        //           "resetAddressStatus": false,
+        //           "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        //           "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        //           "withdrawFee": "0.27",
+        //           "withdrawMin": "0.54",
+        //           "withdrawMax": "10000000000",
+        //           "minConfirm": "1",
+        //           "unLockConfirm": "0"
         //         },
         //         {
-        //           network: 'BSC',
-        //           coin: 'BAT',
-        //           withdrawIntegerMultiple: '0.00000001',
-        //           isDefault: false,
-        //           depositEnable: true,
-        //           withdrawEnable: true,
-        //           depositDesc: '',
-        //           withdrawDesc: '',
-        //           specialTips: 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 9766e.',
-        //           name: 'BEP20 (BSC)',
-        //           resetAddressStatus: false,
-        //           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-        //           memoRegex: '',
-        //           withdrawFee: '0.27',
-        //           withdrawMin: '0.54',
-        //           withdrawMax: '10000000000',
-        //           minConfirm: '15',
-        //           unLockConfirm: '0'
+        //           "network": "BSC",
+        //           "coin": "BAT",
+        //           "withdrawIntegerMultiple": "0.00000001",
+        //           "isDefault": false,
+        //           "depositEnable": true,
+        //           "withdrawEnable": true,
+        //           "depositDesc": '',
+        //           "withdrawDesc": '',
+        //           "specialTips": "The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 9766e.",
+        //           "name": "BEP20 (BSC)",
+        //           "resetAddressStatus": false,
+        //           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        //           "memoRegex": '',
+        //           "withdrawFee": "0.27",
+        //           "withdrawMin": "0.54",
+        //           "withdrawMax": "10000000000",
+        //           "minConfirm": "15",
+        //           "unLockConfirm": "0"
         //         },
         //         {
-        //           network: 'ETH',
-        //           coin: 'BAT',
-        //           withdrawIntegerMultiple: '0.00000001',
-        //           isDefault: true,
-        //           depositEnable: true,
-        //           withdrawEnable: true,
-        //           depositDesc: '',
-        //           withdrawDesc: '',
-        //           specialTips: 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 887ef.',
-        //           name: 'ERC20',
-        //           resetAddressStatus: false,
-        //           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-        //           memoRegex: '',
-        //           withdrawFee: '27',
-        //           withdrawMin: '54',
-        //           withdrawMax: '10000000000',
-        //           minConfirm: '12',
-        //           unLockConfirm: '0'
+        //           "network": "ETH",
+        //           "coin": "BAT",
+        //           "withdrawIntegerMultiple": "0.00000001",
+        //           "isDefault": true,
+        //           "depositEnable": true,
+        //           "withdrawEnable": true,
+        //           "depositDesc": '',
+        //           "withdrawDesc": '',
+        //           "specialTips": "The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 887ef.",
+        //           "name": "ERC20",
+        //           "resetAddressStatus": false,
+        //           "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+        //           "memoRegex": '',
+        //           "withdrawFee": "27",
+        //           "withdrawMin": "54",
+        //           "withdrawMax": "10000000000",
+        //           "minConfirm": "12",
+        //           "unLockConfirm": "0"
         //         }
         //       ]
         //     }
@@ -6414,39 +6430,39 @@ export default class binance extends Exchange {
         //
         //    [
         //        {
-        //            coin: 'BAT',
-        //            depositAllEnable: true,
-        //            withdrawAllEnable: true,
-        //            name: 'Basic Attention Token',
-        //            free: '0',
-        //            locked: '0',
-        //            freeze: '0',
-        //            withdrawing: '0',
-        //            ipoing: '0',
-        //            ipoable: '0',
-        //            storage: '0',
-        //            isLegalMoney: false,
-        //            trading: true,
-        //            networkList: [
+        //            "coin": "BAT",
+        //            "depositAllEnable": true,
+        //            "withdrawAllEnable": true,
+        //            "name": "Basic Attention Token",
+        //            "free": "0",
+        //            "locked": "0",
+        //            "freeze": "0",
+        //            "withdrawing": "0",
+        //            "ipoing": "0",
+        //            "ipoable": "0",
+        //            "storage": "0",
+        //            "isLegalMoney": false,
+        //            "trading": true,
+        //            "networkList": [
         //                {
-        //                    network: 'BNB',
-        //                    coin: 'BAT',
-        //                    withdrawIntegerMultiple: '0.00000001',
-        //                    isDefault: false,
-        //                    depositEnable: true,
-        //                    withdrawEnable: true,
-        //                    depositDesc: '',
-        //                    withdrawDesc: '',
-        //                    specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        //                    name: 'BEP2',
-        //                    resetAddressStatus: false,
-        //                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        //                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        //                    withdrawFee: '0.27',
-        //                    withdrawMin: '0.54',
-        //                    withdrawMax: '10000000000',
-        //                    minConfirm: '1',
-        //                    unLockConfirm: '0'
+        //                    "network": "BNB",
+        //                    "coin": "BAT",
+        //                    "withdrawIntegerMultiple": "0.00000001",
+        //                    "isDefault": false,
+        //                    "depositEnable": true,
+        //                    "withdrawEnable": true,
+        //                    "depositDesc": '',
+        //                    "withdrawDesc": '',
+        //                    "specialTips": "The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.",
+        //                    "name": "BEP2",
+        //                    "resetAddressStatus": false,
+        //                    "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        //                    "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        //                    "withdrawFee": "0.27",
+        //                    "withdrawMin": "0.54",
+        //                    "withdrawMax": "10000000000",
+        //                    "minConfirm": "1",
+        //                    "unLockConfirm": "0"
         //                },
         //                ...
         //            ]
@@ -6458,39 +6474,39 @@ export default class binance extends Exchange {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //    {
-        //        coin: 'BAT',
-        //        depositAllEnable: true,
-        //        withdrawAllEnable: true,
-        //        name: 'Basic Attention Token',
-        //        free: '0',
-        //        locked: '0',
-        //        freeze: '0',
-        //        withdrawing: '0',
-        //        ipoing: '0',
-        //        ipoable: '0',
-        //        storage: '0',
-        //        isLegalMoney: false,
-        //        trading: true,
-        //        networkList: [
+        //        "coin": "BAT",
+        //        "depositAllEnable": true,
+        //        "withdrawAllEnable": true,
+        //        "name": "Basic Attention Token",
+        //        "free": "0",
+        //        "locked": "0",
+        //        "freeze": "0",
+        //        "withdrawing": "0",
+        //        "ipoing": "0",
+        //        "ipoable": "0",
+        //        "storage": "0",
+        //        "isLegalMoney": false,
+        //        "trading": true,
+        //        "networkList": [
         //            {
-        //                network: 'BNB',
-        //                coin: 'BAT',
-        //                withdrawIntegerMultiple: '0.00000001',
-        //                isDefault: false,
-        //                depositEnable: true,
-        //                withdrawEnable: true,
-        //                depositDesc: '',
-        //                withdrawDesc: '',
-        //                specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        //                name: 'BEP2',
-        //                resetAddressStatus: false,
-        //                addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        //                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        //                withdrawFee: '0.27',
-        //                withdrawMin: '0.54',
-        //                withdrawMax: '10000000000',
-        //                minConfirm: '1',
-        //                unLockConfirm: '0'
+        //                "network": "BNB",
+        //                "coin": "BAT",
+        //                "withdrawIntegerMultiple": "0.00000001",
+        //                "isDefault": false,
+        //                "depositEnable": true,
+        //                "withdrawEnable": true,
+        //                "depositDesc": '',
+        //                "withdrawDesc": '',
+        //                "specialTips": "The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.",
+        //                "name": "BEP2",
+        //                "resetAddressStatus": false,
+        //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+        //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+        //                "withdrawFee": "0.27",
+        //                "withdrawMin": "0.54",
+        //                "withdrawMax": "10000000000",
+        //                "minConfirm": "1",
+        //                "unLockConfirm": "0"
         //            },
         //            ...
         //        ]
@@ -7996,9 +8012,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setLeverage', symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
@@ -8034,9 +8048,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setMarginMode', symbol);
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -8559,10 +8571,10 @@ export default class binance extends Exchange {
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = orderidlist.length;
                     if (orderidlistLength > 0) {
-                        query = query + '&orderidlist=[' + orderidlist.join(',') + ']';
+                        query = query + '&' + 'orderidlist=[' + orderidlist.join(',') + ']';
                     }
                     if (origclientorderidlistLength > 0) {
-                        query = query + '&origclientorderidlist=[' + origclientorderidlist.join(',') + ']';
+                        query = query + '&' + 'origclientorderidlist=[' + origclientorderidlist.join(',') + ']';
                     }
                 }
                 else {
@@ -8928,10 +8940,10 @@ export default class binance extends Exchange {
         const response = await this.sapiPostGiftcardCreateCode(this.extend(request, params));
         //
         //     {
-        //         code: '000000',
-        //         message: 'success',
-        //         data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
-        //         success: true
+        //         "code": "000000",
+        //         "message": "success",
+        //         "data": { referenceNo: "0033002404219823", code: "AP6EXTLKNHM6CEX7" },
+        //         "success": true
         //     }
         //
         const data = this.safeValue(response, 'data');
@@ -8961,13 +8973,13 @@ export default class binance extends Exchange {
         const response = await this.sapiPostGiftcardRedeemCode(this.extend(request, params));
         //
         //     {
-        //         code: '000000',
-        //         message: 'success',
-        //         data: {
-        //             referenceNo: '0033002404219823',
-        //             identityNo: '10316431732801474560'
+        //         "code": "000000",
+        //         "message": "success",
+        //         "data": {
+        //             "referenceNo": "0033002404219823",
+        //             "identityNo": "10316431732801474560"
         //         },
-        //         success: true
+        //         "success": true
         //     }
         //
         return response;
@@ -8988,10 +9000,10 @@ export default class binance extends Exchange {
         const response = await this.sapiGetGiftcardVerify(this.extend(request, params));
         //
         //     {
-        //         code: '000000',
-        //         message: 'success',
-        //         data: { valid: true },
-        //         success: true
+        //         "code": "000000",
+        //         "message": "success",
+        //         "data": { valid: true },
+        //         "success": true
         //     }
         //
         return response;
@@ -9162,7 +9174,7 @@ export default class binance extends Exchange {
          * @param {int} [limit] default 30, max 500
          * @param {object} [params] exchange specific parameters
          * @param {int} [params.until] the time(ms) of the latest record to retrieve as a unix timestamp
-         * @returns {object} an array of [open interest history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an array of [open interest structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         if (timeframe === '1m') {
             throw new BadRequest(this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
@@ -9229,7 +9241,7 @@ export default class binance extends Exchange {
          * @see https://binance-docs.github.io/apidocs/voptions/en/#open-interest
          * @param {string} symbol unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
-         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#interest-history-structure}
+         * @returns {object} an open interest structure{@link https://github.com/ccxt/ccxt/wiki/Manual#open-interest-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -9535,5 +9547,80 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         });
+    }
+    async fetchGreeks(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPublicGetMark(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-231229-40000-C",
+        //             "markPrice": "2012",
+        //             "bidIV": "0.60236275",
+        //             "askIV": "0.62267244",
+        //             "markIV": "0.6125176",
+        //             "delta": "0.39111646",
+        //             "theta": "-32.13948531",
+        //             "gamma": "0.00004656",
+        //             "vega": "51.70062218",
+        //             "highPriceLimit": "6474",
+        //             "lowPriceLimit": "5"
+        //         }
+        //     ]
+        //
+        return this.parseGreeks(response[0], market);
+    }
+    parseGreeks(greeks, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-231229-40000-C",
+        //         "markPrice": "2012",
+        //         "bidIV": "0.60236275",
+        //         "askIV": "0.62267244",
+        //         "markIV": "0.6125176",
+        //         "delta": "0.39111646",
+        //         "theta": "-32.13948531",
+        //         "gamma": "0.00004656",
+        //         "vega": "51.70062218",
+        //         "highPriceLimit": "6474",
+        //         "lowPriceLimit": "5"
+        //     }
+        //
+        const marketId = this.safeString(greeks, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        return {
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'delta': this.safeNumber(greeks, 'delta'),
+            'gamma': this.safeNumber(greeks, 'gamma'),
+            'theta': this.safeNumber(greeks, 'theta'),
+            'vega': this.safeNumber(greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': undefined,
+            'askSize': undefined,
+            'bidImpliedVolatility': this.safeNumber(greeks, 'bidIV'),
+            'askImpliedVolatility': this.safeNumber(greeks, 'askIV'),
+            'markImpliedVolatility': this.safeNumber(greeks, 'markIV'),
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'markPrice': this.safeNumber(greeks, 'markPrice'),
+            'lastPrice': undefined,
+            'underlyingPrice': undefined,
+            'info': greeks,
+        };
     }
 }

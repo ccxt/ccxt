@@ -28,6 +28,7 @@ class okx extends \ccxt\async\okx {
                 'watchOHLCV' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
+                'watchPositions' => true,
                 'createOrderWs' => true,
                 'editOrderWs' => true,
                 'cancelOrderWs' => true,
@@ -231,15 +232,15 @@ class okx extends \ccxt\async\okx {
     public function handle_trades(Client $client, $message) {
         //
         //     {
-        //         $arg => array( $channel => 'trades', instId => 'BTC-USDT' ),
-        //         $data => array(
+        //         "arg" => array( $channel => "trades", instId => "BTC-USDT" ),
+        //         "data" => array(
         //             {
-        //                 instId => 'BTC-USDT',
-        //                 tradeId => '216970876',
-        //                 px => '31684.5',
-        //                 sz => '0.00001186',
-        //                 side => 'buy',
-        //                 ts => '1626531038288'
+        //                 "instId" => "BTC-USDT",
+        //                 "tradeId" => "216970876",
+        //                 "px" => "31684.5",
+        //                 "sz" => "0.00001186",
+        //                 "side" => "buy",
+        //                 "ts" => "1626531038288"
         //             }
         //         )
         //     }
@@ -309,25 +310,25 @@ class okx extends \ccxt\async\okx {
     public function handle_ticker(Client $client, $message) {
         //
         //     {
-        //         $arg => array( $channel => 'tickers', instId => 'BTC-USDT' ),
-        //         $data => array(
+        //         "arg" => array( $channel => "tickers", instId => "BTC-USDT" ),
+        //         "data" => array(
         //             {
-        //                 instType => 'SPOT',
-        //                 instId => 'BTC-USDT',
-        //                 last => '31500.1',
-        //                 lastSz => '0.00001754',
-        //                 askPx => '31500.1',
-        //                 askSz => '0.00998144',
-        //                 bidPx => '31500',
-        //                 bidSz => '3.05652439',
-        //                 open24h => '31697',
-        //                 high24h => '32248',
-        //                 low24h => '31165.6',
-        //                 sodUtc0 => '31385.5',
-        //                 sodUtc8 => '32134.9',
-        //                 volCcy24h => '503403597.38138519',
-        //                 vol24h => '15937.10781721',
-        //                 ts => '1626526618762'
+        //                 "instType" => "SPOT",
+        //                 "instId" => "BTC-USDT",
+        //                 "last" => "31500.1",
+        //                 "lastSz" => "0.00001754",
+        //                 "askPx" => "31500.1",
+        //                 "askSz" => "0.00998144",
+        //                 "bidPx" => "31500",
+        //                 "bidSz" => "3.05652439",
+        //                 "open24h" => "31697",
+        //                 "high24h" => "32248",
+        //                 "low24h" => "31165.6",
+        //                 "sodUtc0" => "31385.5",
+        //                 "sodUtc8" => "32134.9",
+        //                 "volCcy24h" => "503403597.38138519",
+        //                 "vol24h" => "15937.10781721",
+        //                 "ts" => "1626526618762"
         //             }
         //         )
         //     }
@@ -384,16 +385,16 @@ class okx extends \ccxt\async\okx {
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
-        //         $arg => array( $channel => 'candle1m', instId => 'BTC-USDT' ),
-        //         $data => array(
+        //         "arg" => array( $channel => "candle1m", instId => "BTC-USDT" ),
+        //         "data" => array(
         //             array(
-        //                 '1626690720000',
-        //                 '31334',
-        //                 '31334',
-        //                 '31334',
-        //                 '31334',
-        //                 '0.0077',
-        //                 '241.2718'
+        //                 "1626690720000",
+        //                 "31334",
+        //                 "31334",
+        //                 "31334",
+        //                 "31334",
+        //                 "0.0077",
+        //                 "241.2718"
         //             )
         //         )
         //     }
@@ -503,10 +504,10 @@ class okx extends \ccxt\async\okx {
     public function handle_delta($bookside, $delta) {
         //
         //     array(
-        //         '31685', // $price
-        //         '0.78069158', // $amount
-        //         '0', // liquidated orders
-        //         '17' // orders
+        //         "31685", // $price
+        //         "0.78069158", // $amount
+        //         "0", // liquidated orders
+        //         "17" // orders
         //     )
         //
         $price = $this->safe_float($delta, 0);
@@ -523,18 +524,18 @@ class okx extends \ccxt\async\okx {
     public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash) {
         //
         //     {
-        //         $asks => array(
-        //             array( '31738.3', '0.05973179', '0', '3' ),
-        //             array( '31738.5', '0.11035404', '0', '2' ),
-        //             array( '31739.6', '0.01', '0', '1' ),
+        //         "asks" => array(
+        //             array( '31738.3', '0.05973179', "0", "3" ),
+        //             array( '31738.5', '0.11035404', "0", "2" ),
+        //             array( '31739.6', '0.01', "0", "1" ),
         //         ),
-        //         $bids => array(
-        //             array( '31738.2', '0.67557666', '0', '9' ),
-        //             array( '31738', '0.02466947', '0', '2' ),
-        //             array( '31736.3', '0.01705046', '0', '2' ),
+        //         "bids" => array(
+        //             array( '31738.2', '0.67557666', "0", "9" ),
+        //             array( '31738', '0.02466947', "0", "2" ),
+        //             array( '31736.3', '0.01705046', "0", "2" ),
         //         ),
-        //         instId => 'BTC-USDT',
-        //         ts => '1626537446491'
+        //         "instId" => "BTC-USDT",
+        //         "ts" => "1626537446491"
         //     }
         //
         $asks = $this->safe_value($message, 'asks', array());
@@ -577,22 +578,22 @@ class okx extends \ccxt\async\okx {
         // $snapshot
         //
         //     {
-        //         $arg => array( $channel => 'books-l2-tbt', instId => 'BTC-USDT' ),
-        //         $action => 'snapshot',
-        //         $data => array(
+        //         "arg" => array( $channel => 'books-l2-tbt', instId => "BTC-USDT" ),
+        //         "action" => "snapshot",
+        //         "data" => array(
         //             {
-        //                 asks => array(
-        //                     array( '31685', '0.78069158', '0', '17' ),
-        //                     array( '31685.1', '0.0001', '0', '1' ),
-        //                     array( '31685.6', '0.04543165', '0', '1' ),
+        //                 "asks" => array(
+        //                     array( '31685', '0.78069158', "0", "17" ),
+        //                     array( '31685.1', '0.0001', "0", "1" ),
+        //                     array( '31685.6', '0.04543165', "0", "1" ),
         //                 ),
-        //                 bids => array(
-        //                     array( '31684.9', '0.01', '0', '1' ),
-        //                     array( '31682.9', '0.0001', '0', '1' ),
-        //                     array( '31680.7', '0.01', '0', '1' ),
+        //                 "bids" => array(
+        //                     array( '31684.9', '0.01', "0", "1" ),
+        //                     array( '31682.9', '0.0001', "0", "1" ),
+        //                     array( '31680.7', '0.01', "0", "1" ),
         //                 ),
-        //                 ts => '1626532416403',
-        //                 checksum => -1023440116
+        //                 "ts" => "1626532416403",
+        //                 "checksum" => -1023440116
         //             }
         //         )
         //     }
@@ -600,22 +601,22 @@ class okx extends \ccxt\async\okx {
         // $update
         //
         //     {
-        //         $arg => array( $channel => 'books-l2-tbt', instId => 'BTC-USDT' ),
-        //         $action => 'update',
-        //         $data => array(
+        //         "arg" => array( $channel => 'books-l2-tbt', instId => "BTC-USDT" ),
+        //         "action" => "update",
+        //         "data" => array(
         //             {
-        //                 asks => array(
-        //                     array( '31657.7', '0', '0', '0' ),
-        //                     array( '31659.7', '0.01', '0', '1' ),
-        //                     array( '31987.3', '0.01', '0', '1' )
+        //                 "asks" => array(
+        //                     array( '31657.7', '0', "0", "0" ),
+        //                     array( '31659.7', '0.01', "0", "1" ),
+        //                     array( '31987.3', '0.01', "0", "1" )
         //                 ),
-        //                 bids => array(
-        //                     array( '31642.9', '0.50296385', '0', '4' ),
-        //                     array( '31639.9', '0', '0', '0' ),
-        //                     array( '31638.7', '0.01', '0', '1' ),
+        //                 "bids" => array(
+        //                     array( '31642.9', '0.50296385', "0", "4" ),
+        //                     array( '31639.9', '0', "0", "0" ),
+        //                     array( '31638.7', '0.01', "0", "1" ),
         //                 ),
-        //                 ts => '1626535709008',
-        //                 checksum => 830931827
+        //                 "ts" => "1626535709008",
+        //                 "checksum" => 830931827
         //             }
         //         )
         //     }
@@ -623,21 +624,21 @@ class okx extends \ccxt\async\okx {
         // books5
         //
         //     {
-        //         $arg => array( $channel => 'books5', instId => 'BTC-USDT' ),
-        //         $data => array(
+        //         "arg" => array( $channel => "books5", instId => "BTC-USDT" ),
+        //         "data" => array(
         //             {
-        //                 asks => array(
-        //                     array( '31738.3', '0.05973179', '0', '3' ),
-        //                     array( '31738.5', '0.11035404', '0', '2' ),
-        //                     array( '31739.6', '0.01', '0', '1' ),
+        //                 "asks" => array(
+        //                     array( '31738.3', '0.05973179', "0", "3" ),
+        //                     array( '31738.5', '0.11035404', "0", "2" ),
+        //                     array( '31739.6', '0.01', "0", "1" ),
         //                 ),
-        //                 bids => array(
-        //                     array( '31738.2', '0.67557666', '0', '9' ),
-        //                     array( '31738', '0.02466947', '0', '2' ),
-        //                     array( '31736.3', '0.01705046', '0', '2' ),
+        //                 "bids" => array(
+        //                     array( '31738.2', '0.67557666', "0", "9" ),
+        //                     array( '31738', '0.02466947', "0", "2" ),
+        //                     array( '31736.3', '0.01705046', "0", "2" ),
         //                 ),
-        //                 instId => 'BTC-USDT',
-        //                 ts => '1626537446491'
+        //                 "instId" => "BTC-USDT",
+        //                 "ts" => "1626537446491"
         //             }
         //         )
         //     }
@@ -761,43 +762,43 @@ class okx extends \ccxt\async\okx {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         $arg => array( $channel => 'account' ),
-        //         data => array(
+        //         "arg" => array( $channel => "account" ),
+        //         "data" => array(
         //             {
-        //                 adjEq => '',
-        //                 details => array(
+        //                 "adjEq" => '',
+        //                 "details" => array(
         //                     array(
-        //                         availBal => '',
-        //                         availEq => '8.21009913',
-        //                         cashBal => '8.21009913',
-        //                         ccy => 'USDT',
-        //                         coinUsdPrice => '0.99994',
-        //                         crossLiab => '',
-        //                         disEq => '8.2096065240522',
-        //                         eq => '8.21009913',
-        //                         eqUsd => '8.2096065240522',
-        //                         frozenBal => '0',
-        //                         interest => '',
-        //                         isoEq => '0',
-        //                         isoLiab => '',
-        //                         liab => '',
-        //                         maxLoan => '',
-        //                         mgnRatio => '',
-        //                         notionalLever => '0',
-        //                         ordFrozen => '0',
-        //                         twap => '0',
-        //                         uTime => '1621927314996',
-        //                         upl => '0'
+        //                         "availBal" => '',
+        //                         "availEq" => "8.21009913",
+        //                         "cashBal" => "8.21009913",
+        //                         "ccy" => "USDT",
+        //                         "coinUsdPrice" => "0.99994",
+        //                         "crossLiab" => '',
+        //                         "disEq" => "8.2096065240522",
+        //                         "eq" => "8.21009913",
+        //                         "eqUsd" => "8.2096065240522",
+        //                         "frozenBal" => "0",
+        //                         "interest" => '',
+        //                         "isoEq" => "0",
+        //                         "isoLiab" => '',
+        //                         "liab" => '',
+        //                         "maxLoan" => '',
+        //                         "mgnRatio" => '',
+        //                         "notionalLever" => "0",
+        //                         "ordFrozen" => "0",
+        //                         "twap" => "0",
+        //                         "uTime" => "1621927314996",
+        //                         "upl" => "0"
         //                     ),
         //                 ),
-        //                 imr => '',
-        //                 isoEq => '0',
-        //                 mgnRatio => '',
-        //                 mmr => '',
-        //                 notionalUsd => '',
-        //                 ordFroz => '',
-        //                 totalEq => '22.1930992296832',
-        //                 uTime => '1626692120916'
+        //                 "imr" => '',
+        //                 "isoEq" => "0",
+        //                 "mgnRatio" => '',
+        //                 "mmr" => '',
+        //                 "notionalUsd" => '',
+        //                 "ordFroz" => '',
+        //                 "totalEq" => "22.1930992296832",
+        //                 "uTime" => "1626692120916"
         //             }
         //         )
         //     }
@@ -878,6 +879,127 @@ class okx extends \ccxt\async\okx {
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
         }) ();
+    }
+
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-$channel
+             * watch all open positions
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            if ($this->is_empty($symbols)) {
+                throw new ArgumentsRequired($this->id . ' watchPositions requires a list of symbols');
+            }
+            Async\await($this->load_markets());
+            Async\await($this->authenticate($params));
+            $symbols = $this->market_symbols($symbols);
+            $request = array(
+                'instType' => 'ANY',
+            );
+            $channel = 'positions';
+            $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, array_merge($request, $params)));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        $arg => array(
+        //            $channel => 'positions',
+        //            instType => 'ANY',
+        //            instId => 'XRP-USDT-SWAP',
+        //            uid => '464737184507959869'
+        //        ),
+        //        $data => [array(
+        //            adl => '1',
+        //            availPos => '',
+        //            avgPx => '0.52668',
+        //            baseBal => '',
+        //            baseBorrowed => '',
+        //            baseInterest => '',
+        //            bizRefId => '',
+        //            bizRefType => '',
+        //            cTime => '1693151444408',
+        //            ccy => 'USDT',
+        //            closeOrderAlgo => array(),
+        //            deltaBS => '',
+        //            deltaPA => '',
+        //            gammaBS => '',
+        //            gammaPA => '',
+        //            idxPx => '0.52683',
+        //            imr => '17.564000000000004',
+        //            instId => 'XRP-USDT-SWAP',
+        //            instType => 'SWAP',
+        //            interest => '',
+        //            last => '0.52691',
+        //            lever => '3',
+        //            liab => '',
+        //            liabCcy => '',
+        //            liqPx => '0.3287514731020614',
+        //            margin => '',
+        //            markPx => '0.52692',
+        //            mgnMode => 'cross',
+        //            mgnRatio => '69.00363001456147',
+        //            mmr => '0.26346',
+        //            notionalUsd => '52.68620388000001',
+        //            optVal => '',
+        //            pTime => '1693151906023',
+        //            pendingCloseOrdLiabVal => '',
+        //            pos => '1',
+        //            posCcy => '',
+        //            posId => '616057041198907393',
+        //            posSide => 'net',
+        //            quoteBal => '',
+        //            quoteBorrowed => '',
+        //            quoteInterest => '',
+        //            spotInUseAmt => '',
+        //            spotInUseCcy => '',
+        //            thetaBS => '',
+        //            thetaPA => '',
+        //            tradeId => '138745402',
+        //            uTime => '1693151444408',
+        //            upl => '0.0240000000000018',
+        //            uplLastPx => '0.0229999999999952',
+        //            uplRatio => '0.0013670539986328',
+        //            uplRatioLastPx => '0.001310093415356',
+        //            usdPx => '',
+        //            vegaBS => '',
+        //            vegaPA => ''
+        //        )]
+        //    }
+        //
+        $arg = $this->safe_value($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel', '');
+        $data = $this->safe_value($message, 'data', array());
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $newPositions = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $rawPosition = $data[$i];
+            $position = $this->parse_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $channel . '::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1140,16 +1262,16 @@ class okx extends \ccxt\async\okx {
         //
         //  batch-orders/order/cancel-order
         //    {
-        //        id => '1689281055',
-        //        op => 'batch-orders',
-        //        code => '0',
-        //        msg => '',
-        //        data => [array(
-        //            tag => 'e847386590ce4dBC',
-        //            ordId => '599823446566084608',
-        //            clOrdId => 'e847386590ce4dBCb939511604f394b0',
-        //            sCode => '0',
-        //            sMsg => 'Order successfully placed.'
+        //        "id" => "1689281055",
+        //        "op" => "batch-$orders",
+        //        "code" => "0",
+        //        "msg" => '',
+        //        "data" => [array(
+        //            "tag" => "e847386590ce4dBC",
+        //            "ordId" => "599823446566084608",
+        //            "clOrdId" => "e847386590ce4dBCb939511604f394b0",
+        //            "sCode" => "0",
+        //            "sMsg" => "Order successfully placed."
         //        ),
         //        ...
         //        ]
@@ -1328,16 +1450,16 @@ class okx extends \ccxt\async\okx {
 
     public function handle_subscription_status(Client $client, $message) {
         //
-        //     array( event => 'subscribe', arg => array( $channel => 'tickers', instId => 'BTC-USDT' ) )
+        //     array( event => 'subscribe', arg => array( $channel => "tickers", instId => "BTC-USDT" ) )
         //
-        // $channel = $this->safe_string($message, 'channel');
+        // $channel = $this->safe_string($message, "channel");
         // $client->subscriptions[$channel] = $message;
         return $message;
     }
 
     public function handle_authenticate(Client $client, $message) {
         //
-        //     array( event => 'login', success => true )
+        //     array( event => "login", success => true )
         //
         $future = $this->safe_value($client->futures, 'authenticated');
         $future->resolve (true);
@@ -1356,8 +1478,8 @@ class okx extends \ccxt\async\okx {
 
     public function handle_error_message(Client $client, $message) {
         //
-        //     array( event => 'error', msg => 'Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])', code => '60012' )
-        //     array( event => 'error', msg => "channel:ticker,instId:BTC-USDT doesn't exist", code => '60018' )
+        //     array( event => 'error', msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
+        //     array( event => 'error", msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
         //
         $errorCode = $this->safe_integer($message, 'code');
         try {
@@ -1389,40 +1511,40 @@ class okx extends \ccxt\async\okx {
             return;
         }
         //
-        //     array( $event => 'subscribe', $arg => array( $channel => 'tickers', instId => 'BTC-USDT' ) )
-        //     array( $event => 'login', msg => '', code => '0' )
+        //     array( $event => 'subscribe', $arg => array( $channel => "tickers", instId => "BTC-USDT" ) )
+        //     array( $event => 'login", msg => '", code => "0" )
         //
         //     {
-        //         $arg => array( $channel => 'tickers', instId => 'BTC-USDT' ),
-        //         data => array(
+        //         "arg" => array( $channel => "tickers", instId => "BTC-USDT" ),
+        //         "data" => array(
         //             {
-        //                 instType => 'SPOT',
-        //                 instId => 'BTC-USDT',
-        //                 last => '31500.1',
-        //                 lastSz => '0.00001754',
-        //                 askPx => '31500.1',
-        //                 askSz => '0.00998144',
-        //                 bidPx => '31500',
-        //                 bidSz => '3.05652439',
-        //                 open24h => '31697',
-        //                 high24h => '32248',
-        //                 low24h => '31165.6',
-        //                 sodUtc0 => '31385.5',
-        //                 sodUtc8 => '32134.9',
-        //                 volCcy24h => '503403597.38138519',
-        //                 vol24h => '15937.10781721',
-        //                 ts => '1626526618762'
+        //                 "instType" => "SPOT",
+        //                 "instId" => "BTC-USDT",
+        //                 "last" => "31500.1",
+        //                 "lastSz" => "0.00001754",
+        //                 "askPx" => "31500.1",
+        //                 "askSz" => "0.00998144",
+        //                 "bidPx" => "31500",
+        //                 "bidSz" => "3.05652439",
+        //                 "open24h" => "31697",
+        //                 "high24h" => "32248",
+        //                 "low24h" => "31165.6",
+        //                 "sodUtc0" => "31385.5",
+        //                 "sodUtc8" => "32134.9",
+        //                 "volCcy24h" => "503403597.38138519",
+        //                 "vol24h" => "15937.10781721",
+        //                 "ts" => "1626526618762"
         //             }
         //         )
         //     }
         //
-        //     array( $event => 'error', msg => 'Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])', code => '60012' )
-        //     array( $event => 'error', msg => "channel:ticker,instId:BTC-USDT doesn't exist", code => '60018' )
-        //     array( $event => 'error', msg => 'Invalid OK_ACCESS_KEY', code => '60005' )
+        //     array( $event => 'error', msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
+        //     array( $event => 'error", msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
+        //     array( $event => 'error', msg => "Invalid OK_ACCESS_KEY", code => "60005" )
         //     {
-        //         $event => 'error',
-        //         msg => 'Illegal request => array("op":"login","args":["de89b035-b233-44b2-9a13-0ccdd00bda0e","7KUcc8YzQhnxBE3K","1626691289","H57N99mBt5NvW8U19FITrPdOxycAERFMaapQWRqLaSE="])',
-        //         code => '60012'
+        //         "event" => "error",
+        //         "msg" => "Illegal request => array("op":"login","args":["de89b035-b233-44b2-9a13-0ccdd00bda0e","7KUcc8YzQhnxBE3K","1626691289","H57N99mBt5NvW8U19FITrPdOxycAERFMaapQWRqLaSE="])",
+        //         "code" => "60012"
         //     }
         //
         //
@@ -1462,6 +1584,7 @@ class okx extends \ccxt\async\okx {
                 'books50-l2-tbt' => array($this, 'handle_order_book'), // only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt' => array($this, 'handle_order_book'), // only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers' => array($this, 'handle_ticker'),
+                'positions' => array($this, 'handle_positions'),
                 'index-tickers' => array($this, 'handle_ticker'),
                 'sprd-tickers' => array($this, 'handle_ticker'),
                 'block-tickers' => array($this, 'handle_ticker'),

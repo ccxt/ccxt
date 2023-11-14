@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -401,7 +401,7 @@ export default class zonda extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name zonda#fetchOpenOrders
@@ -538,7 +538,7 @@ export default class zonda extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name zonda#fetchBalance
@@ -552,7 +552,7 @@ export default class zonda extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name zonda#fetchOrderBook
@@ -737,7 +737,7 @@ export default class zonda extends Exchange {
         return this.parseTicker (stats, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @ignore
          * @method
@@ -1189,7 +1189,7 @@ export default class zonda extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name zonda#fetchOHLCV
@@ -1316,7 +1316,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name zonda#fetchTrades
@@ -1788,6 +1788,7 @@ export default class zonda extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

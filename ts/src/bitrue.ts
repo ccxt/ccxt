@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -644,79 +644,75 @@ export default class bitrue extends Exchange {
             await this.loadTimeDifference ();
         }
         const markets = this.safeValue (response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const filters = this.safeValue (market, 'filters', []);
-            const filtersByType = this.indexBy (filters, 'filterType');
-            const status = this.safeString (market, 'status');
-            const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-            const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-            const defaultPricePrecision = this.safeString (market, 'pricePrecision');
-            const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
-            const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
-            const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'TRADING'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
-                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const lowercaseId = this.safeStringLower (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const filters = this.safeValue (market, 'filters', []);
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const status = this.safeString (market, 'status');
+        const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+        const defaultPricePrecision = this.safeString (market, 'pricePrecision');
+        const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
+        const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
+        const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                'price': this.parseNumber (this.parsePrecision (pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (amountFilter, 'minQty'),
-                        'max': this.safeNumber (amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (priceFilter, 'minPrice'),
-                        'max': this.safeNumber (priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (amountFilter, 'minVal'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber (amountFilter, 'minQty'),
+                    'max': this.safeNumber (amountFilter, 'maxQty'),
                 },
-                'created': undefined,
-                'info': market,
-            };
-            result.push (entry);
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'max': this.safeNumber (priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber (amountFilter, 'minVal'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseBalance (response): Balances {
@@ -739,7 +735,7 @@ export default class bitrue extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitrue#fetchBalance
@@ -769,7 +765,7 @@ export default class bitrue extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitrue#fetchOrderBook
@@ -861,7 +857,7 @@ export default class bitrue extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitrue#fetchTicker
@@ -908,7 +904,7 @@ export default class bitrue extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitrue#fetchOHLCV
@@ -1005,7 +1001,7 @@ export default class bitrue extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitrue#fetchTickers
@@ -1143,7 +1139,7 @@ export default class bitrue extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitrue#fetchTrades
@@ -1390,9 +1386,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1409,20 +1403,18 @@ export default class bitrue extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1464,20 +1456,18 @@ export default class bitrue extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1519,9 +1509,7 @@ export default class bitrue extends Exchange {
          * @param {object} [params] extra parameters specific to the bitrue api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const origClientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
@@ -1605,7 +1593,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitrue#fetchDeposits
@@ -1677,7 +1665,7 @@ export default class bitrue extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitrue#fetchWithdrawals
@@ -1865,6 +1853,7 @@ export default class bitrue extends Exchange {
             'status': status,
             'updated': updated,
             'internal': false,
+            'comment': undefined,
             'fee': fee,
         };
     }

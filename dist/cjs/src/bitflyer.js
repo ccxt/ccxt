@@ -577,9 +577,7 @@ class bitflyer extends bitflyer$1 {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const request = {
             'product_code': this.marketId(symbol),
@@ -655,9 +653,7 @@ class bitflyer extends bitflyer$1 {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -715,9 +711,7 @@ class bitflyer extends bitflyer$1 {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         const orders = await this.fetchOrders(symbol);
         const ordersById = this.indexBy(orders, 'id');
         if (id in ordersById) {
@@ -737,9 +731,7 @@ class bitflyer extends bitflyer$1 {
          * @param {object} [params] extra parameters specific to the bitflyer api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a `symbol` argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {

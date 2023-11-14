@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/huobijp.js';
-import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
+import { AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RequestTimeout, NetworkError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -614,7 +614,7 @@ export default class huobijp extends Exchange {
         }, market);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name huobijp#fetchOrderBook
@@ -665,7 +665,7 @@ export default class huobijp extends Exchange {
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name huobijp#fetchTicker
@@ -707,7 +707,7 @@ export default class huobijp extends Exchange {
         return ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name huobijp#fetchTickers
@@ -866,7 +866,7 @@ export default class huobijp extends Exchange {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit = 1000, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name huobijp#fetchTrades
@@ -946,7 +946,7 @@ export default class huobijp extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit = 1000, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name huobijp#fetchOHLCV
@@ -1120,7 +1120,7 @@ export default class huobijp extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name huobijp#fetchBalance
@@ -1188,7 +1188,7 @@ export default class huobijp extends Exchange {
         return this.parseOrder (order);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobijp#fetchOrders
@@ -1202,7 +1202,7 @@ export default class huobijp extends Exchange {
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobijp#fetchOpenOrders
@@ -1218,13 +1218,11 @@ export default class huobijp extends Exchange {
     }
 
     async fetchOpenOrdersV1 (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrdersV1() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOpenOrdersV1', symbol);
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name huobijp#fetchClosedOrders
@@ -1625,7 +1623,7 @@ export default class huobijp extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name huobijp#fetchDeposits
@@ -1659,7 +1657,7 @@ export default class huobijp extends Exchange {
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name huobijp#fetchWithdrawals
@@ -1764,6 +1762,8 @@ export default class huobijp extends Exchange {
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
             'updated': this.safeInteger (transaction, 'updated-at'),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),

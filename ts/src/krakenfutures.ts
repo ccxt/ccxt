@@ -2,11 +2,11 @@
 
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Ticker, OrderBook, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -157,7 +157,7 @@ export default class krakenfutures extends Exchange {
             'exceptions': {
                 'exact': {
                     'apiLimitExceeded': RateLimitExceeded,
-                    'marketUnavailable': ExchangeNotAvailable,
+                    'marketUnavailable': ContractUnavailable,
                     'requiredArgumentMissing': BadRequest,
                     'unavailable': ExchangeNotAvailable,
                     'authenticationError': AuthenticationError,
@@ -167,6 +167,13 @@ export default class krakenfutures extends Exchange {
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,                     // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable': InsufficientFunds,              // Insufficient funds in Futures account [withdraw]
+                    'invalidUnit': BadRequest,
+                    'Json Parse Error': ExchangeError,
+                    'nonceBelowThreshold': InvalidNonce,
+                    'nonceDuplicate': InvalidNonce,
+                    'notFound': BadRequest,
+                    'Server Error': ExchangeError,
+                    'unknownError': ExchangeError,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
@@ -402,7 +409,7 @@ export default class krakenfutures extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name krakenfutures#fetchOrderBook
@@ -453,7 +460,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrderBook (response['orderBook'], symbol, timestamp);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name krakenfutures#fetchTickers
@@ -572,7 +579,7 @@ export default class krakenfutures extends Exchange {
         });
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name kraken#fetchOHLCV
@@ -659,7 +666,7 @@ export default class krakenfutures extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name krakenfutures#fetchTrades
@@ -1116,7 +1123,7 @@ export default class krakenfutures extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name krakenfutures#fetchOpenOrders
@@ -1570,7 +1577,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTrades (response['fills'], market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name krakenfutures#fetchBalance
@@ -2321,7 +2328,10 @@ export default class krakenfutures extends Exchange {
         if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
         }
-        const message = this.safeString (response, 'error');
+        const errors = this.safeValue (response, 'errors');
+        const firstError = this.safeValue (errors, 0);
+        const firtErrorMessage = this.safeString (firstError, 'message');
+        const message = this.safeString (response, 'error', firtErrorMessage);
         if (message === undefined) {
             return undefined;
         }

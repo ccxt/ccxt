@@ -5,8 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Order, OrderSide, OrderType
+from ccxt.base.types import Order, OrderBook, OrderSide, OrderType, Trade
 from typing import Optional
+from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import BadRequest
@@ -318,7 +319,7 @@ class alpaca(Exchange, ImplicitAPI):
             })
         return markets
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -359,7 +360,7 @@ class alpaca(Exchange, ImplicitAPI):
         symbolTrades = self.safe_value(trades, market['id'], {})
         return self.parse_trades(symbolTrades, market, since, limit)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -416,7 +417,7 @@ class alpaca(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -613,7 +614,7 @@ class alpaca(Exchange, ImplicitAPI):
         market = self.safe_market(marketId)
         return self.parse_order(order, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -728,7 +729,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_trade(self, trade, market=None):
+    def parse_trade(self, trade, market=None) -> Trade:
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",

@@ -58,6 +58,7 @@ export default class cryptocom extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
@@ -1946,18 +1947,18 @@ export default class cryptocom extends Exchange {
         const response = await this[method](this.extend(request, query));
         //
         //     {
-        //       id: '1641032709328',
-        //       method: 'private/deriv/get-transfer-history',
-        //       code: '0',
-        //       result: {
-        //         transfer_list: [
+        //       "id": "1641032709328",
+        //       "method": "private/deriv/get-transfer-history",
+        //       "code": "0",
+        //       "result": {
+        //         "transfer_list": [
         //           {
-        //             direction: 'IN',
-        //             time: '1641025185223',
-        //             amount: '109.56',
-        //             status: 'COMPLETED',
-        //             information: 'From Spot Wallet',
-        //             currency: 'USDC'
+        //             "direction": "IN",
+        //             "time": "1641025185223",
+        //             "amount": "109.56",
+        //             "status": "COMPLETED",
+        //             "information": "From Spot Wallet",
+        //             "currency": "USDC"
         //           }
         //         ]
         //       }
@@ -1979,19 +1980,19 @@ export default class cryptocom extends Exchange {
     parseTransfer(transfer, currency = undefined) {
         //
         //   {
-        //     response: {
-        //       id: '1641032709328',
-        //       method: 'private/deriv/get-transfer-history',
-        //       code: '0',
-        //       result: {
-        //         transfer_list: [
+        //     "response": {
+        //       "id": "1641032709328",
+        //       "method": "private/deriv/get-transfer-history",
+        //       "code": "0",
+        //       "result": {
+        //         "transfer_list": [
         //           {
-        //             direction: 'IN',
-        //             time: '1641025185223',
-        //             amount: '109.56',
-        //             status: 'COMPLETED',
-        //             information: 'From Spot Wallet',
-        //             currency: 'USDC'
+        //             "direction": "IN",
+        //             "time": "1641025185223",
+        //             "amount": "109.56",
+        //             "status": "COMPLETED",
+        //             "information": "From Spot Wallet",
+        //             "currency": "USDC"
         //           }
         //         ]
         //       }
@@ -2591,16 +2592,16 @@ export default class cryptocom extends Exchange {
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //    {
-        //        full_name: 'Alchemix',
-        //        default_network: 'ETH',
-        //        network_list: [
+        //        "full_name": "Alchemix",
+        //        "default_network": "ETH",
+        //        "network_list": [
         //          {
-        //            network_id: 'ETH',
-        //            withdrawal_fee: '0.25000000',
-        //            withdraw_enabled: true,
-        //            min_withdrawal_amount: '0.5',
-        //            deposit_enabled: true,
-        //            confirmation_required: '0'
+        //            "network_id": "ETH",
+        //            "withdrawal_fee": "0.25000000",
+        //            "withdraw_enabled": true,
+        //            "min_withdrawal_amount": "0.5",
+        //            "deposit_enabled": true,
+        //            "confirmation_required": "0"
         //          }
         //        ]
         //    }
@@ -3170,7 +3171,7 @@ export default class cryptocom extends Exchange {
             'datetime': this.iso8601(timestamp),
             'hedged': undefined,
             'side': undefined,
-            'contracts': undefined,
+            'contracts': this.safeNumber(position, 'quantity'),
             'contractSize': market['contractSize'],
             'entryPrice': undefined,
             'markPrice': undefined,

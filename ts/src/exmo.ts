@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Transaction, Ticker } from './base/types.js';
+import { Dictionary, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Transaction, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -843,7 +843,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name exmo#fetchOHLCV
@@ -956,7 +956,7 @@ export default class exmo extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name exmo#fetchBalance
@@ -1003,7 +1003,7 @@ export default class exmo extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name exmo#fetchOrderBook
@@ -1107,7 +1107,7 @@ export default class exmo extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name exmo#fetchTickers
@@ -1146,7 +1146,7 @@ export default class exmo extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name exmo#fetchTicker
@@ -1252,7 +1252,7 @@ export default class exmo extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name exmo#fetchTrades
@@ -1673,7 +1673,7 @@ export default class exmo extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name exmo#fetchOpenOrders
@@ -2306,11 +2306,12 @@ export default class exmo extends Exchange {
             'tagTo': undefined,
             'updated': this.safeTimestamp (transaction, 'updated'),
             'comment': comment,
+            'internal': undefined,
             'fee': fee,
         };
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name exmo#fetchDepositsWithdrawals
@@ -2364,7 +2365,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (response['history'], currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name exmo#fetchWithdrawals
@@ -2522,7 +2523,7 @@ export default class exmo extends Exchange {
         return this.parseTransaction (first, currency);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name exmo#fetchDeposits

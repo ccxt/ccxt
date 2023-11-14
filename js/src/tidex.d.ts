@@ -1,5 +1,5 @@
 import Exchange from './abstract/tidex.js';
-import { Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Balances, Dictionary, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class tidex
  * @extends Exchange
@@ -8,78 +8,24 @@ export default class tidex extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBooks(symbols?: string[], limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: any): {
-        id: string;
-        order: string;
-        timestamp: number;
-        datetime: string;
-        symbol: any;
-        type: string;
-        side: string;
-        takerOrMaker: any;
-        price: number;
-        amount: number;
-        cost: number;
-        fee: any;
-        info: any;
-    };
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
-    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<{
-        id: string;
-        txid: any;
-        timestamp: any;
-        datetime: any;
-        network: any;
-        addressFrom: any;
-        address: any;
-        addressTo: any;
-        amount: any;
-        type: any;
-        currency: any;
-        status: any;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: any;
-        fee: any;
-        info: any;
-    }>;
-    parseTransaction(transaction: any, currency?: any): {
-        id: string;
-        txid: any;
-        timestamp: any;
-        datetime: any;
-        network: any;
-        addressFrom: any;
-        address: any;
-        addressTo: any;
-        amount: any;
-        type: any;
-        currency: any;
-        status: any;
-        updated: any;
-        tagFrom: any;
-        tag: any;
-        tagTo: any;
-        comment: any;
-        fee: any;
-        info: any;
-    };
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

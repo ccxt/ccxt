@@ -1,5 +1,5 @@
 import Exchange from './abstract/btcturk.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Ticker } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade } from './base/types.js';
 /**
  * @class btcturk
  * @extends Exchange
@@ -7,14 +7,14 @@ import { Int, OHLCV, Order, OrderSide, OrderType, Ticker } from './base/types.js
 export default class btcturk extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    parseTrade(trade: any, market?: any): import("./base/types.js").Trade;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTrade(trade: any, market?: any): Trade;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseOHLCVs(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
@@ -24,7 +24,7 @@ export default class btcturk extends Exchange {
     fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

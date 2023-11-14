@@ -1,5 +1,5 @@
 import Exchange from './abstract/timex.js';
-import { Int, OHLCV, Order, OrderSide, OrderType } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class timex
  * @extends Exchange
@@ -8,36 +8,17 @@ export default class timex extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     getCurrencyByAddress(address: any): any;
-    parseTransaction(transaction: any, currency?: any): {
-        info: any;
-        id: string;
-        txid: string;
-        timestamp: number;
-        datetime: string;
-        network: any;
-        address: any;
-        addressTo: string;
-        addressFrom: string;
-        tag: any;
-        tagTo: any;
-        tagFrom: any;
-        type: any;
-        amount: number;
-        currency: any;
-        status: string;
-        updated: any;
-        fee: any;
-    };
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<import("./base/types.js").Ticker>>;
-    fetchTicker(symbol: string, params?: {}): Promise<import("./base/types.js").Ticker>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    parseTransaction(transaction: any, currency?: any): Transaction;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    parseBalance(response: any): import("./base/types.js").Balances;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    parseBalance(response: any): Balances;
+    fetchBalance(params?: {}): Promise<Balances>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     editOrder(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
@@ -45,7 +26,7 @@ export default class timex extends Exchange {
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Trade[]>;
+    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTradingFee(fee: any, market?: any): {
         info: any;
         symbol: any;
@@ -58,57 +39,7 @@ export default class timex extends Exchange {
         maker: number;
         taker: number;
     }>;
-    parseMarket(market: any): {
-        id: string;
-        symbol: string;
-        base: any;
-        quote: any;
-        settle: any;
-        baseId: string;
-        quoteId: string;
-        settleId: any;
-        type: string;
-        spot: boolean;
-        margin: boolean;
-        swap: boolean;
-        future: boolean;
-        option: boolean;
-        active: boolean;
-        contract: boolean;
-        linear: any;
-        inverse: any;
-        taker: number;
-        maker: number;
-        contractSize: any;
-        expiry: any;
-        expiryDatetime: any;
-        strike: any;
-        optionType: any;
-        precision: {
-            amount: number;
-            price: number;
-        };
-        limits: {
-            leverage: {
-                min: any;
-                max: any;
-            };
-            amount: {
-                min: number;
-                max: any;
-            };
-            price: {
-                min: number;
-                max: any;
-            };
-            cost: {
-                min: string;
-                max: any;
-            };
-        };
-        created: any;
-        info: any;
-    };
+    parseMarket(market: any): Market;
     parseCurrency(currency: any): {
         id: any;
         code: any;
@@ -132,22 +63,8 @@ export default class timex extends Exchange {
         };
         networks: {};
     };
-    parseTicker(ticker: any, market?: any): import("./base/types.js").Ticker;
-    parseTrade(trade: any, market?: any): {
-        info: any;
-        id: string;
-        timestamp: number;
-        datetime: string;
-        symbol: any;
-        order: any;
-        type: any;
-        side: string;
-        price: number;
-        amount: number;
-        cost: number;
-        takerOrMaker: string;
-        fee: any;
-    };
+    parseTicker(ticker: any, market?: any): Ticker;
+    parseTrade(trade: any, market?: any): Trade;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     parseOrder(order: any, market?: any): Order;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
