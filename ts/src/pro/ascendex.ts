@@ -726,7 +726,8 @@ export default class ascendex extends ascendexRest {
         //     { m: "auth", id: "1647605234", code: 0 }
         //
         const messageHash = 'authenticated';
-        client.resolve (message, messageHash);
+        const promise = client.futures[messageHash];
+        promise.resolve (message);
     }
 
     handleMessage (client: Client, message) {
@@ -950,8 +951,9 @@ export default class ascendex extends ascendexRest {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
@@ -967,7 +969,7 @@ export default class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;
