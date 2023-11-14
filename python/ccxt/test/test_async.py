@@ -832,8 +832,8 @@ class testMainClass(baseMainTestClass):
             new_output = self.urlencoded_to_dict(new_output)
         self.assert_new_and_stored_output(exchange, skip_keys, new_output, stored_output)
 
-    def assert_static_response_output(self, exchange, computed_result, stored_result):
-        self.assert_new_and_stored_output(exchange, [], computed_result, stored_result, False)
+    def assert_static_response_output(self, exchange, skip_keys, computed_result, stored_result):
+        self.assert_new_and_stored_output(exchange, skip_keys, computed_result, stored_result, False)
 
     def sanitize_data_input(self, input):
         # remove nulls and replace with unefined instead
@@ -866,12 +866,12 @@ class testMainClass(baseMainTestClass):
             error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump(error_message)
 
-    async def test_response_statically(self, exchange, method, data):
+    async def test_response_statically(self, exchange, method, skip_keys, data):
         expected_result = exchange.safe_value(data, 'parsedResponse')
         mocked_exchange = set_fetch_response(exchange, data['httpResponse'])
         try:
             unified_result = await call_exchange_method_dynamically(exchange, method, self.sanitize_data_input(data['input']))
-            self.assert_static_response_output(mocked_exchange, unified_result, expected_result)
+            self.assert_static_response_output(mocked_exchange, skip_keys, unified_result, expected_result)
         except Exception as e:
             self.request_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
@@ -935,7 +935,8 @@ class testMainClass(baseMainTestClass):
                 description = exchange.safe_value(result, 'description')
                 if (test_name is not None) and (test_name != description):
                     continue
-                await self.test_response_statically(exchange, method, result)
+                skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
+                await self.test_response_statically(exchange, method, skip_keys, result)
         await close(exchange)
 
     def get_number_of_tests_from_exchange(self, exchange, exchange_data):
@@ -1203,5 +1204,4 @@ class testMainClass(baseMainTestClass):
 
 
 if __name__ == '__main__':
-    argv.exchange = 'binance'
     asyncio.run(testMainClass().init(argv.exchange, argv.symbol))
