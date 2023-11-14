@@ -31,6 +31,86 @@
                 "output": "amount=6.95&market=spot&symbol=LTC_USDT&type=buy_market"
             }
         ],
+        "createOrders": [
+            {
+                "description": "Spot create multiple orders at once",
+                "method": "createOrders",
+                "url": "https://openapi.digifinex.com/v3/spot/order/batch_new",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "list=%5B%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22spot%22%2C%22price%22%3A%2225000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%2C%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22spot%22%2C%22price%22%3A%2227000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%5D&symbol=BTC_USDT"
+            },
+            {
+                "description": "Spot margin create multiple orders at once",
+                "method": "createOrders",
+                "url": "https://openapi.digifinex.com/v3/margin/order/batch_new",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 25000,
+                      "params": {
+                        "marginMode": "cross"
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0001,
+                      "price": 27000,
+                      "params": {
+                        "marginMode": "cross"
+                      }
+                    }
+                  ]
+                ],
+                "output": "list=%5B%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22margin%22%2C%22price%22%3A%2225000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%2C%7B%22symbol%22%3A%22BTC_USDT%22%2C%22market%22%3A%22margin%22%2C%22price%22%3A%2227000%22%2C%22type%22%3A%22buy%22%2C%22amount%22%3A%220.0001%22%7D%5D&symbol=BTC_USDT"
+            },
+            {
+                "description": "Swap create multiple orders at once",
+                "method": "createOrders",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/batch_order",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": "25000"
+                    },
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 1,
+                      "price": "27000"
+                    }
+                  ]
+                ],
+                "output": "[{\"instrument_id\":\"BTCUSDTPERP\",\"type\":1,\"price\":\"25000\",\"order_type\":0,\"size\":1},{\"instrument_id\":\"BTCUSDTPERP\",\"type\":1,\"price\":\"27000\",\"order_type\":0,\"size\":1}]"
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",
