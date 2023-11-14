@@ -522,24 +522,24 @@ export default class cryptocom extends cryptocomRest {
     handlePositions(client, message) {
         //
         //    {
-        //        subscription: "user.position_balance",
-        //        channel: "user.position_balance",
-        //        data: [{
-        //            balances: [{
-        //                instrument_name: "USD",
-        //                quantity: "8.9979961950886",
-        //                update_timestamp_ms: 1695598760597,
+        //        "subscription": "user.position_balance",
+        //        "channel": "user.position_balance",
+        //        "data": [{
+        //            "balances": [{
+        //                "instrument_name": "USD",
+        //                "quantity": "8.9979961950886",
+        //                "update_timestamp_ms": 1695598760597,
         //            }],
-        //            positions: [{
-        //                account_id: "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
-        //                instrument_name: "LTCUSD-PERP",
-        //                type: "PERPETUAL_SWAP",
-        //                quantity: "1.8",
-        //                cost: "114.766",
-        //                open_position_pnl: "-0.0216206",
-        //                session_pnl: "0.00962994",
-        //                update_timestamp_ms: 1695598760597,
-        //                open_pos_cost: "114.766",
+        //            "positions": [{
+        //                "account_id": "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        //                "instrument_name": "LTCUSD-PERP",
+        //                "type": "PERPETUAL_SWAP",
+        //                "quantity": "1.8",
+        //                "cost": "114.766",
+        //                "open_position_pnl": "-0.0216206",
+        //                "session_pnl": "0.00962994",
+        //                "update_timestamp_ms": 1695598760597,
+        //                "open_pos_cost": "114.766",
         //            }],
         //        }],
         //    }

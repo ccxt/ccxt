@@ -1529,6 +1529,7 @@ export default class bitfinex extends Exchange {
             'tagTo': undefined,
             'updated': this.safeTimestamp (transaction, 'timestamp'),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),

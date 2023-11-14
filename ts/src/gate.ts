@@ -3674,6 +3674,8 @@ export default class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),

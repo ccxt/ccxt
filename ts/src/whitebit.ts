@@ -1842,6 +1842,7 @@ export default class whitebit extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString (transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber (transaction, 'fee'),
                 'currency': this.safeCurrencyCode (currencyId, currency),

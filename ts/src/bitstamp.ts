@@ -1731,6 +1731,7 @@ export default class bitstamp extends Exchange {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

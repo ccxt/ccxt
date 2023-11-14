@@ -20,7 +20,7 @@ export default class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -2617,6 +2617,7 @@ export default class wavesexchange extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

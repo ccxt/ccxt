@@ -978,6 +978,7 @@ export default class tidex extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

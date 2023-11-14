@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -344,7 +344,8 @@ export default class btcmarkets extends Exchange {
             'currency': code,
             'status': status,
             'updated': lastUpdate,
-            'comment': undefined,
+            'comment': this.safeString (transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (fee),
@@ -376,76 +377,75 @@ export default class btcmarkets extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const baseId = this.safeString (market, 'baseAssetName');
-            const quoteId = this.safeString (market, 'quoteAssetName');
-            const id = this.safeString (market, 'marketId');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
-            const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
-            const minAmount = this.safeNumber (market, 'minOrderAmount');
-            const maxAmount = this.safeNumber (market, 'maxOrderAmount');
-            let minPrice = undefined;
-            if (quote === 'AUD') {
-                minPrice = pricePrecision;
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimals'))),
-                    'price': pricePrecision,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+        return this.parseMarkets (response);
+    }
+
+    parseMarket (market): Market {
+        const baseId = this.safeString (market, 'baseAssetName');
+        const quoteId = this.safeString (market, 'quoteAssetName');
+        const id = this.safeString (market, 'marketId');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const fees = this.safeValue (this.safeValue (this.options, 'fees', {}), quote, this.fees);
+        const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceDecimals')));
+        const minAmount = this.safeNumber (market, 'minOrderAmount');
+        const maxAmount = this.safeNumber (market, 'maxOrderAmount');
+        let minPrice = undefined;
+        if (quote === 'AUD') {
+            minPrice = pricePrecision;
         }
-        return result;
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': fees['taker'],
+            'maker': fees['maker'],
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountDecimals'))),
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     async fetchTime (params = {}) {

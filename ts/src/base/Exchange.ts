@@ -1666,6 +1666,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
+    parseMarket (market): Market {
+        throw new NotSupported (this.id + ' parseMarket() is not supported yet');
+    }
+
+    parseMarkets (markets): Market[] {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.parseMarket (markets[i]));
+        }
+        return result;
+    }
+
     parseTicker (ticker: object, market = undefined): Ticker {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }

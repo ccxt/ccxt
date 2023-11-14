@@ -1621,6 +1621,8 @@ export default class gemini extends Exchange {
             'currency': code,
             'status': this.parseTransactionStatus (statusRaw),
             'updated': undefined,
+            'internal': undefined,
+            'comment': this.safeString (transaction, 'message'),
             'fee': fee,
         };
     }

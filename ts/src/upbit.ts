@@ -1319,6 +1319,8 @@ export default class upbit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'internal': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
