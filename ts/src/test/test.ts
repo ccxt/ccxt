@@ -183,16 +183,6 @@ export default class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbol) {
         this.parseCliArgs ();
 
-        if (this.staticTests) {
-            // run both static tests
-            // request and response tests
-            await Promise.all ([
-                this.runStaticRequestTests (exchangeId, symbol),
-                this.runStaticResponseTests (exchangeId, symbol),
-            ]);
-            return;
-        }
-
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbol);
             return;
@@ -1073,6 +1063,8 @@ export default class testMainClass extends baseMainTestClass {
     async testExchangeResponseStatically (exchangeName: string, exchangeData: object, testName: string = undefined) {
         const exchange = this.initOfflineExchange (exchangeName);
         const methods = exchange.safeValue (exchangeData, 'methods', {});
+        const options = exchange.safeValue (exchangeData, 'options', {});
+        exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
         const methodsNames = Object.keys (methods);
         for (let i = 0; i < methodsNames.length; i++) {
             const method = methodsNames[i];
