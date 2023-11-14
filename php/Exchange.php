@@ -106,6 +106,8 @@ class Exchange {
     public $origin = '*'; // CORS origin
     //
 
+    public $fetch_result = null;
+
 
     public $hostname = null; // in case of inaccessibility of the "main" domain
 
@@ -1337,6 +1339,14 @@ class Exchange {
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
+
+        if ($this->fetch_result !== null) {
+            // used in tests
+            // it's not the prettiest solution but
+            // couldn't find a better way to do it
+            // feel free to suggest a better alternative
+            return $this->fetch_result;
+        }
 
         // https://github.com/ccxt/ccxt/issues/5914
         if ($this->curl) {

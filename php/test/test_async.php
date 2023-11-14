@@ -199,7 +199,7 @@ function close($exchange) {
 }
 
 function set_fetch_response($exchange, $data) {
-    $exchange->fetchResult = $data;
+    $exchange->fetch_result = $data;
     return $exchange;
 }
 
@@ -216,7 +216,7 @@ class testMainClass extends baseMainTestClass {
     public function parse_cli_args() {
         $this->response_tests = get_cli_arg_value('--responseTests');
         $this->id_tests = get_cli_arg_value('--idTests');
-        $this->static_tests = get_cli_arg_value('--static');
+        $this->request_tests = get_cli_arg_value('--requestTests');
         $this->info = get_cli_arg_value('--info');
         $this->verbose = get_cli_arg_value('--verbose');
         $this->debug = get_cli_arg_value('--debug');
@@ -229,11 +229,11 @@ class testMainClass extends baseMainTestClass {
         return Async\async(function () use ($exchange_id, $symbol) {
             $this->parse_cli_args();
             if ($this->response_tests) {
-                Async\await($this->run_mock_response_tests($exchange_id, $symbol));
+                Async\await($this->run_static_response_tests($exchange_id, $symbol));
                 return;
             }
-            if ($this->static_tests) {
-                Async\await($this->run_static_tests($exchange_id, $symbol)); // symbol here is the testname
+            if ($this->request_tests) {
+                Async\await($this->run_static_request_tests($exchange_id, $symbol)); // symbol here is the testname
                 return;
             }
             if ($this->id_tests) {
@@ -797,8 +797,13 @@ class testMainClass extends baseMainTestClass {
         return $content;
     }
 
-    public function load_static_data($target_exchange = null) {
-        $folder = $this->root_dir . './ts/src/test/static/data/';
+    public function load_currencies_from_file($id) {
+        $filename = $this->root_dir . './ts/src/test/static/currencies/' . $id . '.json';
+        $content = io_file_read($filename);
+        return $content;
+    }
+
+    public function load_static_data($folder, $target_exchange = null) {
         $result = array();
         if ($target_exchange) {
             // read a single exchange
@@ -895,7 +900,7 @@ class testMainClass extends baseMainTestClass {
         }
     }
 
-    public function assert_static_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
+    public function assert_static_request_output($exchange, $type, $skip_keys, $stored_url, $request_url, $stored_output, $new_output) {
         if ($stored_url !== $request_url) {
             // remove the host part from the url
             $first_path = $this->remove_hostnamefrom_url($stored_url);
@@ -935,6 +940,12 @@ class testMainClass extends baseMainTestClass {
         $this->assert_new_and_stored_output($exchange, $skip_keys, $new_output, $stored_output);
     }
 
+    public function assert_static_response_output($exchange, $computed_result, $stored_result) {
+        $stringified_computed = json_stringify($computed_result);
+        $stringified_stored = json_stringify($stored_result);
+        $this->assert_static_error($stringified_computed === $stringified_stored, 'response mismatch', $stringified_stored, $stringified_computed);
+    }
+
     public function sanitize_data_input($input) {
         // remove nulls and replace with unefined instead
         if ($input === null) {
@@ -967,10 +978,26 @@ class testMainClass extends baseMainTestClass {
             }
             try {
                 $call_output = $exchange->safe_value($data, 'output');
-                $this->assert_static_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
+                $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
             } catch(Exception $e) {
-                $this->static_tests_failed = true;
-                $error_message = '[' . $this->lang . '][STATIC_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+                $this->request_tests_failed = true;
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+                dump($error_message);
+            }
+        }) ();
+    }
+
+    public function test_response_statically($exchange, $method, $data) {
+        return Async\async(function () use ($exchange, $method, $data) {
+            $expected_result = $exchange->safe_value($data, 'parsedResponse');
+            $mocked_exchange = set_fetch_response($exchange, $data['httpResponse']);
+            try {
+                $unified_result = Async\await(call_exchange_method_dynamically($exchange, $method, $this->sanitize_data_input($data['input'])));
+                print_r('Hereeee');
+                $this->assert_static_response_output($mocked_exchange, $unified_result, $expected_result);
+            } catch(Exception $e) {
+                $this->request_tests_failed = true;
+                $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
                 dump($error_message);
             }
         }) ();
@@ -978,8 +1005,10 @@ class testMainClass extends baseMainTestClass {
 
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
+        $currencies = $this->load_currencies_from_file($exchange_name);
         return init_exchange($exchange_name, array(
             'markets' => $markets,
+            'currencies' => $currencies,
             'rateLimit' => 1,
             'httpsProxy' => 'http://fake:8080',
             'apiKey' => 'key',
@@ -999,7 +1028,7 @@ class testMainClass extends baseMainTestClass {
         ));
     }
 
-    public function test_exchange_statically($exchange_name, $exchange_data, $test_name = null) {
+    public function test_exchange_request_statically($exchange_name, $exchange_data, $test_name = null) {
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
             $exchange = $this->init_offline_exchange($exchange_name);
@@ -1023,6 +1052,29 @@ class testMainClass extends baseMainTestClass {
         }) ();
     }
 
+    public function test_exchange_response_statically($exchange_name, $exchange_data, $test_name = null) {
+        return Async\async(function () use ($exchange_name, $exchange_data, $test_name) {
+            $exchange = $this->init_offline_exchange($exchange_name);
+            $methods = $exchange->safe_value($exchange_data, 'methods', array());
+            $options = $exchange->safe_value($exchange_data, 'options', array());
+            $exchange->options = $exchange->deep_extend($exchange->options, $options); // custom options to be used in the tests
+            $methods_names = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($methods_names); $i++) {
+                $method = $methods_names[$i];
+                $results = $methods[$method];
+                for ($j = 0; $j < count($results); $j++) {
+                    $result = $results[$j];
+                    $description = $exchange->safe_value($result, 'description');
+                    if (($test_name !== null) && ($test_name !== $description)) {
+                        continue;
+                    }
+                    Async\await($this->test_response_statically($exchange, $method, $result));
+                }
+            }
+            Async\await(close($exchange));
+        }) ();
+    }
+
     public function get_number_of_tests_from_exchange($exchange, $exchange_data) {
         $sum = 0;
         $methods = $exchange_data['methods'];
@@ -1036,9 +1088,17 @@ class testMainClass extends baseMainTestClass {
         return $sum;
     }
 
-    public function run_static_tests($target_exchange = null, $test_name = null) {
+    public function run_static_request_tests($target_exchange = null, $test_name = null) {
         return Async\async(function () use ($target_exchange, $test_name) {
-            $static_data = $this->load_static_data($target_exchange);
+            Async\await($this->run_static_tests('request', $target_exchange, $test_name));
+
+        }) ();
+    }
+
+    public function run_static_tests($type, $target_exchange = null, $test_name = null) {
+        return Async\async(function () use ($type, $target_exchange, $test_name) {
+            $folder = $this->root_dir . './ts/src/test/static/' . $type . '/';
+            $static_data = $this->load_static_data($folder, $target_exchange);
             $exchanges = is_array($static_data) ? array_keys($static_data) : array();
             $exchange = init_exchange('Exchange', array()); // tmp to do the calculations until we have the ast-transpiler transpiling this code
             $promises = [];
@@ -1054,32 +1114,30 @@ class testMainClass extends baseMainTestClass {
                 $exchange_data = $static_data[$exchange_name];
                 $number_of_tests = $this->get_number_of_tests_from_exchange($exchange, $exchange_data);
                 $sum = $exchange->sum($sum, $number_of_tests);
-                $promises[] = $this->test_exchange_statically($exchange_name, $exchange_data, $test_name);
+                if ($type === 'request') {
+                    $promises[] = $this->test_exchange_request_statically($exchange_name, $exchange_data, $test_name);
+                } else {
+                    $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
+                }
             }
             Async\await(Promise\all($promises));
-            if ($this->static_tests_failed) {
+            if ($this->request_tests_failed || $this->response_tests_failed) {
                 exit_script(1);
             } else {
-                $success_message = '[' . $this->lang . '][TEST_SUCCESS] ' . ((string) $sum) . ' static tests passed.';
+                $success_message = '[' . $this->lang . '][TEST_SUCCESS] ' . ((string) $sum) . ' static ' . $type . ' tests passed.';
                 dump($success_message);
                 exit_script(0);
             }
         }) ();
     }
 
-    public function run_mock_response_tests($exchange_name = null, $test = null) {
+    public function run_static_response_tests($exchange_name = null, $test = null) {
         //  -----------------------------------------------------------------------------
         //  --- Init of mockResponses tests functions------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () use ($exchange_name, $test) {
-            $exchange = $this->init_offline_exchange('binance');
-            $data = [array(
-    'orderId' => 'teste',
-)];
-            $mocked_exchange = set_fetch_response($exchange, $data);
-            // const order = await call_overriden_method (mockedExchange, 'fetchOrders', [ 'BTC/USDT' ]);
-            $order = Async\await($mocked_exchange->fetch_orders('BTC/USDT'));
-            dump($order);
+            Async\await($this->run_static_tests('response', $exchange_name, $test));
+
         }) ();
     }
 
