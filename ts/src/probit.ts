@@ -240,7 +240,7 @@ export default class probit extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) : Promise<Market[]> {
+    async fetchMarkets (params = {}) {
         /**
          * @method
          * @name probit#fetchMarkets
