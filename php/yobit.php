@@ -297,7 +297,7 @@ class yobit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -430,7 +430,7 @@ class yobit extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -536,7 +536,7 @@ class yobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
@@ -580,7 +580,7 @@ class yobit extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -671,7 +671,7 @@ class yobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * get the list of most recent trades for a particular $symbol
@@ -998,19 +998,17 @@ class yobit extends Exchange {
         return $this->parse_order(array_merge(array( 'id' => $id ), $orders[$id]));
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
-         * @param {int} [$limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the yobit api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOpenOrders', $symbol);
         $this->load_markets();
         $request = array();
         $market = null;
@@ -1056,9 +1054,7 @@ class yobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the yobit api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$trade-structure $trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         // some derived classes use camelcase notation for $request fields

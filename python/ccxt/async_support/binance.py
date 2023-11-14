@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction, Greeks
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -94,6 +94,7 @@ class binance(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchL3OrderBook': False,
                 'fetchLastPrices': True,
@@ -882,6 +883,7 @@ class binance(Exchange, ImplicitAPI):
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': {'cost': 0.4, 'noSymbol': 16},
+                        'ticker': {'cost': 0.4, 'noSymbol': 16},
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': 4,  # Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -982,7 +984,9 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'um/order': 1,  # 0
+                        'um/conditional/order': 1,
                         'cm/order': 1,  # 0
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133,  # Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
                         'marginLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
                         'repayLoan': 0.1333,  # Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
@@ -1003,9 +1007,13 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'um/order': 1,  # 1
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1,  # 1
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1,  # 1
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,  # 1
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1,  # Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5,  # 5
                         'margin/orderList': 2,  # 2
@@ -2219,7 +2227,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         swap = False
         future = False
         option = False
@@ -2456,7 +2464,7 @@ class binance(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return result if isolated else self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://binance-docs.github.io/apidocs/spot/en/#account-information-user_data                  # spot
@@ -2700,7 +2708,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response, type, marginMode)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://binance-docs.github.io/apidocs/spot/en/#order-book      # spot
@@ -2937,15 +2945,17 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
+        :see: https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics      # spot
         :see: https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      # swap
         :see: https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     # future
         :see: https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     # option
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the binance api endpoint
+        :param boolean [params.rolling]:(spot only) default False, if True, uses the rolling 24 hour ticker endpoint /api/v3/ticker
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         await self.load_markets()
@@ -2961,7 +2971,12 @@ class binance(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = await self.dapiPublicGetTicker24hr(self.extend(request, params))
         else:
-            response = await self.publicGetTicker24hr(self.extend(request, params))
+            rolling = self.safe_value(params, 'rolling', False)
+            params = self.omit(params, 'rolling')
+            if rolling:
+                response = await self.publicGetTicker(self.extend(request, params))
+            else:
+                response = await self.publicGetTicker24hr(self.extend(request, params))
         if isinstance(response, list):
             firstTicker = self.safe_value(response, 0, {})
             return self.parse_ticker(firstTicker, market)
@@ -3094,7 +3109,7 @@ class binance(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         # spot
@@ -3191,7 +3206,7 @@ class binance(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, volumeIndex, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
@@ -3499,7 +3514,7 @@ class binance(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
          * Default fetchTradesMethod
@@ -4494,7 +4509,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_order(response, market)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4620,7 +4635,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
         :see: https://binance-docs.github.io/apidocs/futures/en/#current-all-open-orders-user_data
@@ -4683,7 +4698,7 @@ class binance(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://binance-docs.github.io/apidocs/spot/en/#all-orders-user_data
@@ -4889,8 +4904,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         await self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -5164,7 +5178,7 @@ class binance(Exchange, ImplicitAPI):
             'info': trade,
         }
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         fetch all deposits made to an account
@@ -5265,7 +5279,7 @@ class binance(Exchange, ImplicitAPI):
             response[i]['type'] = 'deposit'
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         :see: https://binance-docs.github.io/apidocs/spot/en/#get-fiat-deposit-withdraw-history-user_data
         :see: https://binance-docs.github.io/apidocs/spot/en/#withdraw-history-supporting-network-user_data
@@ -7404,8 +7418,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
@@ -7435,8 +7448,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the binance api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
@@ -7902,9 +7914,9 @@ class binance(Exchange, ImplicitAPI):
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(orderidlist)
                     if orderidlistLength > 0:
-                        query = query + '&orderidlist=[' + ','.join(orderidlist) + ']'
+                        query = query + '&' + 'orderidlist=[' + ','.join(orderidlist) + ']'
                     if origclientorderidlistLength > 0:
-                        query = query + '&origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
+                        query = query + '&' + 'origclientorderidlist=[' + ','.join(origclientorderidlist) + ']'
                 else:
                     query = self.rawencode(extendedParams)
             else:
@@ -8767,3 +8779,76 @@ class binance(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+        """
+        fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+        :see: https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+        :param str symbol: unified symbol of the market to fetch greeks for
+        :param dict [params]: extra parameters specific to the binance api endpoint
+        :returns dict: a `greeks structure <https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.eapiPublicGetMark(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "BTC-231229-40000-C",
+        #             "markPrice": "2012",
+        #             "bidIV": "0.60236275",
+        #             "askIV": "0.62267244",
+        #             "markIV": "0.6125176",
+        #             "delta": "0.39111646",
+        #             "theta": "-32.13948531",
+        #             "gamma": "0.00004656",
+        #             "vega": "51.70062218",
+        #             "highPriceLimit": "6474",
+        #             "lowPriceLimit": "5"
+        #         }
+        #     ]
+        #
+        return self.parse_greeks(response[0], market)
+
+    def parse_greeks(self, greeks, market=None):
+        #
+        #     {
+        #         "symbol": "BTC-231229-40000-C",
+        #         "markPrice": "2012",
+        #         "bidIV": "0.60236275",
+        #         "askIV": "0.62267244",
+        #         "markIV": "0.6125176",
+        #         "delta": "0.39111646",
+        #         "theta": "-32.13948531",
+        #         "gamma": "0.00004656",
+        #         "vega": "51.70062218",
+        #         "highPriceLimit": "6474",
+        #         "lowPriceLimit": "5"
+        #     }
+        #
+        marketId = self.safe_string(greeks, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'delta': self.safe_number(greeks, 'delta'),
+            'gamma': self.safe_number(greeks, 'gamma'),
+            'theta': self.safe_number(greeks, 'theta'),
+            'vega': self.safe_number(greeks, 'vega'),
+            'rho': None,
+            'bidSize': None,
+            'askSize': None,
+            'bidImpliedVolatility': self.safe_number(greeks, 'bidIV'),
+            'askImpliedVolatility': self.safe_number(greeks, 'askIV'),
+            'markImpliedVolatility': self.safe_number(greeks, 'markIV'),
+            'bidPrice': None,
+            'askPrice': None,
+            'markPrice': self.safe_number(greeks, 'markPrice'),
+            'lastPrice': None,
+            'underlyingPrice': None,
+            'info': greeks,
+        }

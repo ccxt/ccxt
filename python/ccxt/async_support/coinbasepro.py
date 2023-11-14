@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinbasepro import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -485,7 +485,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the coinbasepro api endpoint
@@ -495,7 +495,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = await self.privateGetAccounts(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -611,7 +611,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -654,7 +654,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(first, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -796,7 +796,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
         get the list of most recent trades for a particular symbol
@@ -877,7 +877,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1072,7 +1072,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple orders made by the user
@@ -1088,7 +1088,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         }
         return await self.fetch_open_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetch all unfilled currently open orders
@@ -1121,7 +1121,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
         fetches information on multiple closed orders made by the user
@@ -1174,7 +1174,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
         if clientOrderId is not None:
             request['client_oid'] = clientOrderId
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop_price')
+        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
         if stopPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, stopPrice)
         timeInForce = self.safe_string_2(params, 'timeInForce', 'time_in_force')
@@ -1183,7 +1183,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         postOnly = self.safe_value_2(params, 'postOnly', 'post_only', False)
         if postOnly:
             request['post_only'] = True
-        params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only'])
+        params = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['size'] = self.amount_to_precision(symbol, amount)
@@ -1458,7 +1458,7 @@ class coinbasepro(Exchange, ImplicitAPI):
             response[i]['currency'] = code
         return self.parse_ledger(response, currency, since, limit)
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
@@ -1555,7 +1555,7 @@ class coinbasepro(Exchange, ImplicitAPI):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1566,7 +1566,7 @@ class coinbasepro(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_withdrawals(code, since, limit, self.extend({'type': 'deposit'}, params))
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code

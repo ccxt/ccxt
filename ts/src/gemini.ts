@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrd
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -591,7 +591,7 @@ export default class gemini extends Exchange {
         return this.toArray (result);
     }
 
-    parseMarket (response) {
+    parseMarket (response): Market {
         const marketId = this.safeStringLower (response, 'symbol');
         let baseId = this.safeString (response, 'base_currency');
         let quoteId = this.safeString (response, 'quote_currency');
@@ -656,7 +656,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name gemini#fetchOrderBook
@@ -738,7 +738,7 @@ export default class gemini extends Exchange {
         }) as Ticker;
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name gemini#fetchTicker
@@ -852,7 +852,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name gemini#fetchTickers
@@ -944,7 +944,7 @@ export default class gemini extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name gemini#fetchTrades
@@ -1057,7 +1057,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name gemini#fetchBalance
@@ -1276,7 +1276,7 @@ export default class gemini extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name gemini#fetchOpenOrders
@@ -1470,9 +1470,7 @@ export default class gemini extends Exchange {
          * @param {object} [params] extra parameters specific to the gemini api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1548,7 +1546,7 @@ export default class gemini extends Exchange {
         return this.seconds ();
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name gemini#fetchDepositsWithdrawals
@@ -1623,6 +1621,8 @@ export default class gemini extends Exchange {
             'currency': code,
             'status': this.parseTransactionStatus (statusRaw),
             'updated': undefined,
+            'internal': undefined,
+            'comment': this.safeString (transaction, 'message'),
             'fee': fee,
         };
     }
@@ -1789,7 +1789,7 @@ export default class gemini extends Exchange {
         };
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name gemini#fetchOHLCV

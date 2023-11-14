@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import { FundingHistory, FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, FundingHistory, FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class coinex
  * @extends Exchange
@@ -12,7 +12,7 @@ export default class coinex extends Exchange {
     fetchContractMarkets(params: any): Promise<any[]>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchTime(params?: {}): Promise<number>;
     fetchOrderBook(symbol: string, limit?: number, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: any, market?: any): Trade;
@@ -36,11 +36,11 @@ export default class coinex extends Exchange {
     };
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchMarginBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchSpotBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchSwapBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchFinancialBalance(params?: {}): Promise<import("./base/types.js").Balances>;
-    fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
+    fetchMarginBalance(params?: {}): Promise<Balances>;
+    fetchSpotBalance(params?: {}): Promise<Balances>;
+    fetchSwapBalance(params?: {}): Promise<Balances>;
+    fetchFinancialBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: {}): Promise<Balances>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
@@ -151,8 +151,8 @@ export default class coinex extends Exchange {
         status: string;
     };
     fetchTransfers(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseBorrowRate(info: any, currency?: any): {
         currency: any;
         rate: number;

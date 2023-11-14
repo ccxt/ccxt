@@ -2626,9 +2626,6 @@ export default class phemex extends Exchange {
          * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2702,9 +2699,7 @@ export default class phemex extends Exchange {
          * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2743,9 +2738,7 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelAllOrders', symbol);
         await this.loadMarkets();
         const request = {
         // 'symbol': market['id'],
@@ -2772,9 +2765,7 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['settle'] === 'USDT') {
@@ -2817,13 +2808,11 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2857,13 +2846,11 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
+         * @param {int} [limit] the maximum number of open order structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOpenOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         let method = 'privateGetSpotOrders';
@@ -2903,13 +2890,11 @@ export default class phemex extends Exchange {
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchClosedOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2988,9 +2973,7 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         let method = 'privateGetExchangeSpotOrderTrades';
@@ -3630,10 +3613,8 @@ export default class phemex extends Exchange {
          * @param {object} [params] extra parameters specific to the phemex api endpoint
          * @returns {object} a [funding history structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure}
          */
+        this.checkRequiredSymbol('fetchFundingHistory', symbol);
         await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4106,9 +4087,7 @@ export default class phemex extends Exchange {
          */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('setLeverage', symbol);
         if ((leverage < 1) || (leverage > 100)) {
             throw new BadRequest(this.id + ' setLeverage() leverage should be between 1 and 100');
         }

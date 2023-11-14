@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coinfalcon.js';
-import { ExchangeError, AuthenticationError, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -267,7 +267,7 @@ export default class coinfalcon extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coinfalcon#fetchTicker
@@ -281,7 +281,7 @@ export default class coinfalcon extends Exchange {
         return tickers[symbol] as Ticker;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinfalcon#fetchTickers
@@ -322,7 +322,7 @@ export default class coinfalcon extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coinfalcon#fetchOrderBook
@@ -414,9 +414,7 @@ export default class coinfalcon extends Exchange {
          * @param {object} [params] extra parameters specific to the coinfalcon api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -451,7 +449,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coinfalcon#fetchTrades
@@ -543,7 +541,7 @@ export default class coinfalcon extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coinfalcon#fetchBalance
@@ -740,7 +738,7 @@ export default class coinfalcon extends Exchange {
         return this.parseOrder (data);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name coinfalcon#fetchOpenOrders
@@ -768,7 +766,7 @@ export default class coinfalcon extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinfalcon#fetchDeposits
@@ -815,7 +813,7 @@ export default class coinfalcon extends Exchange {
         return this.parseTransactions (transactions, currency, undefined, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coinfalcon#fetchWithdrawals
@@ -986,6 +984,8 @@ export default class coinfalcon extends Exchange {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),
             },
+            'internal': undefined,
+            'comment': undefined,
         };
     }
 

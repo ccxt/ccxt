@@ -791,7 +791,7 @@ class bitfinex2 extends Exchange {
         return $this->safe_string($networksById, $networkId, $networkId);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.bitfinex.com/reference/rest-auth-wallets
@@ -977,7 +977,7 @@ class bitfinex2 extends Exchange {
         return $currencyId;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.bitfinex.com/reference/rest-public-book
@@ -1090,7 +1090,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://docs.bitfinex.com/reference/rest-public-$tickers
@@ -1158,7 +1158,7 @@ class bitfinex2 extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.bitfinex.com/reference/rest-public-$ticker
@@ -1258,7 +1258,7 @@ class bitfinex2 extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://docs.bitfinex.com/reference/rest-public-$trades
@@ -1305,7 +1305,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_trades($trades, $market, null, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.bitfinex.com/reference/rest-public-candles
@@ -1731,7 +1731,7 @@ class bitfinex2 extends Exchange {
         return $order;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1794,7 +1794,7 @@ class bitfinex2 extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1883,9 +1883,7 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitfinex2 api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrderTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $orderId = intval($id);
@@ -2271,7 +2269,7 @@ class bitfinex2 extends Exchange {
         return $result;
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
          * @see https://docs.bitfinex.com/reference/movement-info

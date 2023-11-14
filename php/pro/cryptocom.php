@@ -26,6 +26,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchOHLCV' => true,
+                'watchPositions' => true,
                 'createOrderWs' => true,
                 'cancelOrderWs' => true,
                 'cancelAllOrders' => true,
@@ -43,6 +44,10 @@ class cryptocom extends \ccxt\async\cryptocom {
                 ),
             ),
             'options' => array(
+                'watchPositions' => array(
+                    'fetchPositionsSnapshot' => true, // or false
+                    'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
+                ),
             ),
             'streaming' => array(
             ),
@@ -469,6 +474,134 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch all open positions
+             * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the cryptocom api endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $url = $this->urls['api']['ws']['private'];
+            $id = $this->nonce();
+            $request = array(
+                'method' => 'subscribe',
+                'params' => array(
+                    'channels' => array( 'user.position_balance' ),
+                ),
+                'nonce' => $id,
+            );
+            $messageHash = 'positions';
+            $symbols = $this->market_symbols($symbols);
+            if (!$this->is_empty($symbols)) {
+                $messageHash = '::' . implode(',', $symbols);
+            }
+            $client = $this->client($url);
+            $this->set_positions_cache($client, $symbols);
+            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
+                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            }
+            $newPositions = Async\await($this->watch($url, $messageHash, array_merge($request, $params)));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
+        if ($fetchPositionsSnapshot) {
+            $messageHash = 'fetchPositionsSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
+            }
+        } else {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    public function load_positions_snapshot($client, $messageHash) {
+        return Async\async(function () use ($client, $messageHash) {
+            $positions = Async\await($this->fetch_positions());
+            $this->positions = new ArrayCacheBySymbolBySide ();
+            $cache = $this->positions;
+            for ($i = 0; $i < count($positions); $i++) {
+                $position = $positions[$i];
+                $contracts = $this->safe_number($position, 'contracts', 0);
+                if ($contracts > 0) {
+                    $cache->append ($position);
+                }
+            }
+            // don't remove the $future from the .futures $cache
+            $future = $client->futures[$messageHash];
+            $future->resolve ($cache);
+            $client->resolve ($cache, 'positions');
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        "subscription" => "user.position_balance",
+        //        "channel" => "user.position_balance",
+        //        "data" => [array(
+        //            "balances" => [array(
+        //                "instrument_name" => "USD",
+        //                "quantity" => "8.9979961950886",
+        //                "update_timestamp_ms" => 1695598760597,
+        //            )],
+        //            "positions" => [array(
+        //                "account_id" => "96a0edb1-afb5-4c7c-af89-5cb610319e2c",
+        //                "instrument_name" => "LTCUSD-PERP",
+        //                "type" => "PERPETUAL_SWAP",
+        //                "quantity" => "1.8",
+        //                "cost" => "114.766",
+        //                "open_position_pnl" => "-0.0216206",
+        //                "session_pnl" => "0.00962994",
+        //                "update_timestamp_ms" => 1695598760597,
+        //                "open_pos_cost" => "114.766",
+        //            )],
+        //        )],
+        //    }
+        //
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        $data = $this->safe_value($message, 'data', array());
+        $firstData = $this->safe_value($data, 0, array());
+        $rawPositions = $this->safe_value($firstData, 'positions', array());
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, 'positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, 'positions');
+    }
+
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -753,6 +886,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'user.order' => array($this, 'handle_orders'),
             'user.trade' => array($this, 'handle_trades'),
             'user.balance' => array($this, 'handle_balance'),
+            'user.position_balance' => array($this, 'handle_positions'),
         );
         $result = $this->safe_value_2($message, 'result', 'info');
         $channel = $this->safe_string($result, 'channel');

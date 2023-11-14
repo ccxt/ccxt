@@ -5,7 +5,7 @@ import Exchange from './abstract/bl3p.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
+import { Balances, Int, OrderBook, OrderSide, OrderType, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -135,7 +135,7 @@ export default class bl3p extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bl3p#fetchBalance
@@ -157,7 +157,7 @@ export default class bl3p extends Exchange {
         ];
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bl3p#fetchOrderBook
@@ -220,7 +220,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bl3p#fetchTicker
@@ -285,7 +285,7 @@ export default class bl3p extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bl3p#fetchTrades

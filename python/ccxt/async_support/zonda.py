@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -408,7 +408,7 @@ class zonda(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.zondacrypto.exchange/reference/active-orders
         fetch all unfilled currently open orders
@@ -533,7 +533,7 @@ class zonda(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://docs.zondacrypto.exchange/reference/list-of-wallets
         query for balance and get the amount of funds available for trading or funds locked in orders
@@ -544,7 +544,7 @@ class zonda(Exchange, ImplicitAPI):
         response = await self.v1_01PrivateGetBalancesBITBAYBalance(params)
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs.zondacrypto.exchange/reference/orderbook-2
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -721,7 +721,7 @@ class zonda(Exchange, ImplicitAPI):
         stats = self.safe_value_2(response, 'ticker', 'stats')
         return self.parse_ticker(stats, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
          * @ignore
         v1_01PublicGetTradingTicker retrieves timestamp, datetime, bid, ask, close, last, previousClose for each market, v1_01PublicGetTradingStats retrieves high, low, volume and opening price of each market
@@ -1159,7 +1159,7 @@ class zonda(Exchange, ImplicitAPI):
             self.safe_number(first, 'v'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.zondacrypto.exchange/reference/candles-chart
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1277,7 +1277,7 @@ class zonda(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.zondacrypto.exchange/reference/last-transactions
         get the list of most recent trades for a particular symbol

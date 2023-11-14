@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import { Balances, Int, OHLCV, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitstamp
  * @extends Exchange
@@ -40,10 +40,10 @@ export default class bitstamp extends Exchange {
     };
     fetchMarketsFromCache(params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     getCurrencyIdFromTransaction(transaction: any): string;
     getMarketFromTrade(trade: any): any;
     parseTrade(trade: any, market?: any): Trade;
@@ -81,8 +81,8 @@ export default class bitstamp extends Exchange {
     fetchOrderStatus(id: string, symbol?: string, params?: {}): Promise<string>;
     fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
     fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;

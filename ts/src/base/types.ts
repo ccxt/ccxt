@@ -135,7 +135,7 @@ export interface Ticker {
 export interface Transaction {
     info: any;
     id: string;
-    txid?: string;
+    txid: string;
     timestamp: number;
     datetime: string;
     address: string;
@@ -151,12 +151,11 @@ export interface Transaction {
     updated: number;
     fee: Fee;
     network: string,
-    comment?: string,
-    internal?: boolean
+    comment: string,
+    internal: boolean
 }
 
 export interface Tickers extends Dictionary<Ticker> {
-    info: any;
 }
 
 export interface Currency {
@@ -277,6 +276,34 @@ export interface FundingHistory {
     datetime?: string;
     id: string;
     amount: number;
+}
+
+export interface MarginMode {
+    infp: any;
+    symbol: string;
+    marginMode: 'isolated' | 'cross' | string;
+}
+
+export interface Greeks {
+    symbol: string;
+    timestamp?: number
+    datetime?: string;
+    delta: number;
+    gamma: number;
+    theta: number;
+    vega: number;
+    rho: number;
+    bidSize: number;
+    askSize: number;
+    bidImpliedVolatility: number;
+    askImpliedVolatility: number;
+    markImpliedVolatility: number;
+    bidPrice: number;
+    askPrice: number;
+    markPrice: number;
+    lastPrice: number;
+    underlyingPrice: number;
+    info: any;
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

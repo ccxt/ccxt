@@ -25,6 +25,7 @@ class gate extends \ccxt\async\gate {
                 'watchOHLCV' => true,
                 'watchBalance' => true,
                 'watchOrders' => true,
+                'watchPositions' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -75,6 +76,10 @@ class gate extends \ccxt\async\gate {
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc
                     'spot' => 'spot.balances', // spot.margin_balances, spot.funding_balances or spot.cross_balances
+                ),
+                'watchPositions' => array(
+                    'fetchPositionsSnapshot' => true, // or false
+                    'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
                 ),
             ),
             'exceptions' => array(
@@ -768,6 +773,150 @@ class gate extends \ccxt\async\gate {
         $client->resolve ($this->balance, $messageHash);
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * @see https://www.gate.io/docs/developers/futures/ws/en/#$positions-subscription
+             * @see https://www.gate.io/docs/developers/delivery/ws/en/#$positions-subscription
+             * @see https://www.gate.io/docs/developers/options/ws/en/#$positions-$channel
+             * watch all open $positions
+             * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param {array} $params extra parameters specific to the gate api endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $symbols = $this->market_symbols($symbols);
+            $payload = array( '!' . 'all' );
+            if (!$this->is_empty($symbols)) {
+                $market = $this->get_market_from_symbols($symbols);
+            }
+            $type = null;
+            $query = null;
+            list($type, $query) = $this->handle_market_type_and_params('watchPositions', $market, $params);
+            if ($type === 'spot') {
+                $type = 'swap';
+            }
+            $typeId = $this->get_supported_mapping($type, array(
+                'future' => 'futures',
+                'swap' => 'futures',
+                'option' => 'options',
+            ));
+            $messageHash = $type . ':positions';
+            if (!$this->is_empty($symbols)) {
+                $messageHash .= '::' . implode(',', $symbols);
+            }
+            $channel = $typeId . '.positions';
+            $subType = null;
+            list($subType, $query) = $this->handle_sub_type_and_params('watchPositions', $market, $query);
+            $isInverse = ($subType === 'inverse');
+            $url = $this->get_url_by_market_type($type, $isInverse);
+            $client = $this->client($url);
+            $this->set_positions_cache($client, $type, $symbols);
+            $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->safe_value('watchPositions', 'awaitPositionsSnapshot', true);
+            $cache = $this->safe_value($this->positions, $type);
+            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
+                return Async\await($client->future ($type . ':fetchPositionsSnapshot'));
+            }
+            $positions = Async\await($this->subscribe_private($url, $messageHash, $payload, $channel, $query, true));
+            if ($this->newUpdates) {
+                return $positions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+        if ($this->positions === null) {
+            $this->positions = array();
+        }
+        if (is_array($this->positions) && array_key_exists($type, $this->positions)) {
+            return;
+        }
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
+        if ($fetchPositionsSnapshot) {
+            $messageHash = $type . ':fetchPositionsSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
+            }
+        } else {
+            $this->positions[$type] = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    public function load_positions_snapshot($client, $messageHash, $type) {
+        return Async\async(function () use ($client, $messageHash, $type) {
+            $positions = Async\await($this->fetch_positions(null, array( 'type' => $type )));
+            $this->positions[$type] = new ArrayCacheBySymbolBySide ();
+            $cache = $this->positions[$type];
+            for ($i = 0; $i < count($positions); $i++) {
+                $position = $positions[$i];
+                $cache->append ($position);
+            }
+            // don't remove the $future from the .futures $cache
+            $future = $client->futures[$messageHash];
+            $future->resolve ($cache);
+            $client->resolve ($cache, $type . ':position');
+        }) ();
+    }
+
+    public function handle_positions($client, $message) {
+        //
+        //    {
+        //        time => 1693158497,
+        //        time_ms => 1693158497204,
+        //        channel => 'futures.positions',
+        //        event => 'update',
+        //        result => [array(
+        //            contract => 'XRP_USDT',
+        //            cross_leverage_limit => 0,
+        //            entry_price => 0.5253,
+        //            history_pnl => 0,
+        //            history_point => 0,
+        //            last_close_pnl => 0,
+        //            leverage => 0,
+        //            leverage_max => 50,
+        //            liq_price => 0.0361,
+        //            maintenance_rate => 0.01,
+        //            margin => 4.89609962852,
+        //            mode => 'single',
+        //            realised_pnl => -0.0026265,
+        //            realised_point => 0,
+        //            risk_limit => 500000,
+        //            size => 1,
+        //            time => 1693158497,
+        //            time_ms => 1693158497195,
+        //            update_id => 1,
+        //            user => '10444586'
+        //        )]
+        //    }
+        //
+        $type = $this->get_market_type_by_url($client->url);
+        $data = $this->safe_value($message, 'result', array());
+        $cache = $this->positions[$type];
+        $newPositions = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $rawPosition = $data[$i];
+            $position = $this->parse_position($rawPosition);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, $type . ':$positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, $type . ':positions');
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -1057,6 +1206,7 @@ class gate extends \ccxt\async\gate {
             'usertrades' => array($this, 'handle_my_trades'),
             'candlesticks' => array($this, 'handle_ohlcv'),
             'orders' => array($this, 'handle_order'),
+            'positions' => array($this, 'handle_positions'),
             'tickers' => array($this, 'handle_ticker'),
             'book_ticker' => array($this, 'handle_ticker'),
             'trades' => array($this, 'handle_trades'),
@@ -1096,6 +1246,23 @@ class gate extends \ccxt\async\gate {
         } else {
             return $url;
         }
+    }
+
+    public function get_market_type_by_url(string $url) {
+        $findBy = array(
+            'op-' => 'option',
+            'delivery' => 'future',
+            'fx' => 'swap',
+        );
+        $keys = is_array($findBy) ? array_keys($findBy) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $value = $findBy[$key];
+            if (mb_strpos($url, $key) !== false) {
+                return $value;
+            }
+        }
+        return 'spot';
     }
 
     public function request_id() {

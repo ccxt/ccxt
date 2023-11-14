@@ -6,7 +6,6 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use React\Async;
 
 class bitrue extends \ccxt\async\bitrue {
@@ -302,9 +301,6 @@ class bitrue extends \ccxt\async\bitrue {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrderBook() requires a $symbol argument');
-            }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];

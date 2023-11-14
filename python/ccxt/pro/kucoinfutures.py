@@ -23,6 +23,9 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchBalance': True,
+                'watchPosition': True,
+                'watchPositions': False,
+                'watchPositionForSymbols': False,
                 'watchTradesForSymbols': True,
                 'watchOrderBookForSymbols': True,
             },
@@ -47,6 +50,10 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2',  # market/ticker
+                },
+                'watchPosition': {
+                    'fetchPositionSnapshot': True,  # or False
+                    'awaitPositionSnapshot': True,  # whether to wait for the position snapshot before providing updates
                 },
             },
             'streaming': {
@@ -176,6 +183,170 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         messageHash = 'ticker:' + market['symbol']
         client.resolve(ticker, messageHash)
         return message
+
+    async def watch_position(self, symbol: Optional[str] = None, params={}):
+        """
+        watch open positions for a specific symbol
+        :see: https://docs.kucoin.com/futures/#position-change-events
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        self.check_required_symbol('watchPosition', symbol)
+        await self.load_markets()
+        url = await self.negotiate(True)
+        market = self.market(symbol)
+        topic = '/contract/position:' + market['id']
+        request = {
+            'privateChannel': True,
+        }
+        messageHash = 'position:' + market['symbol']
+        client = self.client(url)
+        self.set_position_cache(client, symbol)
+        fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', True)
+        awaitPositionSnapshot = self.safe_value('watchPosition', 'awaitPositionSnapshot', True)
+        currentPosition = self.get_current_position(symbol)
+        if fetchPositionSnapshot and awaitPositionSnapshot and currentPosition is None:
+            snapshot = await client.future('fetchPositionSnapshot:' + symbol)
+            return snapshot
+        return await self.subscribe(url, messageHash, topic, None, self.extend(request, params))
+
+    def get_current_position(self, symbol):
+        if self.positions is None:
+            return None
+        cache = self.positions.hashmap
+        symbolCache = self.safe_value(cache, symbol, {})
+        values = list(symbolCache.values())
+        return self.safe_value(values, 0)
+
+    def set_position_cache(self, client: Client, symbol: str):
+        fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', False)
+        if fetchPositionSnapshot:
+            messageHash = 'fetchPositionSnapshot:' + symbol
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_position_snapshot, client, messageHash, symbol)
+
+    async def load_position_snapshot(self, client, messageHash, symbol):
+        position = await self.fetch_position(symbol)
+        self.positions = ArrayCacheBySymbolById()
+        cache = self.positions
+        cache.append(position)
+        # don't remove the future from the .futures cache
+        future = client.futures[messageHash]
+        future.resolve(cache)
+        client.resolve(position, 'position:' + symbol)
+
+    def handle_position(self, client: Client, message):
+        #
+        # Position Changes Caused Operations
+        #    {
+        #        "type": "message",
+        #        "userId": "5c32d69203aa676ce4b543c7",  # Deprecated, will detele later
+        #        "channelType": "private",
+        #        "topic": "/contract/position:XBTUSDM",
+        #        "subject": "position.change",
+        #        "data": {
+        #            "realisedGrossPnl": 0E-8,  #Accumulated realised profit and loss
+        #            "symbol": "XBTUSDM",  #Symbol
+        #            "crossMode": False,  #Cross mode or not
+        #            "liquidationPrice": 1000000.0,  #Liquidation price
+        #            "posLoss": 0E-8,  #Manually added margin amount
+        #            "avgEntryPrice": 7508.22,  #Average entry price
+        #            "unrealisedPnl": -0.00014735,  #Unrealised profit and loss
+        #            "markPrice": 7947.83,  #Mark price
+        #            "posMargin": 0.00266779,  #Position margin
+        #            "autoDeposit": False,  #Auto deposit margin or not
+        #            "riskLimit": 100000,  #Risk limit
+        #            "unrealisedCost": 0.00266375,  #Unrealised value
+        #            "posComm": 0.00000392,  #Bankruptcy cost
+        #            "posMaint": 0.00001724,  #Maintenance margin
+        #            "posCost": 0.00266375,  #Position value
+        #            "maintMarginReq": 0.005,  #Maintenance margin rate
+        #            "bankruptPrice": 1000000.0,  #Bankruptcy price
+        #            "realisedCost": 0.00000271,  #Currently accumulated realised position value
+        #            "markValue": 0.00251640,  #Mark value
+        #            "posInit": 0.00266375,  #Position margin
+        #            "realisedPnl": -0.00000253,  #Realised profit and losts
+        #            "maintMargin": 0.00252044,  #Position margin
+        #            "realLeverage": 1.06,  #Leverage of the order
+        #            "changeReason": "positionChange",  #changeReason:marginChange、positionChange、liquidation、autoAppendMarginStatusChange、adl
+        #            "currentCost": 0.00266375,  #Current position value
+        #            "openingTimestamp": 1558433191000,  #Open time
+        #            "currentQty": -20,  #Current position
+        #            "delevPercentage": 0.52,  #ADL ranking percentile
+        #            "currentComm": 0.00000271,  #Current commission
+        #            "realisedGrossCost": 0E-8,  #Accumulated reliased gross profit value
+        #            "isOpen": True,  #Opened position or not
+        #            "posCross": 1.2E-7,  #Manually added margin
+        #            "currentTimestamp": 1558506060394,  #Current timestamp
+        #            "unrealisedRoePcnt": -0.0553,  #Rate of return on investment
+        #            "unrealisedPnlPcnt": -0.0553,  #Position profit and loss ratio
+        #            "settleCurrency": "XBT"  #Currency used to clear and settle the trades
+        #        }
+        #    }
+        # Position Changes Caused by Mark Price
+        #    {
+        #        "userId": "5cd3f1a7b7ebc19ae9558591",  # Deprecated, will detele later
+        #        "topic": "/contract/position:XBTUSDM",
+        #        "subject": "position.change",
+        #          "data": {
+        #              "markPrice": 7947.83,                   #Mark price
+        #              "markValue": 0.00251640,                 #Mark value
+        #              "maintMargin": 0.00252044,              #Position margin
+        #              "realLeverage": 10.06,                   #Leverage of the order
+        #              "unrealisedPnl": -0.00014735,           #Unrealised profit and lost
+        #              "unrealisedRoePcnt": -0.0553,           #Rate of return on investment
+        #              "unrealisedPnlPcnt": -0.0553,            #Position profit and loss ratio
+        #              "delevPercentage": 0.52,             #ADL ranking percentile
+        #              "currentTimestamp": 1558087175068,      #Current timestamp
+        #              "settleCurrency": "XBT"                 #Currency used to clear and settle the trades
+        #          }
+        #    }
+        #  Funding Settlement
+        #    {
+        #        "userId": "xbc453tg732eba53a88ggyt8c",  # Deprecated, will detele later
+        #        "topic": "/contract/position:XBTUSDM",
+        #        "subject": "position.settlement",
+        #        "data": {
+        #            "fundingTime": 1551770400000,          #Funding time
+        #            "qty": 100,                            #Position siz
+        #            "markPrice": 3610.85,                 #Settlement price
+        #            "fundingRate": -0.002966,             #Funding rate
+        #            "fundingFee": -296,                   #Funding fees
+        #            "ts": 1547697294838004923,             #Current time(nanosecond)
+        #            "settleCurrency": "XBT"                #Currency used to clear and settle the trades
+        #        }
+        #    }
+        # Adjustmet result of risk limit level
+        #     {
+        #         "userId": "xbc453tg732eba53a88ggyt8c",
+        #         "topic": "/contract/position:ADAUSDTM",
+        #         "subject": "position.adjustRiskLimit",
+        #         "data": {
+        #           "success": True,  # Successful or not
+        #           "riskLimitLevel": 1,  # Current risk limit level
+        #           "msg": ""  # Failure reason
+        #         }
+        #     }
+        #
+        topic = self.safe_string(message, 'topic', '')
+        parts = topic.split(':')
+        marketId = self.safe_string(parts, 1)
+        symbol = self.safe_symbol(marketId, None, '')
+        cache = self.positions
+        currentPosition = self.get_current_position(symbol)
+        messageHash = 'position:' + symbol
+        data = self.safe_value(message, 'data', {})
+        newPosition = self.parse_position(data)
+        keys = list(newPosition.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if newPosition[key] is None:
+                del newPosition[key]
+        position = self.extend(currentPosition, newPosition)
+        cache.append(position)
+        client.resolve(position, messageHash)
 
     async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -684,6 +855,9 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             'match': self.handle_trade,
             'orderChange': self.handle_order,
             'orderUpdated': self.handle_order,
+            'position.change': self.handle_position,
+            'position.settlement': self.handle_position,
+            'position.adjustRiskLimit': self.handle_position,
         }
         method = self.safe_value(methods, subject)
         if method is None:

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, Ticker, Trade
+from ccxt.base.types import OrderRequest, Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -23,6 +23,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ContractUnavailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -171,7 +172,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     'apiLimitExceeded': RateLimitExceeded,
-                    'marketUnavailable': ExchangeNotAvailable,
+                    'marketUnavailable': ContractUnavailable,
                     'requiredArgumentMissing': BadRequest,
                     'unavailable': ExchangeNotAvailable,
                     'authenticationError': AuthenticationError,
@@ -181,6 +182,13 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,                     # The URL contains invalid characters.(Please encode the json URL parameter)
                     'Unavailable': InsufficientFunds,              # Insufficient funds in Futures account [withdraw]
+                    'invalidUnit': BadRequest,
+                    'Json Parse Error': ExchangeError,
+                    'nonceBelowThreshold': InvalidNonce,
+                    'nonceDuplicate': InvalidNonce,
+                    'notFound': BadRequest,
+                    'Server Error': ExchangeError,
+                    'unknownError': ExchangeError,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
@@ -406,7 +414,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         self.currencies = self.deep_extend(currencies, self.currencies)
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
         Fetches a list of open orders in a market
@@ -454,7 +462,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         timestamp = self.parse8601(response['serverTime'])
         return self.parse_order_book(response['orderBook'], symbol, timestamp)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
@@ -567,7 +575,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'info': ticker,
         })
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         :see: https://docs.futures.kraken.com/#http-api-charts-candles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -646,7 +654,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),      # trading volume, None for mark or index price
         ]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
          * @descriptions Fetch a history of filled trades that self account has made
@@ -1056,7 +1064,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         response = self.privatePostCancelallorders(self.extend(request, params))
         return response
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
         Gets all open orders, including trigger orders, for an account from the exchange api
@@ -1475,7 +1483,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response['fills'], market, since, limit)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
@@ -2170,7 +2178,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             return None
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
-        message = self.safe_string(response, 'error')
+        errors = self.safe_value(response, 'errors')
+        firstError = self.safe_value(errors, 0)
+        firtErrorMessage = self.safe_string(firstError, 'message')
+        message = self.safe_string(response, 'error', firtErrorMessage)
         if message is None:
             return None
         feedback = self.id + ' ' + body

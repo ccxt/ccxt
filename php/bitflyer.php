@@ -308,7 +308,7 @@ class bitflyer extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance
@@ -339,7 +339,7 @@ class bitflyer extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://lightning.bitflyer.com/docs?lang=en#order-book
@@ -385,7 +385,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://lightning.bitflyer.com/docs?lang=en#ticker
@@ -467,7 +467,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          * @see https://lightning.bitflyer.com/docs?lang=en#list-executions
@@ -568,9 +568,7 @@ class bitflyer extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $request = array(
             'product_code' => $this->market_id($symbol),
@@ -637,7 +635,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple $orders made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
@@ -647,9 +645,7 @@ class bitflyer extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('fetchOrders', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -664,7 +660,7 @@ class bitflyer extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -680,7 +676,7 @@ class bitflyer extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, $limit = 100, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
          * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
@@ -704,9 +700,7 @@ class bitflyer extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
         if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
@@ -725,9 +719,7 @@ class bitflyer extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitflyer api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -822,7 +814,7 @@ class bitflyer extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @see https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history
@@ -859,7 +851,7 @@ class bitflyer extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history

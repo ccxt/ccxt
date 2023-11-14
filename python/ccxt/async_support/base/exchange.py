@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.44'
+__version__ = '4.1.51'
 
 # -----------------------------------------------------------------------------
 
@@ -678,6 +678,9 @@ class Exchange(BaseExchange):
 
     async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
+
+    async def fetch_margin_mode(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' fetchMarginMode() is not supported yet')
 
     async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
         fetchSnapshotMaxRetries = self.handleOption('watchOrderBook', 'maxRetries', 3)
@@ -1869,7 +1872,7 @@ class Exchange(BaseExchange):
         symbol = self.safe_string(position, 'symbol')
         market = None
         if symbol is not None:
-            market = self.market(symbol)
+            market = self.safe_value(self.markets, symbol)
         if contractSize is None and market is not None:
             contractSize = self.safe_number(market, 'contractSize')
             position['contractSize'] = contractSize
@@ -2064,6 +2067,15 @@ class Exchange(BaseExchange):
 
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def watch_position(self, symbol: Optional[str] = None, params={}):
+        raise NotSupported(self.id + ' watchPosition() is not supported yet')
+
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        raise NotSupported(self.id + ' watchPositions() is not supported yet')
+
+    async def watch_position_for_symbols(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        return self.watchPositions(symbols, since, limit, params)
 
     async def fetch_positions_by_symbol(self, symbol: str, params={}):
         """
@@ -2472,6 +2484,9 @@ class Exchange(BaseExchange):
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet')
+
+    async def fetch_greeks(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
 
     async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -3452,3 +3467,6 @@ class Exchange(BaseExchange):
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def parse_greeks(self, greeks, market=None):
+        raise NotSupported(self.id + ' parseGreeks() is not supported yet')

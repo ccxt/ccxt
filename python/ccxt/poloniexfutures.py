@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
 from typing import Optional
 from typing import List
 from ccxt.base.errors import AccountSuspended
@@ -407,7 +407,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
@@ -441,7 +441,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(self.safe_value(response, 'data', {}), market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
@@ -453,7 +453,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         return self.parse_tickers(self.safe_value(response, 'data', []), symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://futures-docs.poloniex.com/#get-full-order-book-level-2
@@ -632,7 +632,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://futures-docs.poloniex.com/#historical-data
@@ -684,7 +684,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'data')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://futures-docs.poloniex.com/#k-chart
@@ -746,7 +746,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         result[code] = account
         return self.safe_balance(result)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://futures-docs.poloniex.com/#get-account-overview
@@ -1073,8 +1073,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: a `funding history structure <https://github.com/ccxt/ccxt/wiki/Manual#funding-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1281,7 +1280,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 result.append(orders[i])
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1297,7 +1296,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1620,8 +1619,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the poloniexfutures api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         if (marginMode != 0) and (marginMode != 1):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be 0(isolated) or 1(cross)')
         self.load_markets()

@@ -16,6 +16,7 @@ use ccxt\OrderNotFound;
 use ccxt\DDoSProtection;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitmex extends Exchange {
 
@@ -740,7 +741,7 @@ class bitmex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -803,7 +804,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -869,7 +870,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
@@ -917,7 +918,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -936,7 +937,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -1215,7 +1216,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1334,7 +1335,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1356,7 +1357,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1442,7 +1443,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
@@ -1761,7 +1762,7 @@ class bitmex extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
@@ -2478,9 +2479,7 @@ class bitmex extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
              * @return {array} response from the exchange
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
+            $this->check_required_symbol('setLeverage', $symbol);
             if (($leverage < 0.01) || ($leverage > 100)) {
                 throw new BadRequest($this->id . ' $leverage should be between 0.01 and 100');
             }
@@ -2506,9 +2505,7 @@ class bitmex extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitmex api endpoint
              * @return {array} response from the exchange
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-            }
+            $this->check_required_symbol('setMarginMode', $symbol);
             $marginMode = strtolower($marginMode);
             if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
                 throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');

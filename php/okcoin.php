@@ -589,7 +589,7 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         // $spot markets
         //
@@ -771,7 +771,7 @@ class okcoin extends Exchange {
         }
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-order-book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
@@ -873,7 +873,7 @@ class okcoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-ticker
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -918,7 +918,7 @@ class okcoin extends Exchange {
         return $this->parse_ticker($first, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
@@ -1011,7 +1011,7 @@ class okcoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades-history
@@ -1066,7 +1066,7 @@ class okcoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks-history
@@ -1164,7 +1164,7 @@ class okcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the okcoin api endpoint
@@ -1904,7 +1904,7 @@ class okcoin extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
@@ -1950,7 +1950,7 @@ class okcoin extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
@@ -2393,7 +2393,7 @@ class okcoin extends Exchange {
         return $this->parse_transaction($transaction, $currency);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
          * fetch all deposits made to an account
@@ -2466,7 +2466,7 @@ class okcoin extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
          * fetch all withdrawals made from an account

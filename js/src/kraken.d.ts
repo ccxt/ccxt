@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Transaction, Ticker, OrderBook, Tickers } from './base/types.js';
 /**
  * @class kraken
  * @extends Exchange
@@ -28,9 +28,9 @@ export default class kraken extends Exchange {
         tierBased: boolean;
     };
     parseBidAsk(bidask: any, priceKey?: number, amountKey?: number): number[];
-    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
+    fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: any, market?: any): Ticker;
-    fetchTickers(symbols?: string[], params?: {}): Promise<import("./base/types.js").Dictionary<Ticker>>;
+    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -81,9 +81,9 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionsByType(type: any, transactions: any, code?: string, since?: Int, limit?: Int): any;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTime(params?: {}): Promise<number>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: any;
         address: string;

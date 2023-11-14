@@ -63,7 +63,7 @@ export default class hitbtc extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': false,
-                'fetchMarginMode': false,
+                'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
@@ -2125,7 +2125,7 @@ export default class hitbtc extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2199,7 +2199,11 @@ export default class hitbtc extends Exchange {
             throw new ExchangeError(this.id + ' createOrder() requires a stopPrice parameter for stop-loss and take-profit orders');
         }
         params = this.omit(params, ['triggerPrice', 'timeInForce', 'stopPrice', 'stop_price', 'reduceOnly', 'postOnly']);
-        if ((marketType === 'swap') && (marginMode !== undefined)) {
+        if (marketType === 'swap') {
+            // set default margin mode to cross
+            if (marginMode === undefined) {
+                marginMode = 'cross';
+            }
             request['margin_mode'] = marginMode;
         }
         let response = undefined;
@@ -2344,6 +2348,84 @@ export default class hitbtc extends Exchange {
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
         }, market);
+    }
+    async fetchMarginMode(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#fetchMarginMode
+         * @description fetches margin mode of the user
+         * @see https://api.hitbtc.com/#get-margin-position-parameters
+         * @see https://api.hitbtc.com/#get-futures-position-parameters
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @returns {object} Struct of MarginMode
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMarginMode', market, params);
+        let response = undefined;
+        if (marketType === 'margin') {
+            response = await this.privateGetMarginConfig(params);
+        }
+        else if (marketType === 'swap') {
+            response = await this.privateGetFuturesConfig(params);
+        }
+        else {
+            throw new BadSymbol(this.id + ' fetchMarginMode() supports swap contracts and margin only');
+        }
+        //
+        // margin
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD",
+        //             "margin_call_leverage_mul": "1.50",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "10.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.05",
+        //             "enabled": true,
+        //             "active": true,
+        //             "limit_base": "50000.00",
+        //             "limit_power": "2.2",
+        //             "unlimited_threshold": "10.0"
+        //         }]
+        //     }
+        //
+        // swap
+        //     {
+        //         "config": [{
+        //             "symbol": "BTCUSD_PERP",
+        //             "margin_call_leverage_mul": "1.20",
+        //             "liquidation_leverage_mul": "2.00",
+        //             "max_initial_leverage": "100.00",
+        //             "margin_mode": "Isolated",
+        //             "force_close_fee": "0.001",
+        //             "enabled": true,
+        //             "active": false,
+        //             "limit_base": "5000000.000000000000",
+        //             "limit_power": "1.25",
+        //             "unlimited_threshold": "2.00"
+        //         }]
+        //     }
+        //
+        const config = this.safeValue(response, 'config', []);
+        const marginModes = [];
+        for (let i = 0; i < config.length; i++) {
+            const data = this.safeValue(config, i);
+            const marketId = this.safeString(data, 'symbol');
+            const marketInner = this.safeMarket(marketId);
+            marginModes.push({
+                'info': data,
+                'symbol': this.safeString(marketInner, 'symbol'),
+                'marginMode': this.safeStringLower(data, 'margin_mode'),
+            });
+        }
+        const filteredMargin = this.filterBySymbol(marginModes, symbol);
+        return this.safeValue(filteredMargin, 0);
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         /**
@@ -3123,10 +3205,8 @@ export default class hitbtc extends Exchange {
          * @param {object} [params] extra parameters specific to the hitbtc api endpoint
          * @returns {object} response from the exchange
          */
+        this.checkRequiredSymbol('setLeverage', symbol);
         await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
-        }
         if (params['margin_balance'] === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
         }

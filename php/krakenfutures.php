@@ -152,7 +152,7 @@ class krakenfutures extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     'apiLimitExceeded' => '\\ccxt\\RateLimitExceeded',
-                    'marketUnavailable' => '\\ccxt\\ExchangeNotAvailable',
+                    'marketUnavailable' => '\\ccxt\\ContractUnavailable',
                     'requiredArgumentMissing' => '\\ccxt\\BadRequest',
                     'unavailable' => '\\ccxt\\ExchangeNotAvailable',
                     'authenticationError' => '\\ccxt\\AuthenticationError',
@@ -162,6 +162,13 @@ class krakenfutures extends Exchange {
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable' => '\\ccxt\\InsufficientFunds',              // Insufficient funds in Futures account [withdraw]
+                    'invalidUnit' => '\\ccxt\\BadRequest',
+                    'Json Parse Error' => '\\ccxt\\ExchangeError',
+                    'nonceBelowThreshold' => '\\ccxt\\InvalidNonce',
+                    'nonceDuplicate' => '\\ccxt\\InvalidNonce',
+                    'notFound' => '\\ccxt\\BadRequest',
+                    'Server Error' => '\\ccxt\\ExchangeError',
+                    'unknownError' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
                     'invalidArgument' => '\\ccxt\\BadRequest',
@@ -395,7 +402,7 @@ class krakenfutures extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-orderbook
          * Fetches a list of open orders in a $market
@@ -444,7 +451,7 @@ class krakenfutures extends Exchange {
         return $this->parse_order_book($response['orderBook'], $symbol, $timestamp);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-$tickers
@@ -561,7 +568,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-charts-$candles
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -646,7 +653,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-trade-$history
          * @descriptions Fetch a $history of filled trades that this account has made
@@ -1089,7 +1096,7 @@ class krakenfutures extends Exchange {
         return $response;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-$orders
          * Gets all open $orders, including trigger $orders, for an account from the exchange api
@@ -1539,7 +1546,7 @@ class krakenfutures extends Exchange {
         return $this->parse_trades($response['fills'], $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$account-information-get-wallets
          * Fetch the $balance for a sub-$account, all sub-$account balances are inside 'info' in the $response
@@ -2273,7 +2280,10 @@ class krakenfutures extends Exchange {
         if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
         }
-        $message = $this->safe_string($response, 'error');
+        $errors = $this->safe_value($response, 'errors');
+        $firstError = $this->safe_value($errors, 0);
+        $firtErrorMessage = $this->safe_string($firstError, 'message');
+        $message = $this->safe_string($response, 'error', $firtErrorMessage);
         if ($message === null) {
             return null;
         }

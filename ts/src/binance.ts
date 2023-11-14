@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Transaction, Ticker, OrderBook, Tickers, Market, Greeks } from './base/types.js';
 import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -73,6 +73,7 @@ export default class binance extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchL3OrderBook': false,
                 'fetchLastPrices': true,
@@ -861,6 +862,7 @@ export default class binance extends Exchange {
                         'klines': 0.4,
                         'uiKlines': 0.4,
                         'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 },
+                        'ticker': { 'cost': 0.4, 'noSymbol': 16 },
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 },
                         'exchangeInfo': 4, // Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -961,7 +963,9 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'um/order': 1, // 0
+                        'um/conditional/order': 1,
                         'cm/order': 1, // 0
+                        'cm/conditional/order': 1,
                         'margin/order': 0.0133, // Weight(UID): 2 => cost = 0.006667 * 2 = 0.013334
                         'marginLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
                         'repayLoan': 0.1333, // Weight(UID): 20 => cost = 0.006667 * 20 = 0.13334
@@ -982,9 +986,13 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         'um/order': 1, // 1
+                        'um/conditional/order': 1,
                         'um/allOpenOrders': 1, // 1
+                        'um/conditional/allOpenOrders': 1,
                         'cm/order': 1, // 1
+                        'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1, // 1
+                        'cm/conditional/allOpenOrders': 1,
                         'margin/order': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/allOpenOrders': 5, // 5
                         'margin/orderList': 2, // 2
@@ -2247,7 +2255,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseMarket (market) {
+    parseMarket (market): Market {
         let swap = false;
         let future = false;
         let option = false;
@@ -2506,7 +2514,7 @@ export default class binance extends Exchange {
         return isolated ? result : this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name binance#fetchBalance
@@ -2757,7 +2765,7 @@ export default class binance extends Exchange {
         return this.parseBalance (response, type, marginMode);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name binance#fetchOrderBook
@@ -3006,17 +3014,19 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name binance#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://binance-docs.github.io/apidocs/spot/en/#24hr-ticker-price-change-statistics         // spot
+         * @see https://binance-docs.github.io/apidocs/spot/en/#rolling-window-price-change-statistics      // spot
          * @see https://binance-docs.github.io/apidocs/futures/en/#24hr-ticker-price-change-statistics      // swap
          * @see https://binance-docs.github.io/apidocs/delivery/en/#24hr-ticker-price-change-statistics     // future
          * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics     // option
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
          */
         await this.loadMarkets ();
@@ -3032,7 +3042,13 @@ export default class binance extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
         } else {
-            response = await this.publicGetTicker24hr (this.extend (request, params));
+            const rolling = this.safeValue (params, 'rolling', false);
+            params = this.omit (params, 'rolling');
+            if (rolling) {
+                response = await this.publicGetTicker (this.extend (request, params));
+            } else {
+                response = await this.publicGetTicker24hr (this.extend (request, params));
+            }
         }
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
@@ -3178,7 +3194,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name binance#fetchTickers
@@ -3281,7 +3297,7 @@ export default class binance extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name binance#fetchOHLCV
@@ -3613,7 +3629,7 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name binance#fetchTrades
@@ -4719,7 +4735,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name binance#fetchOrders
@@ -4854,7 +4870,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name binance#fetchOpenOrders
@@ -4926,7 +4942,7 @@ export default class binance extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name binance#fetchClosedOrders
@@ -5159,9 +5175,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
@@ -5463,7 +5477,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name binance#fetchDeposits
@@ -5577,7 +5591,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name binance#fetchWithdrawals
@@ -5875,6 +5889,7 @@ export default class binance extends Exchange {
             'status': status,
             'updated': updated,
             'internal': internal,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -7914,9 +7929,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((leverage < 1) || (leverage > 125)) {
@@ -7951,9 +7964,7 @@ export default class binance extends Exchange {
          * @param {object} [params] extra parameters specific to the binance api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -8470,10 +8481,10 @@ export default class binance extends Exchange {
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = orderidlist.length;
                     if (orderidlistLength > 0) {
-                        query = query + '&orderidlist=[' + orderidlist.join (',') + ']';
+                        query = query + '&' + 'orderidlist=[' + orderidlist.join (',') + ']';
                     }
                     if (origclientorderidlistLength > 0) {
-                        query = query + '&origclientorderidlist=[' + origclientorderidlist.join (',') + ']';
+                        query = query + '&' + 'origclientorderidlist=[' + origclientorderidlist.join (',') + ']';
                     }
                 } else {
                     query = this.rawencode (extendedParams);
@@ -9450,5 +9461,82 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+        /**
+         * @method
+         * @name binance#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://binance-docs.github.io/apidocs/voptions/en/#option-mark-price
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the binance api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.eapiPublicGetMark (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "BTC-231229-40000-C",
+        //             "markPrice": "2012",
+        //             "bidIV": "0.60236275",
+        //             "askIV": "0.62267244",
+        //             "markIV": "0.6125176",
+        //             "delta": "0.39111646",
+        //             "theta": "-32.13948531",
+        //             "gamma": "0.00004656",
+        //             "vega": "51.70062218",
+        //             "highPriceLimit": "6474",
+        //             "lowPriceLimit": "5"
+        //         }
+        //     ]
+        //
+        return this.parseGreeks (response[0], market);
+    }
+
+    parseGreeks (greeks, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-231229-40000-C",
+        //         "markPrice": "2012",
+        //         "bidIV": "0.60236275",
+        //         "askIV": "0.62267244",
+        //         "markIV": "0.6125176",
+        //         "delta": "0.39111646",
+        //         "theta": "-32.13948531",
+        //         "gamma": "0.00004656",
+        //         "vega": "51.70062218",
+        //         "highPriceLimit": "6474",
+        //         "lowPriceLimit": "5"
+        //     }
+        //
+        const marketId = this.safeString (greeks, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'delta': this.safeNumber (greeks, 'delta'),
+            'gamma': this.safeNumber (greeks, 'gamma'),
+            'theta': this.safeNumber (greeks, 'theta'),
+            'vega': this.safeNumber (greeks, 'vega'),
+            'rho': undefined,
+            'bidSize': undefined,
+            'askSize': undefined,
+            'bidImpliedVolatility': this.safeNumber (greeks, 'bidIV'),
+            'askImpliedVolatility': this.safeNumber (greeks, 'askIV'),
+            'markImpliedVolatility': this.safeNumber (greeks, 'markIV'),
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'markPrice': this.safeNumber (greeks, 'markPrice'),
+            'lastPrice': undefined,
+            'underlyingPrice': undefined,
+            'info': greeks,
+        };
     }
 }

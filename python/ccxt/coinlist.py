@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinlist import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -483,7 +483,7 @@ class coinlist(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
@@ -518,7 +518,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(tickers, symbols, params)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
@@ -607,7 +607,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
@@ -644,7 +644,7 @@ class coinlist(Exchange, ImplicitAPI):
         orderbook['nonce'] = None
         return orderbook
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-candles
@@ -723,7 +723,7 @@ class coinlist(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-auctions
@@ -1056,7 +1056,7 @@ class coinlist(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
@@ -1156,7 +1156,7 @@ class coinlist(Exchange, ImplicitAPI):
         fills = self.safe_value(response, 'fills', [])
         return self.parse_trades(fills, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         fetch all the trades made from a single order
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
@@ -1172,7 +1172,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1273,7 +1273,7 @@ class coinlist(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1290,7 +1290,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
@@ -1478,7 +1478,7 @@ class coinlist(Exchange, ImplicitAPI):
         response = self.privatePatchV1OrdersOrderId(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def parse_order(self, order, market=None):
+    def parse_order(self, order, market=None) -> Order:
         #
         # fetchOrder
         #     {
@@ -1783,7 +1783,7 @@ class coinlist(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
         :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger

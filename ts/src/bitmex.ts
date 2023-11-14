@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Transaction, Ticker } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Transaction, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -736,7 +736,7 @@ export default class bitmex extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name bitmex#fetchBalance
@@ -799,7 +799,7 @@ export default class bitmex extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name bitmex#fetchOrderBook
@@ -865,7 +865,7 @@ export default class bitmex extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchOrders
@@ -913,7 +913,7 @@ export default class bitmex extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchOpenOrders
@@ -932,7 +932,7 @@ export default class bitmex extends Exchange {
         return await this.fetchOrders (symbol, since, limit, this.deepExtend (request, params));
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitmex#fetchClosedOrders
@@ -1211,7 +1211,7 @@ export default class bitmex extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitmex#fetchDepositsWithdrawals
@@ -1321,6 +1321,7 @@ export default class bitmex extends Exchange {
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': timestamp,
+            'internal': undefined,
             'comment': undefined,
             'fee': {
                 'currency': currency['code'],
@@ -1330,7 +1331,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name bitmex#fetchTicker
@@ -1352,7 +1353,7 @@ export default class bitmex extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name bitmex#fetchTickers
@@ -1438,7 +1439,7 @@ export default class bitmex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name bitmex#fetchOHLCV
@@ -1757,7 +1758,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name bitmex#fetchTrades
@@ -2473,9 +2474,7 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         if ((leverage < 0.01) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 0.01 and 100');
         }
@@ -2501,9 +2500,7 @@ export default class bitmex extends Exchange {
          * @param {object} [params] extra parameters specific to the bitmex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');

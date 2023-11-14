@@ -130,8 +130,8 @@ class mexc extends mexc$1 {
                 },
                 'www': 'https://www.mexc.com/',
                 'doc': [
-                    'https://mxcdevelop.github.io/apidocs/spot_v3_en/',
-                    'https://mxcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
+                    'https://mexcdevelop.github.io/apidocs/spot_v3_en/',
+                    'https://mexcdevelop.github.io/APIDoc/', // v1 & v2 : soon to be deprecated
                 ],
                 'fees': [
                     'https://www.mexc.com/fee',
@@ -883,7 +883,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1283,8 +1283,8 @@ class mexc extends mexc$1 {
         /**
          * @method
          * @name mexc3#fetchOrderBook
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#order-book
-         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -2342,9 +2342,7 @@ class mexc extends mexc$1 {
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3533,9 +3531,9 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
-         * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @param {string} [params.symbols] // required for margin, market id's separated by commas
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
@@ -3668,9 +3666,7 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
@@ -4061,9 +4057,7 @@ class mexc extends mexc$1 {
          * @param {object} [params] extra parameters specific to the mexc api endpoint
          * @returns {object[]} a list of [funding rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchFundingRateHistory', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -4236,7 +4230,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object} a dictionary of [address structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure} indexed by the network
@@ -4275,7 +4269,7 @@ class mexc extends mexc$1 {
         /**
          * @method
          * @name mexc3#createDepositAddress
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
@@ -4316,7 +4310,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
@@ -4344,7 +4338,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchDeposits
          * @description fetch all deposits made to an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -4404,7 +4398,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -4823,7 +4817,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -4956,7 +4950,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#withdraw
          * @description make a withdrawal
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -4966,7 +4960,7 @@ class mexc extends mexc$1 {
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper2(params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString2(params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress(address);
         await this.loadMarkets();
@@ -4981,7 +4975,7 @@ class mexc extends mexc$1 {
         }
         if (network !== undefined) {
             request['network'] = network;
-            params = this.omit(params, 'network');
+            params = this.omit(params, ['network', 'chain']);
         }
         const response = await this.spotPrivatePostCapitalWithdrawApply(this.extend(request, params));
         //
@@ -5024,17 +5018,15 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#loan
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
+        this.checkRequiredSymbol('borrowMargin', symbol);
         await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-        }
         const market = this.market(symbol);
         const currency = this.currency(code);
         const request = {
@@ -5059,7 +5051,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#repayment
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol
@@ -5067,10 +5059,8 @@ class mexc extends mexc$1 {
          * @param {string} [params.borrowId] transaction id '762407666453712896'
          * @returns {object} a [margin loan structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#margin-loan-structure}
          */
+        this.checkRequiredSymbol('repayMargin', symbol);
         await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' repayMargin() requires a symbol argument for isolated margin');
-        }
         const id = this.safeString2(params, 'id', 'borrowId');
         if (id === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' repayMargin() requires a borrowId argument in the params');
@@ -5100,7 +5090,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchTransactionFees
          * @description fetch deposit and withdrawal fees
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|undefined} codes returns fees for all currencies if undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -5198,7 +5188,7 @@ class mexc extends mexc$1 {
          * @method
          * @name mexc3#fetchDepositWithdrawFees
          * @description fetch deposit and withdrawal fees
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {string[]|undefined} codes returns fees for all currencies if undefined
          * @param {object} [params] extra parameters specific to the mexc3 api endpoint
          * @returns {object[]} a list of [fee structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}

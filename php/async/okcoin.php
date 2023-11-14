@@ -13,6 +13,7 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise\PromiseInterface;
 
 class okcoin extends Exchange {
 
@@ -599,7 +600,7 @@ class okcoin extends Exchange {
         return $result;
     }
 
-    public function parse_market($market) {
+    public function parse_market($market): array {
         //
         // $spot markets
         //
@@ -783,7 +784,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-order-book
@@ -887,7 +888,7 @@ class okcoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-ticker
@@ -934,7 +935,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers
@@ -1029,7 +1030,7 @@ class okcoin extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades
@@ -1086,7 +1087,7 @@ class okcoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
@@ -1186,7 +1187,7 @@ class okcoin extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1936,7 +1937,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
@@ -1984,7 +1985,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
@@ -2437,7 +2438,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
@@ -2512,7 +2513,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history

@@ -312,8 +312,8 @@ class bitvavo extends bitvavo$1 {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy(currencies, 'symbol');
+        const currencies = await this.fetchCurrencies();
+        const currenciesById = this.indexBy(currencies, 'id');
         //
         //     [
         //         {
@@ -338,7 +338,8 @@ class bitvavo extends bitvavo$1 {
             const quote = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
             const baseCurrency = this.safeValue(currenciesById, baseId);
-            result.push({
+            const basePrecision = this.safeInteger(baseCurrency, 'precision');
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -363,7 +364,7 @@ class bitvavo extends bitvavo$1 {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger(baseCurrency, 'decimals', 8),
+                    'amount': this.safeInteger(baseCurrency, 'decimals', basePrecision),
                     'price': this.safeInteger(market, 'pricePrecision'),
                 },
                 'limits': {
@@ -386,7 +387,7 @@ class bitvavo extends bitvavo$1 {
                 },
                 'created': undefined,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1143,9 +1144,7 @@ class bitvavo extends bitvavo$1 {
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('cancelOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1195,9 +1194,7 @@ class bitvavo extends bitvavo$1 {
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchOrder', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1512,9 +1509,7 @@ class bitvavo extends bitvavo$1 {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol('fetchMyTrades', symbol);
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');

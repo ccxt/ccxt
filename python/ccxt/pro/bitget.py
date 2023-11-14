@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
 from ccxt.async_support.base.ws.client import Client
 from typing import Optional
@@ -36,6 +36,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
+                'watchPositions': True,
             },
             'urls': {
                 'api': {
@@ -700,6 +701,173 @@ class bitget(ccxt.async_support.bitget):
             'cost': None,
             'fee': None,
         }, market)
+
+    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+        """
+        watch all open positions
+        :see: https://bitgetlimited.github.io/apidoc/en/mix/#positions-channel
+        :param str[]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :param str params['instType']: Instrument Type umcbl:USDT Perpetual Contract Private Channel; dmcbl:Coin Margin Perpetual Contract Private Channel; cmcbl: USDC margin Perpetual Contract Private Channel
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        market = None
+        messageHash = ''
+        subscriptionHash = 'positions'
+        instType = 'umcbl'
+        symbols = self.market_symbols(symbols)
+        if not self.is_empty(symbols):
+            instType = 'dmcbl'
+            market = self.get_market_from_symbols(symbols)
+            messageHash = '::' + ','.join(symbols)
+            if market['settle'] == 'USDT':
+                instType = 'umcbl'
+            elif market['settle'] == 'USDC':
+                instType = 'cmcbl'
+        instType, params = self.handle_option_and_params(params, 'watchPositions', 'instType', instType)
+        messageHash = instType + ':positions' + messageHash
+        args = {
+            'instType': instType,
+            'channel': 'positions',
+            'instId': 'default',
+        }
+        newPositions = await self.watch_private(messageHash, subscriptionHash, args, params)
+        if self.newUpdates:
+            return newPositions
+        return self.filter_by_symbols_since_limit(newPositions, symbols, since, limit, True)
+
+    def handle_positions(self, client: Client, message):
+        #
+        #    {
+        #        action: 'snapshot',
+        #        arg: {
+        #            instType: 'umcbl',
+        #            channel: 'positions',
+        #            instId: 'default'
+        #        },
+        #        data: [{
+        #                posId: '926036334386778112',
+        #                instId: 'LTCUSDT_UMCBL',
+        #                instName: 'LTCUSDT',
+        #                marginCoin: 'USDT',
+        #                margin: '9.667',
+        #                marginMode: 'crossed',
+        #                holdSide: 'long',
+        #                holdMode: 'double_hold',
+        #                total: '0.3',
+        #                available: '0.3',
+        #                locked: '0',
+        #                averageOpenPrice: '64.44',
+        #                leverage: 2,
+        #                achievedProfits: '0',
+        #                upl: '0.0759',
+        #                uplRate: '0.0078',
+        #                liqPx: '-153.32',
+        #                keepMarginRate: '0.010',
+        #                marginRate: '0.005910309637',
+        #                cTime: '1656510187717',
+        #                uTime: '1694880005480',
+        #                markPrice: '64.7',
+        #                autoMargin: 'off'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        arg = self.safe_value(message, 'arg', {})
+        instType = self.safe_string(arg, 'instType', '')
+        if self.positions is None:
+            self.positions = {}
+        if not (instType in self.positions):
+            self.positions[instType] = ArrayCacheBySymbolBySide()
+        cache = self.positions[instType]
+        rawPositions = self.safe_value(message, 'data', [])
+        dataLength = len(rawPositions)
+        if dataLength == 0:
+            return
+        newPositions = []
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_ws_position(rawPosition)
+            newPositions.append(position)
+            cache.append(position)
+        messageHashes = self.find_message_hashes(client, instType + ':positions::')
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(newPositions, instType + ':positions')
+
+    def parse_ws_position(self, position, market=None):
+        #
+        #    {
+        #        posId: '926036334386778112',
+        #        instId: 'LTCUSDT_UMCBL',
+        #        instName: 'LTCUSDT',
+        #        marginCoin: 'USDT',
+        #        margin: '9.667',
+        #        marginMode: 'crossed',
+        #        holdSide: 'long',
+        #        holdMode: 'double_hold',
+        #        total: '0.3',
+        #        available: '0.3',
+        #        locked: '0',
+        #        averageOpenPrice: '64.44',
+        #        leverage: 2,
+        #        achievedProfits: '0',
+        #        upl: '0.0759',
+        #        uplRate: '0.0078',
+        #        liqPx: '-153.32',
+        #        keepMarginRate: '0.010',
+        #        marginRate: '0.005910309637',
+        #        cTime: '1656510187717',
+        #        uTime: '1694880005480',
+        #        markPrice: '64.7',
+        #        autoMargin: 'off'
+        #    }
+        #
+        marketId = self.safe_string(position, 'instId')
+        marginModeId = self.safe_string(position, 'marginMode')
+        marginMode = self.get_supported_mapping(marginModeId, {
+            'crossed': 'cross',
+            'fixed': 'isolated',
+        })
+        hedgedId = self.safe_string(position, 'holdMode')
+        hedged = self.get_supported_mapping(hedgedId, {
+            'double_hold': True,
+            'single_hold': False,
+        })
+        timestamp = self.safe_integer_2(position, 'uTime', 'cTime')
+        return self.safe_position({
+            'info': position,
+            'id': self.safe_string(position, 'posId'),
+            'symbol': self.safe_symbol(marketId, market),
+            'notional': None,
+            'marginMode': marginMode,
+            'liquidationPrice': None,
+            'entryPrice': self.safe_number(position, 'averageOpenPrice'),
+            'unrealizedPnl': self.safe_number(position, 'upl'),
+            'percentage': self.safe_number(position, 'uplRate'),
+            'contracts': self.safe_number(position, 'total'),
+            'contractSize': None,
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'side': self.safe_string(position, 'holdSide'),
+            'hedged': hedged,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': self.safe_number(position, 'keepMarginRate'),
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_number(position, 'leverage'),
+            'marginRatio': self.safe_number(position, 'marginRate'),
+        })
 
     async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
@@ -1374,6 +1542,7 @@ class bitget(ccxt.async_support.bitget):
             'orders': self.handle_order,
             'ordersAlgo': self.handle_order,
             'account': self.handle_balance,
+            'positions': self.handle_positions,
         }
         arg = self.safe_value(message, 'arg', {})
         topic = self.safe_value(arg, 'channel', '')

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -417,7 +417,7 @@ class poloniex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.poloniex.com/#public-endpoints-market-data-candles
@@ -631,7 +631,7 @@ class poloniex(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.poloniex.com/#public-endpoints-market-data-ticker
@@ -795,7 +795,7 @@ class poloniex(Exchange, ImplicitAPI):
             result[code]['fee'] = self.parse_number(minFeeString)
         return result
 
-    async def fetch_ticker(self, symbol: str, params={}):
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.poloniex.com/#public-endpoints-market-data-ticker
@@ -923,7 +923,7 @@ class poloniex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.poloniex.com/#public-endpoints-market-data-trades
@@ -1155,7 +1155,7 @@ class poloniex(Exchange, ImplicitAPI):
             result.append(self.parse_order(extended, market))
         return result
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders
@@ -1517,7 +1517,7 @@ class poloniex(Exchange, ImplicitAPI):
                 result[code] = newAccount
         return self.safe_balance(result)
 
-    async def fetch_balance(self, params={}):
+    async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances
@@ -1577,7 +1577,7 @@ class poloniex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.poloniex.com/#public-endpoints-market-data-order-book
@@ -1885,7 +1885,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
@@ -1907,7 +1907,7 @@ class poloniex(Exchange, ImplicitAPI):
         transactions = self.array_concat(depositTransactions, withdrawalTransactions)
         return self.filter_by_currency_since_limit(self.sort_by(transactions, 'timestamp'), code, since, limit)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
@@ -2042,7 +2042,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         return depositWithdrawFee
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records

@@ -189,12 +189,6 @@ class kraken extends Exchange {
                         'WithdrawInfo' => 3,
                         'WithdrawStatus' => 3,
                         'WalletTransfer' => 3,
-                        // staking
-                        'Stake' => 3,
-                        'Unstake' => 3,
-                        'Staking/Assets' => 3,
-                        'Staking/Pending' => 3,
-                        'Staking/Transactions' => 3,
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
@@ -488,7 +482,7 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'costmin'),
                         'max' => null,
                     ),
                 ),
@@ -672,7 +666,7 @@ class kraken extends Exchange {
         return array( $price, $amount, $timestamp );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
@@ -775,7 +769,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
@@ -811,7 +805,7 @@ class kraken extends Exchange {
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
@@ -856,7 +850,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
@@ -972,7 +966,6 @@ class kraken extends Exchange {
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} $code unified $currency $code, default is null
@@ -1151,7 +1144,7 @@ class kraken extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
@@ -1227,7 +1220,7 @@ class kraken extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
@@ -1256,7 +1249,7 @@ class kraken extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1591,7 +1584,7 @@ class kraken extends Exchange {
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1926,9 +1919,8 @@ class kraken extends Exchange {
         return $this->privatePostCancelAll ($params);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * fetch all unfilled currently open $orders
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} $symbol unified $market $symbol
@@ -1958,9 +1950,8 @@ class kraken extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * fetches information on multiple closed $orders made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
@@ -2161,9 +2152,8 @@ class kraken extends Exchange {
         return $this->filter_by_currency_since_limit($result, $code, $since, $limit);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * fetch all deposits made to an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} $code unified $currency $code
@@ -2181,6 +2171,9 @@ class kraken extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
         $response = $this->privatePostDepositStatus (array_merge($request, $params));
         //
         //     {  error => array(),
@@ -2220,7 +2213,7 @@ class kraken extends Exchange {
         return $this->safe_timestamp($result, 'unixtime');
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
@@ -2404,7 +2397,7 @@ class kraken extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
-                // 'address' => $address, // they don't allow withdrawals to direct addresses
+                'address' => $address,
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
             //

@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import totp from './base/functions/totp.js';
-import { Balances, FundingRateHistory, Int, Liquidation, Order, OrderSide, OrderType, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Greeks, Int, Liquidation, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -58,6 +58,7 @@ export default class deribit extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': true,
@@ -839,7 +840,7 @@ export default class deribit extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name deribit#fetchBalance
@@ -1058,7 +1059,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name deribit#fetchTicker
@@ -1105,7 +1106,7 @@ export default class deribit extends Exchange {
         return this.parseTicker (result, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}) {
+    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name deribit#fetchTickers
@@ -1162,7 +1163,7 @@ export default class deribit extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name deribit#fetchOHLCV
@@ -1311,7 +1312,7 @@ export default class deribit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name deribit#fetchTrades
@@ -1484,7 +1485,7 @@ export default class deribit extends Exchange {
         return parsedFees;
     }
 
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name deribit#fetchOrderBook
@@ -1963,7 +1964,7 @@ export default class deribit extends Exchange {
         return response;
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name deribit#fetchOpenOrders
@@ -1993,7 +1994,7 @@ export default class deribit extends Exchange {
         return this.parseOrders (result, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name deribit#fetchClosedOrders
@@ -2156,7 +2157,7 @@ export default class deribit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name deribit#fetchDeposits
@@ -2204,7 +2205,7 @@ export default class deribit extends Exchange {
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name deribit#fetchWithdrawals
@@ -2328,6 +2329,8 @@ export default class deribit extends Exchange {
             'status': status,
             'updated': updated,
             'network': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -3112,6 +3115,139 @@ export default class deribit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
+        /**
+         * @method
+         * @name deribit#fetchGreeks
+         * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         * @see https://docs.deribit.com/#public-ticker
+         * @param {string} symbol unified symbol of the market to fetch greeks for
+         * @param {object} [params] extra parameters specific to the deribit api endpoint
+         * @returns {object} a [greeks structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#greeks-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": {
+        //             "estimated_delivery_price": 36552.72,
+        //             "best_bid_amount": 0.2,
+        //             "best_ask_amount": 9.1,
+        //             "interest_rate": 0.0,
+        //             "best_bid_price": 0.214,
+        //             "best_ask_price": 0.219,
+        //             "open_interest": 368.8,
+        //             "settlement_price": 0.22103022,
+        //             "last_price": 0.215,
+        //             "bid_iv": 60.51,
+        //             "ask_iv": 61.88,
+        //             "mark_iv": 61.27,
+        //             "underlying_index": "BTC-27SEP24",
+        //             "underlying_price": 38992.71,
+        //             "min_price": 0.1515,
+        //             "max_price": 0.326,
+        //             "mark_price": 0.2168,
+        //             "instrument_name": "BTC-27SEP24-40000-C",
+        //             "index_price": 36552.72,
+        //             "greeks": {
+        //                 "rho": 130.63998,
+        //                 "theta": -13.48784,
+        //                 "vega": 141.90146,
+        //                 "gamma": 0.00002,
+        //                 "delta": 0.59621
+        //             },
+        //             "stats": {
+        //                 "volume_usd": 100453.9,
+        //                 "volume": 12.0,
+        //                 "price_change": -2.2727,
+        //                 "low": 0.2065,
+        //                 "high": 0.238
+        //             },
+        //             "state": "open",
+        //             "timestamp": 1699578548021
+        //         },
+        //         "usIn": 1699578548308414,
+        //         "usOut": 1699578548308606,
+        //         "usDiff": 192,
+        //         "testnet": false
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseGreeks (result, market);
+    }
+
+    parseGreeks (greeks, market = undefined) {
+        //
+        //     {
+        //         "estimated_delivery_price": 36552.72,
+        //         "best_bid_amount": 0.2,
+        //         "best_ask_amount": 9.1,
+        //         "interest_rate": 0.0,
+        //         "best_bid_price": 0.214,
+        //         "best_ask_price": 0.219,
+        //         "open_interest": 368.8,
+        //         "settlement_price": 0.22103022,
+        //         "last_price": 0.215,
+        //         "bid_iv": 60.51,
+        //         "ask_iv": 61.88,
+        //         "mark_iv": 61.27,
+        //         "underlying_index": "BTC-27SEP24",
+        //         "underlying_price": 38992.71,
+        //         "min_price": 0.1515,
+        //         "max_price": 0.326,
+        //         "mark_price": 0.2168,
+        //         "instrument_name": "BTC-27SEP24-40000-C",
+        //         "index_price": 36552.72,
+        //         "greeks": {
+        //             "rho": 130.63998,
+        //             "theta": -13.48784,
+        //             "vega": 141.90146,
+        //             "gamma": 0.00002,
+        //             "delta": 0.59621
+        //         },
+        //         "stats": {
+        //             "volume_usd": 100453.9,
+        //             "volume": 12.0,
+        //             "price_change": -2.2727,
+        //             "low": 0.2065,
+        //             "high": 0.238
+        //         },
+        //         "state": "open",
+        //         "timestamp": 1699578548021
+        //     }
+        //
+        const timestamp = this.safeInteger (greeks, 'timestamp');
+        const marketId = this.safeString (greeks, 'instrument_name');
+        const symbol = this.safeSymbol (marketId, market);
+        const stats = this.safeValue (greeks, 'greeks', {});
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'delta': this.safeNumber (stats, 'delta'),
+            'gamma': this.safeNumber (stats, 'gamma'),
+            'theta': this.safeNumber (stats, 'theta'),
+            'vega': this.safeNumber (stats, 'vega'),
+            'rho': this.safeNumber (stats, 'rho'),
+            'bidSize': this.safeNumber (greeks, 'best_bid_amount'),
+            'askSize': this.safeNumber (greeks, 'best_ask_amount'),
+            'bidImpliedVolatility': this.safeNumber (greeks, 'bid_iv'),
+            'askImpliedVolatility': this.safeNumber (greeks, 'ask_iv'),
+            'markImpliedVolatility': this.safeNumber (greeks, 'mark_iv'),
+            'bidPrice': this.safeNumber (greeks, 'best_bid_price'),
+            'askPrice': this.safeNumber (greeks, 'best_ask_price'),
+            'markPrice': this.safeNumber (greeks, 'mark_price'),
+            'lastPrice': this.safeNumber (greeks, 'last_price'),
+            'underlyingPrice': this.safeNumber (greeks, 'underlying_price'),
+            'info': greeks,
+        };
     }
 
     nonce () {

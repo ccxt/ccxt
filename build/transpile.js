@@ -913,8 +913,8 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances/, /-> Order/, /: Order,/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker/, /-> Trade/, /-> Transaction/ ]
-        const objects = [ 'Balances', 'Order', 'Order', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Trade', 'Transaction' ]
+        const matchAgainst = [ /-> Balances:/, /-> Market:/, /-> Order:/, /-> OrderBook:/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker:/, /-> Tickers:/, /-> MarginMode:/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/, /-> Greeks:/ ]
+        const objects = [ 'Balances', 'Market', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Tickers', 'MarginMode', 'Trade', 'Transaction', 'Greeks' ]
         const matches = []
         let match
         const listRegex = /: List\[(\w+)\]/g
@@ -1075,6 +1075,9 @@ class Transpiler {
             }
             if (bodyAsString.match (/Promise\\all/)) {
                 libraryImports.push ('use React\\Promise;')
+            }
+            if (bodyAsString.match (/: PromiseInterface/)) {
+                libraryImports.push ('use React\\Promise\\PromiseInterface;')
             }
         }
 
@@ -1552,13 +1555,12 @@ class Transpiler {
                 'string': 'string',
                 'number': 'float',
                 'boolean': 'bool',
-                'Promise<any>': 'mixed',
                 'IndexType': 'int|string',
                 'Int': 'int',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
-            const phpArrayRegex = /(?:object|OHLCV|Order|Ticker|Trade|Transaction|Balances?)|(?:\w+\[\])/
+            const phpArrayRegex = /^(?:Market|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?)$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1584,15 +1586,26 @@ class Transpiler {
                 .replace (/undefined/g, 'null')
                 .replace (/\{\}/g, 'array ()')
             phpArgs = phpArgs.length ? (phpArgs) : ''
-            let phpReturnType = ''
+            let syncPhpReturnType = ''
+            let asyncPhpReturnType = ''
+            let promiseReturnTypeMatch = null
+            let syncReturnType = null
             if (returnType) {
-                if (returnType.match (phpArrayRegex)) {
-                    phpReturnType = ': array'
+                promiseReturnTypeMatch = returnType.match (/^Promise<([^>]+)>$/)
+                syncReturnType = promiseReturnTypeMatch ? promiseReturnTypeMatch[1] : returnType
+                if (syncReturnType.match (phpArrayRegex)) {
+                    syncPhpReturnType = ': array'
                 } else {
-                    phpReturnType = ': ' + (phpTypes[returnType] ?? returnType)
+                    syncPhpReturnType = ': ' + (phpTypes[syncReturnType] ?? syncReturnType)
+                }
+                if (promiseReturnTypeMatch) {
+                    asyncPhpReturnType = ': PromiseInterface'
+                } else {
+                    asyncPhpReturnType = syncPhpReturnType
                 }
             }
-            const phpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + phpReturnType + ' {'
+            const syncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + syncPhpReturnType + ' {'
+            const asyncPhpSignature = '    ' + 'public function ' + method + '(' + phpArgs + ')' + asyncPhpReturnType + ' {'
 
             // remove excessive spacing from argument defaults in Python method signature
             const pythonTypes = {
@@ -1601,9 +1614,16 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'int',
-                'string[]': 'List[str]',
                 'OHLCV': 'list',
-                'FundingHistory[]': 'List[FundingHistory]',
+            }
+            const unwrapLists = (type) => {
+                const output = []
+                let count = 0
+                while (type.slice (-2) == '[]') {
+                    type = type.slice (0, -2)
+                    count++
+                }
+                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
             let pythonArgs = args.map (x => {
                 if (x.includes (':')) {
@@ -1614,10 +1634,7 @@ class Transpiler {
                     let variable = parts[0]
                     const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
-                    const isList = type.slice (-2) === '[]'
-                    const searchType = isList ? type.slice (0, -2) : type
-                    let rawType = pythonTypes[searchType] ?? searchType
-                    rawType = isList ? 'List[' + rawType + ']' : rawType
+                    const rawType = unwrapLists (type)
                     let resolvedType
                     if (nullable) {
                         resolvedType = 'Optional[' + rawType + ']'
@@ -1641,7 +1658,10 @@ class Transpiler {
             let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             // compile the final Python code for the method signature
-            const pythonReturnType = returnType ? ' -> ' + (pythonTypes[returnType] ?? returnType) : ''
+            let pythonReturnType = ''
+            if (syncReturnType) {
+                pythonReturnType = ' -> ' + unwrapLists (syncReturnType)
+            }
             let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + ')' + pythonReturnType + ':'
 
             // compile signature + body for Python sync
@@ -1656,12 +1676,12 @@ class Transpiler {
 
             // compile signature + body for PHP
             php.push ('');
-            php.push (phpSignature);
+            php.push (syncPhpSignature);
             php.push (phpBody);
             php.push ('    ' + '}')
 
             phpAsync.push ('');
-            phpAsync.push (phpSignature);
+            phpAsync.push (asyncPhpSignature);
             phpAsync.push (phpAsyncBody);
             phpAsync.push ('    ' + '}')
         }

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Balances, Order, OrderSide, OrderType, FundingHistory, Ticker, Trade, Transaction
+from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, FundingHistory, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -1146,7 +1146,7 @@ class bitget(Exchange, ImplicitAPI):
             result.append(self.parse_market(markets[i]))
         return result
 
-    def parse_market(self, market):
+    def parse_market(self, market) -> Market:
         #
         # spot
         #
@@ -1647,7 +1647,7 @@ class bitget(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1790,7 +1790,7 @@ class bitget(Exchange, ImplicitAPI):
             result['network'] = chain
         return result
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1965,7 +1965,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-depth
@@ -2119,7 +2119,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ticker(self, symbol: str, params={}):
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-single-ticker
@@ -2161,7 +2161,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_ticker(data, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
@@ -2345,7 +2345,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
@@ -2573,7 +2573,7 @@ class bitget(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, 5, 'baseVol'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
@@ -2666,7 +2666,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_balance(self, params={}):
+    def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-account-assets
@@ -3783,7 +3783,7 @@ class bitget(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
@@ -3999,7 +3999,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.add_pagination_cursor_to_result(data, result)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history

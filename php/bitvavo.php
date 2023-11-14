@@ -310,8 +310,8 @@ class bitvavo extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetMarkets ($params);
-        $currencies = $this->currencies;
-        $currenciesById = $this->index_by($currencies, 'symbol');
+        $currencies = $this->fetch_currencies();
+        $currenciesById = $this->index_by($currencies, 'id');
         //
         //     array(
         //         {
@@ -336,7 +336,8 @@ class bitvavo extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $baseCurrency = $this->safe_value($currenciesById, $baseId);
-            $result[] = array(
+            $basePrecision = $this->safe_integer($baseCurrency, 'precision');
+            $result[] = $this->safe_market_structure(array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -361,7 +362,7 @@ class bitvavo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($baseCurrency, 'decimals', 8),
+                    'amount' => $this->safe_integer($baseCurrency, 'decimals', $basePrecision),
                     'price' => $this->safe_integer($market, 'pricePrecision'),
                 ),
                 'limits' => array(
@@ -384,7 +385,7 @@ class bitvavo extends Exchange {
                 ),
                 'created' => null,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }
@@ -495,7 +496,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()) {
+    public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1ticker}124h/get
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -578,7 +579,7 @@ class bitvavo extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()) {
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -608,7 +609,7 @@ class bitvavo extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1trades/get
          * get the list of most recent trades for a particular $symbol
@@ -789,7 +790,7 @@ class bitvavo extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1book/get
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -849,7 +850,7 @@ class bitvavo extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}$market~~1candles/get
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -918,7 +919,7 @@ class bitvavo extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
@@ -1130,9 +1131,7 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('cancelOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1180,9 +1179,7 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchOrder', $symbol);
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1227,7 +1224,7 @@ class bitvavo extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
          * fetches information on multiple orders made by the user
@@ -1302,7 +1299,7 @@ class bitvavo extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
@@ -1496,9 +1493,7 @@ class bitvavo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
+        $this->check_required_symbol('fetchMyTrades', $symbol);
         $this->load_markets();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
@@ -1577,7 +1572,7 @@ class bitvavo extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
@@ -1622,7 +1617,7 @@ class bitvavo extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code

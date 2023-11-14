@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitstampRest from '../bitstamp.js';
-import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class bitstamp extends bitstampRest {
@@ -269,13 +269,11 @@ export default class bitstamp extends bitstampRest {
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the bitstamp api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' watchOrders requires a symbol argument');
-        }
+        this.checkRequiredSymbol('watchOrders', symbol);
         await this.loadMarkets();
         const market = this.market(symbol);
         symbol = market['symbol'];
