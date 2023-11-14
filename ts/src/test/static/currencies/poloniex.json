@@ -663,5 +663,86 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": [
+            {
+                "USDC": {
+                    "id": 299,
+                    "name": "USD Coin",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "13.02571746",
+                    "minConf": 64,
+                    "depositAddress": null,
+                    "blockchain": "ETH",
+                    "delisted": false,
+                    "tradingState": "NORMAL",
+                    "walletState": "DISABLED",
+                    "walletDepositState": "DISABLED",
+                    "walletWithdrawalState": "DISABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": null,
+                    "isMultiChain": true,
+                    "isChildChain": false,
+                    "childChains": [
+                        "USDCTRON"
+                    ]
+                }
+            }
+        ],
+        "name": "USD Coin",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 13.02571746,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "id": 299,
+                    "name": "USD Coin",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "13.02571746",
+                    "minConf": 64,
+                    "depositAddress": null,
+                    "blockchain": "ETH",
+                    "delisted": false,
+                    "tradingState": "NORMAL",
+                    "walletState": "DISABLED",
+                    "walletDepositState": "DISABLED",
+                    "walletWithdrawalState": "DISABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": null,
+                    "isMultiChain": true,
+                    "isChildChain": false,
+                    "childChains": [
+                        "USDCTRON"
+                    ]
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "currencyId": "USDC",
+                "numericId": 299,
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 13.02571746,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            }
+        }
     }
 }

@@ -468,5 +468,132 @@
             }
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "id": "USDC",
+            "name": "USD Coin",
+            "min_size": "0.000001",
+            "status": "online",
+            "message": "",
+            "max_precision": "0.000001",
+            "convertible_to": [
+                "USD"
+            ],
+            "details": {
+                "type": "crypto",
+                "symbol": null,
+                "network_confirmations": "14",
+                "sort_order": "0",
+                "crypto_address_link": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a={{address}}",
+                "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                "push_payment_methods": [],
+                "group_types": [],
+                "display_name": null,
+                "processing_time_seconds": null,
+                "min_withdrawal_amount": "1",
+                "max_withdrawal_amount": "100000000"
+            },
+            "default_network": "ethereum",
+            "supported_networks": [
+                {
+                    "id": "arbitrum",
+                    "name": "Arbitrum",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+                    "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null
+                },
+                {
+                    "id": "avacchain",
+                    "name": "Avalanche C-Chain",
+                    "status": "online",
+                    "contract_address": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "crypto_address_link": "https://cchain.explorer.avax.network/address/{{address}}/transactions",
+                    "crypto_transaction_link": "https://cchain.explorer.avax.network/tx/{{txId}}/token-transfers",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "500000",
+                    "network_confirmations": "1",
+                    "processing_time_seconds": null
+                },
+                {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "1000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null
+                },
+                {
+                    "id": "ethereum",
+                    "name": "Ethereum",
+                    "status": "online",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "crypto_address_link": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a={{address}}",
+                    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "100000000",
+                    "network_confirmations": "14",
+                    "processing_time_seconds": null
+                },
+                {
+                    "id": "optimism",
+                    "name": "Optimism",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://optimistic.etherscan.io/token/0x7f5c764cbc14f9669b88837ca1490cca17c31607?a={{address}}",
+                    "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "1000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null
+                },
+                {
+                    "id": "polygon",
+                    "name": "Polygon",
+                    "status": "online",
+                    "contract_address": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+                    "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+                    "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": "128",
+                    "processing_time_seconds": null
+                },
+                {
+                    "id": "solana",
+                    "name": "Solana",
+                    "status": "online",
+                    "contract_address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "crypto_address_link": "https://explorer.solana.com/address/{{address}}",
+                    "crypto_transaction_link": "https://explorer.solana.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "10000000",
+                    "network_confirmations": "31",
+                    "processing_time_seconds": null
+                }
+            ]
+        },
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 1
+            }
+        },
+        "networks": {}
     }
 }

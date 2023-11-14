@@ -173,5 +173,30 @@
         },
         "valueScale": 8,
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "info": {
+            "code": "57",
+            "currency": "USDC",
+            "valueScale": "8",
+            "minValueEv": "1",
+            "maxValueEv": "5000000000000000000",
+            "name": "USD Coin",
+            "displayCurrency": "USDC",
+            "needAddrTag": "0"
+        },
+        "code": "USDC",
+        "name": "USD Coin",
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8,
+                "max": 50000000000
+            },
+            "withdraw": {}
+        },
+        "valueScale": 8,
+        "networks": {}
     }
 }

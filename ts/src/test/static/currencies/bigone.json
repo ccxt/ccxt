@@ -1227,5 +1227,197 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "uuid": "e0e8aa23-2f4a-4b4a-8c97-c0307367f3aa",
+            "symbol": "USDC",
+            "name": "USDC",
+            "scale": "8",
+            "is_stub": false,
+            "logo": {
+                "default": "https://assets.peatio.com/assets/v1/color/normal/usdc.png?v=1699651740",
+                "white": "https://assets.peatio.com/assets/v1/white/normal/usdc.png?v=1699651740"
+            },
+            "contract_address": "",
+            "is_deposit_enabled": true,
+            "is_withdrawal_enabled": true,
+            "withdrawal_fee": "99999",
+            "is_fiat": false,
+            "is_memo_required": false,
+            "info_link": "",
+            "payments": [],
+            "default_gateway": {
+                "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                "name": "Ethereum",
+                "kind": "CHAIN",
+                "required_confirmations": "18",
+                "is_graphene": false
+            },
+            "gateways": [
+                {
+                    "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                    "name": "Ethereum",
+                    "kind": "CHAIN",
+                    "required_confirmations": "18",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                    "name": "BinanceSmartChain",
+                    "kind": "CHAIN",
+                    "required_confirmations": "1",
+                    "is_graphene": false
+                },
+                {
+                    "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+                    "name": "Mixin",
+                    "kind": "CHAIN",
+                    "required_confirmations": "0",
+                    "is_graphene": true
+                }
+            ],
+            "binding_gateways": [
+                {
+                    "guid": "4540cae6-a872-459d-a401-c76bb45002f1",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                },
+                {
+                    "guid": "b0a4746e-d459-460c-9ad3-86bd43660ebc",
+                    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "is_deposit_enabled": false,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            ]
+        },
+        "name": "USDC",
+        "type": "crypto",
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ETH": {
+                "id": "Ethereum",
+                "network": "ETH",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "fee": 25,
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {
+                        "min": "0.000001"
+                    },
+                    "withdraw": {
+                        "min": "0.000001"
+                    }
+                },
+                "info": {
+                    "guid": "4540cae6-a872-459d-a401-c76bb45002f1",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "is_deposit_enabled": true,
+                    "display_name": "Ethereum(ERC20)",
+                    "gateway_name": "Ethereum",
+                    "min_withdrawal_amount": "0.000001",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "25",
+                    "is_withdrawal_enabled": true,
+                    "min_deposit_amount": "0.000001",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "6",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+                        "name": "Ethereum",
+                        "kind": "CHAIN",
+                        "required_confirmations": "18",
+                        "is_graphene": false
+                    }
+                }
+            },
+            "BEP20": {
+                "id": "BinanceSmartChain",
+                "network": "BEP20",
+                "deposit": false,
+                "withdraw": false,
+                "active": false,
+                "fee": 5,
+                "precision": 1e-8,
+                "limits": {
+                    "deposit": {
+                        "min": "1"
+                    },
+                    "withdraw": {
+                        "min": "10"
+                    }
+                },
+                "info": {
+                    "guid": "b0a4746e-d459-460c-9ad3-86bd43660ebc",
+                    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "is_deposit_enabled": false,
+                    "display_name": "BinanceSmartChain(BEP20)",
+                    "gateway_name": "BinanceSmartChain",
+                    "min_withdrawal_amount": "10",
+                    "min_internal_withdrawal_amount": "0.00000001",
+                    "withdrawal_fee": "5",
+                    "is_withdrawal_enabled": false,
+                    "min_deposit_amount": "1",
+                    "is_memo_required": false,
+                    "withdrawal_scale": "8",
+                    "sort_index": "0",
+                    "scale": "8",
+                    "gateway": {
+                        "uuid": "dfa5f2b8-f6b1-4855-9d78-756267ba6da2",
+                        "name": "BinanceSmartChain",
+                        "kind": "CHAIN",
+                        "required_confirmations": "1",
+                        "is_graphene": false
+                    }
+                }
+            }
+        }
     }
 }

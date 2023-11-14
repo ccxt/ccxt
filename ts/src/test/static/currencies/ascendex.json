@@ -243,5 +243,32 @@
             }
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "assetCode": "USDC",
+            "displayName": "USDC",
+            "nativeScale": "4",
+            "numConfirmations": "12",
+            "withdrawFee": "8.0",
+            "minWithdrawalAmt": "16.0",
+            "statusCode": "Normal",
+            "statusMessage": ""
+        },
+        "margin": false,
+        "active": true,
+        "fee": 8,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {
+                "min": 0.0001
+            },
+            "withdraw": {
+                "min": 16
+            }
+        },
+        "networks": {}
     }
 }

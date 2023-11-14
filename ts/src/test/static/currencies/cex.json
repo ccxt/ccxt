@@ -206,5 +206,31 @@
             "minimumCurrencyAmount": "0.000001",
             "minimalWithdrawalAmount": "0.1"
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USDC",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "withdraw": {
+                "min": 10
+            }
+        },
+        "info": {
+            "code": "USDC",
+            "contract": false,
+            "commodity": false,
+            "fiat": false,
+            "description": "",
+            "precision": "6",
+            "scale": "0",
+            "minimumCurrencyAmount": "0.000001",
+            "minimalWithdrawalAmount": "10"
+        }
     }
 }

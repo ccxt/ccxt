@@ -434,5 +434,52 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "fUDC",
+        "uppercaseId": "UDC",
+        "code": "USDC",
+        "info": [
+            "UDC",
+            [
+                "UDC",
+                "USDc"
+            ],
+            [
+                "UDC",
+                "ETH"
+            ],
+            [
+                "UDC",
+                [
+                    0,
+                    2.0389
+                ]
+            ],
+            []
+        ],
+        "type": "crypto",
+        "name": "USDc",
+        "active": true,
+        "fee": 2.0389,
+        "precision": 8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 2.0389
+            }
+        },
+        "networks": {
+            "UDC": {
+                "info": "UDC",
+                "id": "udc",
+                "network": "UDC",
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        }
     }
 }

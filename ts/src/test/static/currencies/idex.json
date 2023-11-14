@@ -42,5 +42,27 @@
                 "min": 1e-8
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "name": "USD Coin",
+            "symbol": "USDC",
+            "contractAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+            "assetDecimals": "6",
+            "exchangeDecimals": "8",
+            "maticPrice": "1.06712197"
+        },
+        "name": "USD Coin",
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 1e-8
+            }
+        }
     }
 }

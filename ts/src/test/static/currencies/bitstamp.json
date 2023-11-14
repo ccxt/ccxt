@@ -242,5 +242,35 @@
             "withdraw": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "usdc",
+        "code": "USDC",
+        "info": {
+            "name": "USDC/USD",
+            "url_symbol": "usdcusd",
+            "base_decimals": 5,
+            "counter_decimals": 5,
+            "instant_order_counter_decimals": 5,
+            "minimum_order": "10.00000 USD",
+            "trading": "Enabled",
+            "instant_and_market_orders": "Enabled",
+            "description": "USD Coin / U.S. dollar"
+        },
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {
+                "min": 0.00001
+            },
+            "cost": {},
+            "withdraw": {}
+        },
+        "networks": {}
     }
 }

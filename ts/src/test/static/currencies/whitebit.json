@@ -626,5 +626,102 @@
                 "max": 0
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "name": "USD Coin",
+            "unified_cryptoasset_id": "3408",
+            "can_withdraw": true,
+            "can_deposit": true,
+            "min_withdraw": "10",
+            "max_withdraw": "0",
+            "maker_fee": "0.1",
+            "taker_fee": "0.1",
+            "min_deposit": "0.5",
+            "max_deposit": "0",
+            "networks": {
+                "deposits": [
+                    "TRC20",
+                    "STELLAR",
+                    "POLYGON",
+                    "SOL",
+                    "CCHAIN",
+                    "ERC20"
+                ],
+                "withdraws": [
+                    "TRC20",
+                    "STELLAR",
+                    "POLYGON",
+                    "SOL",
+                    "CCHAIN",
+                    "ERC20"
+                ],
+                "default": "ERC20"
+            },
+            "confirmations": {
+                "CCHAIN": "970",
+                "ERC20": "32",
+                "POLYGON": "500",
+                "SOL": "500",
+                "STELLAR": "1",
+                "TRC20": "20"
+            },
+            "limits": {
+                "deposit": {
+                    "CCHAIN": {
+                        "min": "5"
+                    },
+                    "ERC20": {
+                        "min": "15"
+                    },
+                    "POLYGON": {
+                        "min": "0.5"
+                    },
+                    "SOL": {
+                        "min": "5"
+                    },
+                    "STELLAR": {
+                        "min": "5"
+                    },
+                    "TRC20": {
+                        "min": "5"
+                    }
+                },
+                "withdraw": {
+                    "CCHAIN": {
+                        "min": "10"
+                    },
+                    "ERC20": {
+                        "min": "25"
+                    },
+                    "POLYGON": {
+                        "min": "10"
+                    },
+                    "SOL": {
+                        "min": "10"
+                    },
+                    "STELLAR": {
+                        "min": "10"
+                    },
+                    "TRC20": {
+                        "min": "10"
+                    }
+                }
+            },
+            "currency_precision": "6",
+            "is_memo": false
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10,
+                "max": 0
+            }
+        }
     }
 }

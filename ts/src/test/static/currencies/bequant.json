@@ -29,7 +29,7 @@
                     "payin_confirmations": "1",
                     "low_processing_time": "30.214",
                     "high_processing_time": "3632.819",
-                    "avg_processing_time": "1062.6151084337343",
+                    "avg_processing_time": "1078.5871604938266",
                     "is_multichain": false
                 }
             ]
@@ -59,7 +59,7 @@
                     "payin_confirmations": "1",
                     "low_processing_time": "30.214",
                     "high_processing_time": "3632.819",
-                    "avg_processing_time": "1062.6151084337343",
+                    "avg_processing_time": "1078.5871604938266",
                     "is_multichain": false
                 },
                 "id": "BTC",
@@ -109,7 +109,7 @@
                     "payin_confirmations": "2",
                     "low_processing_time": "5.706",
                     "high_processing_time": "1689.427",
-                    "avg_processing_time": "96.09349999999999",
+                    "avg_processing_time": "138.65135714285714",
                     "is_multichain": false
                 }
             ]
@@ -139,7 +139,7 @@
                     "payin_confirmations": "2",
                     "low_processing_time": "5.706",
                     "high_processing_time": "1689.427",
-                    "avg_processing_time": "96.09349999999999",
+                    "avg_processing_time": "138.65135714285714",
                     "is_multichain": false
                 },
                 "id": "OMNI",
@@ -415,7 +415,7 @@
                     "payin_confirmations": "4",
                     "low_processing_time": "13.145",
                     "high_processing_time": "529.177",
-                    "avg_processing_time": "116.77906060606063",
+                    "avg_processing_time": "118.81709375000004",
                     "is_multichain": false
                 }
             ]
@@ -445,7 +445,7 @@
                     "payin_confirmations": "4",
                     "low_processing_time": "13.145",
                     "high_processing_time": "529.177",
-                    "avg_processing_time": "116.77906060606063",
+                    "avg_processing_time": "118.81709375000004",
                     "is_multichain": false
                 },
                 "id": "ETH",
@@ -494,7 +494,7 @@
                     "payin_confirmations": "30",
                     "low_processing_time": "40.676",
                     "high_processing_time": "4640.318",
-                    "avg_processing_time": "369.6357979797979",
+                    "avg_processing_time": "369.66745",
                     "is_multichain": false
                 }
             ]
@@ -524,7 +524,7 @@
                     "payin_confirmations": "30",
                     "low_processing_time": "40.676",
                     "high_processing_time": "4640.318",
-                    "avg_processing_time": "369.6357979797979",
+                    "avg_processing_time": "369.66745",
                     "is_multichain": false
                 },
                 "id": "ADA",
@@ -574,7 +574,7 @@
                     "payin_confirmations": "20",
                     "low_processing_time": "2.445",
                     "high_processing_time": "36.04",
-                    "avg_processing_time": "17.831710000000005",
+                    "avg_processing_time": "17.662900000000004",
                     "is_multichain": false
                 }
             ]
@@ -604,7 +604,7 @@
                     "payin_confirmations": "20",
                     "low_processing_time": "2.445",
                     "high_processing_time": "36.04",
-                    "avg_processing_time": "17.831710000000005",
+                    "avg_processing_time": "17.662900000000004",
                     "is_multichain": false
                 },
                 "id": "XRP",
@@ -620,6 +620,87 @@
             }
         },
         "fee": 1.39,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "USDC": {
+        "info": {
+            "full_name": "USD Coin ERC20 Chain",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "U",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+            "precision_transfer": "0.000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "ETH",
+                    "network_name": "ETH",
+                    "network": "ETH",
+                    "protocol": "ERC20",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "4",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "low_processing_time": "30.852",
+                    "high_processing_time": "999.163",
+                    "avg_processing_time": "383.9943505154639",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "USDC",
+        "id": "USDC",
+        "precision": 0.000001,
+        "name": "USD Coin ERC20 Chain",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "code": "ETH",
+                    "network_name": "ETH",
+                    "network": "ETH",
+                    "protocol": "ERC20",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "4",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "low_processing_time": "30.852",
+                    "high_processing_time": "999.163",
+                    "avg_processing_time": "383.9943505154639",
+                    "is_multichain": false
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "fee": 10,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 10,
         "limits": {
             "amount": {}
         }

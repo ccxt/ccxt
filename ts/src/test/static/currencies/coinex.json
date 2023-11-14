@@ -730,5 +730,147 @@
                 "precision": 0.000001
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": [
+            {
+                "asset": "USDC",
+                "chain": "ERC20",
+                "withdrawal_precision": 6,
+                "can_deposit": true,
+                "can_withdraw": true,
+                "deposit_least_amount": "8.7",
+                "withdraw_least_amount": "8.7",
+                "withdraw_tx_fee": "8.7",
+                "explorer_asset_url": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            },
+            {
+                "asset": "USDC",
+                "chain": "TRC20",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": false,
+                "deposit_least_amount": "1.4",
+                "withdraw_least_amount": "1.4",
+                "withdraw_tx_fee": "1.4",
+                "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+            },
+            {
+                "asset": "USDC",
+                "chain": "CSC",
+                "withdrawal_precision": 8,
+                "can_deposit": true,
+                "can_withdraw": false,
+                "deposit_least_amount": "0.01",
+                "withdraw_least_amount": "0.5",
+                "withdraw_tx_fee": "0.0095",
+                "explorer_asset_url": "https://www.coinex.net/token/0xf335b2440e62a953a42865adf7bd73f4c6671a7b"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0095,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0.01
+            },
+            "withdraw": {
+                "min": 0.5
+            }
+        },
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "asset": "USDC",
+                    "chain": "ERC20",
+                    "withdrawal_precision": 6,
+                    "can_deposit": true,
+                    "can_withdraw": true,
+                    "deposit_least_amount": "8.7",
+                    "withdraw_least_amount": "8.7",
+                    "withdraw_tx_fee": "8.7",
+                    "explorer_asset_url": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 8.7
+                    },
+                    "withdraw": {
+                        "min": 8.7
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 8.7,
+                "precision": 0.000001
+            },
+            "TRC20": {
+                "info": {
+                    "asset": "USDC",
+                    "chain": "TRC20",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "1.4",
+                    "withdraw_least_amount": "1.4",
+                    "withdraw_tx_fee": "1.4",
+                    "explorer_asset_url": "https://tronscan.org/#/token20/TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 1.4
+                    },
+                    "withdraw": {
+                        "min": 1.4
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 1.4,
+                "precision": 1e-8
+            },
+            "CSC": {
+                "info": {
+                    "asset": "USDC",
+                    "chain": "CSC",
+                    "withdrawal_precision": 8,
+                    "can_deposit": true,
+                    "can_withdraw": false,
+                    "deposit_least_amount": "0.01",
+                    "withdraw_least_amount": "0.5",
+                    "withdraw_tx_fee": "0.0095",
+                    "explorer_asset_url": "https://www.coinex.net/token/0xf335b2440e62a953a42865adf7bd73f4c6671a7b"
+                },
+                "id": "CSC",
+                "network": "CSC",
+                "limits": {
+                    "amount": {},
+                    "deposit": {
+                        "min": 0.01
+                    },
+                    "withdraw": {
+                        "min": 0.5
+                    }
+                },
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.0095,
+                "precision": 1e-8
+            }
+        }
     }
 }

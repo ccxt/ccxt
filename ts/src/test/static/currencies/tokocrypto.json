@@ -64,5 +64,16 @@
             "deposit": {},
             "withdraw": {}
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "precision": 8,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
     }
 }

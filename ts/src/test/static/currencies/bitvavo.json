@@ -439,5 +439,68 @@
                 "min": 1
             }
         }
+    },
+    "USDC": {
+        "info": {
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": "6",
+            "depositFee": "0",
+            "depositConfirmations": "64",
+            "depositStatus": "OK",
+            "withdrawalFee": "4.1",
+            "withdrawalMinAmount": "4.1",
+            "withdrawalStatus": "OK",
+            "networks": [
+                "ETH"
+            ],
+            "message": ""
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "symbol": "USDC",
+                    "name": "USD Coin",
+                    "decimals": "6",
+                    "depositFee": "0",
+                    "depositConfirmations": "64",
+                    "depositStatus": "OK",
+                    "withdrawalFee": "4.1",
+                    "withdrawalMinAmount": "4.1",
+                    "withdrawalStatus": "OK",
+                    "networks": [
+                        "ETH"
+                    ],
+                    "message": ""
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 4.1,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 4.1
+                    }
+                }
+            }
+        },
+        "fee": 4.1,
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "deposit": {},
+            "withdraw": {
+                "min": 4.1
+            }
+        }
     }
 }

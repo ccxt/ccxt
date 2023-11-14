@@ -388,5 +388,71 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "USDc",
+        "code": "USDC",
+        "info": {
+            "asset": "USDC",
+            "currency": "USDc",
+            "majorCurrency": "USDC",
+            "name": "USD Coin",
+            "currencyType": "Crypto",
+            "scale": "6",
+            "enabled": true,
+            "isMarginCurrency": false,
+            "minDepositAmount": "10000000",
+            "minWithdrawalAmount": "10000000",
+            "maxWithdrawalAmount": "100000000000000",
+            "networks": [
+                {
+                    "asset": "eth",
+                    "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "25000000",
+                    "minFee": "25000000",
+                    "maxFee": "25000000"
+                }
+            ]
+        },
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10,
+                "max": 100000000
+            },
+            "deposit": {
+                "min": 10
+            }
+        },
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "asset": "eth",
+                    "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "25000000",
+                    "minFee": "25000000",
+                    "maxFee": "25000000"
+                },
+                "id": "eth",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 25,
+                "limits": {
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            }
+        }
     }
 }

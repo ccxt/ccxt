@@ -328,5 +328,62 @@
             }
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "numericId": 8,
+        "code": "USDC",
+        "name": "USD Circle",
+        "info": {
+            "base_withdrawal_fee": "0.000000000000000000",
+            "id": "8",
+            "interest_credit": false,
+            "interest_slabs": null,
+            "kyc_deposit_limit": "0.000000000000000000",
+            "kyc_withdrawal_limit": "0.000000000000000000",
+            "min_withdrawal_amount": "30.000000000000000000",
+            "minimum_precision": "2",
+            "name": "USD Circle",
+            "networks": [
+                {
+                    "base_withdrawal_fee": "1",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "30.000000000000000000",
+                    "minimum_deposit_confirmations": "15",
+                    "network": "BEP20(BSC)",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                },
+                {
+                    "base_withdrawal_fee": "10",
+                    "deposit_status": "enabled",
+                    "memo_required": false,
+                    "min_deposit_amount": "0.500000000000000000",
+                    "min_withdrawal_amount": "30.000000000000000000",
+                    "minimum_deposit_confirmations": "12",
+                    "network": "ERC20",
+                    "variable_withdrawal_fee": "0",
+                    "withdrawal_status": "enabled"
+                }
+            ],
+            "precision": "6",
+            "sort_priority": "6",
+            "symbol": "USDC",
+            "variable_withdrawal_fee": "0.000000000000000000"
+        },
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "fee": 0,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 30
+            }
+        },
+        "networks": {}
     }
 }

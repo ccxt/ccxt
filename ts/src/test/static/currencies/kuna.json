@@ -201,5 +201,34 @@
             "withdraw": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "info": {
+            "code": "USDC",
+            "name": "USD Coin",
+            "payload": {
+                "chart": "https://kuna-pro.kuna.io/usd-coin-chart",
+                "icons": {
+                    "svg": "https://kuna-pro.kuna.io/icon-usdc-svg",
+                    "png2x": "https://kuna-pro.kuna.io/icon-usdc-png2x",
+                    "png3x": "https://kuna-pro.kuna.io/icon-usdc-png3x",
+                    "svgXL": "https://kuna-pro.kuna.io/icon-usdc-svg"
+                },
+                "pngChart": "https://kuna-pro.kuna.io/png-usd-coin-chart"
+            },
+            "position": "68",
+            "precision": "6",
+            "tradePrecision": "2",
+            "type": "Crypto"
+        },
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USD Coin",
+        "precision": "2",
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
     }
 }

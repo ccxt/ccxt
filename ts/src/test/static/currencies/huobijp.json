@@ -348,5 +348,62 @@
             "deposit-desc": "Please don’t deposit any other digital assets except XRP to the above address.!>_<!Please fill in destination tag and check carefully. This is the only identification of your account, otherwise you may lose it permanently. !>_<! Depositing to the above address requires confirmations of the entire network. It will arrive after 1 confirmation.!>_<!Minimum deposit amount: 0.1 XRP. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change frequently. Any changes, we will inform you by announcement or email.!>_<!Please make sure that your computer and browser are secure, and your information is protected from being tampered with or leaked.",
             "suspend-visible-desc": ""
         }
+    },
+    "USDC": {
+        "id": "usdc",
+        "code": "USDC",
+        "type": "crypto",
+        "name": "USDC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.000001
+            },
+            "deposit": {
+                "min": 1
+            },
+            "withdraw": {
+                "min": 2
+            }
+        },
+        "info": {
+            "currency-addr-with-tag": false,
+            "fast-confirms": "32",
+            "safe-confirms": "64",
+            "currency-type": "eth",
+            "show-precision": "8",
+            "quote-currency": true,
+            "deposit-min-amount": "1",
+            "withdraw-min-amount": "2",
+            "otc-enable": "1",
+            "visible": true,
+            "white-enabled": false,
+            "country-disabled": false,
+            "deposit-enabled": true,
+            "withdraw-enabled": true,
+            "full-name": "USDC",
+            "withdraw-precision": "6",
+            "weight": "10001",
+            "withdraw-enable-timestamp": "1672243200000",
+            "deposit-enable-timestamp": "1678515866000",
+            "currency-partition": "all",
+            "visible-assets-timestamp": "1648738800000",
+            "support-sites": [
+                "INSTITUTION",
+                "OTC"
+            ],
+            "tags": "stablecoin",
+            "name": "usdc",
+            "state": "online",
+            "display-name": "USDC",
+            "suspend-withdraw-desc": null,
+            "withdraw-desc": "Minimum withdrawal amount: 2 USDC(ERC20). !>_<!To ensure the safety of your funds, your withdrawal request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
+            "suspend-deposit-desc": null,
+            "deposit-desc": "Please don’t deposit any other digital assets except USDC(ERC20)  to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 32 confirmations, and it will be available to withdraw after 64 confirmations. !>_<!Minimum deposit amount: 1 USDC(ERC20). Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure, and your information is protected from being tampered with or leaked.!>_<!You can only deposit USDC via the transfer function or transferFrom on etherum network. We apologize that deposit via other functions will not be credited",
+            "suspend-visible-desc": null
+        }
     }
 }

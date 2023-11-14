@@ -255,5 +255,36 @@
             }
         ],
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USD Coin",
+        "type": "crypto",
+        "active": true,
+        "withdraw": true,
+        "fee": 10,
+        "precision": 1e-8,
+        "limits": {
+            "deposit": {},
+            "withdraw": {
+                "min": "11",
+                "max": "100000"
+            }
+        },
+        "info": [
+            {
+                "type": "withdraw",
+                "name": "USDC",
+                "currency_name": "USDC",
+                "min": "11",
+                "max": "100000",
+                "enabled": true,
+                "comment": "When withdrawing USDC, please note that we support only the Ethereum (ERC-20) network. We do not support Algorand, Solana and Stellar networks for USDC withdrawals.",
+                "commission_desc": "10 USDC",
+                "currency_confirmations": "30"
+            }
+        ],
+        "networks": {}
     }
 }

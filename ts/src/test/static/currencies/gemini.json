@@ -316,5 +316,51 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "info": [
+            "USDC",
+            "USD Coin",
+            39,
+            6,
+            0,
+            6,
+            8,
+            false,
+            null,
+            "ethereum"
+        ],
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USD Coin",
+        "type": "fiat",
+        "precision": 0.000001,
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {
+            "ERC20": {
+                "info": [
+                    "USDC",
+                    "USD Coin",
+                    39,
+                    6,
+                    0,
+                    6,
+                    8,
+                    false,
+                    null,
+                    "ethereum"
+                ],
+                "id": "ethereum",
+                "network": "ERC20",
+                "precision": 0.000001,
+                "limits": {
+                    "deposit": {},
+                    "withdraw": {}
+                }
+            }
+        }
     }
 }

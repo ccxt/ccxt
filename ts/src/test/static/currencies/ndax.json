@@ -222,5 +222,33 @@
             "withdraw": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "24",
+        "name": "USDC",
+        "code": "USDC",
+        "type": "crypto",
+        "precision": 0.01,
+        "info": {
+            "OMSId": "1",
+            "ProductId": "24",
+            "Product": "USDC",
+            "ProductFullName": "USDC",
+            "MasterDataUniqueProductSymbol": "",
+            "ProductType": "CryptoCurrency",
+            "DecimalPlaces": "2",
+            "TickSize": "0.0100000000000000000000000000",
+            "DepositEnabled": true,
+            "WithdrawEnabled": true,
+            "NoFees": false,
+            "IsDisabled": false,
+            "MarginEnabled": false
+        },
+        "active": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
     }
 }

@@ -252,5 +252,37 @@
             }
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "coinType": "ETH_CONTRACT",
+            "status": "ONLINE",
+            "minConfirmations": "36",
+            "notice": "",
+            "txFee": "9.000000000000",
+            "logoUrl": "https://bittrex.com/content/dynamic/currencies/logos/28ffd31b-6b50-4909-bec9-a1f739752ef0.png",
+            "prohibitedIn": [],
+            "baseAddress": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+            "associatedTermsOfService": [],
+            "tags": []
+        },
+        "type": "crypto",
+        "name": "USD Coin",
+        "active": true,
+        "fee": 9,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {
+                "min": 9
+            }
+        },
+        "networks": {}
     }
 }

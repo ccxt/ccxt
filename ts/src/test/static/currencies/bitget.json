@@ -1223,5 +1223,367 @@
                 "min": 0.1
             }
         }
+    },
+    "USDC": {
+        "info": {
+            "chains": [
+                {
+                    "browserUrl": "https://arbiscan.io/tx/",
+                    "chain": "ArbitrumOne",
+                    "depositConfirm": "24",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "0.1",
+                    "minWithdrawAmount": "1",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "24",
+                    "withdrawFee": "0.2",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://solscan.io/tx/",
+                    "chain": "SOL",
+                    "depositConfirm": "5",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "30",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "5",
+                    "withdrawFee": "1",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://tronscan.org/#/transaction/",
+                    "chain": "TRC20",
+                    "depositConfirm": "1",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "1",
+                    "withdrawFee": "0.5",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://avascan.info/blockchain/c/tx/",
+                    "chain": "C-Chain",
+                    "depositConfirm": "60",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "60",
+                    "withdrawFee": "1.00021",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://optimistic.etherscan.io/tx/",
+                    "chain": "Optimism",
+                    "depositConfirm": "50",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "false",
+                    "withdrawConfirm": "50",
+                    "withdrawFee": "0.1",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://polygonscan.com/tx/",
+                    "chain": "Polygon",
+                    "depositConfirm": "60",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "60",
+                    "withdrawFee": "0.64",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://bscscan.com/tx/",
+                    "chain": "BEP20",
+                    "depositConfirm": "15",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "15",
+                    "withdrawFee": "0.29",
+                    "withdrawable": "true"
+                },
+                {
+                    "browserUrl": "https://etherscan.io/tx/",
+                    "chain": "ERC20",
+                    "depositConfirm": "64",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "50",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "64",
+                    "withdrawFee": "1.5",
+                    "withdrawable": "true"
+                }
+            ],
+            "coinId": "74",
+            "coinName": "USDC",
+            "transfer": "true"
+        },
+        "id": "74",
+        "code": "USDC",
+        "networks": {
+            "ARBITRUMONE": {
+                "info": {
+                    "browserUrl": "https://arbiscan.io/tx/",
+                    "chain": "ArbitrumOne",
+                    "depositConfirm": "24",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "0.1",
+                    "minWithdrawAmount": "1",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "24",
+                    "withdrawFee": "0.2",
+                    "withdrawable": "true"
+                },
+                "id": "ArbitrumOne",
+                "network": "ARBITRUMONE",
+                "limits": {
+                    "withdraw": {
+                        "min": 1
+                    },
+                    "deposit": {
+                        "min": 0.1
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 0.2
+            },
+            "SOL": {
+                "info": {
+                    "browserUrl": "https://solscan.io/tx/",
+                    "chain": "SOL",
+                    "depositConfirm": "5",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "30",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "5",
+                    "withdrawFee": "1",
+                    "withdrawable": "true"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "limits": {
+                    "withdraw": {
+                        "min": 30
+                    },
+                    "deposit": {
+                        "min": 0.01
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 1
+            },
+            "TRC20": {
+                "info": {
+                    "browserUrl": "https://tronscan.org/#/transaction/",
+                    "chain": "TRC20",
+                    "depositConfirm": "1",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "0.01",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "1",
+                    "withdrawFee": "0.5",
+                    "withdrawable": "true"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 0.01
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 0.5
+            },
+            "C-CHAIN": {
+                "info": {
+                    "browserUrl": "https://avascan.info/blockchain/c/tx/",
+                    "chain": "C-Chain",
+                    "depositConfirm": "60",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "60",
+                    "withdrawFee": "1.00021",
+                    "withdrawable": "true"
+                },
+                "id": "C-Chain",
+                "network": "C-CHAIN",
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 1.00021
+            },
+            "OPTIMISM": {
+                "info": {
+                    "browserUrl": "https://optimistic.etherscan.io/tx/",
+                    "chain": "Optimism",
+                    "depositConfirm": "50",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "false",
+                    "withdrawConfirm": "50",
+                    "withdrawFee": "0.1",
+                    "withdrawable": "true"
+                },
+                "id": "Optimism",
+                "network": "OPTIMISM",
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": false,
+                "withdraw": true,
+                "deposit": false,
+                "fee": 0.1
+            },
+            "POLYGON": {
+                "info": {
+                    "browserUrl": "https://polygonscan.com/tx/",
+                    "chain": "Polygon",
+                    "depositConfirm": "60",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "60",
+                    "withdrawFee": "0.64",
+                    "withdrawable": "true"
+                },
+                "id": "Polygon",
+                "network": "POLYGON",
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 0.64
+            },
+            "BEP20": {
+                "info": {
+                    "browserUrl": "https://bscscan.com/tx/",
+                    "chain": "BEP20",
+                    "depositConfirm": "15",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "10",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "15",
+                    "withdrawFee": "0.29",
+                    "withdrawable": "true"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "limits": {
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 0.29
+            },
+            "ERC20": {
+                "info": {
+                    "browserUrl": "https://etherscan.io/tx/",
+                    "chain": "ERC20",
+                    "depositConfirm": "64",
+                    "extraWithDrawFee": "0",
+                    "minDepositAmount": "1",
+                    "minWithdrawAmount": "50",
+                    "needTag": "false",
+                    "rechargeable": "true",
+                    "withdrawConfirm": "64",
+                    "withdrawFee": "1.5",
+                    "withdrawable": "true"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "limits": {
+                    "withdraw": {
+                        "min": 50
+                    },
+                    "deposit": {
+                        "min": 1
+                    }
+                },
+                "active": true,
+                "withdraw": true,
+                "deposit": true,
+                "fee": 1.5
+            }
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.1,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 1
+            },
+            "deposit": {
+                "min": 0.01
+            }
+        }
     }
 }

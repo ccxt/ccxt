@@ -124,5 +124,23 @@
             "amount": {},
             "withdraw": {}
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "name": "USDC",
+        "info": {
+            "id": "USDC",
+            "name": "USDC",
+            "withdraw_enabled": true,
+            "deposit_enabled": true
+        },
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        }
     }
 }

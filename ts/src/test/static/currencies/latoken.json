@@ -230,5 +230,34 @@
             "withdraw": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "894f0a35-1f7e-4ff1-b1c1-1705b27d9dc2",
+        "code": "USDC",
+        "info": {
+            "id": "894f0a35-1f7e-4ff1-b1c1-1705b27d9dc2",
+            "status": "CURRENCY_STATUS_ACTIVE",
+            "type": "CURRENCY_TYPE_CRYPTO",
+            "name": "USD Coin",
+            "tag": "USDC",
+            "description": "",
+            "logo": "",
+            "decimals": "6",
+            "created": "1572912000000",
+            "tier": "1",
+            "assetClass": "ASSET_CLASS_UNKNOWN",
+            "minTransferAmount": "0"
+        },
+        "name": "USD Coin",
+        "type": "crypto",
+        "active": true,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0
+            },
+            "withdraw": {}
+        },
+        "networks": {}
     }
 }

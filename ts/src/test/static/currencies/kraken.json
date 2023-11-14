@@ -173,5 +173,27 @@
             "withdraw": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "aclass": "currency",
+            "altname": "USDC",
+            "decimals": "8",
+            "display_decimals": "4",
+            "collateral_value": "1.0",
+            "status": "enabled"
+        },
+        "name": "USDC",
+        "active": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {
+                "min": 1e-8
+            },
+            "withdraw": {}
+        },
+        "networks": {}
     }
 }

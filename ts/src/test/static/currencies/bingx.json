@@ -11,7 +11,7 @@
                     "minConfirm": "2",
                     "withdrawEnable": true,
                     "withdrawFee": "0.00035",
-                    "withdrawMax": "1.37925",
+                    "withdrawMax": "1.37911",
                     "withdrawMin": "0.0005"
                 },
                 {
@@ -21,7 +21,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.00003",
-                    "withdrawMax": "1.37925",
+                    "withdrawMax": "1.37911",
                     "withdrawMin": "0.00003000000000000001"
                 }
             ]
@@ -40,7 +40,7 @@
                     "minConfirm": "2",
                     "withdrawEnable": true,
                     "withdrawFee": "0.00035",
-                    "withdrawMax": "1.37925",
+                    "withdrawMax": "1.37911",
                     "withdrawMin": "0.0005"
                 },
                 "id": "BTC",
@@ -51,7 +51,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.0005,
-                        "max": 1.37925
+                        "max": 1.37911
                     }
                 }
             },
@@ -63,7 +63,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.00003",
-                    "withdrawMax": "1.37925",
+                    "withdrawMax": "1.37911",
                     "withdrawMin": "0.00003000000000000001"
                 },
                 "id": "BEP20",
@@ -74,7 +74,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.00003000000000000001,
-                        "max": 1.37925
+                        "max": 1.37911
                     }
                 }
             }
@@ -83,7 +83,7 @@
         "limits": {
             "amounts": {
                 "min": 0.0005,
-                "max": 1.37925
+                "max": 1.37911
             }
         }
     },
@@ -331,7 +331,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0027",
-                    "withdrawMax": "707.1135",
+                    "withdrawMax": "707.3136",
                     "withdrawMin": "0.00270000000000000001"
                 }
             ]
@@ -350,7 +350,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0027",
-                    "withdrawMax": "707.1135",
+                    "withdrawMax": "707.3136",
                     "withdrawMin": "0.00270000000000000001"
                 },
                 "id": "BEP20",
@@ -361,7 +361,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.0027,
-                        "max": 707.1135
+                        "max": 707.3136
                     }
                 }
             }
@@ -370,7 +370,7 @@
         "limits": {
             "amounts": {
                 "min": 0.0027,
-                "max": 707.1135
+                "max": 707.3136
             }
         }
     },
@@ -386,7 +386,7 @@
                     "minConfirm": "12",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0015",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.02"
                 },
                 {
@@ -396,7 +396,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00100000000000000001"
                 },
                 {
@@ -406,7 +406,7 @@
                     "minConfirm": "30",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00010000000000000001"
                 },
                 {
@@ -416,7 +416,7 @@
                     "minConfirm": "50",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00010000000000000001"
                 },
                 {
@@ -426,7 +426,7 @@
                     "minConfirm": "32",
                     "withdrawEnable": false,
                     "withdrawFee": "0.0003",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00030000000000000001"
                 },
                 {
@@ -436,7 +436,7 @@
                     "minConfirm": "12",
                     "withdrawEnable": true,
                     "withdrawFee": "0.001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.002"
                 },
                 {
@@ -446,7 +446,7 @@
                     "minConfirm": "32",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0002",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00020000000000000001"
                 },
                 {
@@ -456,7 +456,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00010000000000000001"
                 }
             ]
@@ -475,7 +475,7 @@
                     "minConfirm": "12",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0015",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.02"
                 },
                 "id": "ERC20",
@@ -486,7 +486,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.02,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -498,7 +498,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00100000000000000001"
                 },
                 "id": "BEP20",
@@ -509,7 +509,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.001,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -521,7 +521,7 @@
                     "minConfirm": "30",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00010000000000000001"
                 },
                 "id": "ARBITRUM",
@@ -532,7 +532,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.0001,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -544,7 +544,7 @@
                     "minConfirm": "50",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00010000000000000001"
                 },
                 "id": "OPTIMISM",
@@ -555,7 +555,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.0001,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -567,7 +567,7 @@
                     "minConfirm": "32",
                     "withdrawEnable": false,
                     "withdrawFee": "0.0003",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00030000000000000001"
                 },
                 "id": "ZKSYNCERA",
@@ -578,7 +578,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.00030000000000000003,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -590,7 +590,7 @@
                     "minConfirm": "12",
                     "withdrawEnable": true,
                     "withdrawFee": "0.001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.002"
                 },
                 "id": "LINEA",
@@ -601,7 +601,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.002,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -613,7 +613,7 @@
                     "minConfirm": "32",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0002",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00020000000000000001"
                 },
                 "id": "BASE",
@@ -624,7 +624,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.0002,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             },
@@ -636,7 +636,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.0001",
-                    "withdrawMax": "24.627994",
+                    "withdrawMax": "24.614536",
                     "withdrawMin": "0.00010000000000000001"
                 },
                 "id": "STARKNET",
@@ -647,7 +647,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.0001,
-                        "max": 24.627994
+                        "max": 24.614536
                     }
                 }
             }
@@ -656,7 +656,7 @@
         "limits": {
             "amounts": {
                 "min": 0.02,
-                "max": 24.627994
+                "max": 24.614536
             }
         }
     },
@@ -672,7 +672,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.54",
-                    "withdrawMax": "140449.43",
+                    "withdrawMax": "140409.99",
                     "withdrawMin": "0.54000000000000000001"
                 },
                 {
@@ -682,7 +682,7 @@
                     "minConfirm": "30",
                     "withdrawEnable": true,
                     "withdrawFee": "0.8",
-                    "withdrawMax": "140449.43",
+                    "withdrawMax": "140409.99",
                     "withdrawMin": "0.80000000000000000001"
                 }
             ]
@@ -701,7 +701,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.54",
-                    "withdrawMax": "140449.43",
+                    "withdrawMax": "140409.99",
                     "withdrawMin": "0.54000000000000000001"
                 },
                 "id": "BEP20",
@@ -712,7 +712,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.54,
-                        "max": 140449.43
+                        "max": 140409.99
                     }
                 }
             },
@@ -724,7 +724,7 @@
                     "minConfirm": "30",
                     "withdrawEnable": true,
                     "withdrawFee": "0.8",
-                    "withdrawMax": "140449.43",
+                    "withdrawMax": "140409.99",
                     "withdrawMin": "0.80000000000000000001"
                 },
                 "id": "ADA",
@@ -735,7 +735,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.8,
-                        "max": 140449.43
+                        "max": 140409.99
                     }
                 }
             }
@@ -744,7 +744,7 @@
         "limits": {
             "amounts": {
                 "min": 0.54,
-                "max": 140449.43
+                "max": 140409.99
             }
         }
     },
@@ -760,7 +760,7 @@
                     "minConfirm": "5",
                     "withdrawEnable": true,
                     "withdrawFee": "0.2",
-                    "withdrawMax": "76852.13",
+                    "withdrawMax": "76828.51",
                     "withdrawMin": "0.20000000000000000001"
                 },
                 {
@@ -770,7 +770,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.29",
-                    "withdrawMax": "76852.13",
+                    "withdrawMax": "76828.51",
                     "withdrawMin": "0.29000000000000000001"
                 }
             ]
@@ -789,7 +789,7 @@
                     "minConfirm": "5",
                     "withdrawEnable": true,
                     "withdrawFee": "0.2",
-                    "withdrawMax": "76852.13",
+                    "withdrawMax": "76828.51",
                     "withdrawMin": "0.20000000000000000001"
                 },
                 "id": "XRP",
@@ -800,7 +800,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.2,
-                        "max": 76852.13
+                        "max": 76828.51
                     }
                 }
             },
@@ -812,7 +812,7 @@
                     "minConfirm": "15",
                     "withdrawEnable": true,
                     "withdrawFee": "0.29",
-                    "withdrawMax": "76852.13",
+                    "withdrawMax": "76828.51",
                     "withdrawMin": "0.29000000000000000001"
                 },
                 "id": "BEP20",
@@ -823,7 +823,7 @@
                 "limits": {
                     "amounts": {
                         "min": 0.29,
-                        "max": 76852.13
+                        "max": 76828.51
                     }
                 }
             }
@@ -832,7 +832,359 @@
         "limits": {
             "amounts": {
                 "min": 0.2,
-                "max": 76852.13
+                "max": 76828.51
+            }
+        }
+    },
+    "USDC": {
+        "info": {
+            "coin": "USDC",
+            "name": "USDC",
+            "networkList": [
+                {
+                    "name": "USDC",
+                    "network": "ERC20",
+                    "isDefault": true,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "6",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "30"
+                },
+                {
+                    "name": "USDC",
+                    "network": "TRC20",
+                    "isDefault": false,
+                    "minConfirm": "2",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "1"
+                },
+                {
+                    "name": "USDC",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Arbitrum One (Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Arbitrum One (Circle)",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Optimism (Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Optimism (Circle)",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                {
+                    "name": "USDC",
+                    "network": "SOL",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "1.00000000000000000001"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Polygon (Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "256",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "0.80000000000000000001"
+                },
+                {
+                    "name": "USDC",
+                    "network": "Polygon (Circle)",
+                    "isDefault": false,
+                    "minConfirm": "256",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0.1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                }
+            ]
+        },
+        "code": "USDC",
+        "id": "USDC",
+        "name": "USDC",
+        "active": true,
+        "withdraw": false,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "name": "USDC",
+                    "network": "ERC20",
+                    "isDefault": true,
+                    "minConfirm": "12",
+                    "withdrawEnable": true,
+                    "withdrawFee": "6",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "30"
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 30,
+                        "max": 50015
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "name": "USDC",
+                    "network": "TRC20",
+                    "isDefault": false,
+                    "minConfirm": "2",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "1"
+                },
+                "id": "TRC20",
+                "network": "TRC20",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 1,
+                        "max": 50015
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "name": "USDC",
+                    "network": "BEP20",
+                    "isDefault": false,
+                    "minConfirm": "15",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                "id": "BEP20",
+                "network": "BEP20",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50015
+                    }
+                }
+            },
+            "Arbitrum One (Bridged)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Arbitrum One (Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                "id": "Arbitrum One (Bridged)",
+                "network": "Arbitrum One (Bridged)",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50015
+                    }
+                }
+            },
+            "Arbitrum One (Circle)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Arbitrum One (Circle)",
+                    "isDefault": false,
+                    "minConfirm": "30",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                "id": "Arbitrum One (Circle)",
+                "network": "Arbitrum One (Circle)",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50015
+                    }
+                }
+            },
+            "Optimism (Bridged)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Optimism (Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                "id": "Optimism (Bridged)",
+                "network": "Optimism (Bridged)",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50015
+                    }
+                }
+            },
+            "Optimism (Circle)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Optimism (Circle)",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                "id": "Optimism (Circle)",
+                "network": "Optimism (Circle)",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50015
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "name": "USDC",
+                    "network": "SOL",
+                    "isDefault": false,
+                    "minConfirm": "50",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "1.00000000000000000001"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 1,
+                        "max": 50015
+                    }
+                }
+            },
+            "Polygon (Bridged)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Polygon (Bridged)",
+                    "isDefault": false,
+                    "minConfirm": "256",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.8",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "0.80000000000000000001"
+                },
+                "id": "Polygon (Bridged)",
+                "network": "Polygon (Bridged)",
+                "fee": 6,
+                "active": true,
+                "withdraw": true,
+                "limits": {
+                    "amounts": {
+                        "min": 0.8,
+                        "max": 50015
+                    }
+                }
+            },
+            "Polygon (Circle)": {
+                "info": {
+                    "name": "USDC",
+                    "network": "Polygon (Circle)",
+                    "isDefault": false,
+                    "minConfirm": "256",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0.1",
+                    "withdrawMax": "50015",
+                    "withdrawMin": "10"
+                },
+                "id": "Polygon (Circle)",
+                "network": "Polygon (Circle)",
+                "fee": 6,
+                "active": true,
+                "withdraw": false,
+                "limits": {
+                    "amounts": {
+                        "min": 10,
+                        "max": 50015
+                    }
+                }
+            }
+        },
+        "fee": 6,
+        "limits": {
+            "amounts": {
+                "min": 30,
+                "max": 50015
             }
         }
     }

@@ -542,5 +542,147 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": [
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "1",
+                "withdraw_fee_currency": "USDC",
+                "chain": "TRC20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDC",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "10",
+                "withdraw_fee_currency": "USDC",
+                "chain": "ERC20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDC",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            },
+            {
+                "deposit_status": "1",
+                "min_withdraw_fee": "2",
+                "withdraw_fee_currency": "USDT",
+                "chain": "BEP20",
+                "withdraw_fee_rate": "0",
+                "min_withdraw_amount": "10",
+                "currency": "USDC",
+                "withdraw_status": "1",
+                "min_deposit_amount": "10"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 10,
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10
+            },
+            "deposit": {
+                "min": 10
+            }
+        },
+        "networks": {
+            "TRC20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "1",
+                    "withdraw_fee_currency": "USDC",
+                    "chain": "TRC20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDC",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "TRC20",
+                "network": "TRX",
+                "active": true,
+                "fee": 1,
+                "precision": 1,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "10",
+                    "withdraw_fee_currency": "USDC",
+                    "chain": "ERC20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDC",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "ERC20",
+                "network": "ETH",
+                "active": true,
+                "fee": 10,
+                "precision": 10,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "deposit_status": "1",
+                    "min_withdraw_fee": "2",
+                    "withdraw_fee_currency": "USDT",
+                    "chain": "BEP20",
+                    "withdraw_fee_rate": "0",
+                    "min_withdraw_amount": "10",
+                    "currency": "USDC",
+                    "withdraw_status": "1",
+                    "min_deposit_amount": "10"
+                },
+                "id": "BEP20",
+                "network": "BSC",
+                "active": true,
+                "fee": 2,
+                "precision": 2,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {
+                        "min": 10
+                    }
+                }
+            }
+        }
     }
 }

@@ -1658,5 +1658,144 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "id": "USDC",
+            "display_name": {
+                "ko-kr": "유에스디코인",
+                "en-us": "USD Coin"
+            },
+            "show_in_ui": true,
+            "platform": [
+                {
+                    "id": "ETH",
+                    "priority": "1",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDC",
+                    "precision": "6",
+                    "min_confirmation_count": "15",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Ethereum (ERC-20)",
+                            "ko-kr": "Ethereum (ERC-20)"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "1.5",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "48.2154",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.018",
+                            "priority": "2",
+                            "currency_id": "ETH"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Ethereum (ERC-20)",
+                            "ko-kr": "Ethereum (ERC-20)"
+                        }
+                    }
+                }
+            ],
+            "internal_transfer": {
+                "suspended_reason": null,
+                "suspended": false
+            },
+            "stakeable": false,
+            "unstakeable": false,
+            "auto_stake": false,
+            "auto_stake_amount": "0",
+            "shutdown": false
+        },
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 48.2154,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {},
+            "deposit": {
+                "min": 0
+            },
+            "withdraw": {
+                "min": 1.5
+            }
+        },
+        "networks": {
+            "ERC20": {
+                "id": "ETH",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 48.2154,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1.5
+                    },
+                    "deposit": {
+                        "min": 0
+                    }
+                },
+                "info": {
+                    "id": "ETH",
+                    "priority": "1",
+                    "deposit": true,
+                    "withdrawal": true,
+                    "currency_id": "USDC",
+                    "precision": "6",
+                    "min_confirmation_count": "15",
+                    "require_destination_tag": false,
+                    "allow_withdrawal_destination_tag": false,
+                    "display_name": {
+                        "name": {
+                            "en-us": "Ethereum (ERC-20)",
+                            "ko-kr": "Ethereum (ERC-20)"
+                        }
+                    },
+                    "min_deposit_amount": "0",
+                    "min_withdrawal_amount": "1.5",
+                    "withdrawal_fee": [
+                        {
+                            "amount": "48.2154",
+                            "priority": "1",
+                            "currency_id": "USDC"
+                        },
+                        {
+                            "amount": "0.018",
+                            "priority": "2",
+                            "currency_id": "ETH"
+                        }
+                    ],
+                    "deposit_fee": {},
+                    "suspended_reason": "",
+                    "deposit_suspended": false,
+                    "withdrawal_suspended": false,
+                    "platform_currency_display_name": {
+                        "name": {
+                            "en-us": "Ethereum (ERC-20)",
+                            "ko-kr": "Ethereum (ERC-20)"
+                        }
+                    }
+                }
+            }
+        }
     }
 }

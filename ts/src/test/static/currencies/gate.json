@@ -1135,5 +1135,255 @@
                 }
             }
         }
+    },
+    "USDC": {
+        "id": "usdc",
+        "code": "USDC",
+        "info": [
+            {
+                "currency": "USDC",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": false,
+                "chain": "ETH"
+            },
+            {
+                "currency": "USDC_ARBEVM",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": true,
+                "chain": "ARBEVM"
+            },
+            {
+                "currency": "USDC_C",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": true,
+                "chain": "AVAX_C"
+            },
+            {
+                "currency": "USDC_MATIC",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": true,
+                "chain": "MATIC"
+            },
+            {
+                "currency": "USDC_OPETH",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": true,
+                "chain": "OPETH"
+            },
+            {
+                "currency": "USDC_SOL",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": true,
+                "chain": "SOL"
+            },
+            {
+                "currency": "USDC_TRX",
+                "delisted": false,
+                "withdraw_disabled": false,
+                "withdraw_delayed": false,
+                "deposit_disabled": false,
+                "trade_disabled": true,
+                "chain": "TRX"
+            }
+        ],
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": [],
+        "precision": 0.0001,
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "currency": "USDC",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": false,
+                    "chain": "ETH"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "currencyId": "USDC",
+                "lowerCaseCurrencyId": "usdc",
+                "deposit": true,
+                "withdraw": true,
+                "active": true,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            },
+            "ARBITRUM_ONE": {
+                "info": {
+                    "currency": "USDC_ARBEVM",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": true,
+                    "chain": "ARBEVM"
+                },
+                "id": "ARBEVM",
+                "network": "ARBITRUM_ONE",
+                "currencyId": "USDC_ARBEVM",
+                "lowerCaseCurrencyId": "usdc_arbevm",
+                "deposit": true,
+                "withdraw": true,
+                "active": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            },
+            "AVALANCHE_C": {
+                "info": {
+                    "currency": "USDC_C",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": true,
+                    "chain": "AVAX_C"
+                },
+                "id": "AVAX_C",
+                "network": "AVALANCHE_C",
+                "currencyId": "USDC_C",
+                "lowerCaseCurrencyId": "usdc_c",
+                "deposit": true,
+                "withdraw": true,
+                "active": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            },
+            "POLYGON": {
+                "info": {
+                    "currency": "USDC_MATIC",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": true,
+                    "chain": "MATIC"
+                },
+                "id": "MATIC",
+                "network": "POLYGON",
+                "currencyId": "USDC_MATIC",
+                "lowerCaseCurrencyId": "usdc_matic",
+                "deposit": true,
+                "withdraw": true,
+                "active": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            },
+            "OPTIMISM": {
+                "info": {
+                    "currency": "USDC_OPETH",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": true,
+                    "chain": "OPETH"
+                },
+                "id": "OPETH",
+                "network": "OPTIMISM",
+                "currencyId": "USDC_OPETH",
+                "lowerCaseCurrencyId": "usdc_opeth",
+                "deposit": true,
+                "withdraw": true,
+                "active": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            },
+            "SOLANA": {
+                "info": {
+                    "currency": "USDC_SOL",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": true,
+                    "chain": "SOL"
+                },
+                "id": "SOL",
+                "network": "SOLANA",
+                "currencyId": "USDC_SOL",
+                "lowerCaseCurrencyId": "usdc_sol",
+                "deposit": true,
+                "withdraw": true,
+                "active": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "currency": "USDC_TRX",
+                    "delisted": false,
+                    "withdraw_disabled": false,
+                    "withdraw_delayed": false,
+                    "deposit_disabled": false,
+                    "trade_disabled": true,
+                    "chain": "TRX"
+                },
+                "id": "TRX",
+                "network": "TRC20",
+                "currencyId": "USDC_TRX",
+                "lowerCaseCurrencyId": "usdc_trx",
+                "deposit": true,
+                "withdraw": true,
+                "active": false,
+                "precision": 0.0001,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {},
+                    "deposit": {}
+                }
+            }
+        }
     }
 }

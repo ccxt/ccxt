@@ -154,5 +154,31 @@
             "amount": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "info": {
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "decimals": "6",
+            "tradeDecimals": "16",
+            "fiatSymbol": "USDC",
+            "depositEnabled": true,
+            "withdrawalEnabled": true,
+            "transferEnabled": true,
+            "active": true
+        },
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 0.000001,
+        "limits": {
+            "withdraw": {},
+            "amount": {}
+        },
+        "networks": {}
     }
 }

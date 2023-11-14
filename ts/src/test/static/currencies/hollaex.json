@@ -365,5 +365,72 @@
             "withdraw": {}
         },
         "networks": {}
+    },
+    "USDC": {
+        "id": "usdc",
+        "numericId": 421,
+        "code": "USDC",
+        "info": {
+            "id": "421",
+            "fullname": "USD Coin",
+            "symbol": "usdc",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "1",
+            "min": "0.1",
+            "max": "10000000",
+            "increment_unit": "0.1",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdc.svg",
+            "code": "usdc",
+            "is_public": true,
+            "meta": {
+                "color": "#2774ca",
+                "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "decimal_points": "6"
+            },
+            "estimated_price": "1.0000667090311497",
+            "description": "<p>USD Coin (USDC) is a stablecoin controled by The Centre consortium, consisting of Circle and Coinbase. USDC is pegged 1:1 to the US dollar. USDC provides fast and secure transfers while maintaining its value, making it widely used in DeFi as a stable store of value and collateral for loans.</p>",
+            "type": "blockchain",
+            "network": "eth,trx,xlm",
+            "standard": "erc-20",
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "eth": {
+                    "value": "10",
+                    "symbol": "usdc"
+                },
+                "trx": {
+                    "value": "2",
+                    "symbol": "usdc"
+                },
+                "xlm": {
+                    "value": "1",
+                    "symbol": "usdc"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2021-04-04T19:01:04.774Z",
+            "updated_at": "2023-11-14T10:25:03.763Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 0.1,
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 10000000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
     }
 }
