@@ -4108,6 +4108,7 @@ class gate extends Exchange {
             /**
              * edit a trade order, gate currently only supports the modification of the $price or $amount fields
              * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+             * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -4119,9 +4120,6 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['spot']) {
-                throw new BadRequest($this->id . ' editOrder() supports only spot markets');
-            }
             list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
             $account = $this->convert_type_to_account($marketType);
             $isLimitOrder = ($type === 'limit');
@@ -4142,7 +4140,13 @@ class gate extends Exchange {
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privateSpotPatchOrdersOrderId (array_merge($request, $query)));
+            $response = null;
+            if ($market['spot']) {
+                $response = Async\await($this->privateSpotPatchOrdersOrderId (array_merge($request, $query)));
+            } else {
+                $request['settle'] = $market['settleId'];
+                $response = Async\await($this->privateFuturesPutSettleOrdersOrderId (array_merge($request, $query)));
+            }
             //
             //     {
             //         "id" => "243233276443",

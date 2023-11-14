@@ -58,5 +58,6 @@ export default class testMainClass extends baseMainTestClass {
     testHuobi(): Promise<void>;
     testWoo(): Promise<void>;
     testBitmart(): Promise<void>;
+    testCoinex(): Promise<void>;
 }
 export {};

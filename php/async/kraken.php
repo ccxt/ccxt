@@ -204,12 +204,6 @@ class kraken extends Exchange {
                         'WithdrawInfo' => 3,
                         'WithdrawStatus' => 3,
                         'WalletTransfer' => 3,
-                        // staking
-                        'Stake' => 3,
-                        'Unstake' => 3,
-                        'Staking/Assets' => 3,
-                        'Staking/Pending' => 3,
-                        'Staking/Transactions' => 3,
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
@@ -504,7 +498,7 @@ class kraken extends Exchange {
                             'max' => null,
                         ),
                         'cost' => array(
-                            'min' => null,
+                            'min' => $this->safe_number($market, 'costmin'),
                             'max' => null,
                         ),
                     ),
@@ -1295,7 +1289,7 @@ class kraken extends Exchange {
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -1632,7 +1626,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
-             * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+             * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -2239,6 +2233,9 @@ class kraken extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
             );
+            if ($since !== null) {
+                $request['start'] = $since;
+            }
             $response = Async\await($this->privatePostDepositStatus (array_merge($request, $params)));
             //
             //     {  error => array(),
@@ -2474,7 +2471,7 @@ class kraken extends Exchange {
                 $request = array(
                     'asset' => $currency['id'],
                     'amount' => $amount,
-                    // 'address' => $address, // they don't allow withdrawals to direct addresses
+                    'address' => $address,
                 );
                 $response = Async\await($this->privatePostWithdraw (array_merge($request, $params)));
                 //
