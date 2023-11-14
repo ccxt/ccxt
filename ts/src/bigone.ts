@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -514,86 +514,66 @@ export default class bigone extends Exchange {
         //     }
         //
         const markets = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'name');
-            const uuid = this.safeString (market, 'id');
-            const baseAsset = this.safeValue (market, 'base_asset', {});
-            const quoteAsset = this.safeValue (market, 'quote_asset', {});
-            const baseId = this.safeString (baseAsset, 'symbol');
-            const quoteId = this.safeString (quoteAsset, 'symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const entry = {
-                'id': id,
-                'uuid': uuid,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_quote_value'),
-                        'max': this.safeNumber (market, 'max_quote_value'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            };
-            result.push (entry);
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
-    async loadMarkets (reload = false, params = {}) {
-        const markets = await super.loadMarkets (reload, params);
-        let marketsByUuid = this.safeValue (this.options, 'marketsByUuid');
-        if ((marketsByUuid === undefined) || reload) {
-            marketsByUuid = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const uuid = this.safeString (market, 'uuid');
-                marketsByUuid[uuid] = market;
-            }
-            this.options['marketsByUuid'] = marketsByUuid;
-        }
-        return markets;
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'name');
+        const baseAsset = this.safeValue (market, 'base_asset', {});
+        const quoteAsset = this.safeValue (market, 'quote_asset', {});
+        const baseId = this.safeString (baseAsset, 'symbol');
+        const quoteId = this.safeString (quoteAsset, 'symbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_quote_value'),
+                    'max': this.safeNumber (market, 'max_quote_value'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseTicker (ticker, market = undefined): Ticker {

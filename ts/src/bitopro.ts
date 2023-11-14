@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, In
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -306,71 +306,69 @@ export default class bitopro extends Exchange {
         //         ]
         //     }
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const active = !this.safeValue (market, 'maintain');
-            const id = this.safeString (market, 'pair');
-            const uppercaseId = id.toUpperCase ();
-            const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'quote');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'minLimitBaseAmount'),
-                    'max': this.safeNumber (market, 'maxLimitBaseAmount'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push ({
-                'id': id,
-                'uppercaseId': uppercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'settle': undefined,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'derivative': false,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'limits': limits,
-                'precision': {
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
-                },
-                'active': active,
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        const active = !this.safeValue (market, 'maintain');
+        const id = this.safeString (market, 'pair');
+        const uppercaseId = id.toUpperCase ();
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const limits = {
+            'amount': {
+                'min': this.safeNumber (market, 'minLimitBaseAmount'),
+                'max': this.safeNumber (market, 'maxLimitBaseAmount'),
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'leverage': {
+                'min': undefined,
+                'max': undefined,
+            },
+        };
+        return {
+            'id': id,
+            'uppercaseId': uppercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': base,
+            'quoteId': quote,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': limits,
+            'precision': {
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+            },
+            'active': active,
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseTicker (ticker, market = undefined): Ticker {
