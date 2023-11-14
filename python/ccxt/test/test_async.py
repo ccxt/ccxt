@@ -35,6 +35,7 @@ from ccxt.base.errors import AuthenticationError
 class Argv(object):
     id_tests = False
     static_tests = False
+    request_tests = False
     response_tests = False
     token_bucket = False
     sandbox = False
@@ -59,6 +60,7 @@ parser.add_argument('--info', action='store_true', help='enable info output')
 parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
+parser.add_argument('--requestTests', action='store_true', help='run response tests')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -103,7 +105,8 @@ ext = 'py'
 
 class baseMainTestClass():
     lang = 'PY'
-    static_tests_failed = False
+    request_tests_failed = False
+    response_tests_failed = False
     response_tests = False
     skipped_methods = {}
     check_public_tests = {}

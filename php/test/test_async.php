@@ -49,9 +49,11 @@ class baseMainTestClass {
     public $private_test_only = false;
     public $sandbox = false;
     public $static_tests = false;
-    public $static_tests_failed = false;
+    public $request_tests_failed = false;
+    public $response_tests_failed = false;
     public $id_tests = false;
     public $response_tests = false;
+    public $request_tests = false;
     public $root_dir = root_dir;
     public $env_vars = envVars;
     public $rootDir_for_skips = rootDirForSkips;
