@@ -162,6 +162,23 @@
                     }
                 ],
                 "output": "{\"symbol\":\"TRXUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"linear\",\"qty\":\"1\",\"stopLoss\":\"0.04\",\"takeProfit\":\"1\"}"
+            },
+            {
+                "description": "Create swap stop price with stopLoss attached",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  0.001,
+                  41000,
+                  {
+                    "triggerPrice": "40000",
+                    "stopLoss": "39500"
+                  }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"0.001\",\"price\":\"41000\",\"triggerDirection\":1,\"triggerPrice\":\"40000\",\"stopLoss\":\"39500\"}"
             }
         ],
         "createOrders": [
