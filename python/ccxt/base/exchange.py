@@ -92,6 +92,7 @@ from time import mktime
 from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
+from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
@@ -249,13 +250,6 @@ class Exchange(object):
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
     positions = None
-
-    status = {
-        'status': 'ok',
-        'updated': None,
-        'eta': None,
-        'url': None,
-    }
 
     requiredCredentials = {
         'apiKey': True,
