@@ -2202,6 +2202,8 @@ class deribit(Exchange, ImplicitAPI):
             'status': status,
             'updated': updated,
             'network': None,
+            'internal': None,
+            'comment': None,
             'fee': fee,
         }
 

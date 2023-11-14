@@ -2142,6 +2142,7 @@ class poloniex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'comment': None,
+            'internal': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCostString),

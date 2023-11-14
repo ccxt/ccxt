@@ -452,6 +452,8 @@ class timex extends timex$1 {
             'currency': this.safeCurrencyCode(undefined, currency),
             'status': 'ok',
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': undefined,
         };
     }

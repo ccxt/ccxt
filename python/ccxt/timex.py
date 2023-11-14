@@ -453,6 +453,8 @@ class timex(Exchange, ImplicitAPI):
             'currency': self.safe_currency_code(None, currency),
             'status': 'ok',
             'updated': None,
+            'internal': None,
+            'comment': None,
             'fee': None,
         }
 

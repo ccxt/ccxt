@@ -842,8 +842,12 @@ class coinbase(Exchange, ImplicitAPI):
                 symbol = base + '/' + quote
         sizeInQuote = self.safe_value(trade, 'size_in_quote')
         v3Price = self.safe_string(trade, 'price')
-        v3Amount = None if (sizeInQuote) else self.safe_string(trade, 'size')
-        v3Cost = self.safe_string(trade, 'size') if (sizeInQuote) else None
+        v3Cost = None
+        v3Amount = self.safe_string(trade, 'size')
+        if sizeInQuote:
+            # calculate base size
+            v3Cost = v3Amount
+            v3Amount = Precise.string_div(v3Amount, v3Price)
         v3FeeCost = self.safe_string(trade, 'commission')
         amountString = self.safe_string(amountObject, 'amount', v3Amount)
         costString = self.safe_string(subtotalObject, 'amount', v3Cost)

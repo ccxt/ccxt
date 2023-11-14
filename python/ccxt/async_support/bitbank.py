@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -197,66 +197,65 @@ class bitbank(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data')
         pairs = self.safe_value(data, 'pairs', [])
-        result = []
-        for i in range(0, len(pairs)):
-            entry = pairs[i]
-            id = self.safe_string(entry, 'name')
-            baseId = self.safe_string(entry, 'base_asset')
-            quoteId = self.safe_string(entry, 'quote_asset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': self.safe_value(entry, 'is_enabled'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
-                'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_digits'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'price_digits'))),
+        return self.parse_markets(pairs)
+
+    def parse_market(self, entry) -> Market:
+        id = self.safe_string(entry, 'name')
+        baseId = self.safe_string(entry, 'base_asset')
+        quoteId = self.safe_string(entry, 'quote_asset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': self.safe_value(entry, 'is_enabled'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
+            'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(entry, 'amount_digits'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(entry, 'price_digits'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(entry, 'unit_amount'),
-                        'max': self.safe_number(entry, 'limit_max_amount'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(entry, 'unit_amount'),
+                    'max': self.safe_number(entry, 'limit_max_amount'),
                 },
-                'created': None,
-                'info': entry,
-            })
-        return result
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': entry,
+        }
 
     def parse_ticker(self, ticker, market=None) -> Ticker:
         symbol = self.safe_symbol(None, market)
@@ -836,6 +835,7 @@ class bitbank(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': None,
             'info': transaction,
         }

@@ -1863,6 +1863,7 @@ class woo extends Exchange {
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->safe_timestamp($transaction, 'updated_time'),
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
             'network' => null,
         );

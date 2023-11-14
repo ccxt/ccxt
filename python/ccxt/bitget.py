@@ -844,6 +844,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40017': ExchangeError,  # Parameter verification failed
                     '40018': PermissionDenied,  # Invalid IP
                     '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40031': AccountSuspended,  # The account has been cancelled and cannot be used again
                     '40037': AuthenticationError,  # Apikey does not exist
                     '40102': BadRequest,  # Contract configuration does not exist, please check the parameters
                     '40103': BadRequest,  # Request method cannot be empty
@@ -1138,12 +1139,6 @@ class bitget(Exchange, ImplicitAPI):
         result = promises[0]
         for i in range(1, len(promises)):
             result = self.array_concat(result, promises[i])
-        return result
-
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
         return result
 
     def parse_market(self, market) -> Market:
@@ -1897,6 +1892,7 @@ class bitget(Exchange, ImplicitAPI):
             'tag': tag,
             'tagTo': tag,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
 
@@ -3290,7 +3286,7 @@ class bitget(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_value(rawOrder, 'params', {})
-            marginResult = self.handle_margin_mode_and_params('createOrders', params)
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
             currentMarginMode = marginResult[0]
             if currentMarginMode is not None:
                 if marginMode is None:

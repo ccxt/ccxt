@@ -701,6 +701,7 @@ class zaif extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
             'info' => $transaction,
         );

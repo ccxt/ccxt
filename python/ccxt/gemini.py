@@ -1527,6 +1527,8 @@ class gemini(Exchange, ImplicitAPI):
             'currency': code,
             'status': self.parse_transaction_status(statusRaw),
             'updated': None,
+            'internal': None,
+            'comment': self.safe_string(transaction, 'message'),
             'fee': fee,
         }
 

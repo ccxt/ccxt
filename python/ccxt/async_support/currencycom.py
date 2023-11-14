@@ -1551,7 +1551,7 @@ class currencycom(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee['currency'] = code
             fee['cost'] = feeCost
-        result = {
+        return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction, 'blockchainTransactionHash'),
@@ -1569,10 +1569,10 @@ class currencycom(Exchange, ImplicitAPI):
             'tagFrom': None,
             'tagTo': None,
             'updated': None,
+            'internal': None,
             'comment': None,
             'fee': fee,
         }
-        return result
 
     def parse_transaction_status(self, status):
         statuses = {

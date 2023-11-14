@@ -508,12 +508,9 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #    }
         #
-        result = []
         data = self.safe_value(response, 'data')
         markets = self.safe_value(data, 'symbols', [])
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
+        return self.parse_markets(markets)
 
     async def fetch_swap_markets(self, params):
         response = await self.swapV2PublicGetQuoteContracts(params)
@@ -540,11 +537,8 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        result = []
-        markets = self.safe_value(response, 'data')
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
+        markets = self.safe_value(response, 'data', [])
+        return self.parse_markets(markets)
 
     def parse_market(self, market) -> Market:
         id = self.safe_string(market, 'symbol')
@@ -2716,6 +2710,7 @@ class bingx(Exchange, ImplicitAPI):
                 'cost': self.safe_number(transaction, 'transactionFee'),
                 'rate': None,
             },
+            'internal': None,
         }
 
     def parse_transaction_status(self, status):

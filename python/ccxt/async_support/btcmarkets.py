@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcmarkets import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -331,7 +331,8 @@ class btcmarkets(Exchange, ImplicitAPI):
             'currency': code,
             'status': status,
             'updated': lastUpdate,
-            'comment': None,
+            'comment': self.safe_string(transaction, 'description'),
+            'internal': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(fee),
@@ -360,74 +361,73 @@ class btcmarkets(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            baseId = self.safe_string(market, 'baseAssetName')
-            quoteId = self.safe_string(market, 'quoteAssetName')
-            id = self.safe_string(market, 'marketId')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
-            pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
-            minAmount = self.safe_number(market, 'minOrderAmount')
-            maxAmount = self.safe_number(market, 'maxOrderAmount')
-            minPrice = None
-            if quote == 'AUD':
-                minPrice = pricePrecision
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': fees['taker'],
-                'maker': fees['maker'],
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals'))),
-                    'price': pricePrecision,
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        baseId = self.safe_string(market, 'baseAssetName')
+        quoteId = self.safe_string(market, 'quoteAssetName')
+        id = self.safe_string(market, 'marketId')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
+        pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
+        minAmount = self.safe_number(market, 'minOrderAmount')
+        maxAmount = self.safe_number(market, 'maxOrderAmount')
+        minPrice = None
+        if quote == 'AUD':
+            minPrice = pricePrecision
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': None,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': fees['taker'],
+            'maker': fees['maker'],
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals'))),
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': minPrice,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     async def fetch_time(self, params={}):
         """

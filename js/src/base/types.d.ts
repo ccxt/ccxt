@@ -14,6 +14,8 @@ export interface Fee {
 }
 export interface Market {
     id: string;
+    uppercaseId?: string;
+    lowercaseId?: string;
     symbol: string;
     base: string;
     quote: string;
@@ -32,6 +34,7 @@ export interface Market {
     contractSize?: number | undefined;
     linear?: boolean | undefined;
     inverse?: boolean | undefined;
+    quanto?: boolean;
     expiry?: number | undefined;
     expiryDatetime?: string | undefined;
     strike?: number | undefined;
@@ -126,7 +129,7 @@ export interface Ticker {
 export interface Transaction {
     info: any;
     id: string;
-    txid?: string;
+    txid: string;
     timestamp: number;
     datetime: string;
     address: string;
@@ -142,8 +145,8 @@ export interface Transaction {
     updated: number;
     fee: Fee;
     network: string;
-    comment?: string;
-    internal?: boolean;
+    comment: string;
+    internal: boolean;
 }
 export interface Tickers extends Dictionary<Ticker> {
 }

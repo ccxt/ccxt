@@ -1638,6 +1638,8 @@ class huobijp(Exchange, ImplicitAPI):
             'currency': code,
             'status': self.parse_transaction_status(self.safe_string(transaction, 'state')),
             'updated': self.safe_integer(transaction, 'updated-at'),
+            'comment': None,
+            'internal': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),

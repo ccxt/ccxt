@@ -2167,6 +2167,8 @@ class ndax(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status_by_type(transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'internal': None,
+            'comment': None,
             'network': None,
         }
 

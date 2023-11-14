@@ -955,6 +955,7 @@ class indodax(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'withdraw_memo'),
+            'internal': None,
             'fee': fee,
             'info': transaction,
         }

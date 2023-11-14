@@ -1186,6 +1186,8 @@ class lykke extends Exchange {
             'currency' => $code,
             'status' => null,
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }

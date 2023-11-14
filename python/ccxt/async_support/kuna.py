@@ -1692,6 +1692,7 @@ class kuna(Exchange, ImplicitAPI):
         type = self.safe_string_lower(transaction, 'type')
         address = self.safe_string(transaction, 'address')
         isDeposit = (type == 'deposit')
+        parsedType = type if isDeposit else 'withdrawal'
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -1704,13 +1705,14 @@ class kuna(Exchange, ImplicitAPI):
             'address': address,
             'addressTo': address,
             'amount': self.safe_number(transaction, 'amount'),
-            'type': not 'withdrawal' if isDeposit else type,
+            'type': parsedType,
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'updated': self.parse8601(self.safe_string(transaction, 'updatedAt')),
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'memo'),
+            'internal': None,
             'fee': {
                 'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,

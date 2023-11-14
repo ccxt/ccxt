@@ -2176,8 +2176,9 @@ class binance(ccxt.async_support.binance):
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
-        defaultType = self.safe_string_2(self.options, 'watchPositions', 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
+        type = self.handle_market_type_and_params('watchPositions', market, params)
+        if type == 'spot' or type == 'margin':
+            type = 'future'
         subType = None
         subType, params = self.handle_sub_type_and_params('watchPositions', market, params)
         if self.isLinear(type, subType):
@@ -2306,7 +2307,7 @@ class binance(ccxt.async_support.binance):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_symbol(marketId),
+            'symbol': self.safe_symbol(marketId, None, None, 'future'),
             'notional': None,
             'marginMode': self.safe_string(position, 'mt'),
             'liquidationPrice': None,

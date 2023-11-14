@@ -39,7 +39,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'countries': ['NL'],  # Netherlands
             'rateLimit': 60,  # 1000 requests per minute
             'version': 'v2',
-            'certified': True,
+            'certified': False,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -327,7 +327,9 @@ class bitvavo(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetMarkets(params)
-        currencies = self.fetch_currencies()
+        currencies = self.currencies
+        if self.currencies is None:
+            currencies = self.fetch_currencies()
         currenciesById = self.index_by(currencies, 'id')
         #
         #     [
@@ -344,6 +346,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #     ]
         #
         result = []
+        fees = self.fees
         for i in range(0, len(response)):
             market = response[i]
             id = self.safe_string(market, 'market')
@@ -378,6 +381,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
                 'precision': {
                     'amount': self.safe_integer(baseCurrency, 'decimals', basePrecision),
                     'price': self.safe_integer(market, 'pricePrecision'),
@@ -1693,6 +1698,8 @@ class bitvavo(Exchange, ImplicitAPI):
             'updated': None,
             'fee': fee,
             'network': None,
+            'comment': None,
+            'internal': None,
         }
 
     def parse_deposit_withdraw_fee(self, fee, currency=None):

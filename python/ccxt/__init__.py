@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.1.51'
+__version__ = '4.1.52'
 
 # ----------------------------------------------------------------------------
 
@@ -113,7 +113,6 @@ from ccxt.blockchaincom import blockchaincom                          # noqa: F4
 from ccxt.btcalpha import btcalpha                                    # noqa: F401
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
-from ccxt.btctradeua import btctradeua                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
@@ -122,7 +121,6 @@ from ccxt.coinbaseprime import coinbaseprime                          # noqa: F4
 from ccxt.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
-from ccxt.coinfalcon import coinfalcon                                # noqa: F401
 from ccxt.coinlist import coinlist                                    # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
@@ -222,7 +220,6 @@ exchanges = [
     'btcalpha',
     'btcbox',
     'btcmarkets',
-    'btctradeua',
     'btcturk',
     'bybit',
     'cex',
@@ -231,7 +228,6 @@ exchanges = [
     'coinbasepro',
     'coincheck',
     'coinex',
-    'coinfalcon',
     'coinlist',
     'coinmate',
     'coinone',

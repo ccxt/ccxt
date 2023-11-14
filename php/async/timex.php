@@ -464,6 +464,8 @@ class timex extends Exchange {
             'currency' => $this->safe_currency_code(null, $currency),
             'status' => 'ok',
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => null,
         );
     }

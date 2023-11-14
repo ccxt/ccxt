@@ -415,6 +415,13 @@ class bitmart(Exchange, ImplicitAPI):
                     '40033': InvalidOrder,  # 400, The plan order's life cycle is too short.
                     '40034': BadSymbol,  # 400, This contract is not found
                     '53002': PermissionDenied,  # 403, Your account has not yet completed the kyc advanced certification, please complete first
+                    '53003': PermissionDenied,  # 403 No permission, please contact the main account
+                    '53005': PermissionDenied,  # 403 Don't have permission to access the interface
+                    '53006': PermissionDenied,  # 403 Please complete your personal verification(Starter)
+                    '53007': PermissionDenied,  # 403 Please complete your personal verification(Advanced)
+                    '53008': PermissionDenied,  # 403 Services is not available in your countries and areas
+                    '53009': PermissionDenied,  # 403 Your account has not yet completed the qr code certification, please complete first
+                    '53010': PermissionDenied,  # 403 This account is restricted from borrowing
                 },
                 'broad': {},
             },
@@ -2971,6 +2978,8 @@ class bitmart(Exchange, ImplicitAPI):
             'type': type,
             'updated': None,
             'txid': txid,
+            'internal': None,
+            'comment': None,
             'timestamp': timestamp if (timestamp != 0) else None,
             'datetime': self.iso8601(timestamp) if (timestamp != 0) else None,
             'fee': fee,

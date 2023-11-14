@@ -24,7 +24,7 @@ class wavesexchange extends Exchange {
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'certified' => true,
+            'certified' => false,
             'pro' => false,
             'has' => array(
                 'CORS' => null,
@@ -2630,6 +2630,7 @@ class wavesexchange extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'info' => $transaction,
         );

@@ -1626,6 +1626,7 @@ class ascendex(Exchange, ImplicitAPI):
                     if marginMode != currentMarginMode:
                         raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
+            orderRequest = self.omit(orderRequest, 'marginMode')
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
@@ -2485,6 +2486,7 @@ class ascendex(Exchange, ImplicitAPI):
                 'cost': self.parse_number(feeCostString),
                 'rate': None,
             },
+            'internal': False,
         }
 
     async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):

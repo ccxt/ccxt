@@ -553,6 +553,8 @@ export default class Exchange {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchTime(params?: {}): Promise<number>;
     fetchTradingLimits(symbols?: string[], params?: {}): Promise<any>;
+    parseMarket(market: any): Market;
+    parseMarkets(markets: any): Market[];
     parseTicker(ticker: object, market?: any): Ticker;
     parseDepositAddress(depositAddress: any, currency?: any): void;
     parseTrade(trade: object, market?: any): Trade;

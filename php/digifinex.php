@@ -1604,7 +1604,7 @@ class digifinex extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_value($rawOrder, 'params', array());
-            $marginResult = $this->handle_margin_mode_and_params('createOrders', $params);
+            $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
             $currentMarginMode = $marginResult[0];
             if ($currentMarginMode !== null) {
                 if ($marginMode === null) {
@@ -1616,6 +1616,7 @@ class digifinex extends Exchange {
                 }
             }
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $orderRequest = $this->omit($orderRequest, 'marginMode');
             $ordersRequests[] = $orderRequest;
         }
         $market = $this->market($symbol);
@@ -2750,6 +2751,8 @@ class digifinex extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }

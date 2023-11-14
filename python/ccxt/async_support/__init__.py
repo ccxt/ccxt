@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.1.51'
+__version__ = '4.1.52'
 
 # -----------------------------------------------------------------------------
 
@@ -93,7 +93,6 @@ from ccxt.async_support.blockchaincom import blockchaincom                      
 from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
-from ccxt.async_support.btctradeua import btctradeua                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
@@ -102,7 +101,6 @@ from ccxt.async_support.coinbaseprime import coinbaseprime                      
 from ccxt.async_support.coinbasepro import coinbasepro                          # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
 from ccxt.async_support.coinex import coinex                                    # noqa: F401
-from ccxt.async_support.coinfalcon import coinfalcon                            # noqa: F401
 from ccxt.async_support.coinlist import coinlist                                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
@@ -202,7 +200,6 @@ exchanges = [
     'btcalpha',
     'btcbox',
     'btcmarkets',
-    'btctradeua',
     'btcturk',
     'bybit',
     'cex',
@@ -211,7 +208,6 @@ exchanges = [
     'coinbasepro',
     'coincheck',
     'coinex',
-    'coinfalcon',
     'coinlist',
     'coinmate',
     'coinone',

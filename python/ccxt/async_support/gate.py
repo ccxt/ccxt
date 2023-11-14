@@ -3484,6 +3484,8 @@ class gate(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'updated': None,
+            'internal': None,
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCostString),

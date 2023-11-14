@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.btcalpha import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Market, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
 from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -174,67 +174,66 @@ class btcalpha(Exchange, ImplicitAPI):
         #        },
         #    ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'name')
-            baseId = self.safe_string(market, 'currency1')
-            quoteId = self.safe_string(market, 'currency2')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            pricePrecision = self.safe_string(market, 'price_precision')
-            priceLimit = self.parse_precision(pricePrecision)
-            amountLimit = self.safe_string(market, 'minimum_order_size')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': True,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
-                    'price': self.parse_number(self.parse_precision((pricePrecision))),
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'name')
+        baseId = self.safe_string(market, 'currency1')
+        quoteId = self.safe_string(market, 'currency2')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        pricePrecision = self.safe_string(market, 'price_precision')
+        priceLimit = self.parse_precision(pricePrecision)
+        amountLimit = self.safe_string(market, 'minimum_order_size')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_precision'))),
+                'price': self.parse_number(self.parse_precision((pricePrecision))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.parse_number(amountLimit),
-                        'max': self.safe_number(market, 'maximum_order_size'),
-                    },
-                    'price': {
-                        'min': self.parse_number(priceLimit),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.parse_number(Precise.string_mul(priceLimit, amountLimit)),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.parse_number(amountLimit),
+                    'max': self.safe_number(market, 'maximum_order_size'),
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.parse_number(priceLimit),
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.parse_number(Precise.string_mul(priceLimit, amountLimit)),
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
         """
@@ -527,6 +526,7 @@ class btcalpha(Exchange, ImplicitAPI):
             'type': None,
             'status': self.parse_transaction_status(statusId),
             'comment': None,
+            'internal': None,
             'fee': None,
             'updated': None,
         }

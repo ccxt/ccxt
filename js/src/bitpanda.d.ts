@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitpanda.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitpanda
  * @extends Exchange
@@ -8,7 +8,8 @@ export default class bitpanda extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<{}>;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarket(market: any): Market;
     fetchTradingFees(params?: {}): Promise<any>;
     fetchPublicTradingFees(params?: {}): Promise<{}>;
     fetchPrivateTradingFees(params?: {}): Promise<{}>;

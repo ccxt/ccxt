@@ -483,6 +483,7 @@ class coinmate extends Exchange {
             'tagTo' => null,
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,

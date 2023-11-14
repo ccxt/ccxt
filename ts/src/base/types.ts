@@ -320,7 +320,8 @@ export type implicitReturnType = any;
 // must be an integer in other langs
 export type IndexType = number | string;
 
-export type Int = number;
+export type Int = number | undefined;
+export type Str = string | undefined
 
 export type OrderSide = 'buy' | 'sell' | string;
 
