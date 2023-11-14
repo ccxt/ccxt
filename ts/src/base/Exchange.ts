@@ -642,7 +642,7 @@ export default class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
-        } as object // return
+        } as any // return
     } // describe ()
 
     constructor (userConfig = {}) {
