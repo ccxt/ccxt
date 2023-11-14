@@ -19,7 +19,7 @@ public partial class Exchange
             // Type type2 = Type.GetType(className);
             ConstructorInfo constructor = type.GetConstructor(new Type[] { typeof(object) });
             object classInstance = constructor.Invoke(new object[] { args });
-            return Activator.CreateInstance(type) as Exchange;
+            return classInstance as Exchange;
         }
         return Activator.CreateInstance(type) as Exchange;
     }
