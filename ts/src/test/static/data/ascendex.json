@@ -93,7 +93,7 @@
             {
                 "description": "Spot margin create multiple limit orders at once",
                 "method": "createOrders",
-                "url": "https://ascendex.com/6/api/pro/v1/margin/order/batch",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/batch",
                 "input": [
                   [
                     {
