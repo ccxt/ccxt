@@ -59,7 +59,7 @@ build_and_test_all () {
   npm run force-build
   if [[ "$IS_TRAVIS" == "TRUE" ]]; then
     # update pyenv
-    (cd $(pyenv root) && git pull)
+    (cd $(pyenv root) && git pull origin master)
     # install python interpreters
     pyenv install -s 3.7.17
     pyenv install -s 3.8.18
