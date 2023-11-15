@@ -5,7 +5,7 @@ import Exchange from './abstract/poloniexfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, FundingHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -274,79 +274,77 @@ export default class poloniexfutures extends Exchange {
         //   ]
         // }
         //
-        const result = [];
         const data = this.safeValue (response, 'data', []);
-        const dataLength = data.length;
-        for (let i = 0; i < dataLength; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
-            const settleId = this.safeString (market, 'rootSymbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            const symbol = base + '/' + quote + ':' + settle;
-            const inverse = this.safeValue (market, 'isInverse');
-            const status = this.safeString (market, 'status');
-            const multiplier = this.safeString (market, 'multiplier');
-            const tickSize = this.safeNumber (market, 'indexPriceTickSize');
-            const lotSize = this.safeNumber (market, 'lotSize');
-            const limitAmountMax = this.safeNumber (market, 'maxOrderQty');
-            const limitPriceMax = this.safeNumber (market, 'maxPrice');
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'active': (status === 'Open'),
-                'contract': true,
-                'linear': !inverse,
-                'inverse': inverse,
-                'taker': this.safeNumber (market, 'takerFeeRate'),
-                'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': lotSize,
-                    'price': tickSize,
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseCurrency');
+        const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'rootSymbol');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const symbol = base + '/' + quote + ':' + settle;
+        const inverse = this.safeValue (market, 'isInverse');
+        const status = this.safeString (market, 'status');
+        const multiplier = this.safeString (market, 'multiplier');
+        const tickSize = this.safeNumber (market, 'indexPriceTickSize');
+        const lotSize = this.safeNumber (market, 'lotSize');
+        const limitAmountMax = this.safeNumber (market, 'maxOrderQty');
+        const limitPriceMax = this.safeNumber (market, 'maxPrice');
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': (status === 'Open'),
+            'contract': true,
+            'linear': !inverse,
+            'inverse': inverse,
+            'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': lotSize,
+                'price': tickSize,
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': this.safeNumber (market, 'maxLeverage'),
                 },
-                'limits': {
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.safeNumber (market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': lotSize,
-                        'max': limitAmountMax,
-                    },
-                    'price': {
-                        'min': tickSize,
-                        'max': limitPriceMax,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': lotSize,
+                    'max': limitAmountMax,
                 },
-                'created': this.safeInteger (market, 'firstOpenDate'),
-                'info': market,
-            });
-        }
-        return result;
+                'price': {
+                    'min': tickSize,
+                    'max': limitPriceMax,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.safeInteger (market, 'firstOpenDate'),
+            'info': market,
+        };
     }
 
     parseTicker (ticker, market = undefined): Ticker {
