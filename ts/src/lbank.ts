@@ -1967,7 +1967,7 @@ export default class lbank extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name lbank2#withdraw
