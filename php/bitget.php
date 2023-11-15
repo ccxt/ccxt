@@ -3159,8 +3159,8 @@ class bitget extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $marginParams = $this->handle_margin_mode_and_params('createOrder', $params);
+        $marginMode = $marginParams[0];
         $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
         $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zonda import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -316,7 +316,6 @@ class zonda(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.v1_01PublicGetTradingTicker(params)
-        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         #
         #     {
         #         "status": "Ok",
@@ -336,76 +335,75 @@ class zonda(Exchange, ImplicitAPI):
         #         },
         #     }
         #
-        result = []
         items = self.safe_value(response, 'items', {})
-        keys = list(items.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            item = items[id]
-            market = self.safe_value(item, 'market', {})
-            first = self.safe_value(market, 'first', {})
-            second = self.safe_value(market, 'second', {})
-            baseId = self.safe_string(first, 'currency')
-            quoteId = self.safe_string(second, 'currency')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            fees = self.safe_value(self.fees, 'trading', {})
-            if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
-                fees = self.safe_value(self.fees, 'fiat', {})
-            # todo: check that the limits have ben interpreted correctly
-            # todo: parse the fees page
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(fees, 'taker'),
-                'maker': self.safe_number(fees, 'maker'),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'optionType': None,
-                'strike': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
+        markets = list(items.values())
+        return self.parse_markets(markets)
+
+    def parse_market(self, item) -> Market:
+        market = self.safe_value(item, 'market', {})
+        id = self.safe_string(market, 'code')
+        first = self.safe_value(market, 'first', {})
+        second = self.safe_value(market, 'second', {})
+        baseId = self.safe_string(first, 'currency')
+        quoteId = self.safe_string(second, 'currency')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        fees = self.safe_value(self.fees, 'trading', {})
+        fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
+        if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
+            fees = self.safe_value(self.fees, 'fiat', {})
+        # todo: check that the limits have ben interpreted correctly
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': None,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'optionType': None,
+            'strike': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(first, 'scale'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(second, 'scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(first, 'minOffer'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(second, 'minOffer'),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(first, 'minOffer'),
+                    'max': None,
                 },
-                'created': None,
-                'info': item,
-            })
-        return result
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': item,
+        }
 
     def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

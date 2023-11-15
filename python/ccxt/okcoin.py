@@ -598,14 +598,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         response = self.publicGetPublicInstruments(self.extend(request, params))
         markets = self.safe_value(response, 'data', [])
-        result = self.parse_markets(markets)
-        return result
-
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
+        return self.parse_markets(markets)
 
     def parse_market(self, market) -> Market:
         #

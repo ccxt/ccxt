@@ -1696,8 +1696,7 @@ class ascendex extends ascendex$1 {
                     }
                 }
             }
-            let orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            orderRequest = this.omit(orderRequest, 'marginMode');
+            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
         const market = this.market(symbol);

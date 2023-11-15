@@ -7,8 +7,7 @@ import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, S
 export default class okcoin extends Exchange {
     describe(): any;
     fetchTime(params?: {}): Promise<number>;
-    fetchMarkets(params?: {}): Promise<any[]>;
-    parseMarkets(markets: any): any[];
+    fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<{}>;

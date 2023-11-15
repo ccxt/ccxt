@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -190,66 +190,64 @@ class ace(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            base = self.safe_string(market, 'base')
-            baseCode = self.safe_currency_code(base)
-            quote = self.safe_string(market, 'quote')
-            quoteCode = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            result.append({
-                'id': self.safe_string(market, 'symbol'),
-                'uppercaseId': None,
-                'symbol': symbol,
-                'base': baseCode,
-                'baseId': self.safe_integer(market, 'baseCurrencyId'),
-                'quote': quoteCode,
-                'quoteId': self.safe_integer(market, 'quoteCurrencyId'),
-                'settle': None,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'derivative': False,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(market, 'minLimitBaseAmount'),
-                        'max': self.safe_number(market, 'maxLimitBaseAmount'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        baseId = self.safe_string(market, 'base')
+        base = self.safe_currency_code(baseId)
+        quoteId = self.safe_string(market, 'quote')
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        return {
+            'id': self.safe_string(market, 'symbol'),
+            'uppercaseId': None,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': None,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(market, 'minLimitBaseAmount'),
+                    'max': self.safe_number(market, 'maxLimitBaseAmount'),
                 },
-                'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+                'price': {
+                    'min': None,
+                    'max': None,
                 },
-                'active': None,
-                'created': None,
-                'info': market,
-            })
-        return result
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'precision': {
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+            },
+            'active': None,
+            'created': None,
+            'info': market,
+        }
 
     def parse_ticker(self, ticker, market=None) -> Ticker:
         #

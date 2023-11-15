@@ -308,6 +308,7 @@ class bybit extends Exchange {
                         // user
                         'v5/user/query-sub-members' => 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api' => 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/user/sub-apikeys' => 5,
                         'v5/user/get-member-type' => 5,
                         'v5/user/aff-customer-info' => 5,
                         'v5/user/del-submember' => 5,
@@ -439,7 +440,7 @@ class bybit extends Exchange {
                         'v5/asset/transfer/save-transfer-sub-member' => 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account' => 5,
-                        'v5/asset/withdraw/create' => 300, // 1/6/s => cost = 50 / 1/6 = 300
+                        'v5/asset/withdraw/create' => 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel' => 50, // 1/s => cost = 50 / 1 = 50
                         // user
                         'v5/user/create-sub-member' => 10, // 5/s => cost = 50 / 5 = 10
@@ -4330,10 +4331,6 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
-        } else {
-            if ($since !== null) {
-                throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
-            }
         }
         $response = $this->privateGetV5OrderHistory (array_merge($request, $params));
         //
@@ -4702,10 +4699,6 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'endTime', 'till', 'until' ));
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
-        } else {
-            if ($since !== null) {
-                throw new BadRequest($this->id . ' fetchOrders() requires until/endTime when $since is provided.');
-            }
         }
         $response = $this->privateGetV5ExecutionList (array_merge($request, $params));
         //

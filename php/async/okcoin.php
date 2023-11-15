@@ -587,17 +587,8 @@ class okcoin extends Exchange {
             );
             $response = Async\await($this->publicGetPublicInstruments (array_merge($request, $params)));
             $markets = $this->safe_value($response, 'data', array());
-            $result = $this->parse_markets($markets);
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
-    }
-
-    public function parse_markets($markets) {
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
-        }
-        return $result;
     }
 
     public function parse_market($market): array {

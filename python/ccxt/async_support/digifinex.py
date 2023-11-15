@@ -1574,7 +1574,6 @@ class digifinex(Exchange, ImplicitAPI):
                     if marginMode != currentMarginMode:
                         raise BadRequest(self.id + ' createOrders() requires all orders to have the same margin mode(isolated or cross)')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
-            orderRequest = self.omit(orderRequest, 'marginMode')
             ordersRequests.append(orderRequest)
         market = self.market(symbol)
         request = {}
@@ -3883,7 +3882,11 @@ class digifinex(Exchange, ImplicitAPI):
         payload = pathPart + request
         url = self.urls['api']['rest'] + payload
         query = self.omit(params, self.extract_params(path))
-        urlencoded = self.urlencode(self.keysort(query))
+        urlencoded = None
+        if signed and (pathPart == '/swap/v2') and (method == 'POST'):
+            urlencoded = json.dumps(params)
+        else:
+            urlencoded = self.urlencode(self.keysort(query))
         if signed:
             auth = None
             nonce = None
@@ -3894,9 +3897,7 @@ class digifinex(Exchange, ImplicitAPI):
                     if urlencoded:
                         auth += '?' + urlencoded
                 elif method == 'POST':
-                    swapPostParams = json.dumps(params)
-                    urlencoded = swapPostParams
-                    auth += swapPostParams
+                    auth += urlencoded
             else:
                 nonce = str(self.nonce())
                 auth = urlencoded

@@ -1291,13 +1291,6 @@ class okx extends okx$1 {
         }
         return result;
     }
-    parseMarkets(markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
-    }
     parseMarket(market) {
         //
         //     {
