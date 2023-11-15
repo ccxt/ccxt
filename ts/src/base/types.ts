@@ -1,5 +1,7 @@
 export type Int = number | undefined;
+
 export type Str = string | undefined;
+
 export type Bool = boolean | undefined;
 
 export interface Dictionary<T> {
@@ -323,7 +325,6 @@ export type implicitReturnType = any;
 
 // must be an integer in other langs
 export type IndexType = number | string;
-
 
 export type OrderSide = 'buy' | 'sell' | string;
 
