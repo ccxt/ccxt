@@ -412,6 +412,7 @@
         }
     },
     "bitvavo": {
+        "httpsProxy": "http://51.83.140.52:11230",
         "skipWs": true,
         "skipMethods": {
             "fetchCurrencies": {
@@ -1020,9 +1021,7 @@
     "probit": {
 		"skipWs": true,
         "skipMethods": {
-            "loadMarkets":{
-                "currencyIdAndCode": "messed codes"
-            },
+            "loadMarkets": "needs fixing",
             "fetchCurrencies": {
                 "limits": "messed"
             },

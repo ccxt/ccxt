@@ -1613,7 +1613,7 @@ class currencycom extends currencycom$1 {
             fee['currency'] = code;
             fee['cost'] = feeCost;
         }
-        const result = {
+        return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
             'txid': this.safeString(transaction, 'blockchainTransactionHash'),
@@ -1631,10 +1631,10 @@ class currencycom extends currencycom$1 {
             'tagFrom': undefined,
             'tagTo': undefined,
             'updated': undefined,
+            'internal': undefined,
             'comment': undefined,
             'fee': fee,
         };
-        return result;
     }
     parseTransactionStatus(status) {
         const statuses = {

@@ -3589,7 +3589,8 @@ class bybit extends Exchange {
             $triggerPrice = $isStopLossTriggerOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['reduceOnly'] = true;
-        } elseif ($isStopLoss || $isTakeProfit) {
+        }
+        if ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
                 $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->price_to_precision($symbol, $slTriggerPrice);
@@ -5198,6 +5199,8 @@ class bybit extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
+            'internal' => null,
+            'comment' => null,
         );
     }
 

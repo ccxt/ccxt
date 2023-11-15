@@ -1750,6 +1750,7 @@ class kuna extends Exchange {
         $type = $this->safe_string_lower($transaction, 'type');
         $address = $this->safe_string($transaction, 'address');
         $isDeposit = ($type === 'deposit');
+        $parsedType = $isDeposit ? $type : 'withdrawal';
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
@@ -1762,13 +1763,14 @@ class kuna extends Exchange {
             'address' => $address,
             'addressTo' => $address,
             'amount' => $this->safe_number($transaction, 'amount'),
-            'type' => !$isDeposit ? 'withdrawal' : $type,
+            'type' => $parsedType,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'updated' => $this->parse8601($this->safe_string($transaction, 'updatedAt')),
             'tagFrom' => null,
             'tag' => null,
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'memo'),
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $code,

@@ -1002,6 +1002,7 @@ export default class indodax extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'withdraw_memo'),
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.poloniexfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
@@ -441,7 +440,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(self.safe_value(response, 'data', {}), market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
@@ -453,7 +452,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         return self.parse_tickers(self.safe_value(response, 'data', []), symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://futures-docs.poloniex.com/#get-full-order-book-level-2
@@ -533,7 +532,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    async def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://futures-docs.poloniex.com/#get-full-order-book-level-3
@@ -632,7 +631,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://futures-docs.poloniex.com/#historical-data
@@ -684,7 +683,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'data')
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://futures-docs.poloniex.com/#k-chart
@@ -876,7 +875,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'info': response,
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :see: https://futures-docs.poloniex.com/#cancel-an-order
@@ -913,7 +912,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' cancelOrder() order already cancelled')
         return self.parse_order(data)
 
-    async def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    async def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
         :see: https://futures-docs.poloniex.com/#get-position-list
@@ -1063,7 +1062,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         }
 
-    async def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
         :see: https://futures-docs.poloniex.com/#get-funding-history
@@ -1129,7 +1128,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             })
         return fees
 
-    async def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    async def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1185,7 +1184,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_by_status(self, status, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches a list of orders placed on the exchange
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1280,7 +1279,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
                 result.append(orders[i])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1296,7 +1295,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://futures-docs.poloniex.com/#get-order-list
@@ -1312,7 +1311,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_order(self, id=None, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id=None, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://futures-docs.poloniex.com/#get-details-of-a-single-order
@@ -1549,7 +1548,7 @@ class poloniexfutures(Exchange, ImplicitAPI):
             'previousFundingDatetime': self.iso8601(fundingTimestamp),
         }
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://futures-docs.poloniex.com/#get-fills

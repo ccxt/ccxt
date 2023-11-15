@@ -1598,7 +1598,7 @@ class currencycom extends Exchange {
             $fee['currency'] = $code;
             $fee['cost'] = $feeCost;
         }
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'blockchainTransactionHash'),
@@ -1616,10 +1616,10 @@ class currencycom extends Exchange {
             'tagFrom' => null,
             'tagTo' => null,
             'updated' => null,
+            'internal' => null,
             'comment' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function parse_transaction_status($status) {

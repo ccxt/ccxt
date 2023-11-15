@@ -1696,7 +1696,8 @@ class ascendex extends ascendex$1 {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            let orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, 'marginMode');
             ordersRequests.push(orderRequest);
         }
         const market = this.market(symbol);
@@ -2612,6 +2613,7 @@ class ascendex extends ascendex$1 {
                 'cost': this.parseNumber(feeCostString),
                 'rate': undefined,
             },
+            'internal': false,
         };
     }
     async fetchPositions(symbols = undefined, params = {}) {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Transaction, Ticker, Balances, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers } from './base/types.js';
 /**
  * @class bitfinex2
  * @extends Exchange
@@ -59,14 +59,14 @@ export default class bitfinex2 extends Exchange {
     parseTimeInForce(orderType: any): string;
     parseOrder(order: any, market?: any): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOpenOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchClosedOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchClosedOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;
@@ -84,7 +84,7 @@ export default class bitfinex2 extends Exchange {
     parseTransactionStatus(status: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
     fetchTradingFees(params?: {}): Promise<{}>;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<any>;
     fetchPositions(symbols?: string[], params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: any, market?: any): import("./base/types.js").Position;
@@ -114,10 +114,10 @@ export default class bitfinex2 extends Exchange {
         fee: any;
         info: any;
     };
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchFundingRate(symbol: string, params?: {}): Promise<{}>;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<{}>;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;

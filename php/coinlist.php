@@ -380,7 +380,7 @@ class coinlist extends Exchange {
          * retrieves data on all $markets for coinlist
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->publicGetV1Symbols ($params);
         //
@@ -409,68 +409,67 @@ class coinlist extends Exchange {
         //     }
         //
         $markets = $this->safe_value($response, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'base_currency');
-            $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
-            $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
-            $created = $this->safe_string($market, 'list_time');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($amountPrecision),
-                    'price' => $this->parse_number($pricePrecision),
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'base_currency');
+        $quoteId = $this->safe_string($market, 'quote_currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $amountPrecision = $this->safe_string($market, 'minimum_size_increment');
+        $pricePrecision = $this->safe_string($market, 'minimum_price_increment');
+        $created = $this->safe_string($market, 'list_time');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($amountPrecision),
+                'price' => $this->parse_number($pricePrecision),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
                 ),
-                'created' => $this->parse8601($created),
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->parse8601($created),
+            'info' => $market,
+        );
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
@@ -2010,6 +2009,8 @@ class coinlist extends Exchange {
             'status' => null,
             'updated' => null,
             'fee' => $fee,
+            'comment' => $this->safe_string($transaction, 'description'),
+            'internal' => null,
         );
     }
 

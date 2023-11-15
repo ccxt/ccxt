@@ -17,7 +17,7 @@ class bitvavo extends Exchange {
             'countries' => array( 'NL' ), // Netherlands
             'rateLimit' => 60, // 1000 requests per minute
             'version' => 'v2',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -310,7 +310,10 @@ class bitvavo extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetMarkets ($params);
-        $currencies = $this->fetch_currencies();
+        $currencies = $this->currencies;
+        if ($this->currencies === null) {
+            $currencies = $this->fetch_currencies();
+        }
         $currenciesById = $this->index_by($currencies, 'id');
         //
         //     array(
@@ -327,6 +330,7 @@ class bitvavo extends Exchange {
         //     )
         //
         $result = array();
+        $fees = $this->fees;
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
             $id = $this->safe_string($market, 'market');
@@ -361,6 +365,8 @@ class bitvavo extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
+                'taker' => $fees['trading']['taker'],
+                'maker' => $fees['trading']['maker'],
                 'precision' => array(
                     'amount' => $this->safe_integer($baseCurrency, 'decimals', $basePrecision),
                     'price' => $this->safe_integer($market, 'pricePrecision'),
@@ -1751,6 +1757,8 @@ class bitvavo extends Exchange {
             'updated' => null,
             'fee' => $fee,
             'network' => null,
+            'comment' => null,
+            'internal' => null,
         );
     }
 

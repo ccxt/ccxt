@@ -1679,6 +1679,7 @@ class ascendex extends Exchange {
                 }
             }
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+            $orderRequest = $this->omit($orderRequest, 'marginMode');
             $ordersRequests[] = $orderRequest;
         }
         $market = $this->market($symbol);
@@ -2581,6 +2582,7 @@ class ascendex extends Exchange {
                 'cost' => $this->parse_number($feeCostString),
                 'rate' => null,
             ),
+            'internal' => false,
         );
     }
 

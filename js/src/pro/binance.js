@@ -2362,8 +2362,10 @@ export default class binance extends binanceRest {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
-        const defaultType = this.safeString2(this.options, 'watchPositions', 'defaultType', 'future');
-        let type = this.safeString(params, 'type', defaultType);
+        let type = this.handleMarketTypeAndParams('watchPositions', market, params);
+        if (type === 'spot' || type === 'margin') {
+            type = 'future';
+        }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchPositions', market, params);
         if (this.isLinear(type, subType)) {
@@ -2508,7 +2510,7 @@ export default class binance extends binanceRest {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId),
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'future'),
             'notional': undefined,
             'marginMode': this.safeString(position, 'mt'),
             'liquidationPrice': undefined,

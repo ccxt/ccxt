@@ -3969,6 +3969,8 @@ class coinex extends Exchange {
         $networkId = $this->safe_string($transaction, 'smart_contract_name');
         $amount = $this->safe_number($transaction, 'actual_amount');
         $feeCost = $this->safe_string($transaction, 'tx_fee');
+        $transferMethod = $this->safe_string($transaction, 'transfer_method');
+        $internal = $transferMethod === 'local';
         $addressTo = null;
         $addressFrom = null;
         if ($type === 'deposit') {
@@ -4000,6 +4002,8 @@ class coinex extends Exchange {
             'status' => $status,
             'updated' => null,
             'fee' => $fee,
+            'comment' => null,
+            'internal' => $internal,
         );
     }
 

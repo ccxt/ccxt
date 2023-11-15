@@ -1633,7 +1633,7 @@ class digifinex extends digifinex$1 {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
@@ -1645,7 +1645,8 @@ class digifinex extends digifinex$1 {
                     }
                 }
             }
-            const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            let orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            orderRequest = this.omit(orderRequest, 'marginMode');
             ordersRequests.push(orderRequest);
         }
         const market = this.market(symbol);
@@ -2809,6 +2810,8 @@ class digifinex extends digifinex$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

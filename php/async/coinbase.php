@@ -882,8 +882,13 @@ class coinbase extends Exchange {
         }
         $sizeInQuote = $this->safe_value($trade, 'size_in_quote');
         $v3Price = $this->safe_string($trade, 'price');
-        $v3Amount = ($sizeInQuote) ? null : $this->safe_string($trade, 'size');
-        $v3Cost = ($sizeInQuote) ? $this->safe_string($trade, 'size') : null;
+        $v3Cost = null;
+        $v3Amount = $this->safe_string($trade, 'size');
+        if ($sizeInQuote) {
+            // calculate $base size
+            $v3Cost = $v3Amount;
+            $v3Amount = Precise::string_div($v3Amount, $v3Price);
+        }
         $v3FeeCost = $this->safe_string($trade, 'commission');
         $amountString = $this->safe_string($amountObject, 'amount', $v3Amount);
         $costString = $this->safe_string($subtotalObject, 'amount', $v3Cost);

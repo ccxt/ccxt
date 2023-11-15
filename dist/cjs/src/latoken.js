@@ -1492,6 +1492,7 @@ class latoken extends latoken$1 {
             'status': status,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

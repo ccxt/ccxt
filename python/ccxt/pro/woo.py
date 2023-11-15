@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -76,7 +76,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
@@ -202,7 +202,7 @@ class woo(ccxt.async_support.woo):
         client.resolve(ticker, topic)
         return message
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: List[str] = None, params={}):
         await self.load_markets()
         name = 'tickers'
         topic = name
@@ -256,7 +256,7 @@ class woo(ccxt.async_support.woo):
             result.append(ticker)
         client.resolve(result, topic)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise ExchangeError(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
@@ -317,7 +317,7 @@ class woo(ccxt.async_support.woo):
         stored.append(parsed)
         client.resolve(stored, topic)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         topic = market['id'] + '@trade'
@@ -437,7 +437,7 @@ class woo(ccxt.async_support.woo):
         request = self.extend(subscribe, message)
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         topic = 'executionreport'
         messageHash = topic

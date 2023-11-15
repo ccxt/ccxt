@@ -1894,6 +1894,7 @@ class woo extends woo$1 {
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.safeTimestamp(transaction, 'updated_time'),
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
             'network': undefined,
         };

@@ -205,7 +205,6 @@ def close(exchange):
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-from typing import Optional
 from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
@@ -771,7 +770,7 @@ class testMainClass(baseMainTestClass):
         content = io_file_read(filename)
         return content
 
-    def load_static_data(self, targetExchange: Optional[str] = None):
+    def load_static_data(self, targetExchange: str = None):
         folder = rootDir + './ts/src/test/static/data/'
         result = {}
         if targetExchange:
@@ -921,7 +920,7 @@ class testMainClass(baseMainTestClass):
         markets = self.load_markets_from_file(exchangeName)
         return init_exchange(exchangeName, {'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}})
 
-    def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: Optional[str] = None):
+    def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: str = None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchangeName)
         methods = exchange.safe_value(exchangeData, 'methods', {})
@@ -950,7 +949,7 @@ class testMainClass(baseMainTestClass):
             sum = exchange.sum(sum, resultsLength)
         return sum
 
-    def run_static_tests(self, targetExchange: Optional[str] = None, testName: Optional[str] = None):
+    def run_static_tests(self, targetExchange: str = None, testName: str = None):
         staticData = self.load_static_data(targetExchange)
         exchanges = list(staticData.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling self code

@@ -1532,6 +1532,7 @@ class bitfinex extends Exchange {
             'tagTo' => null,
             'updated' => $this->safe_timestamp($transaction, 'timestamp'),
             'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
