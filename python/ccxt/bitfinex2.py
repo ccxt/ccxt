@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -966,7 +965,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             currencyId = transferId
         return currencyId
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.bitfinex.com/reference/rest-public-book
@@ -1075,7 +1074,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://docs.bitfinex.com/reference/rest-public-tickers
@@ -1236,7 +1235,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.bitfinex.com/reference/rest-public-trades
@@ -1279,7 +1278,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit=100, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit=100, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://docs.bitfinex.com/reference/rest-public-candles
@@ -1588,7 +1587,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_value(orders, 0)
         return self.parse_order(order, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :see: https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
@@ -1603,7 +1602,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 4, [])
         return self.parse_orders(orders)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :see: https://docs.bitfinex.com/reference/rest-auth-cancel-order
@@ -1631,7 +1630,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         order = self.safe_value(response, 4)
         return self.parse_order(order)
 
-    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_open_order(self, id: str, symbol: String = None, params={}):
         """
         fetch an open order by it's id
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1650,7 +1649,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    def fetch_closed_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_closed_order(self, id: str, symbol: String = None, params={}):
         """
         fetch an open order by it's id
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1669,7 +1668,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' order ' + id + ' not found')
         return order
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1730,7 +1729,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
@@ -1803,7 +1802,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://docs.bitfinex.com/reference/rest-auth-order-trades
@@ -1826,7 +1825,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         response = self.privatePostAuthROrderSymbolIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://docs.bitfinex.com/reference/rest-auth-trades
@@ -2181,7 +2180,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.bitfinex.com/reference/movement-info
@@ -2319,7 +2318,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'address': address,
         })
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
         :see: https://docs.bitfinex.com/reference/rest-auth-positions
@@ -2551,7 +2550,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             'info': item,
         }
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://docs.bitfinex.com/reference/rest-auth-ledgers
@@ -2610,7 +2609,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         """
         return self.fetch_funding_rates([symbol], params)
 
-    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_funding_rates(self, symbols: List[str] = None, params={}):
         """
         fetch the current funding rate
         :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status
@@ -2658,7 +2657,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
         :see: https://docs.bitfinex.com/reference/rest-public-derivatives-status-history

@@ -105,7 +105,6 @@ from ccxt.bitpanda import bitpanda                                    # noqa: F4
 from ccxt.bitrue import bitrue                                        # noqa: F401
 from ccxt.bitso import bitso                                          # noqa: F401
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
-from ccxt.bitstamp1 import bitstamp1                                  # noqa: F401
 from ccxt.bittrex import bittrex                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.bl3p import bl3p                                            # noqa: F401
@@ -153,7 +152,6 @@ from ccxt.kucoinfutures import kucoinfutures                          # noqa: F4
 from ccxt.kuna import kuna                                            # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
-from ccxt.lbank2 import lbank2                                        # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
@@ -212,7 +210,6 @@ exchanges = [
     'bitrue',
     'bitso',
     'bitstamp',
-    'bitstamp1',
     'bittrex',
     'bitvavo',
     'bl3p',
@@ -260,7 +257,6 @@ exchanges = [
     'kuna',
     'latoken',
     'lbank',
-    'lbank2',
     'luno',
     'lykke',
     'mercado',

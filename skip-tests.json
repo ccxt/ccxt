@@ -1138,21 +1138,6 @@
     },
     "lbank": {
         "skipMethods": {
-            "fetchTickers": {
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTicker":{
-                "quoteVolume": "quoteVolume >= baseVolume * low is failing",
-                "baseVolume": "quoteVolume >= baseVolume * low is failing"
-            },
-            "fetchTrades":{
-                "fees": "mising"
-            }
-        }
-    },
-    "lbank2": {
-        "skipMethods": {
             "loadMarkets": "settle must be defined when contract is true",
             "fetchTickers": {
                 "quoteVolume": "quoteVolume >= baseVolume * low is failing",

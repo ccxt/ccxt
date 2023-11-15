@@ -1301,14 +1301,6 @@ export default class okx extends Exchange {
         return result;
     }
 
-    parseMarkets (markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
-    }
-
     parseMarket (market): Market {
         //
         //     {

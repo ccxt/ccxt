@@ -3445,15 +3445,7 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_status(self, params={}):
-        if self.has['fetchTime']:
-            time = self.fetch_time(params)
-            self.status = self.extend(self.status, {
-                'updated': time,
-                'info': time,
-            })
-        if not ('info' in self.status):
-            self.status['info'] = None
-        return self.status
+        raise NotSupported(self.id + ' fetchStatus() is not supported yet')
 
     def fetch_funding_fee(self, code: str, params={}):
         warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)

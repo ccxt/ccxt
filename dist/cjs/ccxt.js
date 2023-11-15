@@ -40,7 +40,6 @@ var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
-var bitstamp1 = require('./src/bitstamp1.js');
 var bittrex = require('./src/bittrex.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
@@ -88,7 +87,6 @@ var kucoinfutures = require('./src/kucoinfutures.js');
 var kuna = require('./src/kuna.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
-var lbank2 = require('./src/lbank2.js');
 var luno = require('./src/luno.js');
 var lykke = require('./src/lykke.js');
 var mercado = require('./src/mercado.js');
@@ -212,7 +210,6 @@ const exchanges = {
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
-    'bitstamp1': bitstamp1,
     'bittrex': bittrex,
     'bitvavo': bitvavo,
     'bl3p': bl3p,
@@ -260,7 +257,6 @@ const exchanges = {
     'kuna': kuna,
     'latoken': latoken,
     'lbank': lbank,
-    'lbank2': lbank2,
     'luno': luno,
     'lykke': lykke,
     'mercado': mercado,
@@ -422,7 +418,6 @@ exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
-exports.bitstamp1 = bitstamp1;
 exports.bittrex = bittrex;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
@@ -470,7 +465,6 @@ exports.kucoinfutures = kucoinfutures;
 exports.kuna = kuna;
 exports.latoken = latoken;
 exports.lbank = lbank;
-exports.lbank2 = lbank2;
 exports.luno = luno;
 exports.lykke = lykke;
 exports.mercado = mercado;

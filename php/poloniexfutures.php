@@ -201,9 +201,9 @@ class poloniexfutures extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves $data on all markets for poloniexfutures
-         * @see https://futures-docs.poloniex.com/#$symbol-2
+         * @see https://futures-docs.poloniex.com/#symbol-2
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market $data
+         * @return {array[]} an array of objects representing market $data
          */
         $response = $this->publicGetContractsActive ($params);
         //
@@ -268,79 +268,77 @@ class poloniexfutures extends Exchange {
         //   ]
         // }
         //
-        $result = array();
         $data = $this->safe_value($response, 'data', array());
-        $dataLength = count($data);
-        for ($i = 0; $i < $dataLength; $i++) {
-            $market = $data[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseCurrency');
-            $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $settleId = $this->safe_string($market, 'rootSymbol');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $settle = $this->safe_currency_code($settleId);
-            $symbol = $base . '/' . $quote . ':' . $settle;
-            $inverse = $this->safe_value($market, 'isInverse');
-            $status = $this->safe_string($market, 'status');
-            $multiplier = $this->safe_string($market, 'multiplier');
-            $tickSize = $this->safe_number($market, 'indexPriceTickSize');
-            $lotSize = $this->safe_number($market, 'lotSize');
-            $limitAmountMax = $this->safe_number($market, 'maxOrderQty');
-            $limitPriceMax = $this->safe_number($market, 'maxPrice');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => 'swap',
-                'spot' => false,
-                'margin' => false,
-                'swap' => true,
-                'future' => false,
-                'option' => false,
-                'active' => ($status === 'Open'),
-                'contract' => true,
-                'linear' => !$inverse,
-                'inverse' => $inverse,
-                'taker' => $this->safe_number($market, 'takerFeeRate'),
-                'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $lotSize,
-                    'price' => $tickSize,
+        return $this->parse_markets($data);
+    }
+
+    public function parse_market($market): array {
+        $id = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseCurrency');
+        $quoteId = $this->safe_string($market, 'quoteCurrency');
+        $settleId = $this->safe_string($market, 'rootSymbol');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settle = $this->safe_currency_code($settleId);
+        $symbol = $base . '/' . $quote . ':' . $settle;
+        $inverse = $this->safe_value($market, 'isInverse');
+        $status = $this->safe_string($market, 'status');
+        $multiplier = $this->safe_string($market, 'multiplier');
+        $tickSize = $this->safe_number($market, 'indexPriceTickSize');
+        $lotSize = $this->safe_number($market, 'lotSize');
+        $limitAmountMax = $this->safe_number($market, 'maxOrderQty');
+        $limitPriceMax = $this->safe_number($market, 'maxPrice');
+        return array(
+            'id' => $id,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => 'swap',
+            'spot' => false,
+            'margin' => false,
+            'swap' => true,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'Open'),
+            'contract' => true,
+            'linear' => !$inverse,
+            'inverse' => $inverse,
+            'taker' => $this->safe_number($market, 'takerFeeRate'),
+            'maker' => $this->safe_number($market, 'makerFeeRate'),
+            'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $lotSize,
+                'price' => $tickSize,
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => $this->parse_number('1'),
+                    'max' => $this->safe_number($market, 'maxLeverage'),
                 ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->safe_number($market, 'maxLeverage'),
-                    ),
-                    'amount' => array(
-                        'min' => $lotSize,
-                        'max' => $limitAmountMax,
-                    ),
-                    'price' => array(
-                        'min' => $tickSize,
-                        'max' => $limitPriceMax,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
+                'amount' => array(
+                    'min' => $lotSize,
+                    'max' => $limitAmountMax,
                 ),
-                'created' => $this->safe_integer($market, 'firstOpenDate'),
-                'info' => $market,
-            );
-        }
-        return $result;
+                'price' => array(
+                    'min' => $tickSize,
+                    'max' => $limitPriceMax,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => $this->safe_integer($market, 'firstOpenDate'),
+            'info' => $market,
+        );
     }
 
     public function parse_ticker($ticker, $market = null): array {

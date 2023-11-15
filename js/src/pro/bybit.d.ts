@@ -1,10 +1,10 @@
 import bybitRest from '../bybit.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
     requestId(): any;
-    getUrlByMarketType(symbol?: string, isPrivate?: boolean, method?: any, params?: {}): any;
+    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: any, params?: {}): any;
     cleanParams(params: any): any;
     watchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: string[], params?: {}): Promise<any>;
@@ -23,13 +23,13 @@ export default class bybit extends bybitRest {
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
     getPrivateType(url: any): "spot" | "unified" | "usdc";
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
     watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     setPositionsCache(client: Client, symbols?: string[]): any;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsSpotOrder(order: any, market?: any): import("../base/types.js").Order;
     watchBalance(params?: {}): Promise<any>;
