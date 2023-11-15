@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -184,7 +184,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(ticker, messageHash)
         return message
 
-    async def watch_position(self, symbol: Optional[str] = None, params={}):
+    async def watch_position(self, symbol: String = None, params={}):
         """
         watch open positions for a specific symbol
         :see: https://docs.kucoin.com/futures/#position-change-events
@@ -348,7 +348,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         cache.append(position)
         client.resolve(position, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.kucoin.com/futures/#execution-data
@@ -369,7 +369,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -430,7 +430,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         self.resolve_promise_if_messagehash_matches(client, 'multipleTrades::', symbol, trades)
         return message
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
          *   1. After receiving the websocket Level 2 data flow, cache the data.
@@ -462,7 +462,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         orderbook = await self.subscribe(url, messageHash, topic, subscription, params)
         return orderbook.limit()
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Optional[int] = None, params={}):
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
@@ -618,7 +618,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         #
         return message
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.kucoin.com/futures/#trade-orders-according-to-the-market

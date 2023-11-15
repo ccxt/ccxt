@@ -634,6 +634,25 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        "reason" => "cancelled_by_user"
         //    }
         //
+        //     {
+        //         "feed" => 'open_orders',
+        //         "order" => array(
+        //         "instrument" => 'PF_XBTUSD',
+        //         "time" => 1698159920097,
+        //         "last_update_time" => 1699835622988,
+        //         "qty" => 1.1,
+        //         "filled" => 0,
+        //         "limit_price" => 20000,
+        //         "stop_price" => 0,
+        //         "type" => 'limit',
+        //         "order_id" => '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        //         "direction" => 0,
+        //         "reduce_only" => false
+        //         ),
+        //         "is_cancel" => false,
+        //         "reason" => 'edited_by_user'
+        //     }
+        //
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
@@ -648,7 +667,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $orderId = $this->safe_string($order, 'order_id');
             $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
             $previousOrder = $this->safe_value($previousOrders, $orderId);
-            if ($previousOrder === null) {
+            $reason = $this->safe_string($message, 'reason');
+            if (($previousOrder === null) || ($reason === 'edited_by_user')) {
                 $parsed = $this->parse_ws_order($order);
                 $orders->append ($parsed);
                 $client->resolve ($orders, $messageHash);
@@ -673,9 +693,10 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 }
                 $previousOrder['cost'] = $totalCost;
                 if ($previousOrder['filled'] !== null) {
-                    $previousOrder['filled'] = Precise::string_add($previousOrder['filled'], $this->number_to_string($trade['amount']));
+                    $stringOrderFilled = $this->number_to_string($previousOrder['filled']);
+                    $previousOrder['filled'] = Precise::string_add($stringOrderFilled, $this->number_to_string($trade['amount']));
                     if ($previousOrder['amount'] !== null) {
-                        $previousOrder['remaining'] = Precise::string_sub($previousOrder['amount'], $previousOrder['filled']);
+                        $previousOrder['remaining'] = Precise::string_sub($this->number_to_string($previousOrder['amount']), $stringOrderFilled);
                     }
                 }
                 if ($previousOrder['fee'] === null) {

@@ -16,14 +16,23 @@ class coinbase extends \ccxt\async\coinbase {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'cancelAllOrdersWs' => false,
+                'cancelOrdersWs' => false,
+                'cancelOrderWs' => false,
+                'createOrderWs' => false,
+                'editOrderWs' => false,
+                'fetchBalanceWs' => false,
+                'fetchOpenOrdersWs' => false,
+                'fetchOrderWs' => false,
+                'fetchTradesWs' => false,
+                'watchBalance' => false,
+                'watchMyTrades' => false,
                 'watchOHLCV' => false,
                 'watchOrderBook' => true,
+                'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
-                'watchBalance' => false,
-                'watchOrders' => true,
-                'watchMyTrades' => false,
             ),
             'urls' => array(
                 'api' => array(

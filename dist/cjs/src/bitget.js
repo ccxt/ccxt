@@ -822,6 +822,7 @@ class bitget extends bitget$1 {
                     '40017': errors.ExchangeError,
                     '40018': errors.PermissionDenied,
                     '40019': errors.BadRequest,
+                    '40031': errors.AccountSuspended,
                     '40037': errors.AuthenticationError,
                     '40102': errors.BadRequest,
                     '40103': errors.BadRequest,
@@ -1127,13 +1128,6 @@ class bitget extends bitget$1 {
         let result = promises[0];
         for (let i = 1; i < promises.length; i++) {
             result = this.arrayConcat(result, promises[i]);
-        }
-        return result;
-    }
-    parseMarkets(markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
         }
         return result;
     }
@@ -1932,6 +1926,7 @@ class bitget extends bitget$1 {
             'tag': tag,
             'tagTo': tag,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }
@@ -3200,8 +3195,8 @@ class bitget extends bitget$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const marginParams = this.handleMarginModeAndParams('createOrder', params);
+        const marginMode = marginParams[0];
         const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
@@ -3466,7 +3461,7 @@ class bitget extends bitget$1 {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {

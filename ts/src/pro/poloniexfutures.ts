@@ -5,7 +5,7 @@
 import poloniexfuturesRest from '../poloniexfutures.js';
 import { AuthenticationError, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,6 +15,15 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'cancelAllOrdersWs': false,
+                'cancelOrdersWs': false,
+                'cancelOrderWs': false,
+                'createOrderWs': false,
+                'editOrderWs': false,
+                'fetchBalanceWs': false,
+                'fetchOpenOrdersWs': false,
+                'fetchOrderWs': false,
+                'fetchTradesWs': false,
                 'watchOHLCV': false,
                 'watchOrderBook': true,
                 'watchTicker': true,
@@ -117,7 +126,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return requestId;
     }
 
-    async subscribe (name: string, isPrivate: boolean, symbol: string = undefined, subscription = undefined, params = {}) {
+    async subscribe (name: string, isPrivate: boolean, symbol: Str = undefined, subscription = undefined, params = {}) {
         /**
          * @ignore
          * @method
@@ -296,7 +305,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return orderbook.limit ();
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name poloniexfutures#watchOrders

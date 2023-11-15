@@ -909,7 +909,7 @@ class blockchaincom extends Exchange {
         }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'txhash');
-        $result = array(
+        return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
@@ -928,9 +928,9 @@ class blockchaincom extends Exchange {
             'status' => $this->parse_transaction_state($state), // 'status' =>   'pending',   // 'ok', 'failed', 'canceled', string
             'updated' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_withdrawal_whitelist($params = array ()) {

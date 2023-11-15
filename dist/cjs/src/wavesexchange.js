@@ -18,7 +18,7 @@ class wavesexchange extends wavesexchange$1 {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -2592,6 +2592,7 @@ class wavesexchange extends wavesexchange$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': undefined,
             'info': transaction,
         };

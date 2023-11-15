@@ -1636,7 +1636,7 @@ export default class digifinex extends Exchange {
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
             const orderParams = this.safeValue(rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams('createOrders', params);
+            const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
@@ -2812,6 +2812,8 @@ export default class digifinex extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -4159,7 +4161,13 @@ export default class digifinex extends Exchange {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit(params, this.extractParams(path));
-        let urlencoded = this.urlencode(this.keysort(query));
+        let urlencoded = undefined;
+        if (signed && (pathPart === '/swap/v2') && (method === 'POST')) {
+            urlencoded = JSON.stringify(params);
+        }
+        else {
+            urlencoded = this.urlencode(this.keysort(query));
+        }
         if (signed) {
             let auth = undefined;
             let nonce = undefined;
@@ -4172,9 +4180,7 @@ export default class digifinex extends Exchange {
                     }
                 }
                 else if (method === 'POST') {
-                    const swapPostParams = JSON.stringify(params);
-                    urlencoded = swapPostParams;
-                    auth += swapPostParams;
+                    auth += urlencoded;
                 }
             }
             else {

@@ -206,7 +206,6 @@ async def close(exchange):
 
 
 import asyncio
-from typing import Optional
 from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
@@ -772,7 +771,7 @@ class testMainClass(baseMainTestClass):
         content = io_file_read(filename)
         return content
 
-    def load_static_data(self, targetExchange: Optional[str] = None):
+    def load_static_data(self, targetExchange: str = None):
         folder = rootDir + './ts/src/test/static/data/'
         result = {}
         if targetExchange:
@@ -922,7 +921,7 @@ class testMainClass(baseMainTestClass):
         markets = self.load_markets_from_file(exchangeName)
         return init_exchange(exchangeName, {'markets': markets, 'rateLimit': 1, 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'uid': 'uid', 'accounts': [{'id': 'myAccount'}], 'options': {'enableUnifiedAccount': True, 'enableUnifiedMargin': False, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}})
 
-    async def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: Optional[str] = None):
+    async def test_exchange_statically(self, exchangeName: str, exchangeData: object, testName: str = None):
         # instantiate the exchange and make sure that we sink the requests to avoid an actual request
         exchange = self.init_offline_exchange(exchangeName)
         methods = exchange.safe_value(exchangeData, 'methods', {})
@@ -951,7 +950,7 @@ class testMainClass(baseMainTestClass):
             sum = exchange.sum(sum, resultsLength)
         return sum
 
-    async def run_static_tests(self, targetExchange: Optional[str] = None, testName: Optional[str] = None):
+    async def run_static_tests(self, targetExchange: str = None, testName: str = None):
         staticData = self.load_static_data(targetExchange)
         exchanges = list(staticData.keys())
         exchange = init_exchange('Exchange', {})  # tmp to do the calculations until we have the ast-transpiler transpiling self code
@@ -990,7 +989,8 @@ class testMainClass(baseMainTestClass):
             self.test_mexc(),
             self.test_huobi(),
             self.test_woo(),
-            self.test_bitmart()
+            self.test_bitmart(),
+            self.test_coinex()
         ]
         await asyncio.gather(*promises)
         successMessage = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
@@ -1183,6 +1183,19 @@ class testMainClass(baseMainTestClass):
             reqHeaders = bitmart.last_request_headers
         assert reqHeaders['X-BM-BROKER-ID'] == id, 'id not in headers'
         await close(bitmart)
+
+    async def test_coinex(self):
+        exchange = self.init_offline_exchange('coinex')
+        id = 'x-167673045'
+        assert exchange.options['brokerId'] == id, 'id not in options'
+        spotOrderRequest = None
+        try:
+            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            spotOrderRequest = json_parse(exchange.last_request_body)
+        clientOrderId = spotOrderRequest['client_id']
+        assert clientOrderId.startswith(id), 'clientOrderId does not start with id'
+        await close(exchange)
 
 # ***** AUTO-TRANSPILER-END *****
 # *******************************

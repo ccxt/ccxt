@@ -819,6 +819,7 @@ class bitget extends Exchange {
                     '40017' => '\\ccxt\\ExchangeError', // Parameter verification failed
                     '40018' => '\\ccxt\\PermissionDenied', // Invalid IP
                     '40019' => '\\ccxt\\BadRequest', // array("code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null)
+                    '40031' => '\\ccxt\\AccountSuspended', // The account has been cancelled and cannot be used again
                     '40037' => '\\ccxt\\AuthenticationError', // Apikey does not exist
                     '40102' => '\\ccxt\\BadRequest', // Contract configuration does not exist, please check the parameters
                     '40103' => '\\ccxt\\BadRequest', // Request method cannot be empty
@@ -1121,14 +1122,6 @@ class bitget extends Exchange {
         $result = $promises[0];
         for ($i = 1; $i < count($promises); $i++) {
             $result = $this->array_concat($result, $promises[$i]);
-        }
-        return $result;
-    }
-
-    public function parse_markets($markets) {
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
         }
         return $result;
     }
@@ -1918,6 +1911,7 @@ class bitget extends Exchange {
             'tag' => $tag,
             'tagTo' => $tag,
             'comment' => null,
+            'internal' => null,
             'fee' => $fee,
         );
     }
@@ -3165,8 +3159,8 @@ class bitget extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $marginMode = null;
-        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $marginParams = $this->handle_margin_mode_and_params('createOrder', $params);
+        $marginMode = $marginParams[0];
         $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
         $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
         $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
@@ -3406,7 +3400,7 @@ class bitget extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_value($rawOrder, 'params', array());
-            $marginResult = $this->handle_margin_mode_and_params('createOrders', $params);
+            $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
             $currentMarginMode = $marginResult[0];
             if ($currentMarginMode !== null) {
                 if ($marginMode === null) {

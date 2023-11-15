@@ -2612,6 +2612,7 @@ class ascendex extends ascendex$1 {
                 'cost': this.parseNumber(feeCostString),
                 'rate': undefined,
             },
+            'internal': false,
         };
     }
     async fetchPositions(symbols = undefined, params = {}) {

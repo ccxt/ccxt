@@ -1430,6 +1430,9 @@ class hitbtc extends Exchange {
         $sender = $this->safe_value($native, 'senders');
         $addressFrom = $this->safe_string($sender, 0);
         $amount = $this->safe_number($native, 'amount');
+        $subType = $this->safe_string($transaction, 'subtype');
+        $internal = $subType === 'OFFCHAIN';
+        // https://api.hitbtc.com/#check-if-offchain-is-available
         $fee = array(
             'currency' => null,
             'cost' => null,
@@ -1459,6 +1462,7 @@ class hitbtc extends Exchange {
             'tagTo' => $tagTo,
             'updated' => $updated,
             'comment' => null,
+            'internal' => $internal,
             'fee' => $fee,
         );
     }

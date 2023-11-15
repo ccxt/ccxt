@@ -6,7 +6,7 @@ import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.subscribePublic (name, symbols, params);
     }
 
-    async watchTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#watchTrades
@@ -345,7 +345,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#watchOrders
@@ -372,7 +372,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name krakenfutures#watchMyTrades
@@ -630,6 +630,25 @@ export default class krakenfutures extends krakenfuturesRest {
         //        "reason": "cancelled_by_user"
         //    }
         //
+        //     {
+        //         "feed": 'open_orders',
+        //         "order": {
+        //         "instrument": 'PF_XBTUSD',
+        //         "time": 1698159920097,
+        //         "last_update_time": 1699835622988,
+        //         "qty": 1.1,
+        //         "filled": 0,
+        //         "limit_price": 20000,
+        //         "stop_price": 0,
+        //         "type": 'limit',
+        //         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        //         "direction": 0,
+        //         "reduce_only": false
+        //         },
+        //         "is_cancel": false,
+        //         "reason": 'edited_by_user'
+        //     }
+        //
         let orders = this.orders;
         if (orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit');
@@ -644,7 +663,8 @@ export default class krakenfutures extends krakenfuturesRest {
             const orderId = this.safeString (order, 'order_id');
             const previousOrders = this.safeValue (orders.hashmap, symbol, {});
             const previousOrder = this.safeValue (previousOrders, orderId);
-            if (previousOrder === undefined) {
+            const reason = this.safeString (message, 'reason');
+            if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder (order);
                 orders.append (parsed);
                 client.resolve (orders, messageHash);
@@ -669,9 +689,10 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
                 previousOrder['cost'] = totalCost;
                 if (previousOrder['filled'] !== undefined) {
-                    previousOrder['filled'] = Precise.stringAdd (previousOrder['filled'], this.numberToString (trade['amount']));
+                    const stringOrderFilled = this.numberToString (previousOrder['filled']);
+                    previousOrder['filled'] = Precise.stringAdd (stringOrderFilled, this.numberToString (trade['amount']));
                     if (previousOrder['amount'] !== undefined) {
-                        previousOrder['remaining'] = Precise.stringSub (previousOrder['amount'], previousOrder['filled']);
+                        previousOrder['remaining'] = Precise.stringSub (this.numberToString (previousOrder['amount']), stringOrderFilled);
                     }
                 }
                 if (previousOrder['fee'] === undefined) {

@@ -336,6 +336,7 @@ class cryptocom extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     '219' => '\\ccxt\\InvalidOrder',
+                    '314' => '\\ccxt\\InvalidOrder', // array( "id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : array( "client_oid" : "1700xxx", "order_id" : "6530xxx" ) )
                     '10001' => '\\ccxt\\ExchangeError',
                     '10002' => '\\ccxt\\PermissionDenied',
                     '10003' => '\\ccxt\\PermissionDenied',
@@ -2357,6 +2358,7 @@ class cryptocom extends Exchange {
             'status' => $status,
             'updated' => $this->safe_integer($transaction, 'update_time'),
             'internal' => null,
+            'comment' => $this->safe_string($transaction, 'client_wid'),
             'fee' => $fee,
         );
     }

@@ -999,6 +999,7 @@ class indodax extends indodax$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'withdraw_memo'),
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

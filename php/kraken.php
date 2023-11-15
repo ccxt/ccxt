@@ -189,12 +189,6 @@ class kraken extends Exchange {
                         'WithdrawInfo' => 3,
                         'WithdrawStatus' => 3,
                         'WalletTransfer' => 3,
-                        // staking
-                        'Stake' => 3,
-                        'Unstake' => 3,
-                        'Staking/Assets' => 3,
-                        'Staking/Pending' => 3,
-                        'Staking/Transactions' => 3,
                         // sub accounts
                         'CreateSubaccount' => 3,
                         'AccountTransfer' => 3,
@@ -488,7 +482,7 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'costmin'),
                         'max' => null,
                     ),
                 ),
@@ -1255,7 +1249,7 @@ class kraken extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, $amount, $price = null, $params = array ()) {
         /**
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1590,7 +1584,7 @@ class kraken extends Exchange {
     public function edit_order(string $id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1636,11 +1630,11 @@ class kraken extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-         * fetches information on an $order made by the user
+         * fetches information on an order made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
          * @param {string} $symbol not used by kraken fetchOrder
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1696,11 +1690,9 @@ class kraken extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         if (!(is_array($result) && array_key_exists($id, $result))) {
-            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
         }
-        $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
-        $order['info'] = $order;
-        return $order;
+        return $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2140,6 +2132,8 @@ class kraken extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,
@@ -2177,6 +2171,9 @@ class kraken extends Exchange {
         $request = array(
             'asset' => $currency['id'],
         );
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
         $response = $this->privatePostDepositStatus (array_merge($request, $params));
         //
         //     {  error => array(),
@@ -2400,7 +2397,7 @@ class kraken extends Exchange {
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
-                // 'address' => $address, // they don't allow withdrawals to direct addresses
+                'address' => $address,
             );
             $response = $this->privatePostWithdraw (array_merge($request, $params));
             //

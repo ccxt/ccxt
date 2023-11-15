@@ -5876,6 +5876,8 @@ class htx extends Exchange {
         if ($networkId === 'ETH' && mb_strpos($txHash, '0x') === false) {
             $txHash = '0x' . $txHash;
         }
+        $subType = $this->safe_string($transaction, 'sub-type');
+        $internal = $subType === 'FAST';
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
@@ -5894,6 +5896,8 @@ class htx extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
             'updated' => $this->safe_integer($transaction, 'updated-at'),
+            'comment' => null,
+            'internal' => $internal,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
