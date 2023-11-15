@@ -1,5 +1,5 @@
 import Exchange from './abstract/p2b.js';
-import { Int, OHLCV, Order, OrderSide, OrderType, Ticker, Tickers } from './base/types.js';
+import { Int, OHLCV, Order, OrderSide, OrderType, Strings, Ticker, Tickers } from './base/types.js';
 /**
  * @class p2b
  * @extends Exchange
@@ -7,7 +7,7 @@ import { Int, OHLCV, Order, OrderSide, OrderType, Ticker, Tickers } from './base
 export default class p2b extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<any[]>;
-    fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
+    fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: any, market?: any): Ticker;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;

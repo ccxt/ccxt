@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Int, Order, OrderSide, OrderType, Ticker, Tickers
+from ccxt.base.types import Int, Order, OrderSide, OrderType, Strings, Ticker, Tickers
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -337,7 +337,7 @@ class p2b(Exchange, ImplicitAPI):
             result.append(entry)
         return result
 
-    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols

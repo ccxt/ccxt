@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, String, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import AuthenticationError
 
 
@@ -109,7 +108,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             #
         return future
 
-    async def subscribe_public(self, name: str, symbols: List[str] = None, params={}):
+    async def subscribe_public(self, name: str, symbols: Strings = None, params={}):
         """
          * @ignore
         :param str name: websocket endpoint name

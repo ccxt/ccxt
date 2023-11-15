@@ -1,5 +1,6 @@
 export declare type Int = number | undefined;
 export declare type Str = string | undefined;
+export declare type Strings = string[] | undefined;
 export declare type Bool = boolean | undefined;
 export interface Dictionary<T> {
     [key: string]: T;
@@ -19,13 +20,13 @@ export interface Market {
     id: string;
     uppercaseId?: string;
     lowercaseId?: string;
-    symbol: Str;
-    base: Str;
-    quote: Str;
-    baseId: Str;
-    quoteId: Str;
+    symbol: string;
+    base: string;
+    quote: string;
+    baseId: string;
+    quoteId: string;
     active: Bool;
-    type: Str;
+    type: string;
     spot: boolean;
     margin: boolean;
     swap: boolean;

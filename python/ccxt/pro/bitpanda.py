@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, String, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -163,7 +162,7 @@ class bitpanda(ccxt.async_support.bitpanda):
         }
         return await self.watch_multiple(messageHash, request, subscriptionHash, [symbol], params)
 
-    async def watch_tickers(self, symbols: List[str] = None, params={}):
+    async def watch_tickers(self, symbols: Strings = None, params={}):
         """
         :see: https://developers.bitpanda.com/exchange/#market-ticker-channel
         watches price tickers, a statistical calculation with the information for all markets or those specified.
@@ -1232,7 +1231,7 @@ class bitpanda(ccxt.async_support.bitpanda):
             future.resolve(True)
         return message
 
-    async def watch_multiple(self, messageHash, request, subscriptionHash, symbols: List[str] = [], params={}):
+    async def watch_multiple(self, messageHash, request, subscriptionHash, symbols: Strings = [], params={}):
         marketIds = []
         numSymbols = len(symbols)
         if numSymbols == 0:

@@ -1,12 +1,12 @@
 import bitpandaRest from '../bitpanda.js';
-import { Int, Str } from '../base/types.js';
+import { Int, Str, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitpanda extends bitpandaRest {
     describe(): any;
     watchBalance(params?: {}): Promise<any>;
     handleBalanceSnapshot(client: any, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     parseWSTicker(ticker: any, market?: any): import("../base/types.js").Ticker;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): any;
@@ -31,6 +31,6 @@ export default class bitpanda extends bitpandaRest {
     handleMessage(client: Client, message: any): any;
     handlePricePointUpdates(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;
-    watchMultiple(messageHash: any, request: any, subscriptionHash: any, symbols?: string[], params?: {}): Promise<any>;
+    watchMultiple(messageHash: any, request: any, subscriptionHash: any, symbols?: Strings, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
 }

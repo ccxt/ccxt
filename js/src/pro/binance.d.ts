@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import { Int, OrderSide, OrderType, Str, Trade } from '../base/types.js';
+import { Int, OrderSide, OrderType, Str, Strings, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -22,7 +22,7 @@ export default class binance extends binanceRest {
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<import("../base/types.js").OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<any>;
-    watchTickers(symbols?: string[], params?: {}): Promise<any>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<any>;
     parseWsTicker(message: any, marketType: any): {
         symbol: any;
         timestamp: any;
@@ -70,8 +70,8 @@ export default class binance extends binanceRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     handleOrderUpdate(client: Client, message: any): void;
-    watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
-    setPositionsCache(client: Client, type: any, symbols?: string[]): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
     parseWsPosition(position: any, market?: any): import("../base/types.js").Position;

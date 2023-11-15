@@ -6,9 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, String
+from ccxt.base.types import Int, String, Strings
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
@@ -124,7 +123,7 @@ class poloniex(ccxt.async_support.poloniex):
             client.subscriptions[messageHash] = future
         return future
 
-    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: List[str] = None, params={}):
+    async def subscribe(self, name: str, messageHash: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
          * @ignore
         Connects to a websocket channel

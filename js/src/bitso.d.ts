@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 /**
  * @class bitso
  * @extends Exchange
@@ -56,7 +56,7 @@ export default class bitso extends Exchange {
         info: any;
     }>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{}>;
-    fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<{}>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<{}>;
     parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): {};
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
     safeNetwork(networkId: any): string;
