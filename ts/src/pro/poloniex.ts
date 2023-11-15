@@ -240,6 +240,61 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('createOrder', this.extend (request, params));
     }
 
+    async cancelOrderWs (id: string, symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#cancelOrderWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+         * @description cancel multiple orders
+         * @param {string} id order id
+         * @param {string} [symbol] unified market symbol
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {string} [params.clientOrderId] client order id
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
+            params['clientOrderIds'] = this.arrayConcat (clientOrderIds, [ clientOrderId ]);
+        }
+        return await this.cancelOrdersWs ([ id ], symbol, params);
+    }
+
+    async cancelOrdersWs (ids: string[], symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#cancelOrdersWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+         * @description cancel multiple orders
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol, default is undefined
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const request = {
+            'orderIds': ids,
+        };
+        return await this.tradeRequest ('cancelOrders', this.extend (request, params));
+    }
+
+    async cancelAllOrdersWs (symbol: string = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#cancelAllOrdersWs
+         * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
+         * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the poloniex api endpoint
+         * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        return await this.tradeRequest ('cancelAllOrders', params);
+    }
+
     handleOrderRequest (client: Client, message) {
         //
         //    {
