@@ -1808,7 +1808,7 @@ export default class Exchange {
         };
     }
 
-    safeLedgerEntry (entry: object, currency: object = undefined) {
+    safeLedgerEntry (entry: object, currency: Currency | undefined = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
         let before = this.safeString (entry, 'before');
