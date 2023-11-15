@@ -1223,7 +1223,16 @@ class bingx extends Exchange {
         //          "quoteVolume" => "4151395117.73",
         //          "openPrice" => "16832.0",
         //          "openTime" => 1672026667803,
-        //          "closeTime" => 1672026648425
+        //          "closeTime" => 1672026648425,
+        //  added some time ago:
+        //          "firstId" => 12345,
+        //          "lastId" => 12349,
+        //          "count" => 5,
+        //  added 2023-11-10:
+        //          "bidPrice" => 16726.0,
+        //          "bidQty" => 0.05,
+        //          "askPrice" => 16726.0,
+        //          "askQty" => 0.05,
         //        }
         //    }
         //
@@ -1272,7 +1281,16 @@ class bingx extends Exchange {
         //                "quoteVolume" => "4151395117.73",
         //                "openPrice" => "16832.0",
         //                "openTime" => 1672026667803,
-        //                "closeTime" => 1672026648425
+        //                "closeTime" => 1672026648425,
+        //  added some time ago:
+        //                "firstId" => 12345,
+        //                "lastId" => 12349,
+        //                "count" => 5,
+        //  added 2023-11-10:
+        //                "bidPrice" => 16726.0,
+        //                "bidQty" => 0.05,
+        //                "askPrice" => 16726.0,
+        //                "askQty" => 0.05,
         //            ),
         //        )
         //    }
@@ -1293,7 +1311,16 @@ class bingx extends Exchange {
         //        "volume" => "1161.79",
         //        "quoteVolume" => "30288466.44",
         //        "openTime" => "1693081020762",
-        //        "closeTime" => "1693167420762"
+        //        "closeTime" => "1693167420762",
+        //  added some time ago:
+        //        "firstId" => 12345,
+        //        "lastId" => 12349,
+        //        "count" => 5,
+        //  added 2023-11-10:
+        //        "bidPrice" => 16726.0,
+        //        "bidQty" => 0.05,
+        //        "askPrice" => 16726.0,
+        //        "askQty" => 0.05,
         //    }
         // swap
         //
@@ -1309,7 +1336,16 @@ class bingx extends Exchange {
         //        "quoteVolume" => "4151395117.73",
         //        "openPrice" => "16832.0",
         //        "openTime" => 1672026667803,
-        //        "closeTime" => 1672026648425
+        //        "closeTime" => 1672026648425,
+        //  added some time ago:
+        //        "firstId" => 12345,
+        //        "lastId" => 12349,
+        //        "count" => 5,
+        //  added 2023-11-10:
+        //        "bidPrice" => 16726.0,
+        //        "bidQty" => 0.05,
+        //        "askPrice" => 16726.0,
+        //        "askQty" => 0.05,
         //    }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
@@ -1325,16 +1361,20 @@ class bingx extends Exchange {
         $percentage = $this->safe_string($ticker, 'priceChangePercent');
         $ts = $this->safe_integer($ticker, 'closeTime');
         $datetime = $this->iso8601($ts);
+        $bid = $this->safe_string($ticker, 'bidPrice');
+        $bidVolume = $this->safe_string($ticker, 'bidQty');
+        $ask = $this->safe_string($ticker, 'askPrice');
+        $askVolume = $this->safe_string($ticker, 'askQty');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $ts,
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,
-            'bid' => null,
-            'bidVolume' => null,
-            'ask' => null,
-            'askVolume' => null,
+            'bid' => $bid,
+            'bidVolume' => $bidVolume,
+            'ask' => $ask,
+            'askVolume' => $askVolume,
             'vwap' => null,
             'open' => $open,
             'close' => $close,

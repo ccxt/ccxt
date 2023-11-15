@@ -18,6 +18,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,

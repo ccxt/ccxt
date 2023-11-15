@@ -1654,7 +1654,6 @@ class digifinex extends Exchange {
                     }
                 }
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
-                $orderRequest = $this->omit($orderRequest, 'marginMode');
                 $ordersRequests[] = $orderRequest;
             }
             $market = $this->market($symbol);
@@ -4193,7 +4192,12 @@ class digifinex extends Exchange {
         $payload = $pathPart . $request;
         $url = $this->urls['api']['rest'] . $payload;
         $query = $this->omit($params, $this->extract_params($path));
-        $urlencoded = $this->urlencode($this->keysort($query));
+        $urlencoded = null;
+        if ($signed && ($pathPart === '/swap/v2') && ($method === 'POST')) {
+            $urlencoded = json_encode ($params);
+        } else {
+            $urlencoded = $this->urlencode($this->keysort($query));
+        }
         if ($signed) {
             $auth = null;
             $nonce = null;
@@ -4205,9 +4209,7 @@ class digifinex extends Exchange {
                         $auth .= '?' . $urlencoded;
                     }
                 } elseif ($method === 'POST') {
-                    $swapPostParams = json_encode ($params);
-                    $urlencoded = $swapPostParams;
-                    $auth .= $swapPostParams;
+                    $auth .= $urlencoded;
                 }
             } else {
                 $nonce = (string) $this->nonce();
