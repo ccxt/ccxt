@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Transaction, Ticker, OrderBook, Tickers, OrderRequest } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, OrderRequest } from './base/types.js';
 /**
  * @class huobi
  * @extends Exchange
@@ -36,7 +36,7 @@ export default class htx extends Exchange {
             };
         };
     }>;
-    parseTradingLimits(limits: any, symbol?: string, params?: {}): {
+    parseTradingLimits(limits: any, symbol?: Str, params?: {}): {
         info: any;
         limits: {
             amount: {
@@ -53,9 +53,9 @@ export default class htx extends Exchange {
     fetchTickers(symbols?: string[], params?: {}): Promise<Tickers>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: any, market?: any): Trade;
-    fetchOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchSpotOrderTrades(id: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchSpotOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: number, params?: {}): Promise<Trade[]>;
     parseOHLCV(ohlcv: any, market?: any): OHLCV;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -71,25 +71,25 @@ export default class htx extends Exchange {
     networkIdToCode(networkId: any, currencyCode?: any): string;
     networkCodeToId(networkCode: any, currencyCode?: any): any;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     parseMarginBalanceHelper(balance: any, code: any, result: any): any;
-    fetchSpotOrdersByStates(states: any, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchSpotOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedSpotOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchContractOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedContractOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchSpotOrdersByStates(states: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchSpotOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedSpotOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchContractOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedContractOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
     createSpotOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<any>;
     createContractOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: any): {
         currency: any;
         address: string;
@@ -101,8 +101,8 @@ export default class htx extends Exchange {
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<{}>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: any, currency?: any): Transaction;
     parseTransactionStatus(status: any): string;
     withdraw(code: string, amount: any, address: any, tag?: any, params?: {}): Promise<Transaction>;
@@ -132,7 +132,7 @@ export default class htx extends Exchange {
         info: any;
     }>;
     fetchBorrowRates(params?: {}): Promise<{}>;
-    fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
+    fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: any): {
         info: any;
         symbol: any;
@@ -172,7 +172,7 @@ export default class htx extends Exchange {
         previousFundingDatetime: any;
     }>;
     fetchFundingRates(symbols?: string[], params?: {}): Promise<any>;
-    fetchBorrowInterest(code?: string, symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowInterest(info: any, market?: any): {
         account: string;
         symbol: string;
@@ -192,8 +192,8 @@ export default class htx extends Exchange {
         headers: any;
     };
     handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
-    fetchFundingHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
-    setLeverage(leverage: any, symbol?: string, params?: {}): Promise<any>;
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
+    setLeverage(leverage: any, symbol?: Str, params?: {}): Promise<any>;
     parseIncome(income: any, market?: any): {
         info: any;
         symbol: any;
@@ -224,15 +224,15 @@ export default class htx extends Exchange {
         fee: any;
         info: any;
     };
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<any>;
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): {};
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").OpenInterest[]>;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: any): import("./base/types.js").OpenInterest;
-    borrowMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
-    repayMargin(code: string, amount: any, symbol?: string, params?: {}): Promise<any>;
+    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
+    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: any): {
         id: number;
         currency: any;
@@ -242,7 +242,7 @@ export default class htx extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchSettlementHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchSettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchDepositWithdrawFees(codes?: string[], params?: {}): Promise<any>;
     parseDepositWithdrawFee(fee: any, currency?: any): any;
     parseSettlements(settlements: any, market: any): any[];

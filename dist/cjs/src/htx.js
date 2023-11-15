@@ -6069,6 +6069,8 @@ class htx extends htx$1 {
         if (networkId === 'ETH' && txHash.indexOf('0x') < 0) {
             txHash = '0x' + txHash;
         }
+        const subType = this.safeString(transaction, 'sub-type');
+        const internal = subType === 'FAST';
         return {
             'info': transaction,
             'id': this.safeString2(transaction, 'id', 'data'),
@@ -6087,6 +6089,8 @@ class htx extends htx$1 {
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'state')),
             'updated': this.safeInteger(transaction, 'updated-at'),
+            'comment': undefined,
+            'internal': internal,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCost),

@@ -776,6 +776,7 @@ class coincheck extends coincheck$1 {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
             'internal': undefined,
             'fee': fee,
         };

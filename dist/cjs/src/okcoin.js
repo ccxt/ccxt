@@ -582,15 +582,7 @@ class okcoin extends okcoin$1 {
         };
         const response = await this.publicGetPublicInstruments(this.extend(request, params));
         const markets = this.safeValue(response, 'data', []);
-        const result = this.parseMarkets(markets);
-        return result;
-    }
-    parseMarkets(markets) {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        return this.parseMarkets(markets);
     }
     parseMarket(market) {
         //
@@ -2711,6 +2703,8 @@ class okcoin extends okcoin$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,

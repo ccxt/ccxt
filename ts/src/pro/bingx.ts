@@ -4,7 +4,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -431,7 +431,7 @@ export default class bingx extends bingxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    async watchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#watchOrders
@@ -479,7 +479,7 @@ export default class bingx extends bingxRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    async watchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#watchMyTrades

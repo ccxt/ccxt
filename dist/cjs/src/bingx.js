@@ -496,13 +496,9 @@ class bingx extends bingx$1 {
         //         }
         //    }
         //
-        const result = [];
         const data = this.safeValue(response, 'data');
         const markets = this.safeValue(data, 'symbols', []);
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        return this.parseMarkets(markets);
     }
     async fetchSwapMarkets(params) {
         const response = await this.swapV2PublicGetQuoteContracts(params);
@@ -529,12 +525,8 @@ class bingx extends bingx$1 {
         //        ]
         //    }
         //
-        const result = [];
-        const markets = this.safeValue(response, 'data');
-        for (let i = 0; i < markets.length; i++) {
-            result.push(this.parseMarket(markets[i]));
-        }
-        return result;
+        const markets = this.safeValue(response, 'data', []);
+        return this.parseMarkets(markets);
     }
     parseMarket(market) {
         const id = this.safeString(market, 'symbol');
@@ -2853,6 +2845,7 @@ class bingx extends bingx$1 {
                 'cost': this.safeNumber(transaction, 'transactionFee'),
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
     parseTransactionStatus(status) {

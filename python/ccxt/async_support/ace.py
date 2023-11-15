@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ace import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
@@ -191,66 +190,64 @@ class ace(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            base = self.safe_string(market, 'base')
-            baseCode = self.safe_currency_code(base)
-            quote = self.safe_string(market, 'quote')
-            quoteCode = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            result.append({
-                'id': self.safe_string(market, 'symbol'),
-                'uppercaseId': None,
-                'symbol': symbol,
-                'base': baseCode,
-                'baseId': self.safe_integer(market, 'baseCurrencyId'),
-                'quote': quoteCode,
-                'quoteId': self.safe_integer(market, 'quoteCurrencyId'),
-                'settle': None,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'derivative': False,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(market, 'minLimitBaseAmount'),
-                        'max': self.safe_number(market, 'maxLimitBaseAmount'),
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        baseId = self.safe_string(market, 'base')
+        base = self.safe_currency_code(baseId)
+        quoteId = self.safe_string(market, 'quote')
+        quote = self.safe_currency_code(quoteId)
+        symbol = base + '/' + quote
+        return {
+            'id': self.safe_string(market, 'symbol'),
+            'uppercaseId': None,
+            'symbol': symbol,
+            'base': base,
+            'baseId': baseId,
+            'quote': quote,
+            'quoteId': quoteId,
+            'settle': None,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'limits': {
+                'amount': {
+                    'min': self.safe_number(market, 'minLimitBaseAmount'),
+                    'max': self.safe_number(market, 'maxLimitBaseAmount'),
                 },
-                'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+                'price': {
+                    'min': None,
+                    'max': None,
                 },
-                'active': None,
-                'created': None,
-                'info': market,
-            })
-        return result
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'precision': {
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+            },
+            'active': None,
+            'created': None,
+            'info': market,
+        }
 
     def parse_ticker(self, ticker, market=None) -> Ticker:
         #
@@ -309,7 +306,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
@@ -338,7 +335,7 @@ class ace(Exchange, ImplicitAPI):
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
@@ -424,7 +421,7 @@ class ace(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
@@ -603,7 +600,7 @@ class ace(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
@@ -627,7 +624,7 @@ class ace(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
@@ -665,7 +662,7 @@ class ace(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'attachment')
         return self.parse_order(data, None)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
@@ -793,7 +790,7 @@ class ace(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }, market)
 
-    async def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
@@ -847,7 +844,7 @@ class ace(Exchange, ImplicitAPI):
         trades = self.safe_value(data, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list

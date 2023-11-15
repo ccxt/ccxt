@@ -2410,6 +2410,7 @@ class cryptocom extends cryptocom$1 {
             'status': status,
             'updated': this.safeInteger(transaction, 'update_time'),
             'internal': undefined,
+            'comment': this.safeString(transaction, 'client_wid'),
             'fee': fee,
         };
     }

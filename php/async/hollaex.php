@@ -1680,6 +1680,8 @@ class hollaex extends Exchange {
             'currency' => $currency['code'],
             'status' => $status,
             'updated' => $updated,
+            'comment' => $this->safe_string($transaction, 'message'),
+            'internal' => null,
             'fee' => $fee,
         );
     }

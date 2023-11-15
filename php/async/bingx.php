@@ -512,13 +512,9 @@ class bingx extends Exchange {
             //         }
             //    }
             //
-            $result = array();
             $data = $this->safe_value($response, 'data');
             $markets = $this->safe_value($data, 'symbols', array());
-            for ($i = 0; $i < count($markets); $i++) {
-                $result[] = $this->parse_market($markets[$i]);
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
     }
 
@@ -548,12 +544,8 @@ class bingx extends Exchange {
             //        )
             //    }
             //
-            $result = array();
-            $markets = $this->safe_value($response, 'data');
-            for ($i = 0; $i < count($markets); $i++) {
-                $result[] = $this->parse_market($markets[$i]);
-            }
-            return $result;
+            $markets = $this->safe_value($response, 'data', array());
+            return $this->parse_markets($markets);
         }) ();
     }
 
@@ -2882,6 +2874,7 @@ class bingx extends Exchange {
                 'cost' => $this->safe_number($transaction, 'transactionFee'),
                 'rate' => null,
             ),
+            'internal' => null,
         );
     }
 

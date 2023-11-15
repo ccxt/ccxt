@@ -1,5 +1,5 @@
 import Exchange from './abstract/lbank2.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class lbank2
  * @extends Exchange
@@ -31,14 +31,14 @@ export default class lbank2 extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
     parseOrderStatus(status: any): string;
     parseOrder(order: any, market?: any): Order;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOrderSupplement(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOrderDefault(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: string, params?: {}): Promise<any>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderSupplement(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderDefault(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
     getNetworkCodeForCurrency(currencyCode: any, params: any): string;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
     fetchDepositAddressDefault(code: string, params?: {}): Promise<{
@@ -61,8 +61,8 @@ export default class lbank2 extends Exchange {
     }>;
     parseTransactionStatus(status: any, type: any): string;
     parseTransaction(transaction: any, currency?: any): Transaction;
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<any>;
     fetchPrivateTransactionFees(params?: {}): Promise<{
         withdraw: {};

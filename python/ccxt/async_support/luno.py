@@ -5,8 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -315,7 +314,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
@@ -415,7 +414,7 @@ class luno(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: not used by luno fetchOrder
@@ -429,7 +428,7 @@ class luno(Exchange, ImplicitAPI):
         response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_orders_by_state(self, state=None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_by_state(self, state=None, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         request = {}
         market = None
@@ -442,7 +441,7 @@ class luno(Exchange, ImplicitAPI):
         orders = self.safe_value(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -453,7 +452,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -464,7 +463,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -512,7 +511,7 @@ class luno(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
@@ -641,7 +640,7 @@ class luno(Exchange, ImplicitAPI):
             },
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -674,7 +673,7 @@ class luno(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -781,7 +780,7 @@ class luno(Exchange, ImplicitAPI):
             'id': response['order_id'],
         }, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -795,7 +794,7 @@ class luno(Exchange, ImplicitAPI):
         }
         return await self.privatePostStoporder(self.extend(request, params))
 
-    async def fetch_ledger_by_entries(self, code: Optional[str] = None, entry=None, limit=None, params={}):
+    async def fetch_ledger_by_entries(self, code: String = None, entry=None, limit=None, params={}):
         # by default without entry number or limit number, return most recent entry
         if entry is None:
             entry = -1
@@ -808,7 +807,7 @@ class luno(Exchange, ImplicitAPI):
         }
         return await self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    async def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :param str code: unified currency code, default is None

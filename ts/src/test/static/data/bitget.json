@@ -123,6 +123,116 @@
                 "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"100\",\"timeInForceValue\":\"post_only\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"side\":\"close_long\"}"
             }
         ],
+        "createOrders": [
+            {
+                "description": "Spot create multiple limit orders at once",
+                "method": "createOrders",
+                "url": "https://api.bitget.com/api/spot/v1/trade/batch-orders",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"orderList\":[{\"symbol\":\"BTCUSDT_SPBL\",\"orderType\":\"limit\",\"price\":\"25000\",\"force\":\"normal\",\"side\":\"buy\",\"quantity\":\"0.0002\"},{\"symbol\":\"BTCUSDT_SPBL\",\"orderType\":\"limit\",\"price\":\"27000\",\"force\":\"normal\",\"side\":\"buy\",\"quantity\":\"0.0002\"}]}"
+            },
+            {
+                "description": "Spot isolated margin create multiple orders at once",
+                "method": "createOrders",
+                "url": "https://api.bitget.com/api/margin/v1/isolated/order/batchPlaceOrder",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 25000,
+                      "params": {
+                        "marginMode": "isolated"
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 27000,
+                      "params": {
+                        "marginMode": "isolated"
+                      }
+                    }
+                  ]
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderList\":[{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"25000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"0.0002\"},{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"27000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"0.0002\"}]}"
+            },
+            {
+                "description": "Spot cross margin create multiple orders at once",
+                "method": "createOrders",
+                "url": "https://api.bitget.com/api/margin/v1/cross/order/batchPlaceOrder",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 25000,
+                      "params": {
+                        "marginMode": "cross"
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 27000,
+                      "params": {
+                        "marginMode": "cross"
+                      }
+                    }
+                  ]
+                ],
+                "output": "{\"symbol\":\"BTCUSDT\",\"orderList\":[{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"25000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"0.0002\"},{\"symbol\":\"BTCUSDT\",\"orderType\":\"limit\",\"price\":\"27000\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"0.0002\"}]}"
+            },
+            {
+                "description": "Swap create multiple limit orders at once",
+                "method": "createOrders",
+                "url": "https://api.bitget.com/api/mix/v1/order/batch-orders",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.001,
+                      "price": 25000
+                    },
+                    {
+                      "symbol": "BTC/USDT:USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.001,
+                      "price": 27000
+                    }
+                  ]
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"orderDataList\":[{\"symbol\":\"BTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"25000\",\"timeInForceValue\":\"normal\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"side\":\"open_long\"},{\"symbol\":\"BTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"27000\",\"timeInForceValue\":\"normal\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"side\":\"open_long\"}],\"marginCoin\":\"USDT\"}"
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "Spot private trades",

@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, MarginMode, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, MarginMode, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -1042,7 +1041,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://api.hitbtc.com/#tickers
@@ -1126,7 +1125,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://api.hitbtc.com/#trades
@@ -1162,7 +1161,7 @@ class hitbtc(Exchange, ImplicitAPI):
             trades = self.array_concat(trades, parsed)
         return trades
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :param str symbol: unified market symbol
@@ -1400,6 +1399,9 @@ class hitbtc(Exchange, ImplicitAPI):
         sender = self.safe_value(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
+        subType = self.safe_string(transaction, 'subtype')
+        internal = subType == 'OFFCHAIN'
+        # https://api.hitbtc.com/#check-if-offchain-is-available
         fee = {
             'currency': None,
             'cost': None,
@@ -1428,10 +1430,11 @@ class hitbtc(Exchange, ImplicitAPI):
             'tagTo': tagTo,
             'updated': updated,
             'comment': None,
+            'internal': internal,
             'fee': fee,
         }
 
-    def fetch_deposits_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
@@ -1442,7 +1445,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('DEPOSIT,WITHDRAW', code, since, limit, params)
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1453,7 +1456,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('DEPOSIT', code, since, limit, params)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :param str code: unified currency code
@@ -1464,7 +1467,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         return self.fetch_transactions_helper('WITHDRAW', code, since, limit, params)
 
-    def fetch_order_books(self, symbols: Optional[List[str]] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_books(self, symbols: List[str] = None, limit: Int = None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :see: https://api.hitbtc.com/#order-books
@@ -1491,7 +1494,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp, 'bid', 'ask')
         return result
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://api.hitbtc.com/#order-books
@@ -1584,7 +1587,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://api.hitbtc.com/#candles
@@ -1688,7 +1691,7 @@ class hitbtc(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1723,7 +1726,7 @@ class hitbtc(Exchange, ImplicitAPI):
         parsed = self.parse_orders(response, market, since, limit)
         return self.filter_by_array(parsed, 'status', ['closed', 'canceled'], False)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
@@ -1772,7 +1775,7 @@ class hitbtc(Exchange, ImplicitAPI):
         order = self.safe_value(response, 0)
         return self.parse_order(order, market)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :param str id: order id
@@ -1842,7 +1845,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1891,7 +1894,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_open_order(self, id: str, symbol: String = None, params={}):
         """
         fetch an open order by it's id
         :param str id: order id
@@ -1921,7 +1924,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_order(response, market)
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
@@ -1949,7 +1952,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = getattr(self, method)(self.extend(request, query))
         return self.parse_orders(response, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -2222,7 +2225,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'stopLossPrice': None,
         }, market)
 
-    def fetch_margin_mode(self, symbol: Optional[str] = None, params={}) -> MarginMode:
+    def fetch_margin_mode(self, symbol: String = None, params={}) -> MarginMode:
         """
         fetches margin mode of the user
         :see: https://api.hitbtc.com/#get-margin-position-parameters
@@ -2414,7 +2417,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_funding_rates(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_funding_rates(self, symbols: List[str] = None, params={}):
         """
         fetches funding rates for multiple markets
         :see: https://api.hitbtc.com/#futures-info
@@ -2463,7 +2466,7 @@ class hitbtc(Exchange, ImplicitAPI):
             fundingRates[symbol] = fundingRate
         return self.filter_by_array(fundingRates, 'symbol', symbols)
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://api.hitbtc.com/#funding-history
         fetches historical funding rate prices
@@ -2536,7 +2539,7 @@ class hitbtc(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
         :param str[]|None symbols: not used by hitbtc fetchPositions()
@@ -3009,7 +3012,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.safe_number(response, 'leverage')
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: String = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -3036,7 +3039,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://api.hitbtc.com/#currencies

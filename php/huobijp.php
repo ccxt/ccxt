@@ -1713,6 +1713,8 @@ class huobijp extends Exchange {
             'currency' => $code,
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
             'updated' => $this->safe_integer($transaction, 'updated-at'),
+            'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),

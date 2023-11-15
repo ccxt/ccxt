@@ -290,11 +290,7 @@ class timex extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $result[] = $this->parse_market($response[$i]);
-        }
-        return $result;
+        return $this->parse_markets($response);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -450,6 +446,8 @@ class timex extends Exchange {
             'currency' => $this->safe_currency_code(null, $currency),
             'status' => 'ok',
             'updated' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => null,
         );
     }

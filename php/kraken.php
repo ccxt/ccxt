@@ -1630,11 +1630,11 @@ class kraken extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-         * fetches information on an $order made by the user
+         * fetches information on an order made by the user
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
          * @param {string} $symbol not used by kraken fetchOrder
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
-         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
+         * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
         $this->load_markets();
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
@@ -1690,11 +1690,9 @@ class kraken extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         if (!(is_array($result) && array_key_exists($id, $result))) {
-            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
         }
-        $order = $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
-        $order['info'] = $order;
-        return $order;
+        return $this->parse_order(array_merge(array( 'id' => $id ), $result[$id]));
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -2134,6 +2132,8 @@ class kraken extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'comment' => null,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $feeCost,

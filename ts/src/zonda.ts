@@ -6,7 +6,7 @@ import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, Exc
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -307,7 +307,6 @@ export default class zonda extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.v1_01PublicGetTradingTicker (params);
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         //
         //     {
         //         "status": "Ok",
@@ -327,81 +326,80 @@ export default class zonda extends Exchange {
         //         },
         //     }
         //
-        const result = [];
         const items = this.safeValue (response, 'items', {});
-        const keys = Object.keys (items);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const item = items[id];
-            const market = this.safeValue (item, 'market', {});
-            const first = this.safeValue (market, 'first', {});
-            const second = this.safeValue (market, 'second', {});
-            const baseId = this.safeString (first, 'currency');
-            const quoteId = this.safeString (second, 'currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            let fees = this.safeValue (this.fees, 'trading', {});
-            if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
-                fees = this.safeValue (this.fees, 'fiat', {});
-            }
-            // todo: check that the limits have ben interpreted correctly
-            // todo: parse the fees page
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (fees, 'taker'),
-                'maker': this.safeNumber (fees, 'maker'),
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'optionType': undefined,
-                'strike': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (first, 'minOffer'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (second, 'minOffer'),
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': item,
-            });
-        }
-        return result;
+        const markets = Object.values (items);
+        return this.parseMarkets (markets);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    parseMarket (item): Market {
+        const market = this.safeValue (item, 'market', {});
+        const id = this.safeString (market, 'code');
+        const first = this.safeValue (market, 'first', {});
+        const second = this.safeValue (market, 'second', {});
+        const baseId = this.safeString (first, 'currency');
+        const quoteId = this.safeString (second, 'currency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let fees = this.safeValue (this.fees, 'trading', {});
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
+            fees = this.safeValue (this.fees, 'fiat', {});
+        }
+        // todo: check that the limits have ben interpreted correctly
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'optionType': undefined,
+            'strike': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (first, 'minOffer'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name zonda#fetchOpenOrders
@@ -471,7 +469,7 @@ export default class zonda extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchMyTrades
@@ -811,7 +809,7 @@ export default class zonda extends Exchange {
         return this.parseTickers (items, symbols);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name zonda#fetchLedger
@@ -1473,7 +1471,7 @@ export default class zonda extends Exchange {
         });
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name zonda#cancelOrder

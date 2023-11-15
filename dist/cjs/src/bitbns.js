@@ -1101,6 +1101,7 @@ class bitbns extends bitbns$1 {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
             'internal': undefined,
             'fee': fee,
         };
