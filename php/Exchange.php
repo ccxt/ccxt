@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '4.1.51';
+$version = '4.1.52';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.1.51';
+    const VERSION = '4.1.52';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -149,7 +149,6 @@ class Exchange {
     public $exceptions = array();
     public $accounts = array();
     public $accountsById = array();
-    public $status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
     public $limits = array(
         'cost' => array(
             'min' => null,
@@ -400,7 +399,6 @@ class Exchange {
         'btcalpha',
         'btcbox',
         'btcmarkets',
-        'btctradeua',
         'btcturk',
         'bybit',
         'cex',
@@ -409,7 +407,6 @@ class Exchange {
         'coinbasepro',
         'coincheck',
         'coinex',
-        'coinfalcon',
         'coinlist',
         'coinmate',
         'coinone',
@@ -2414,6 +2411,18 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
     }
 
+    public function parse_market($market) {
+        throw new NotSupported($this->id . ' parseMarket() is not supported yet');
+    }
+
+    public function parse_markets($markets) {
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $result[] = $this->parseMarket ($markets[$i]);
+        }
+        return $result;
+    }
+
     public function parse_ticker(array $ticker, $market = null) {
         throw new NotSupported($this->id . ' parseTicker() is not supported yet');
     }
@@ -4259,17 +4268,7 @@ class Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        if ($this->has['fetchTime']) {
-            $time = $this->fetch_time($params);
-            $this->status = array_merge($this->status, array(
-                'updated' => $time,
-                'info' => $time,
-            ));
-        }
-        if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
-            $this->status['info'] = null;
-        }
-        return $this->status;
+        throw new NotSupported($this->id . ' fetchStatus() is not supported yet');
     }
 
     public function fetch_funding_fee(string $code, $params = array ()) {

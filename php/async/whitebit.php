@@ -1845,6 +1845,7 @@ class whitebit extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'description'),
+            'internal' => null,
             'fee' => array(
                 'cost' => $this->safe_number($transaction, 'fee'),
                 'currency' => $this->safe_currency_code($currencyId, $currency),

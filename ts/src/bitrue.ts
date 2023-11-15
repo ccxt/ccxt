@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFun
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -716,89 +716,6 @@ export default class bitrue extends Exchange {
         return result;
     }
 
-    parseMarket (market) {
-        let type = undefined;
-        const side = this.safeInteger (market, 'side'); // 1 linear, 0 inverse, undefined spot
-        if (side === undefined) {
-            type = 'spot';
-        } else {
-            type = 'future';
-        }
-        const id = this.safeString (market, 'symbol');
-        const lowercaseId = this.safeStringLower (market, 'symbol');
-        let baseId = this.safeString (market, 'baseAsset');
-        let quoteId = this.safeString (market, 'quoteAsset');
-        if (type === 'future') {
-            const symbolSplit = id.split ('-');
-            baseId = this.safeString (symbolSplit, 1);
-            quoteId = this.safeString (symbolSplit, 2);
-        }
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const filters = this.safeValue (market, 'filters', []);
-        const filtersByType = this.indexBy (filters, 'filterType');
-        const status = this.safeString (market, 'status');
-        const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-        const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-        const defaultPricePrecision = this.safeString (market, 'pricePrecision');
-        const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
-        const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
-        const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
-        const entry = {
-            'id': id,
-            'lowercaseId': lowercaseId,
-            'symbol': (type === 'spot') ? (base + '/' + quote) : id,
-            'base': base,
-            'quote': quote,
-            'settle': undefined,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': undefined,
-            'type': type,
-            'spot': (type === 'spot'),
-            'margin': false,
-            'swap': false,
-            'future': (type === 'future'),
-            'option': false,
-            'active': (status === 'TRADING'),
-            'contract': (type !== 'spot'),
-            'linear': (side !== undefined && side === 1),
-            'inverse': (side !== undefined && side === 0),
-            'contractSize': this.safeString (market, 'multiplier'),
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'strike': undefined,
-            'optionType': undefined,
-            'precision': {
-                'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
-                'price': this.parseNumber (this.parsePrecision (pricePrecision)),
-                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
-                'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
-            },
-            'limits': {
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': this.safeNumber (amountFilter, 'minQty', this.safeNumber (market, 'minOrderVolume')),
-                    'max': this.safeNumber (amountFilter, 'maxQty', this.safeNumber (market, 'maxMarketVolume')),
-                },
-                'price': {
-                    'min': this.safeNumber (priceFilter, 'minPrice', this.safeNumber (market, 'minOrderMoney')),
-                    'max': this.safeNumber (priceFilter, 'maxPrice', this.safeNumber (market, 'maxMarketMoney')),
-                },
-                'cost': {
-                    'min': this.safeNumber (amountFilter, 'minVal'),
-                    'max': undefined,
-                },
-            },
-            'created': undefined,
-            'info': market,
-        };
-        return entry;
-    }
-
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -897,11 +814,87 @@ export default class bitrue extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market): Market {
+        let type = undefined;
+        const side = this.safeInteger (market, 'side'); // 1 linear, 0 inverse, undefined spot
+        if (side === undefined) {
+            type = 'spot';
+        } else {
+            type = 'future';
         }
-        return result;
+        const id = this.safeString (market, 'symbol');
+        const lowercaseId = this.safeStringLower (market, 'symbol');
+        let baseId = this.safeString (market, 'baseAsset');
+        let quoteId = this.safeString (market, 'quoteAsset');
+        if (type === 'future') {
+            const symbolSplit = id.split ('-');
+            baseId = this.safeString (symbolSplit, 1);
+            quoteId = this.safeString (symbolSplit, 2);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const filters = this.safeValue (market, 'filters', []);
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const status = this.safeString (market, 'status');
+        const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+        const defaultPricePrecision = this.safeString (market, 'pricePrecision');
+        const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
+        const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
+        const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': type,
+            'spot': (type === 'spot'),
+            'margin': false,
+            'swap': (type !== 'spot'),
+            'future': (type === 'future'),
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': (type !== 'spot'),
+            'linear': (side !== undefined && side === 1),
+            'inverse': (side !== undefined && side === 0),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                'price': this.parseNumber (this.parsePrecision (pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (amountFilter, 'minQty'),
+                    'max': this.safeNumber (amountFilter, 'maxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'max': this.safeNumber (priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber (amountFilter, 'minVal'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     parseBalance (response): Balances {
@@ -1986,7 +1979,7 @@ export default class bitrue extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchOrder
@@ -2081,7 +2074,7 @@ export default class bitrue extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#fetchClosedOrders
@@ -2138,7 +2131,7 @@ export default class bitrue extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bitrue#fetchOpenOrders
@@ -2226,7 +2219,7 @@ export default class bitrue extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#cancelOrder
@@ -2343,7 +2336,7 @@ export default class bitrue extends Exchange {
         return this.parseOrders (data, market);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bitrue#fetchMyTrades
@@ -2438,7 +2431,7 @@ export default class bitrue extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitrue#fetchDeposits
@@ -2511,7 +2504,7 @@ export default class bitrue extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bitrue#fetchWithdrawals

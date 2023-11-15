@@ -1424,6 +1424,7 @@ export default class novadax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': undefined,
                 'cost': undefined,

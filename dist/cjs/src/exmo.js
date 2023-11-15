@@ -2294,6 +2294,7 @@ class exmo extends exmo$1 {
             'tagTo': undefined,
             'updated': this.safeTimestamp(transaction, 'updated'),
             'comment': comment,
+            'internal': undefined,
             'fee': fee,
         };
     }

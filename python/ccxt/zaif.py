@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.zaif import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -278,7 +277,7 @@ class zaif(Exchange, ImplicitAPI):
         response = self.privatePostGetInfo(params)
         return self.parse_balance(response)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -400,7 +399,7 @@ class zaif(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
         get the list of most recent trades for a particular symbol
@@ -463,7 +462,7 @@ class zaif(Exchange, ImplicitAPI):
             'id': str(response['return']['order_id']),
         }, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
         cancels an open order
@@ -521,7 +520,7 @@ class zaif(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
         fetch all unfilled currently open orders
@@ -543,7 +542,7 @@ class zaif(Exchange, ImplicitAPI):
         response = self.privatePostActiveOrders(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         :see: https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
         fetches information on multiple closed orders made by the user
@@ -657,6 +656,7 @@ class zaif(Exchange, ImplicitAPI):
             'tag': None,
             'tagTo': None,
             'comment': None,
+            'internal': None,
             'fee': fee,
             'info': transaction,
         }

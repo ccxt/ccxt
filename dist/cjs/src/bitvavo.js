@@ -20,7 +20,7 @@ class bitvavo extends bitvavo$1 {
             'countries': ['NL'],
             'rateLimit': 60,
             'version': 'v2',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -312,7 +312,10 @@ class bitvavo extends bitvavo$1 {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets(params);
-        const currencies = await this.fetchCurrencies();
+        let currencies = this.currencies;
+        if (this.currencies === undefined) {
+            currencies = await this.fetchCurrencies();
+        }
         const currenciesById = this.indexBy(currencies, 'id');
         //
         //     [
@@ -329,6 +332,7 @@ class bitvavo extends bitvavo$1 {
         //     ]
         //
         const result = [];
+        const fees = this.fees;
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString(market, 'market');
@@ -363,6 +367,8 @@ class bitvavo extends bitvavo$1 {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
                 'precision': {
                     'amount': this.safeInteger(baseCurrency, 'decimals', basePrecision),
                     'price': this.safeInteger(market, 'pricePrecision'),
@@ -1769,6 +1775,8 @@ class bitvavo extends bitvavo$1 {
             'updated': undefined,
             'fee': fee,
             'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
         };
     }
     parseDepositWithdrawFee(fee, currency = undefined) {

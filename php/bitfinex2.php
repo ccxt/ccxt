@@ -2150,6 +2150,7 @@ class bitfinex2 extends Exchange {
             'tagTo' => $tag,
             'updated' => $updated,
             'comment' => $comment,
+            'internal' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),

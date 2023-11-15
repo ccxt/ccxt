@@ -766,6 +766,7 @@ class coincheck extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
+            'comment' => null,
             'internal' => null,
             'fee' => $fee,
         );

@@ -1677,6 +1677,8 @@ export default class idex extends Exchange {
             'currency': code,
             'status': status,
             'updated': updated,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

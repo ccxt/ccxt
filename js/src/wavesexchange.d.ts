@@ -1,6 +1,6 @@
 import Exchange from './abstract/wavesexchange.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class wavesexchange
  * @extends Exchange
@@ -54,7 +54,7 @@ export default class wavesexchange extends Exchange {
     safeGetDynamic(settings: any): any;
     safeGetRates(dynamic: any): any;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: any, price?: any, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: string, params?: {}): Promise<{
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
         info: any;
         id: string;
         clientOrderId: any;
@@ -74,16 +74,16 @@ export default class wavesexchange extends Exchange {
         fee: any;
         trades: any;
     }>;
-    fetchOrder(id: string, symbol?: string, params?: {}): Promise<Order>;
-    fetchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchOpenOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    fetchClosedOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderStatus(status: any): string;
     getSymbolFromAssetPair(assetPair: any): string;
     parseOrder(order: any, market?: any): Order;
     getWavesAddress(): Promise<any>;
     fetchBalance(params?: {}): Promise<Balances>;
-    fetchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: any): Trade;
     parseDepositWithdrawFees(response: any, codes?: string[], currencyIdKey?: any): any;

@@ -3322,6 +3322,8 @@ class phemex extends phemex$1 {
             'currency': code,
             'status': status,
             'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

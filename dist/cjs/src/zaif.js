@@ -684,6 +684,7 @@ class zaif extends zaif$1 {
             'tag': undefined,
             'tagTo': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
             'info': transaction,
         };

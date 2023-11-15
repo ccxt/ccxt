@@ -2267,6 +2267,8 @@ export default class ndax extends Exchange {
             'status': this.parseTransactionStatusByType(transactionStatus, type),
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
             'network': undefined,
         };
     }

@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -210,7 +210,7 @@ class deribit(ccxt.async_support.deribit):
         self.tickers[symbol] = ticker
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.deribit.com/#trades-instrument_name-interval
@@ -284,7 +284,7 @@ class deribit(ccxt.async_support.deribit):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], channel)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of trades associated with the user
         :see: https://docs.deribit.com/#user-trades-instrument_name-interval
@@ -364,7 +364,7 @@ class deribit(ccxt.async_support.deribit):
             marketIds[symbol] = True
         client.resolve(cachedTrades, channel)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#public-get_book_summary_by_instrument
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -485,7 +485,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#user-orders-instrument_name-raw
         watches information on multiple orders made by the user
@@ -571,7 +571,7 @@ class deribit(ccxt.async_support.deribit):
             cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.deribit.com/#chart-trades-instrument_name-resolution
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
