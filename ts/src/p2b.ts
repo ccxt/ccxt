@@ -109,7 +109,7 @@ export default class p2b extends Exchange {
             },
             'urls': {
                 'extension': '.json',
-                'referral': '',  // TODO
+                'referral': 'https://p2pb2b.com?referral=ee784c53',
                 'logo': 'https://cdn.worldvectorlogo.com/logos/p2b-1.svg',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
