@@ -29,6 +29,34 @@
                     69.51
                 ],
                 "output": "amount=6.95&market=spot&symbol=LTC_USDT&type=buy_market"
+            },
+            {
+                "description": "Swap market buy",
+                "method": "createOrder",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/order_place",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  1
+                ],
+                "output": "{\"instrument_id\":\"LTCUSDTPERP\",\"type\":1,\"order_type\":14,\"size\":1}"
+            },
+            {
+                "description": "Swap market sell with reduceOnly",
+                "method": "createOrder",
+                "url": "https://openapi.digifinex.com/swap/v2/trade/order_place",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "sell",
+                  1,
+                  null,
+                  {
+                    "reduceOnly": true
+                  }
+                ],
+                "output": "{\"instrument_id\":\"LTCUSDTPERP\",\"type\":3,\"order_type\":14,\"size\":1}"
             }
         ],
         "createOrders": [
