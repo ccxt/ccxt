@@ -1248,6 +1248,62 @@ export default class bitmart extends Exchange {
         }, market);
     }
 
+    parseTickerV3 (ticker, market = undefined) {
+        //
+        // spot
+        //
+        // {
+        //     "symbol": "VINA_USDT",
+        //     "last": "0.03410",
+        //     "v_24h": "0",
+        //     "qv_24h": "0.00000",
+        //     "open_24h": "0.03410",
+        //     "high_24h": "0.03410",
+        //     "low_24h": "0.03410",
+        //     "fluctuation": "0.00000",
+        //     "bid_px": "0.0341",
+        //     "bid_sz": "499",
+        //     "ask_px": "0.0343",
+        //     "ask_sz": "1752",
+        //     "ts": "1699993717363"
+        //   }
+        const timestamp = this.safeInteger (ticker, 'ts', this.milliseconds ());
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'last');
+        let percentage = undefined;
+        const percentageRaw = this.safeString (ticker, 'fluctuation');
+        if ((percentageRaw !== undefined) && (percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
+            const direction = percentageRaw[0];
+            percentage = direction + Precise.stringMul (percentageRaw.replace (direction, ''), '100');
+        } else if (percentageRaw === '0') {
+            percentage = '0';
+        }
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high_24h'),
+            'low': this.safeString (ticker, 'low_24h'),
+            'bid': this.safeString (ticker, 'bid_px'),
+            'bidVolume': this.safeString (ticker, 'bid_sz'),
+            'ask': this.safeString (ticker, 'ask_px'),
+            'askVolume': this.safeString (ticker, 'ask_sz'),
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open_24h'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'v_24h'),
+            'quoteVolume': this.safeString (ticker, 'qv_24h'),
+            'info': ticker,
+        }, market);
+    }
+
     async fetchTicker (symbol: string, params = {}) {
         /**
          * @method
@@ -1265,7 +1321,7 @@ export default class bitmart extends Exchange {
             method = 'publicGetContractV1Tickers';
             request['contract_symbol'] = market['id'];
         } else if (market['spot']) {
-            method = 'publicGetSpotV1Ticker';
+            method = 'publicGetSpotQuotationV3Ticker';
             request['symbol'] = market['id'];
         }
         const response = await this[method] (this.extend (request, params));
@@ -1323,16 +1379,18 @@ export default class bitmart extends Exchange {
         //      }
         //
         const data = this.safeValue (response, 'data', {});
-        const tickers = this.safeValue (data, 'tickers', []);
         // fails in naming for contract tickers 'contract_symbol'
         let tickersById = undefined;
+        let parsedTicker = undefined;
         if (market['spot']) {
-            tickersById = this.indexBy (tickers, 'symbol');
+            parsedTicker = this.parseTickerV3 (data, market);
         } else if (market['swap']) {
+            const tickers = this.safeValue (data, 'tickers', []);
             tickersById = this.indexBy (tickers, 'contract_symbol');
+            const ticker = this.safeValue (tickersById, market['id']);
+            parsedTicker = this.parseTicker (ticker, market);
         }
-        const ticker = this.safeValue (tickersById, market['id']);
-        return this.parseTicker (ticker, market);
+        return parsedTicker;
     }
 
     async fetchTickers (symbols: string[] = undefined, params = {}) {
