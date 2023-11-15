@@ -176,7 +176,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
     }';
     file_put_contents ($filePath, $content);
     include_once $filePath;
-    $initedClass = new $newClassName();
+    $initedClass = new $newClassName($args);
     unlink ($filePath);
     return $initedClass;
 }
