@@ -121,6 +121,22 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_UMCBL\",\"orderType\":\"limit\",\"price\":\"100\",\"timeInForceValue\":\"post_only\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"side\":\"close_long\"}"
+            },
+            {
+                "description": "Spot-margin order with cross margin mode",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/margin/v1/cross/order/placeOrder",
+                "input": [
+                  "ARB/USDT",
+                  "limit",
+                  "buy",
+                  10,
+                  0.5,
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"symbol\":\"ARBUSDT\",\"orderType\":\"limit\",\"price\":\"0.5\",\"timeInForce\":\"gtc\",\"side\":\"buy\",\"loanType\":\"normal\",\"baseQuantity\":\"10\"}"
             }
         ],
         "createOrders": [
