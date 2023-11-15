@@ -115,6 +115,14 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
+from http.cookiejar import DefaultCookiePolicy
+from collections import defaultdict
+
+def get_session():
+    session = Session()
+    session.cookies.set_policy(DefaultCookiePolicy(allowed_domains=[]))
+    return session
+GLOBAL_SESSION = defaultdict(get_session)
 
 class Exchange(object):
     """Base exchange class"""
@@ -402,7 +410,7 @@ class Exchange(object):
             'defaultCost': 1.0,
         }, getattr(self, 'tokenBucket', {}))
 
-        self.session = self.session if self.session or self.asyncio_loop else Session()
+        self.session = self.session if self.session or self.asyncio_loop else None
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if self.requiresWeb3 and Web3 and not self.web3:
@@ -616,14 +624,16 @@ class Exchange(object):
         if body:
             body = body.encode()
 
-        self.session.cookies.clear()
+        proxy_key = self.proxies.get('https', '') if self.proxies else ''
+        session = GLOBAL_SESSION[proxy_key]
+        session.cookies.clear()
 
         http_response = None
         http_status_code = None
         http_status_text = None
         json_response = None
         try:
-            response = self.session.request(
+            response = session.request(
                 method,
                 url,
                 data=body,
