@@ -445,7 +445,7 @@ export default class bybit extends Exchange {
                         'v5/asset/transfer/save-transfer-sub-member': 150, // 1/3/s => cost = 50 / 1/3 = 150
                         'v5/asset/transfer/universal-transfer': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/withdraw/create': 300, // 1/6/s => cost = 50 / 1/6 = 300
+                        'v5/asset/withdraw/create': 50, // 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel': 50, // 1/s => cost = 50 / 1 = 50
                         // user
                         'v5/user/create-sub-member': 10, // 5/s => cost = 50 / 5 = 10
