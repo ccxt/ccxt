@@ -721,6 +721,7 @@ export default class bitrue extends Exchange {
          * @method
          * @name bitrue#fetchMarkets
          * @description retrieves data on all markets for bitrue
+         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
          * @see https://www.bitrue.com/api-docs#current-open-contract
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
          * @param {object} [params] extra parameters specific to the exchange api endpoint
@@ -790,7 +791,7 @@ export default class bitrue extends Exchange {
         //         ],
         //     }
         //
-        // future
+        // future / delivery
         //
         //     [
         //         {
@@ -801,7 +802,7 @@ export default class bitrue extends Exchange {
         //           "multiplier": 6,
         //           "minOrderVolume": 1,
         //           "maxMarketMoney": 10000000,
-        //           "type": "H",
+        //           "type": "H", // E: perpetual contract, S: test contract, others are mixed contract
         //           "maxLimitVolume": 1000000,
         //           "maxValidOrder": 20,
         //           "multiplierCoin": "HT",
@@ -818,24 +819,41 @@ export default class bitrue extends Exchange {
     }
 
     parseMarket (market): Market {
-        let type = undefined;
+        const id = this.safeString (market, 'symbol');
+        const lowercaseId = this.safeStringLower (market, 'symbol');
         const side = this.safeInteger (market, 'side'); // 1 linear, 0 inverse, undefined spot
+        let type = undefined;
+        let isLinear = undefined;
+        let isInverse = undefined;
         if (side === undefined) {
             type = 'spot';
         } else {
             type = 'future';
+            isLinear = (side === 1);
+            isInverse = (side === 0);
         }
-        const id = this.safeString (market, 'symbol');
-        const lowercaseId = this.safeStringLower (market, 'symbol');
+        const isFuture = (type !== 'spot');
         let baseId = this.safeString (market, 'baseAsset');
         let quoteId = this.safeString (market, 'quoteAsset');
-        if (type === 'future') {
+        let settleId = undefined;
+        let settle = undefined;
+        if (isFuture) {
             const symbolSplit = id.split ('-');
             baseId = this.safeString (symbolSplit, 1);
             quoteId = this.safeString (symbolSplit, 2);
+            if (isLinear) {
+                settleId = quoteId;
+            } else {
+                settleId = baseId;
+            }
+            settle = this.safeCurrencyCode (settleId);
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        let symbol = base + '/' + quote;
+        if (settle !== undefined) {
+            symbol += ':' + settle;
+        }
         const filters = this.safeValue (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString (market, 'status');
@@ -845,27 +863,36 @@ export default class bitrue extends Exchange {
         const defaultAmountPrecision = this.safeString (market, 'quantityPrecision');
         const pricePrecision = this.safeString (priceFilter, 'priceScale', defaultPricePrecision);
         const amountPrecision = this.safeString (amountFilter, 'volumeScale', defaultAmountPrecision);
+        const multiplier = this.safeString (market, 'multiplier');
+        let maxQuantity = this.safeNumber (amountFilter, 'maxQty');
+        if (maxQuantity === undefined) {
+            maxQuantity = this.safeNumber (market, 'maxValidOrder');
+        }
+        let minCost = this.safeNumber (amountFilter, 'minVal');
+        if (minCost === undefined) {
+            minCost = this.safeNumber (market, 'minOrderMoney');
+        }
         return {
             'id': id,
             'lowercaseId': lowercaseId,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
+            'settleId': settleId,
             'type': type,
             'spot': (type === 'spot'),
             'margin': false,
-            'swap': (type !== 'spot'),
-            'future': (type === 'future'),
+            'swap': isFuture,
+            'future': isFuture,
             'option': false,
             'active': (status === 'TRADING'),
-            'contract': (type !== 'spot'),
-            'linear': (side !== undefined && side === 1),
-            'inverse': (side !== undefined && side === 0),
-            'contractSize': undefined,
+            'contract': isFuture,
+            'linear': isLinear,
+            'inverse': isInverse,
+            'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -881,14 +908,14 @@ export default class bitrue extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (amountFilter, 'minQty'),
-                    'max': this.safeNumber (amountFilter, 'maxQty'),
+                    'max': maxQuantity,
                 },
                 'price': {
                     'min': this.safeNumber (priceFilter, 'minPrice'),
                     'max': this.safeNumber (priceFilter, 'maxPrice'),
                 },
                 'cost': {
-                    'min': this.safeNumber (amountFilter, 'minVal'),
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -1925,7 +1952,11 @@ export default class bitrue extends Exchange {
             request['volume'] = this.parseNumber (amount);
             request['positionType'] = 1;
             request['open'] = 'OPEN';
-            request['leverage'] = this.safeNumber (params, 'leverage');
+            const leverage = this.safeNumber (params, 'leverage');
+            if (leverage === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a leverage argument');
+            }
+            request['leverage'] = leverage;
             params = this.omit (params, 'leverage');
             if (this.isLinear (marketType, subType)) {
                 response = await this.fapiV2PrivatePostOrder (this.extend (request, params));
