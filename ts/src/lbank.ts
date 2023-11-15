@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Exchange from './abstract/lbank2.js';
+import Exchange from './abstract/lbank.js';
 import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
@@ -16,7 +16,7 @@ import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Tick
  * @class lbank2
  * @extends Exchange
  */
-export default class lbank2 extends Exchange {
+export default class lbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lbank',
