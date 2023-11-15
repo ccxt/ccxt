@@ -303,10 +303,7 @@ class timex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            result.append(self.parse_market(response[i]))
-        return result
+        return self.parse_markets(response)
 
     def fetch_currencies(self, params={}):
         """

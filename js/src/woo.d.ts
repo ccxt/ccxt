@@ -1,12 +1,13 @@
 import Exchange from './abstract/woo.js';
-import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, Transaction } from './base/types.js';
 /**
  * @class woo
  * @extends Exchange
  */
 export default class woo extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarket(market: any): Market;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: any): Trade;
     parseTokenAndFeeTemp(item: any, feeTokenKey: any, feeAmountKey: any): any;

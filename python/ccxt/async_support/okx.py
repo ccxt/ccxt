@@ -1292,12 +1292,6 @@ class okx(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
-        return result
-
     def parse_market(self, market) -> Market:
         #
         #     {

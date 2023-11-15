@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.wazirx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -219,80 +219,79 @@ class wazirx(Exchange, ImplicitAPI):
         #     },
         #
         markets = self.safe_value(response, 'symbols', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            isSpot = self.safe_value(market, 'isSpotTradingAllowed')
-            filters = self.safe_value(market, 'filters')
-            minPrice = None
-            for j in range(0, len(filters)):
-                filter = filters[j]
-                filterType = self.safe_string(filter, 'filterType')
-                if filterType == 'PRICE_FILTER':
-                    minPrice = self.safe_number(filter, 'minPrice')
-            fee = self.safe_value(self.fees, quote, {})
-            takerString = self.safe_string(fee, 'taker', '0.2')
-            takerString = Precise.string_div(takerString, '100')
-            makerString = self.safe_string(fee, 'maker', '0.2')
-            makerString = Precise.string_div(makerString, '100')
-            status = self.safe_string(market, 'status')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': isSpot,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'trading'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'taker': self.parse_number(takerString),
-                'maker': self.parse_number(makerString),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteAssetPrecision'))),
+        return self.parse_markets(markets)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'symbol')
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        isSpot = self.safe_value(market, 'isSpotTradingAllowed')
+        filters = self.safe_value(market, 'filters')
+        minPrice = None
+        for j in range(0, len(filters)):
+            filter = filters[j]
+            filterType = self.safe_string(filter, 'filterType')
+            if filterType == 'PRICE_FILTER':
+                minPrice = self.safe_number(filter, 'minPrice')
+        fee = self.safe_value(self.fees, quote, {})
+        takerString = self.safe_string(fee, 'taker', '0.2')
+        takerString = Precise.string_div(takerString, '100')
+        makerString = self.safe_string(fee, 'maker', '0.2')
+        makerString = Precise.string_div(makerString, '100')
+        status = self.safe_string(market, 'status')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': isSpot,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (status == 'trading'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.parse_number(takerString),
+            'maker': self.parse_number(makerString),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'quoteAssetPrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'price': {
+                    'min': minPrice,
+                    'max': None,
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """

@@ -1,12 +1,13 @@
 import Exchange from './abstract/whitebit.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class whitebit
  * @extends Exchange
  */
 export default class whitebit extends Exchange {
     describe(): any;
-    fetchMarkets(params?: {}): Promise<any[]>;
+    fetchMarkets(params?: {}): Promise<Market[]>;
+    parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<{}>;
     fetchTransactionFees(codes?: any, params?: {}): Promise<{
         withdraw: {};

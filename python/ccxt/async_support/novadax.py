@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.novadax import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -254,67 +254,66 @@ class novadax(Exchange, ImplicitAPI):
         #         "message":"Success"
         #     }
         #
-        result = []
         data = self.safe_value(response, 'data', [])
-        for i in range(0, len(data)):
-            market = data[i]
-            baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string(market, 'quoteCurrency')
-            id = self.safe_string(market, 'symbol')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            status = self.safe_string(market, 'status')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (status == 'ONLINE'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'valuePrecision'))),
+        return self.parse_markets(data)
+
+    def parse_market(self, market) -> Market:
+        baseId = self.safe_string(market, 'baseCurrency')
+        quoteId = self.safe_string(market, 'quoteCurrency')
+        id = self.safe_string(market, 'symbol')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        status = self.safe_string(market, 'status')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (status == 'ONLINE'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                # 'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'valuePrecision'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'minOrderAmount'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'minOrderValue'),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'minOrderAmount'),
+                    'max': None,
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'minOrderValue'),
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def parse_ticker(self, ticker, market=None) -> Ticker:
         #

@@ -329,86 +329,84 @@ class woo extends woo$1 {
         //     "success": true
         // }
         //
-        const result = [];
         const data = this.safeValue(response, 'rows', []);
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const marketId = this.safeString(market, 'symbol');
-            const parts = marketId.split('_');
-            let marketType = this.safeStringLower(parts, 0);
-            const isSpot = marketType === 'spot';
-            const isSwap = marketType === 'perp';
-            const baseId = this.safeString(parts, 1);
-            const quoteId = this.safeString(parts, 2);
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            let settleId = undefined;
-            let settle = undefined;
-            let symbol = base + '/' + quote;
-            let contractSize = undefined;
-            let linear = undefined;
-            let margin = true;
-            const contract = isSwap;
-            if (contract) {
-                margin = false;
-                settleId = this.safeString(parts, 2);
-                settle = this.safeCurrencyCode(settleId);
-                symbol = base + '/' + quote + ':' + settle;
-                contractSize = this.parseNumber('1');
-                marketType = 'swap';
-                linear = true;
-            }
-            result.push({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': marketType,
-                'spot': isSpot,
-                'margin': margin,
-                'swap': isSwap,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': contract,
-                'linear': linear,
-                'inverse': undefined,
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber(market, 'base_tick'),
-                    'price': this.safeNumber(market, 'quote_tick'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'base_min'),
-                        'max': this.safeNumber(market, 'base_max'),
-                    },
-                    'price': {
-                        'min': this.safeNumber(market, 'quote_min'),
-                        'max': this.safeNumber(market, 'quote_max'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'min_notional'),
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp(market, 'created_time'),
-                'info': market,
-            });
+        return this.parseMarkets(data);
+    }
+    parseMarket(market) {
+        const marketId = this.safeString(market, 'symbol');
+        const parts = marketId.split('_');
+        let marketType = this.safeStringLower(parts, 0);
+        const isSpot = marketType === 'spot';
+        const isSwap = marketType === 'perp';
+        const baseId = this.safeString(parts, 1);
+        const quoteId = this.safeString(parts, 2);
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        let settleId = undefined;
+        let settle = undefined;
+        let symbol = base + '/' + quote;
+        let contractSize = undefined;
+        let linear = undefined;
+        let margin = true;
+        const contract = isSwap;
+        if (contract) {
+            margin = false;
+            settleId = this.safeString(parts, 2);
+            settle = this.safeCurrencyCode(settleId);
+            symbol = base + '/' + quote + ':' + settle;
+            contractSize = this.parseNumber('1');
+            marketType = 'swap';
+            linear = true;
         }
-        return result;
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': marketType,
+            'spot': isSpot,
+            'margin': margin,
+            'swap': isSwap,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': contract,
+            'linear': linear,
+            'inverse': undefined,
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber(market, 'base_tick'),
+                'price': this.safeNumber(market, 'quote_tick'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber(market, 'base_min'),
+                    'max': this.safeNumber(market, 'base_max'),
+                },
+                'price': {
+                    'min': this.safeNumber(market, 'quote_min'),
+                    'max': this.safeNumber(market, 'quote_max'),
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'min_notional'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeTimestamp(market, 'created_time'),
+            'info': market,
+        };
     }
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**

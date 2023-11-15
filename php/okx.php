@@ -1288,14 +1288,6 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function parse_markets($markets) {
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
-        }
-        return $result;
-    }
-
     public function parse_market($market): array {
         //
         //     {

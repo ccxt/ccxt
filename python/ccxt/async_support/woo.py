@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -333,84 +333,83 @@ class woo(Exchange, ImplicitAPI):
         #     "success": True
         # }
         #
-        result = []
         data = self.safe_value(response, 'rows', [])
-        for i in range(0, len(data)):
-            market = data[i]
-            marketId = self.safe_string(market, 'symbol')
-            parts = marketId.split('_')
-            marketType = self.safe_string_lower(parts, 0)
-            isSpot = marketType == 'spot'
-            isSwap = marketType == 'perp'
-            baseId = self.safe_string(parts, 1)
-            quoteId = self.safe_string(parts, 2)
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            settleId = None
-            settle = None
-            symbol = base + '/' + quote
-            contractSize = None
-            linear = None
-            margin = True
-            contract = isSwap
-            if contract:
-                margin = False
-                settleId = self.safe_string(parts, 2)
-                settle = self.safe_currency_code(settleId)
-                symbol = base + '/' + quote + ':' + settle
-                contractSize = self.parse_number('1')
-                marketType = 'swap'
-                linear = True
-            result.append({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': marketType,
-                'spot': isSpot,
-                'margin': margin,
-                'swap': isSwap,
-                'future': False,
-                'option': False,
-                'active': None,
-                'contract': contract,
-                'linear': linear,
-                'inverse': None,
-                'contractSize': contractSize,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'base_tick'),
-                    'price': self.safe_number(market, 'quote_tick'),
+        return self.parse_markets(data)
+
+    def parse_market(self, market) -> Market:
+        marketId = self.safe_string(market, 'symbol')
+        parts = marketId.split('_')
+        marketType = self.safe_string_lower(parts, 0)
+        isSpot = marketType == 'spot'
+        isSwap = marketType == 'perp'
+        baseId = self.safe_string(parts, 1)
+        quoteId = self.safe_string(parts, 2)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settleId = None
+        settle = None
+        symbol = base + '/' + quote
+        contractSize = None
+        linear = None
+        margin = True
+        contract = isSwap
+        if contract:
+            margin = False
+            settleId = self.safe_string(parts, 2)
+            settle = self.safe_currency_code(settleId)
+            symbol = base + '/' + quote + ':' + settle
+            contractSize = self.parse_number('1')
+            marketType = 'swap'
+            linear = True
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': marketType,
+            'spot': isSpot,
+            'margin': margin,
+            'swap': isSwap,
+            'future': False,
+            'option': False,
+            'active': None,
+            'contract': contract,
+            'linear': linear,
+            'inverse': None,
+            'contractSize': contractSize,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_number(market, 'base_tick'),
+                'price': self.safe_number(market, 'quote_tick'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'base_min'),
-                        'max': self.safe_number(market, 'base_max'),
-                    },
-                    'price': {
-                        'min': self.safe_number(market, 'quote_min'),
-                        'max': self.safe_number(market, 'quote_max'),
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'min_notional'),
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'base_min'),
+                    'max': self.safe_number(market, 'base_max'),
                 },
-                'created': self.safe_timestamp(market, 'created_time'),
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.safe_number(market, 'quote_min'),
+                    'max': self.safe_number(market, 'quote_max'),
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'min_notional'),
+                    'max': None,
+                },
+            },
+            'created': self.safe_timestamp(market, 'created_time'),
+            'info': market,
+        }
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
