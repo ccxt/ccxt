@@ -268,3 +268,8 @@ class Market(TypedDict):
     precision: Any
     limits: Any
     created: Int
+
+class Currency(TypedDict):
+    id: String
+    code: String
+    precision: Numeric
