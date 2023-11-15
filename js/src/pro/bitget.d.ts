@@ -1,5 +1,5 @@
 import bitgetRest from '../bitget.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 /**
  * @class bitget
@@ -30,11 +30,11 @@ export default class bitget extends bitgetRest {
     watchPositions(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<any>;
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: any): import("../base/types.js").Position;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseWsOrderStatus(status: any): string;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
     parseWsMyTrade(trade: any, market?: any): import("../base/types.js").Trade;
     watchBalance(params?: {}): Promise<any>;

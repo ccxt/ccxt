@@ -1,5 +1,5 @@
 import blockchaincomRest from '../blockchaincom.js';
-import { IndexType, Int } from '../base/types.js';
+import { IndexType, Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blockchaincom extends blockchaincomRest {
     describe(): any;
@@ -13,7 +13,7 @@ export default class blockchaincom extends blockchaincomRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): any;
     parseWsTrade(trade: any, market?: any): import("../base/types.js").Trade;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrders(client: Client, message: any): any;
     parseWsOrder(order: any, market?: any): import("../base/types.js").Order;
     parseWsOrderStatus(status: any): string;

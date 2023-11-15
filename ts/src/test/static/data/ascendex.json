@@ -89,6 +89,36 @@
                     ]
                 ],
                 "output": "{\"orders\":[{\"account-group\":\"6\",\"account-category\":\"cash\",\"symbol\":\"BTC/USDT\",\"time\":1699329018603,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"cash\"},{\"account-group\":\"6\",\"account-category\":\"cash\",\"symbol\":\"BTC/USDT\",\"time\":1699329018604,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"27000\",\"category\":\"cash\"}]}"
+            },
+            {
+                "description": "Spot margin create multiple limit orders at once",
+                "method": "createOrders",
+                "url": "https://ascendex.com/myAccount/api/pro/v1/margin/order/batch",
+                "input": [
+                  [
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 25000,
+                      "params": {
+                        "marginMode": "cross"
+                      }
+                    },
+                    {
+                      "symbol": "BTC/USDT",
+                      "type": "limit",
+                      "side": "buy",
+                      "amount": 0.0002,
+                      "price": 27000,
+                      "params": {
+                        "marginMode": "cross"
+                      }
+                    }
+                  ]
+                ],
+                "output": "{\"orders\":[{\"account-group\":\"6\",\"account-category\":\"margin\",\"symbol\":\"BTC/USDT\",\"time\":1699935570199,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"25000\",\"category\":\"margin\"},{\"account-group\":\"6\",\"account-category\":\"margin\",\"symbol\":\"BTC/USDT\",\"time\":1699935570200,\"orderQty\":\"0.0002\",\"orderType\":\"limit\",\"side\":\"buy\",\"orderPrice\":\"27000\",\"category\":\"margin\"}]}"
             }
         ],
         "fetchDeposits": [

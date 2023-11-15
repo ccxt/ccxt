@@ -635,22 +635,22 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //    }
         //
         //     {
-        //         feed => 'open_orders',
-        //         $order => array(
-        //         instrument => 'PF_XBTUSD',
-        //         time => 1698159920097,
-        //         last_update_time => 1699835622988,
-        //         qty => 1.1,
-        //         filled => 0,
-        //         limit_price => 20000,
-        //         stop_price => 0,
-        //         type => 'limit',
-        //         order_id => '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
-        //         direction => 0,
-        //         reduce_only => false
+        //         "feed" => 'open_orders',
+        //         "order" => array(
+        //         "instrument" => 'PF_XBTUSD',
+        //         "time" => 1698159920097,
+        //         "last_update_time" => 1699835622988,
+        //         "qty" => 1.1,
+        //         "filled" => 0,
+        //         "limit_price" => 20000,
+        //         "stop_price" => 0,
+        //         "type" => 'limit',
+        //         "order_id" => '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        //         "direction" => 0,
+        //         "reduce_only" => false
         //         ),
-        //         is_cancel => false,
-        //         $reason => 'edited_by_user'
+        //         "is_cancel" => false,
+        //         "reason" => 'edited_by_user'
         //     }
         //
         $orders = $this->orders;

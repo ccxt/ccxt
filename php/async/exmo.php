@@ -2313,6 +2313,7 @@ class exmo extends Exchange {
             'tagTo' => null,
             'updated' => $this->safe_timestamp($transaction, 'updated'),
             'comment' => $comment,
+            'internal' => null,
             'fee' => $fee,
         );
     }

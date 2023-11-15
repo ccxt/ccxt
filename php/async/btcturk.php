@@ -192,84 +192,83 @@ class btcturk extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             $markets = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $entry = $markets[$i];
-                $id = $this->safe_string($entry, 'name');
-                $baseId = $this->safe_string($entry, 'numerator');
-                $quoteId = $this->safe_string($entry, 'denominator');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $filters = $this->safe_value($entry, 'filters', array());
-                $minPrice = null;
-                $maxPrice = null;
-                $minAmount = null;
-                $maxAmount = null;
-                $minCost = null;
-                for ($j = 0; $j < count($filters); $j++) {
-                    $filter = $filters[$j];
-                    $filterType = $this->safe_string($filter, 'filterType');
-                    if ($filterType === 'PRICE_FILTER') {
-                        $minPrice = $this->safe_number($filter, 'minPrice');
-                        $maxPrice = $this->safe_number($filter, 'maxPrice');
-                        $minAmount = $this->safe_number($filter, 'minAmount');
-                        $maxAmount = $this->safe_number($filter, 'maxAmount');
-                        $minCost = $this->safe_number($filter, 'minExchangeValue');
-                    }
-                }
-                $status = $this->safe_string($entry, 'status');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => ($status === 'TRADING'),
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $minAmount,
-                            'max' => $maxAmount,
-                        ),
-                        'price' => array(
-                            'min' => $minPrice,
-                            'max' => $maxPrice,
-                        ),
-                        'cost' => array(
-                            'min' => $minCost,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $entry,
-                );
-            }
-            return $result;
+            return $this->parse_markets($markets);
         }) ();
+    }
+
+    public function parse_market($entry): array {
+        $id = $this->safe_string($entry, 'name');
+        $baseId = $this->safe_string($entry, 'numerator');
+        $quoteId = $this->safe_string($entry, 'denominator');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $filters = $this->safe_value($entry, 'filters', array());
+        $minPrice = null;
+        $maxPrice = null;
+        $minAmount = null;
+        $maxAmount = null;
+        $minCost = null;
+        for ($j = 0; $j < count($filters); $j++) {
+            $filter = $filters[$j];
+            $filterType = $this->safe_string($filter, 'filterType');
+            if ($filterType === 'PRICE_FILTER') {
+                $minPrice = $this->safe_number($filter, 'minPrice');
+                $maxPrice = $this->safe_number($filter, 'maxPrice');
+                $minAmount = $this->safe_number($filter, 'minAmount');
+                $maxAmount = $this->safe_number($filter, 'maxAmount');
+                $minCost = $this->safe_number($filter, 'minExchangeValue');
+            }
+        }
+        $status = $this->safe_string($entry, 'status');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => ($status === 'TRADING'),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'numeratorScale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($entry, 'denominatorScale'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $minAmount,
+                    'max' => $maxAmount,
+                ),
+                'price' => array(
+                    'min' => $minPrice,
+                    'max' => $maxPrice,
+                ),
+                'cost' => array(
+                    'min' => $minCost,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $entry,
+        );
     }
 
     public function parse_balance($response): array {

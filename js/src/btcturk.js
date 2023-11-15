@@ -193,83 +193,81 @@ export default class btcturk extends Exchange {
         //
         const data = this.safeValue(response, 'data');
         const markets = this.safeValue(data, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const entry = markets[i];
-            const id = this.safeString(entry, 'name');
-            const baseId = this.safeString(entry, 'numerator');
-            const quoteId = this.safeString(entry, 'denominator');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const filters = this.safeValue(entry, 'filters', []);
-            let minPrice = undefined;
-            let maxPrice = undefined;
-            let minAmount = undefined;
-            let maxAmount = undefined;
-            let minCost = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString(filter, 'filterType');
-                if (filterType === 'PRICE_FILTER') {
-                    minPrice = this.safeNumber(filter, 'minPrice');
-                    maxPrice = this.safeNumber(filter, 'maxPrice');
-                    minAmount = this.safeNumber(filter, 'minAmount');
-                    maxAmount = this.safeNumber(filter, 'maxAmount');
-                    minCost = this.safeNumber(filter, 'minExchangeValue');
-                }
+        return this.parseMarkets(markets);
+    }
+    parseMarket(entry) {
+        const id = this.safeString(entry, 'name');
+        const baseId = this.safeString(entry, 'numerator');
+        const quoteId = this.safeString(entry, 'denominator');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const filters = this.safeValue(entry, 'filters', []);
+        let minPrice = undefined;
+        let maxPrice = undefined;
+        let minAmount = undefined;
+        let maxAmount = undefined;
+        let minCost = undefined;
+        for (let j = 0; j < filters.length; j++) {
+            const filter = filters[j];
+            const filterType = this.safeString(filter, 'filterType');
+            if (filterType === 'PRICE_FILTER') {
+                minPrice = this.safeNumber(filter, 'minPrice');
+                maxPrice = this.safeNumber(filter, 'maxPrice');
+                minAmount = this.safeNumber(filter, 'minAmount');
+                maxAmount = this.safeNumber(filter, 'maxAmount');
+                minCost = this.safeNumber(filter, 'minExchangeValue');
             }
-            const status = this.safeString(entry, 'status');
-            result.push({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'TRADING'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(entry, 'numeratorScale'))),
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(entry, 'denominatorScale'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': entry,
-            });
         }
-        return result;
+        const status = this.safeString(entry, 'status');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(entry, 'numeratorScale'))),
+                'price': this.parseNumber(this.parsePrecision(this.safeString(entry, 'denominatorScale'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': minAmount,
+                    'max': maxAmount,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': maxPrice,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': entry,
+        };
     }
     parseBalance(response) {
         const data = this.safeValue(response, 'data', []);

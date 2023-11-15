@@ -1,5 +1,5 @@
 import gateRest from '../gate.js';
-import { Int } from '../base/types.js';
+import { Int, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
@@ -17,7 +17,7 @@ export default class gate extends gateRest {
     handleTrades(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleMyTrades(client: Client, message: any): void;
     watchBalance(params?: {}): Promise<any>;
     handleBalance(client: Client, message: any): void;
@@ -25,7 +25,7 @@ export default class gate extends gateRest {
     setPositionsCache(client: Client, type: any, symbols?: string[]): void;
     loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleBalanceSubscription(client: Client, message: any, subscription?: any): void;

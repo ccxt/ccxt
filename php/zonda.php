@@ -295,12 +295,11 @@ class zonda extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * @see https://docs.zondacrypto.exchange/reference/ticker-1
-         * retrieves data on all markets for zonda
+         * retrieves data on all $markets for zonda
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
-         * @return {array[]} an array of objects representing $market data
+         * @return {array[]} an array of objects representing market data
          */
         $response = $this->v1_01PublicGetTradingTicker ($params);
-        $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         //
         //     {
         //         "status" => "Ok",
@@ -320,78 +319,77 @@ class zonda extends Exchange {
         //         ),
         //     }
         //
-        $result = array();
         $items = $this->safe_value($response, 'items', array());
-        $keys = is_array($items) ? array_keys($items) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $item = $items[$id];
-            $market = $this->safe_value($item, 'market', array());
-            $first = $this->safe_value($market, 'first', array());
-            $second = $this->safe_value($market, 'second', array());
-            $baseId = $this->safe_string($first, 'currency');
-            $quoteId = $this->safe_string($second, 'currency');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $fees = $this->safe_value($this->fees, 'trading', array());
-            if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
-                $fees = $this->safe_value($this->fees, 'fiat', array());
-            }
-            // todo => check that the limits have ben interpreted correctly
-            // todo => parse the $fees page
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => null,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->safe_number($fees, 'taker'),
-                'maker' => $this->safe_number($fees, 'maker'),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'optionType' => null,
-                'strike' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($first, 'scale'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($second, 'scale'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($first, 'minOffer'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($second, 'minOffer'),
-                        'max' => null,
-                    ),
-                ),
-                'created' => null,
-                'info' => $item,
-            );
+        $markets = is_array($items) ? array_values($items) : array();
+        return $this->parse_markets($markets);
+    }
+
+    public function parse_market($item): array {
+        $market = $this->safe_value($item, 'market', array());
+        $id = $this->safe_string($market, 'code');
+        $first = $this->safe_value($market, 'first', array());
+        $second = $this->safe_value($market, 'second', array());
+        $baseId = $this->safe_string($first, 'currency');
+        $quoteId = $this->safe_string($second, 'currency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $fees = $this->safe_value($this->fees, 'trading', array());
+        $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
+        if ($this->in_array($base, $fiatCurrencies) || $this->in_array($quote, $fiatCurrencies)) {
+            $fees = $this->safe_value($this->fees, 'fiat', array());
         }
-        return $result;
+        // todo => check that the limits have ben interpreted correctly
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => null,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => $this->safe_number($fees, 'taker'),
+            'maker' => $this->safe_number($fees, 'maker'),
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'optionType' => null,
+            'strike' => null,
+            'precision' => array(
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($first, 'scale'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($second, 'scale'))),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($first, 'minOffer'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $item,
+        );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -1751,6 +1749,7 @@ class zonda extends Exchange {
             'tag' => null,
             'tagTo' => null,
             'comment' => null,
+            'internal' => null,
             'fee' => null,
             'info' => $transaction,
         );

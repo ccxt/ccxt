@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, PermissionDenied, ExchangeEr
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
+import { Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -503,13 +503,9 @@ export default class bingx extends Exchange {
         //         }
         //    }
         //
-        const result = [];
         const data = this.safeValue (response, 'data');
         const markets = this.safeValue (data, 'symbols', []);
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        return this.parseMarkets (markets);
     }
 
     async fetchSwapMarkets (params) {
@@ -537,12 +533,8 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const result = [];
-        const markets = this.safeValue (response, 'data');
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        const markets = this.safeValue (response, 'data', []);
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market): Market {
@@ -1089,7 +1081,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchFundingRateHistory
@@ -1252,7 +1244,16 @@ export default class bingx extends Exchange {
         //          "quoteVolume": "4151395117.73",
         //          "openPrice": "16832.0",
         //          "openTime": 1672026667803,
-        //          "closeTime": 1672026648425
+        //          "closeTime": 1672026648425,
+        //  added some time ago:
+        //          "firstId": 12345,
+        //          "lastId": 12349,
+        //          "count": 5,
+        //  added 2023-11-10:
+        //          "bidPrice": 16726.0,
+        //          "bidQty": 0.05,
+        //          "askPrice": 16726.0,
+        //          "askQty": 0.05,
         //        }
         //    }
         //
@@ -1303,7 +1304,16 @@ export default class bingx extends Exchange {
         //                "quoteVolume": "4151395117.73",
         //                "openPrice": "16832.0",
         //                "openTime": 1672026667803,
-        //                "closeTime": 1672026648425
+        //                "closeTime": 1672026648425,
+        //  added some time ago:
+        //                "firstId": 12345,
+        //                "lastId": 12349,
+        //                "count": 5,
+        //  added 2023-11-10:
+        //                "bidPrice": 16726.0,
+        //                "bidQty": 0.05,
+        //                "askPrice": 16726.0,
+        //                "askQty": 0.05,
         //            },
         //        ]
         //    }
@@ -1324,7 +1334,16 @@ export default class bingx extends Exchange {
         //        "volume": "1161.79",
         //        "quoteVolume": "30288466.44",
         //        "openTime": "1693081020762",
-        //        "closeTime": "1693167420762"
+        //        "closeTime": "1693167420762",
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         // swap
         //
@@ -1340,7 +1359,16 @@ export default class bingx extends Exchange {
         //        "quoteVolume": "4151395117.73",
         //        "openPrice": "16832.0",
         //        "openTime": 1672026667803,
-        //        "closeTime": 1672026648425
+        //        "closeTime": 1672026648425,
+        //  added some time ago:
+        //        "firstId": 12345,
+        //        "lastId": 12349,
+        //        "count": 5,
+        //  added 2023-11-10:
+        //        "bidPrice": 16726.0,
+        //        "bidQty": 0.05,
+        //        "askPrice": 16726.0,
+        //        "askQty": 0.05,
         //    }
         //
         const marketId = this.safeString (ticker, 'symbol');
@@ -1356,16 +1384,20 @@ export default class bingx extends Exchange {
         const percentage = this.safeString (ticker, 'priceChangePercent');
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
+        const bid = this.safeString (ticker, 'bidPrice');
+        const bidVolume = this.safeString (ticker, 'bidQty');
+        const ask = this.safeString (ticker, 'askPrice');
+        const askVolume = this.safeString (ticker, 'askQty');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': ts,
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -2054,7 +2086,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelOrder
@@ -2131,7 +2163,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelAllOrders
@@ -2183,7 +2215,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async cancelOrders (ids: Int[], symbol: string = undefined, params = {}) {
+    async cancelOrders (ids: Int[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#cancelOrders
@@ -2247,7 +2279,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchOrder
@@ -2328,7 +2360,7 @@ export default class bingx extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#fetchOpenOrders
@@ -2414,7 +2446,7 @@ export default class bingx extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name bingx#fetchClosedOrders
@@ -2549,7 +2581,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchTransfers
@@ -2698,7 +2730,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bingx#fetchDeposits
@@ -2745,7 +2777,7 @@ export default class bingx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name bingx#fetchWithdrawals
@@ -2872,6 +2904,7 @@ export default class bingx extends Exchange {
                 'cost': this.safeNumber (transaction, 'transactionFee'),
                 'rate': undefined,
             },
+            'internal': undefined,
         };
     }
 
@@ -2894,7 +2927,7 @@ export default class bingx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async setMarginMode (marginMode: string, symbol: string = undefined, params = {}) {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setMarginMode
@@ -2991,7 +3024,7 @@ export default class bingx extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name bingx#setLeverage
@@ -3025,7 +3058,7 @@ export default class bingx extends Exchange {
         return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchMyTrades
@@ -3226,7 +3259,7 @@ export default class bingx extends Exchange {
         return sortedParams;
     }
 
-    async fetchMyLiquidations (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name bingx#fetchMyLiquidations

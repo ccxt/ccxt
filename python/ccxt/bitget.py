@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import OrderRequest, Balances, Market, Order, OrderBook, OrderSide, OrderType, FundingHistory, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderRequest, OrderSide, OrderType, FundingHistory, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -844,6 +843,7 @@ class bitget(Exchange, ImplicitAPI):
                     '40017': ExchangeError,  # Parameter verification failed
                     '40018': PermissionDenied,  # Invalid IP
                     '40019': BadRequest,  # {"code":"40019","msg":"Parameter QLCUSDT_SPBL cannot be empty","requestTime":1679196063659,"data":null}
+                    '40031': AccountSuspended,  # The account has been cancelled and cannot be used again
                     '40037': AuthenticationError,  # Apikey does not exist
                     '40102': BadRequest,  # Contract configuration does not exist, please check the parameters
                     '40103': BadRequest,  # Request method cannot be empty
@@ -1138,12 +1138,6 @@ class bitget(Exchange, ImplicitAPI):
         result = promises[0]
         for i in range(1, len(promises)):
             result = self.array_concat(result, promises[i])
-        return result
-
-    def parse_markets(self, markets):
-        result = []
-        for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
         return result
 
     def parse_market(self, market) -> Market:
@@ -1647,7 +1641,7 @@ class bitget(Exchange, ImplicitAPI):
             minNotional = maxNotional
         return tiers
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
@@ -1790,7 +1784,7 @@ class bitget(Exchange, ImplicitAPI):
             result['network'] = chain
         return result
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
@@ -1897,6 +1891,7 @@ class bitget(Exchange, ImplicitAPI):
             'tag': tag,
             'tagTo': tag,
             'comment': None,
+            'internal': None,
             'fee': fee,
         }
 
@@ -1965,7 +1960,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-depth
@@ -2161,7 +2156,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_ticker(data, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
@@ -2345,7 +2340,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-market-trades
@@ -2573,7 +2568,7 @@ class bitget(Exchange, ImplicitAPI):
             self.safe_number_2(ohlcv, 5, 'baseVol'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-candle-data
@@ -3290,7 +3285,7 @@ class bitget(Exchange, ImplicitAPI):
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_value(rawOrder, 'params', {})
-            marginResult = self.handle_margin_mode_and_params('createOrders', params)
+            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
             currentMarginMode = marginResult[0]
             if currentMarginMode is not None:
                 if marginMode is None:
@@ -3437,7 +3432,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order
@@ -3555,7 +3550,7 @@ class bitget(Exchange, ImplicitAPI):
             order = resultList[0]
         return self.parse_order(order, market)
 
-    def cancel_orders(self, ids, symbol: Optional[str] = None, params={}):
+    def cancel_orders(self, ids, symbol: String = None, params={}):
         """
         cancel multiple orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#cancel-order-in-batch-v2-single-instruments
@@ -3630,7 +3625,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
@@ -3701,7 +3696,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-details
@@ -3783,7 +3778,7 @@ class bitget(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-list
@@ -3999,7 +3994,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.add_pagination_cursor_to_result(data, result)
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
@@ -4034,7 +4029,7 @@ class bitget(Exchange, ImplicitAPI):
                 result.append(entry)
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_canceled_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
@@ -4069,7 +4064,7 @@ class bitget(Exchange, ImplicitAPI):
                 result.append(entry)
         return self.parse_orders(result, market, since, limit)
 
-    def fetch_canceled_and_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_canceled_and_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         self.load_markets()
         market = self.market(symbol)
         marketType = None
@@ -4301,7 +4296,7 @@ class bitget(Exchange, ImplicitAPI):
                 data[dataLength - 1] = last
         return data
 
-    def fetch_ledger(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_ledger(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-bills
         fetch the history of changes, actions done by the user or operations that altered balance of the user
@@ -4395,7 +4390,7 @@ class bitget(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
@@ -4542,7 +4537,7 @@ class bitget(Exchange, ImplicitAPI):
             return self.parse_trades(fills, market, since, limit)
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_order_trades(self, id: str, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_order_trades(self, id: str, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transaction-details
@@ -4643,7 +4638,7 @@ class bitget(Exchange, ImplicitAPI):
         position = self.parse_position(first, market)
         return position
 
-    def fetch_positions(self, symbols: Optional[List[str]] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}):
         """
         fetch all open positions
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-all-position-v2
@@ -4882,7 +4877,7 @@ class bitget(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_rate_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-history-funding-rate
         fetches historical funding rate prices
@@ -5000,7 +4995,7 @@ class bitget(Exchange, ImplicitAPI):
             'previousFundingDatetime': None,
         }
 
-    def fetch_funding_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_funding_history(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the funding history
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
@@ -5084,7 +5079,7 @@ class bitget(Exchange, ImplicitAPI):
             'id': id,
         }
 
-    def parse_funding_histories(self, contracts, market=None, since: Optional[int] = None, limit: Optional[int] = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(contracts)):
             contract = contracts[i]
@@ -5209,7 +5204,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         return response
 
-    def set_leverage(self, leverage, symbol: Optional[str] = None, params={}):
+    def set_leverage(self, leverage, symbol: String = None, params={}):
         """
         set the level of leverage for a market
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-leverage
@@ -5229,7 +5224,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
-    def set_margin_mode(self, marginMode, symbol: Optional[str] = None, params={}):
+    def set_margin_mode(self, marginMode, symbol: String = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-margin-mode
@@ -5255,7 +5250,7 @@ class bitget(Exchange, ImplicitAPI):
         }
         return self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 
-    def set_position_mode(self, hedged, symbol: Optional[str] = None, params={}):
+    def set_position_mode(self, hedged, symbol: String = None, params={}):
         """
         set hedged to True or False for a market
         :see: https://bitgetlimited.github.io/apidoc/en/mix/#change-hold-mode
@@ -5322,7 +5317,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
-    def fetch_transfers(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_transfers(self, code: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
@@ -5531,7 +5526,7 @@ class bitget(Exchange, ImplicitAPI):
                 result['withdraw']['percentage'] = False
         return result
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
         """
         fetch deposit and withdraw fees
         :see: https://bitgetlimited.github.io/apidoc/en/spot/#get-coin-list
@@ -5572,7 +5567,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def borrow_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def borrow_margin(self, code: str, amount, symbol: String = None, params={}):
         """
         create a loan to borrow margin
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-borrow
@@ -5634,7 +5629,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def repay_margin(self, code: str, amount, symbol: Optional[str] = None, params={}):
+    def repay_margin(self, code: str, amount, symbol: String = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#cross-repay
@@ -5751,7 +5746,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_my_liquidations(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_liquidations(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-liquidation-records
@@ -6075,7 +6070,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Optional[str] = None, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_borrow_interest(self, code: String = None, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-interest-records

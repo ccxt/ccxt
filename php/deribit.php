@@ -2275,6 +2275,8 @@ class deribit extends Exchange {
             'status' => $status,
             'updated' => $updated,
             'network' => null,
+            'internal' => null,
+            'comment' => null,
             'fee' => $fee,
         );
     }

@@ -2615,6 +2615,7 @@ export default class ascendex extends Exchange {
                 'cost': this.parseNumber(feeCostString),
                 'rate': undefined,
             },
+            'internal': false,
         };
     }
     async fetchPositions(symbols = undefined, params = {}) {

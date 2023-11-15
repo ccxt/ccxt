@@ -40,7 +40,6 @@ var bitpanda = require('./src/bitpanda.js');
 var bitrue = require('./src/bitrue.js');
 var bitso = require('./src/bitso.js');
 var bitstamp = require('./src/bitstamp.js');
-var bitstamp1 = require('./src/bitstamp1.js');
 var bittrex = require('./src/bittrex.js');
 var bitvavo = require('./src/bitvavo.js');
 var bl3p = require('./src/bl3p.js');
@@ -48,7 +47,6 @@ var blockchaincom = require('./src/blockchaincom.js');
 var btcalpha = require('./src/btcalpha.js');
 var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
-var btctradeua = require('./src/btctradeua.js');
 var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
 var cex = require('./src/cex.js');
@@ -57,7 +55,6 @@ var coinbaseprime = require('./src/coinbaseprime.js');
 var coinbasepro = require('./src/coinbasepro.js');
 var coincheck = require('./src/coincheck.js');
 var coinex = require('./src/coinex.js');
-var coinfalcon = require('./src/coinfalcon.js');
 var coinlist = require('./src/coinlist.js');
 var coinmate = require('./src/coinmate.js');
 var coinone = require('./src/coinone.js');
@@ -90,7 +87,6 @@ var kucoinfutures = require('./src/kucoinfutures.js');
 var kuna = require('./src/kuna.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
-var lbank2 = require('./src/lbank2.js');
 var luno = require('./src/luno.js');
 var lykke = require('./src/lykke.js');
 var mercado = require('./src/mercado.js');
@@ -183,7 +179,7 @@ var woo$1 = require('./src/pro/woo.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.1.51';
+const version = '4.1.53';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -214,7 +210,6 @@ const exchanges = {
     'bitrue': bitrue,
     'bitso': bitso,
     'bitstamp': bitstamp,
-    'bitstamp1': bitstamp1,
     'bittrex': bittrex,
     'bitvavo': bitvavo,
     'bl3p': bl3p,
@@ -222,7 +217,6 @@ const exchanges = {
     'btcalpha': btcalpha,
     'btcbox': btcbox,
     'btcmarkets': btcmarkets,
-    'btctradeua': btctradeua,
     'btcturk': btcturk,
     'bybit': bybit,
     'cex': cex,
@@ -231,7 +225,6 @@ const exchanges = {
     'coinbasepro': coinbasepro,
     'coincheck': coincheck,
     'coinex': coinex,
-    'coinfalcon': coinfalcon,
     'coinlist': coinlist,
     'coinmate': coinmate,
     'coinone': coinone,
@@ -264,7 +257,6 @@ const exchanges = {
     'kuna': kuna,
     'latoken': latoken,
     'lbank': lbank,
-    'lbank2': lbank2,
     'luno': luno,
     'lykke': lykke,
     'mercado': mercado,
@@ -426,7 +418,6 @@ exports.bitpanda = bitpanda;
 exports.bitrue = bitrue;
 exports.bitso = bitso;
 exports.bitstamp = bitstamp;
-exports.bitstamp1 = bitstamp1;
 exports.bittrex = bittrex;
 exports.bitvavo = bitvavo;
 exports.bl3p = bl3p;
@@ -434,7 +425,6 @@ exports.blockchaincom = blockchaincom;
 exports.btcalpha = btcalpha;
 exports.btcbox = btcbox;
 exports.btcmarkets = btcmarkets;
-exports.btctradeua = btctradeua;
 exports.btcturk = btcturk;
 exports.bybit = bybit;
 exports.cex = cex;
@@ -443,7 +433,6 @@ exports.coinbaseprime = coinbaseprime;
 exports.coinbasepro = coinbasepro;
 exports.coincheck = coincheck;
 exports.coinex = coinex;
-exports.coinfalcon = coinfalcon;
 exports.coinlist = coinlist;
 exports.coinmate = coinmate;
 exports.coinone = coinone;
@@ -476,7 +465,6 @@ exports.kucoinfutures = kucoinfutures;
 exports.kuna = kuna;
 exports.latoken = latoken;
 exports.lbank = lbank;
-exports.lbank2 = lbank2;
 exports.luno = luno;
 exports.lykke = lykke;
 exports.mercado = mercado;

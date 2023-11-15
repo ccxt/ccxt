@@ -1711,6 +1711,7 @@ class bitstamp extends bitstamp$1 {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
         };
     }

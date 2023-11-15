@@ -6,8 +6,8 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AuthenticationError
@@ -152,7 +152,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         params = self.omit(params, ['method'])
         return await self.subscribe_public(name, [symbol], params)
 
-    async def watch_tickers(self, symbols: Optional[List[str]] = None, params={}):
+    async def watch_tickers(self, symbols: List[str] = None, params={}):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
@@ -166,7 +166,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         symbols = self.market_symbols(symbols, None, False)
         return await self.subscribe_public(name, symbols, params)
 
-    async def watch_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
@@ -183,7 +183,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-book
@@ -195,7 +195,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         orderbook = await self.subscribe_public('book', [symbol], params)
         return orderbook.limit()
 
-    async def watch_positions(self, symbols: Optional[List[str]] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_positions(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}):
         """
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
         watch all open positions
@@ -314,7 +314,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'marginRatio': None,
         })
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
@@ -336,7 +336,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    async def watch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple trades made by the user
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
@@ -578,22 +578,22 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #    }
         #
         #     {
-        #         feed: 'open_orders',
-        #         order: {
-        #         instrument: 'PF_XBTUSD',
-        #         time: 1698159920097,
-        #         last_update_time: 1699835622988,
-        #         qty: 1.1,
-        #         filled: 0,
-        #         limit_price: 20000,
-        #         stop_price: 0,
-        #         type: 'limit',
-        #         order_id: '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
-        #         direction: 0,
-        #         reduce_only: False
+        #         "feed": 'open_orders',
+        #         "order": {
+        #         "instrument": 'PF_XBTUSD',
+        #         "time": 1698159920097,
+        #         "last_update_time": 1699835622988,
+        #         "qty": 1.1,
+        #         "filled": 0,
+        #         "limit_price": 20000,
+        #         "stop_price": 0,
+        #         "type": 'limit',
+        #         "order_id": '0eaf02b0-855d-4451-a3b7-e2b3070c1fa4',
+        #         "direction": 0,
+        #         "reduce_only": False
         #         },
-        #         is_cancel: False,
-        #         reason: 'edited_by_user'
+        #         "is_cancel": False,
+        #         "reason": 'edited_by_user'
         #     }
         #
         orders = self.orders

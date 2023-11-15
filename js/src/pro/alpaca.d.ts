@@ -1,5 +1,5 @@
 import alpacaRest from '../alpaca.js';
-import { Int, Ticker } from '../base/types.js';
+import { Int, Str, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class alpaca extends alpacaRest {
     describe(): any;
@@ -14,8 +14,8 @@ export default class alpaca extends alpacaRest {
     handleDeltas(bookside: any, deltas: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
-    watchMyTrades(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    watchOrders(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     handleTradeUpdate(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;

@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -605,7 +604,7 @@ class kuna(Exchange, ImplicitAPI):
             })
         return markets
 
-    async def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.kuna.io/docs/get-public-orders-book
@@ -689,7 +688,7 @@ class kuna(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
         }, market)
 
-    async def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market. The average is not returned in the response, but the median can be accessed via response['info']['price']
         :see: https://docs.kuna.io/docs/get-market-info-by-tickers
@@ -767,7 +766,7 @@ class kuna(Exchange, ImplicitAPI):
         ticker = self.safe_value(data, 0)
         return self.parse_ticker(ticker, market)
 
-    async def fetch_l3_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         """
          * TODO: double check
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -778,7 +777,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         return await self.fetch_order_book(symbol, limit, params)
 
-    async def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.kuna.io/docs/get-public-trades-book
@@ -966,7 +965,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data, market)
 
-    async def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :param str id: order id
@@ -994,7 +993,7 @@ class kuna(Exchange, ImplicitAPI):
         order['id'] = id
         return order
 
-    async def cancel_orders(self, ids: List[str], symbol: Optional[str] = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: String = None, params={}):
         """
         cancels an open order
         :param str ids: order ids
@@ -1109,7 +1108,7 @@ class kuna(Exchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    async def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://docs.kuna.io/docs/get-order-details-by-id
@@ -1163,7 +1162,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_order(data)
 
-    async def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://docs.kuna.io/docs/get-active-client-orders-private
@@ -1217,7 +1216,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
         :see: https://docs.kuna.io/docs/get-private-orders-history
@@ -1233,7 +1232,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
-    async def fetch_orders_by_status(self, status, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_orders_by_status(self, status, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a list of orders
         :see: https://docs.kuna.io/docs/get-private-orders-history
@@ -1292,7 +1291,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://docs.kuna.io/docs/get-private-trades-history
@@ -1382,7 +1381,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    async def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
         :see: https://docs.kuna.io/docs/get-withdraw-history
@@ -1443,7 +1442,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency)
 
-    async def fetch_withdrawal(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: String = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
         :see: https://docs.kuna.io/docs/get-withdraw-details-by-id
@@ -1563,7 +1562,7 @@ class kuna(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://docs.kuna.io/docs/get-deposit-history
@@ -1624,7 +1623,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_transactions(data, currency)
 
-    async def fetch_deposit(self, id: str, code: Optional[str] = None, params={}):
+    async def fetch_deposit(self, id: str, code: String = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
         :see: https://docs.kuna.io/docs/get-deposit-details-by-id
@@ -1692,6 +1691,7 @@ class kuna(Exchange, ImplicitAPI):
         type = self.safe_string_lower(transaction, 'type')
         address = self.safe_string(transaction, 'address')
         isDeposit = (type == 'deposit')
+        parsedType = type if isDeposit else 'withdrawal'
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
@@ -1704,13 +1704,14 @@ class kuna(Exchange, ImplicitAPI):
             'address': address,
             'addressTo': address,
             'amount': self.safe_number(transaction, 'amount'),
-            'type': not 'withdrawal' if isDeposit else type,
+            'type': parsedType,
             'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'updated': self.parse8601(self.safe_string(transaction, 'updatedAt')),
             'tagFrom': None,
             'tag': None,
             'tagTo': None,
             'comment': self.safe_string(transaction, 'memo'),
+            'internal': None,
             'fee': {
                 'cost': self.safe_number(transaction, 'fee'),
                 'currency': code,

@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Balances, FundingRateHistory, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Trade, Transaction } from './base/types.js';
+import { Balances, FundingRateHistory, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -332,86 +332,85 @@ export default class woo extends Exchange {
         //     "success": true
         // }
         //
-        const result = [];
         const data = this.safeValue (response, 'rows', []);
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const marketId = this.safeString (market, 'symbol');
-            const parts = marketId.split ('_');
-            let marketType = this.safeStringLower (parts, 0);
-            const isSpot = marketType === 'spot';
-            const isSwap = marketType === 'perp';
-            const baseId = this.safeString (parts, 1);
-            const quoteId = this.safeString (parts, 2);
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            let settleId = undefined;
-            let settle = undefined;
-            let symbol = base + '/' + quote;
-            let contractSize = undefined;
-            let linear = undefined;
-            let margin = true;
-            const contract = isSwap;
-            if (contract) {
-                margin = false;
-                settleId = this.safeString (parts, 2);
-                settle = this.safeCurrencyCode (settleId);
-                symbol = base + '/' + quote + ':' + settle;
-                contractSize = this.parseNumber ('1');
-                marketType = 'swap';
-                linear = true;
-            }
-            result.push ({
-                'id': marketId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': marketType,
-                'spot': isSpot,
-                'margin': margin,
-                'swap': isSwap,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': contract,
-                'linear': linear,
-                'inverse': undefined,
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'base_tick'),
-                    'price': this.safeNumber (market, 'quote_tick'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'base_min'),
-                        'max': this.safeNumber (market, 'base_max'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (market, 'quote_min'),
-                        'max': this.safeNumber (market, 'quote_max'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'min_notional'),
-                        'max': undefined,
-                    },
-                },
-                'created': this.safeTimestamp (market, 'created_time'),
-                'info': market,
-            });
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market): Market {
+        const marketId = this.safeString (market, 'symbol');
+        const parts = marketId.split ('_');
+        let marketType = this.safeStringLower (parts, 0);
+        const isSpot = marketType === 'spot';
+        const isSwap = marketType === 'perp';
+        const baseId = this.safeString (parts, 1);
+        const quoteId = this.safeString (parts, 2);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let settleId = undefined;
+        let settle = undefined;
+        let symbol = base + '/' + quote;
+        let contractSize = undefined;
+        let linear = undefined;
+        let margin = true;
+        const contract = isSwap;
+        if (contract) {
+            margin = false;
+            settleId = this.safeString (parts, 2);
+            settle = this.safeCurrencyCode (settleId);
+            symbol = base + '/' + quote + ':' + settle;
+            contractSize = this.parseNumber ('1');
+            marketType = 'swap';
+            linear = true;
         }
-        return result;
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': marketType,
+            'spot': isSpot,
+            'margin': margin,
+            'swap': isSwap,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': contract,
+            'linear': linear,
+            'inverse': undefined,
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'base_tick'),
+                'price': this.safeNumber (market, 'quote_tick'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'base_min'),
+                    'max': this.safeNumber (market, 'base_max'),
+                },
+                'price': {
+                    'min': this.safeNumber (market, 'quote_min'),
+                    'max': this.safeNumber (market, 'quote_max'),
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_notional'),
+                    'max': undefined,
+                },
+            },
+            'created': this.safeTimestamp (market, 'created_time'),
+            'info': market,
+        };
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -980,7 +979,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    async cancelOrder (id: string, symbol: string = undefined, params = {}) {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelOrder
@@ -1035,7 +1034,7 @@ export default class woo extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
-    async cancelAllOrders (symbol: string = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#cancelAllOrders
@@ -1069,7 +1068,7 @@ export default class woo extends Exchange {
         return response;
     }
 
-    async fetchOrder (id: string, symbol: string = undefined, params = {}) {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrder
@@ -1137,7 +1136,7 @@ export default class woo extends Exchange {
         return this.parseOrder (orders, market);
     }
 
-    async fetchOrders (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name woo#fetchOrders
@@ -1462,7 +1461,7 @@ export default class woo extends Exchange {
         ];
     }
 
-    async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOrderTrades
@@ -1505,7 +1504,7 @@ export default class woo extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchMyTrades
@@ -1692,7 +1691,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async getAssetHistoryRows (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
         let currency = undefined;
@@ -1749,7 +1748,7 @@ export default class woo extends Exchange {
         return [ currency, this.safeValue (response, 'rows', {}) ];
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchLedger
@@ -1816,7 +1815,7 @@ export default class woo extends Exchange {
         return currency;
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woo#fetchDeposits
@@ -1833,7 +1832,7 @@ export default class woo extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woo#fetchWithdrawals
@@ -1850,7 +1849,7 @@ export default class woo extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (request, params));
     }
 
-    async fetchDepositsWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name woo#fetchDepositsWithdrawals
@@ -1910,6 +1909,7 @@ export default class woo extends Exchange {
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.safeTimestamp (transaction, 'updated_time'),
             'comment': undefined,
+            'internal': undefined,
             'fee': fee,
             'network': undefined,
         };
@@ -1964,7 +1964,7 @@ export default class woo extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchTransfers
@@ -2099,7 +2099,7 @@ export default class woo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: string = undefined, params = {}) {
+    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#repayMargin
@@ -2270,7 +2270,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async fetchFundingHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -2394,7 +2394,7 @@ export default class woo extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchFundingRateHistory
@@ -2501,7 +2501,7 @@ export default class woo extends Exchange {
         };
     }
 
-    async setLeverage (leverage, symbol: string = undefined, params = {}) {
+    async setLeverage (leverage, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         if ((leverage < 1) || (leverage > 20)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 20');
@@ -2512,7 +2512,7 @@ export default class woo extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    async fetchPosition (symbol: string = undefined, params = {}) {
+    async fetchPosition (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

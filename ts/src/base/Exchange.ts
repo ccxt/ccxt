@@ -1664,6 +1664,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
+    parseMarket (market): Market {
+        throw new NotSupported (this.id + ' parseMarket() is not supported yet');
+    }
+
+    parseMarkets (markets): Market[] {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.parseMarket (markets[i]));
+        }
+        return result;
+    }
+
     parseTicker (ticker: object, market = undefined): Ticker {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
@@ -3514,18 +3526,8 @@ export default class Exchange {
         return await this.fetchPartialBalance ('total', params);
     }
 
-    async fetchStatus (params = {}) {
-        if (this.has['fetchTime']) {
-            const time = await this.fetchTime (params);
-            this.status = this.extend (this.status, {
-                'updated': time,
-                'info': time,
-            });
-        }
-        if (!('info' in this.status)) {
-            this.status['info'] = undefined;
-        }
-        return this.status;
+    async fetchStatus (params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' fetchStatus() is not supported yet');
     }
 
     async fetchFundingFee (code: string, params = {}) {

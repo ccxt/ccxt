@@ -5,8 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Int, String
 from ccxt.async_support.base.ws.client import Client
-from typing import Optional
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import AuthenticationError
@@ -18,6 +18,15 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         return self.deep_extend(super(poloniexfutures, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelAllOrdersWs': False,
+                'cancelOrdersWs': False,
+                'cancelOrderWs': False,
+                'createOrderWs': False,
+                'editOrderWs': False,
+                'fetchBalanceWs': False,
+                'fetchOpenOrdersWs': False,
+                'fetchOrderWs': False,
+                'fetchTradesWs': False,
                 'watchOHLCV': False,
                 'watchOrderBook': True,
                 'watchTicker': True,
@@ -114,7 +123,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         self.options['requestId'] = requestId
         return requestId
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Optional[str] = None, subscription=None, params={}):
+    async def subscribe(self, name: str, isPrivate: bool, symbol: String = None, subscription=None, params={}):
         """
          * @ignore
         Connects to a websocket channel
@@ -224,7 +233,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         name = '/contractMarket/ticker'
         return await self.subscribe(name, False, symbol, None, params)
 
-    async def watch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
         :see: https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
@@ -244,7 +253,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def watch_order_book(self, symbol: str, limit: Optional[int] = None, params={}):
+    async def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://futures-docs.poloniex.com/#level-2-market-data
@@ -270,7 +279,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         orderbook = await self.subscribe(name, False, symbol, subscription, params)
         return orderbook.limit()
 
-    async def watch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def watch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         watches information on multiple orders made by the user
         :see: https://futures-docs.poloniex.com/#private-messages

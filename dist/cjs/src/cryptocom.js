@@ -338,6 +338,7 @@ class cryptocom extends cryptocom$1 {
             'exceptions': {
                 'exact': {
                     '219': errors.InvalidOrder,
+                    '314': errors.InvalidOrder,
                     '10001': errors.ExchangeError,
                     '10002': errors.PermissionDenied,
                     '10003': errors.PermissionDenied,
@@ -2410,6 +2411,7 @@ class cryptocom extends cryptocom$1 {
             'status': status,
             'updated': this.safeInteger(transaction, 'update_time'),
             'internal': undefined,
+            'comment': this.safeString(transaction, 'client_wid'),
             'fee': fee,
         };
     }

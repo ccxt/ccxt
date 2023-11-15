@@ -41,11 +41,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.1.51';
+$version = '4.1.53';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.1.51';
+    const VERSION = '4.1.53';
 
     public $browser;
     public $marketsLoading = null;
@@ -567,6 +567,18 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_trading_limits(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
+    }
+
+    public function parse_market($market) {
+        throw new NotSupported($this->id . ' parseMarket() is not supported yet');
+    }
+
+    public function parse_markets($markets) {
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $result[] = $this->parseMarket ($markets[$i]);
+        }
+        return $result;
     }
 
     public function parse_ticker(array $ticker, $market = null) {
@@ -2444,19 +2456,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        return Async\async(function () use ($params) {
-            if ($this->has['fetchTime']) {
-                $time = Async\await($this->fetch_time($params));
-                $this->status = array_merge($this->status, array(
-                    'updated' => $time,
-                    'info' => $time,
-                ));
-            }
-            if (!(is_array($this->status) && array_key_exists('info', $this->status))) {
-                $this->status['info'] = null;
-            }
-            return $this->status;
-        }) ();
+        throw new NotSupported($this->id . ' fetchStatus() is not supported yet');
     }
 
     public function fetch_funding_fee(string $code, $params = array ()) {

@@ -2633,6 +2633,7 @@ class ascendex extends Exchange {
                 'cost' => $this->parse_number($feeCostString),
                 'rate' => null,
             ),
+            'internal' => false,
         );
     }
 
