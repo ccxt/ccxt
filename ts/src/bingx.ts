@@ -1384,10 +1384,10 @@ export default class bingx extends Exchange {
         const percentage = this.safeString (ticker, 'priceChangePercent');
         const ts = this.safeInteger (ticker, 'closeTime');
         const datetime = this.iso8601 (ts);
-        const bid = this.safeString(ticker, 'bidPrice');
-        const bidVolume = this.safeString(ticker, 'bidQty');
-        const ask = this.safeString(ticker, 'askPrice');
-        const askVolume = this.safeString(ticker, 'askQty');
+        const bid = this.safeString (ticker, 'bidPrice');
+        const bidVolume = this.safeString (ticker, 'bidQty');
+        const ask = this.safeString (ticker, 'askPrice');
+        const askVolume = this.safeString (ticker, 'askQty');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': ts,
