@@ -163,9 +163,26 @@ function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
 }
 
+function create_dynamic_class ($exchangeId, $originalClass, $args) {
+    $filePath = sys_get_temp_dir() . '/temp_' . $exchangeId . '.php';
+    $newClassName = 'Proxied_' . $exchangeId;
+    $content = '<?php class '. $newClassName . ' extends ' . $originalClass . ' {
+        public function fetch($url, $method = "GET", $headers = null, $body = null) {
+            var_dump("hello");
+            exit;
+        }
+    };';
+    file_put_contents ($filePath, $content);
+    include_once $filePath;
+    $initedClass = new $newClassName();
+    unlink ($filePath);
+    return $initedClass;
+}
+
 function init_exchange ($exchangeId, $args) {
     $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
-    return new $exchangeClassString($args);
+    $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
+    return $newClass;
 }
 
 function set_test_files ($holderClass, $properties) {
