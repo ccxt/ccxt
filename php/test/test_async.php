@@ -40,7 +40,7 @@ class baseMainTestClass {
     public $lang = 'PHP';
     public $test_files = [];
     public $skipped_methods = [];
-    public $checked_public_tests = [];
+    public $check_public_tests = [];
     public $public_tests = [];
     public $info = false;
     public $verbose = false;
@@ -165,14 +165,7 @@ function set_exchange_prop ($exchange, $prop, $value) {
 
 function init_exchange ($exchangeId, $args) {
     $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
-    class_alias($exchangeClassString, 'MockExchangeClass');
-    $anonClass = new class extends MockExchangeClass {
-        public function fetch($url, $method = 'GET', $headers = null, $body = null) {
-            var_dump("hello");
-        }
-    };
-    $initedClass = new $anonClass($args);
-    return $initedClass;
+    return new $exchangeClassString($args);
 }
 
 function set_test_files ($holderClass, $properties) {
