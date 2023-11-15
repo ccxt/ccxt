@@ -40,7 +40,7 @@ class baseMainTestClass {
     public $lang = 'PHP';
     public $test_files = [];
     public $skipped_methods = [];
-    public $check_public_tests = [];
+    public $checked_public_tests = [];
     public $public_tests = [];
     public $info = false;
     public $verbose = false;
@@ -163,9 +163,39 @@ function set_exchange_prop ($exchange, $prop, $value) {
     $exchange->{$prop} = $value;
 }
 
+if (!class_exists('ExchangeMock')) {
+    class ExchangeMock {
+        public $exchangeInstance = null;
+
+        public function __construct($parentClassName, $args) {
+            $this->exchangeInstance = new $parentClassName($args);
+        }
+
+        public function __call($name, array $arguments) {
+            return call_user_func_array([$this->exchangeInstance, $name], $arguments);
+        }
+
+        public function &__get($key)
+        {
+            return $this->exchangeInstance->$key;
+        }
+    
+        public function __set($key, $value)
+        {
+            $this->exchangeInstance->$key = $value;
+        }
+
+        public function fetch($url, $method = "GET", $headers = null, $body = null){
+            var_dump('hello');
+            exit;
+        }
+    }
+}
+
 function init_exchange ($exchangeId, $args) {
     $exchangeClassString = '\\ccxt\\' . (is_synchronous ? '' : 'async\\') . $exchangeId;
-    return new $exchangeClassString($args);
+    $newClass = new ExchangeMock($exchangeClassString, $args);
+    return $newClass;
 }
 
 function set_test_files ($holderClass, $properties) {
@@ -326,7 +356,7 @@ class testMainClass extends baseMainTestClass {
     public function add_padding($message, $size) {
         // has to be transpilable
         $res = '';
-        $missing_space = $size - count($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        $missing_space = $size - strlen($message) - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if ($missing_space > 0) {
             for ($i = 0; $i < $missing_space; $i++) {
                 $res .= ' ';
