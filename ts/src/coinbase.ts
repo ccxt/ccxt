@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1221,7 +1221,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coinbase#fetchTickers
@@ -1237,7 +1237,7 @@ export default class coinbase extends Exchange {
         return await this.fetchTickersV2 (symbols, params);
     }
 
-    async fetchTickersV2 (symbols: string[] = undefined, params = {}) {
+    async fetchTickersV2 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {
@@ -1272,7 +1272,7 @@ export default class coinbase extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTickersV3 (symbols: string[] = undefined, params = {}) {
+    async fetchTickersV3 (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.v3PrivateGetBrokerageProducts (params);
@@ -2928,7 +2928,7 @@ export default class coinbase extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
     }
 
-    async fetchBidsAsks (symbols: string[] = undefined, params = {}) {
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchBidsAsks

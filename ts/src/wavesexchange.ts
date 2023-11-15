@@ -5,7 +5,7 @@ import Exchange from './abstract/wavesexchange.js';
 import { AuthenticationError, InsufficientFunds, InvalidOrder, AccountSuspended, ExchangeError, DuplicateOrderId, OrderNotFound, BadSymbol, ExchangeNotAvailable, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
@@ -893,7 +893,7 @@ export default class wavesexchange extends Exchange {
         return this.parseTicker (dataTicker, market);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name wavesexchange#fetchTickers
@@ -2277,7 +2277,7 @@ export default class wavesexchange extends Exchange {
         }, market);
     }
 
-    parseDepositWithdrawFees (response, codes: string[] = undefined, currencyIdKey = undefined): any {
+    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey = undefined): any {
         const depositWithdrawFees = {};
         codes = this.marketCodes (codes);
         for (let i = 0; i < response.length; i++) {
@@ -2348,7 +2348,7 @@ export default class wavesexchange extends Exchange {
         return depositWithdrawFees;
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name wavesexchange#fetchDepositWithdrawFees

@@ -927,6 +927,7 @@ class Transpiler {
             'IndexType': /: IndexType/,
             'FundingHistory': /\[FundingHistory/,
             'String': /: String =/,
+            'Strings': /: Strings =/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
             'Trade': /-> (?:List\[)?Trade/,
@@ -1563,6 +1564,7 @@ class Transpiler {
                 'any': 'mixed',
                 'string': 'string',
                 'Str': '?string',
+                'Strings': '?array',
                 'number': 'float',
                 'boolean': 'bool',
                 'IndexType': 'int|string',
@@ -1590,7 +1592,7 @@ class Transpiler {
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
-                    const ignore = (resolveType === 'mixed' || type === 'Str' || type === 'Int')
+                    const ignore = (resolveType === 'mixed' || resolveType[0] === '?' )
                     return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()

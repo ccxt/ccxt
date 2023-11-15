@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1807,7 +1807,7 @@ export default class okx extends Exchange {
         return this.parseTicker (first, market);
     }
 
-    async fetchTickersByType (type, symbols: string[] = undefined, params = {}) {
+    async fetchTickersByType (type, symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'instType': this.convertToInstrumentType (type),
@@ -1852,7 +1852,7 @@ export default class okx extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchTickers (symbols: string[] = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name okx#fetchTickers
@@ -5013,7 +5013,7 @@ export default class okx extends Exchange {
         return this.parsePosition (position);
     }
 
-    async fetchPositions (symbols: string[] = undefined, params = {}) {
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchPositions
@@ -6710,7 +6710,7 @@ export default class okx extends Exchange {
         }
     }
 
-    async fetchDepositWithdrawFees (codes: string[] = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         /**
          * @method
          * @name okx#fetchDepositWithdrawFees
