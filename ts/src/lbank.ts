@@ -19,7 +19,7 @@ import { Balances, Int, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Tick
 export default class lbank2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'lbank2',
+            'id': 'lbank',
             'name': 'LBank',
             'countries': [ 'CN' ],
             'version': 'v2',
