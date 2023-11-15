@@ -275,7 +275,8 @@ export default class testMainClass extends baseMainTestClass {
     addPadding (message, size) {
         // has to be transpilable
         let res = '';
-        const missingSpace = size - message.length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
+        const messageLength = message.length; // avoid php transpilation issue
+        const missingSpace = size - messageLength - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if (missingSpace > 0) {
             for (let i = 0; i < missingSpace; i++) {
                 res += ' ';
