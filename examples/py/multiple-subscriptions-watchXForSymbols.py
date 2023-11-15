@@ -40,7 +40,7 @@ async def watch_multiple_ohlcv(symbols):
 async def example_1():
 
     await asyncio.gather(
-        watch_multiple_trades(['BTC/USDT' 'ADA/USDT', 'ETH/USDT']),
+        watch_multiple_trades(['BTC/USDT', 'ADA/USDT', 'ETH/USDT']),
         watch_multiple_orderbooks(['BTC/USDT', 'ETH/USDT']),
         watch_multiple_ohlcv([['BTC/USDT', '1m'], ['LTC/USDT', '1m']]),
     )

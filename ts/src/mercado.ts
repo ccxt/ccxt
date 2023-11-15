@@ -5,7 +5,7 @@ import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -239,6 +239,7 @@ export default class mercado extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': coin,
             });
         }
@@ -851,7 +852,7 @@ export default class mercado extends Exchange {
         const ordersRaw = this.safeValue (responseData, 'orders', []);
         const orders = this.parseOrders (ordersRaw, market, since, limit);
         const trades = this.ordersToTrades (orders);
-        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as any;
+        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limit) as Trade[];
     }
 
     ordersToTrades (orders) {

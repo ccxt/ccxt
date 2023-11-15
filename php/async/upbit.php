@@ -479,6 +479,7 @@ class upbit extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'created' => null,
                     'info' => $market,
                 );
             }
@@ -737,7 +738,7 @@ class upbit extends Exchange {
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
-            return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($result, 'symbol', $symbols);
         }) ();
     }
 
@@ -990,17 +991,18 @@ class upbit extends Exchange {
                 'timeframe' => $timeframeValue,
                 'count' => $limit,
             );
-            $method = 'publicGetCandlesTimeframe';
-            if ($timeframeValue === 'minutes') {
-                $numMinutes = (int) round($timeframePeriod / 60);
-                $request['unit'] = $numMinutes;
-                $method .= 'Unit';
-            }
+            $response = null;
             if ($since !== null) {
                 // convert `$since` to `to` value
                 $request['to'] = $this->iso8601($this->sum($since, $timeframePeriod * $limit * 1000));
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            if ($timeframeValue === 'minutes') {
+                $numMinutes = (int) round($timeframePeriod / 60);
+                $request['unit'] = $numMinutes;
+                $response = Async\await($this->publicGetCandlesTimeframeUnit (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetCandlesTimeframe (array_merge($request, $params)));
+            }
             //
             //     array(
             //         array(

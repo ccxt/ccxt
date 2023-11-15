@@ -6,8 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
+use ccxt\AuthenticationError;
 use React\Async;
 
 class bittrex extends \ccxt\async\bittrex {
@@ -47,6 +49,12 @@ class bittrex extends \ccxt\async\bittrex {
                 'I' => $this->milliseconds(),
                 'watchOrderBook' => array(
                     'maxRetries' => 3,
+                ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    'INVALID_APIKEY' => '\\ccxt\\AuthenticationError',
+                    'UNAUTHORIZED_USER' => '\\ccxt\\AuthenticationError',
                 ),
             ),
         ));
@@ -109,6 +117,7 @@ class bittrex extends \ccxt\async\bittrex {
 
     public function authenticate($params = array ()) {
         return Async\async(function () use ($params) {
+            $this->check_required_credentials();
             Async\await($this->load_markets());
             $request = Async\await($this->negotiate());
             return Async\await($this->send_request_to_authenticate($request, false, $params));
@@ -132,7 +141,7 @@ class bittrex extends \ccxt\async\bittrex {
                     'negotiation' => $negotiation,
                     'method' => array($this, 'handle_authenticate'),
                 );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $requestId, $subscription);
+                $this->watch($url, $messageHash, $request, $requestId, $subscription);
             }
             return Async\await($future);
         }) ();
@@ -587,7 +596,9 @@ class bittrex extends \ccxt\async\bittrex {
              * @return {array[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $authentication = Async\await($this->authenticate());
             $trades = Async\await($this->subscribe_to_my_trades($authentication, $params));
             if ($this->newUpdates) {
@@ -866,6 +877,59 @@ class bittrex extends \ccxt\async\bittrex {
         return $message;
     }
 
+    public function handle_error_message(Client $client, $message) {
+        //
+        //    {
+        //        $R => [array( Success => false, ErrorCode => 'UNAUTHORIZED_USER' ), ... ],
+        //        $I => '1698601759267'
+        //    }
+        //    {
+        //        $R => array( Success => false, ErrorCode => 'INVALID_APIKEY' ),
+        //        $I => '1698601759266'
+        //    }
+        //
+        $R = $this->safe_value($message, 'R');
+        if ($R === null) {
+            // Return there is no error
+            return false;
+        }
+        $I = $this->safe_string($message, 'I');
+        $errorCode = null;
+        if (gettype($R) === 'array' && array_keys($R) === array_keys(array_keys($R))) {
+            for ($i = 0; $i < count($R); $i++) {
+                $response = $this->safe_value($R, $i);
+                $success = $this->safe_value($response, 'Success', true);
+                if (!$success) {
+                    $errorCode = $this->safe_string($response, 'ErrorCode');
+                    break;
+                }
+            }
+        } else {
+            $success = $this->safe_value($R, 'Success', true);
+            if (!$success) {
+                $errorCode = $this->safe_string($R, 'ErrorCode');
+            }
+        }
+        if ($errorCode === null) {
+            // Return there is no error
+            return false;
+        }
+        $feedback = $this->id . ' ' . $errorCode;
+        try {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            if ($message !== null) {
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
+            }
+            throw new ExchangeError($feedback);
+        } catch (Exception $e) {
+            if ($e instanceof AuthenticationError) {
+                $client->reject ($e, 'authenticate');
+            }
+            $client->reject ($e, $I);
+        }
+        return true;
+    }
+
     public function handle_message(Client $client, $message) {
         //
         // subscription confirmation
@@ -912,6 +976,9 @@ class bittrex extends \ccxt\async\bittrex {
         //         $M => array( array( H => 'C3', $M => 'authenticationExpiring', $A => array() ) )
         //     }
         //
+        if ($this->handle_error_message($client, $message)) {
+            return;
+        }
         $methods = array(
             'authenticationExpiring' => array($this, 'handle_authentication_expiring'),
             'order' => array($this, 'handle_order'),

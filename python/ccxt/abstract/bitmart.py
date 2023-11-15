@@ -53,6 +53,7 @@ class ImplicitAPI:
     private_get_spot_v1_margin_isolated_account = privateGetSpotV1MarginIsolatedAccount = Entry('spot/v1/margin/isolated/account', 'private', 'GET', {'cost': 6})
     private_get_spot_v1_trade_fee = privateGetSpotV1TradeFee = Entry('spot/v1/trade_fee', 'private', 'GET', {'cost': 6})
     private_get_spot_v1_user_fee = privateGetSpotV1UserFee = Entry('spot/v1/user_fee', 'private', 'GET', {'cost': 6})
+    private_get_spot_v1_broker_rebate = privateGetSpotV1BrokerRebate = Entry('spot/v1/broker/rebate', 'private', 'GET', {'cost': 1})
     private_get_contract_private_assets_detail = privateGetContractPrivateAssetsDetail = Entry('contract/private/assets-detail', 'private', 'GET', {'cost': 5})
     private_get_contract_private_order = privateGetContractPrivateOrder = Entry('contract/private/order', 'private', 'GET', {'cost': 1.2})
     private_get_contract_private_order_history = privateGetContractPrivateOrderHistory = Entry('contract/private/order-history', 'private', 'GET', {'cost': 10})

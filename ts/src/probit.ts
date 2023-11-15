@@ -337,6 +337,7 @@ export default class probit extends Exchange {
                         'max': this.safeNumber (market, 'max_cost'),
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1518,6 +1519,8 @@ export default class probit extends Exchange {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
+        } else {
+            request['limit'] = 100;
         }
         const response = await this.privateGetTransferPayment (this.extend (request, params));
         //

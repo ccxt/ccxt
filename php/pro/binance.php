@@ -147,14 +147,19 @@ class binance extends \ccxt\async\binance {
             // valid <levels> are 5, 10, or 20
             //
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            if ($limit !== null) {
-                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
-                }
-            }
-            //
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            if ($limit !== null) {
+                if ($market['contract']) {
+                    if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
+                        throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
+                    }
+                } else {
+                    if ($limit > 5000) {
+                        throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be less than or equal to 5000');
+                    }
+                }
+            }
             $type = $market['type'];
             if ($market['contract']) {
                 $type = $market['linear'] ? 'future' : 'delivery';
@@ -228,14 +233,8 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the binance api endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
-            if ($limit !== null) {
-                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
-                    throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 5, 10, 20, 50, 100, 500 or 1000');
-                }
-            }
-            //
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
             if ($firstMarket['contract']) {
@@ -500,7 +499,7 @@ class binance extends \ccxt\async\binance {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
             $options = $this->safe_value($this->options, 'watchTradesForSymbols', array());
             $name = $this->safe_string($options, 'name', 'trade');
             $firstMarket = $this->market($symbols[0]);
@@ -512,8 +511,8 @@ class binance extends \ccxt\async\binance {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
-                $messageHash = $market['lowercaseId'] . '@' . $name;
-                $subParams[] = $messageHash;
+                $currentMessageHash = $market['lowercaseId'] . '@' . $name;
+                $subParams[] = $currentMessageHash;
             }
             $messageHash = 'multipleTrades::' . implode(',', $symbols);
             $query = $this->omit($params, 'type');
@@ -836,10 +835,10 @@ class binance extends \ccxt\async\binance {
             $hashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
-                $symbol = $data[0];
-                $timeframe = $data[1];
-                $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $market = $this->market($symbol);
+                $symbolString = $data[0];
+                $timeframeString = $data[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                $market = $this->market($symbolString);
                 $marketId = $market['lowercaseId'];
                 if ($name === 'indexPriceKline') {
                     // weird behavior for index price kline we can't use the perp suffix
@@ -847,7 +846,7 @@ class binance extends \ccxt\async\binance {
                 }
                 $topic = $marketId . '@' . $name . '_' . $interval;
                 $subParams[] = $topic;
-                $hashes[] = $symbol . '#' . $timeframe;
+                $hashes[] = $symbolString . '#' . $timeframeString;
             }
             $messageHash = 'multipleOHLCV::' . implode(',', $hashes);
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
@@ -983,7 +982,7 @@ class binance extends \ccxt\async\binance {
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
             $marketIds = $this->market_ids($symbols);
             $market = null;
             $type = null;

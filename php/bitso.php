@@ -462,6 +462,7 @@ class bitso extends Exchange {
                         'max' => $this->safe_number($market, 'maximum_value'),
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             ), $fee);
         }

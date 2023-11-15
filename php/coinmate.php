@@ -284,6 +284,7 @@ class coinmate extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'created' => null,
                 'info' => $market,
             );
         }
@@ -354,7 +355,7 @@ class coinmate extends Exchange {
         $ticker = $this->safe_value($response, 'data');
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -375,7 +376,7 @@ class coinmate extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'amount'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {

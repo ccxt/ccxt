@@ -123,9 +123,16 @@ class bitstamp extends bitstamp$1 {
                         'trading-pairs-info/': 1,
                         'currencies/': 1,
                         'eur_usd/': 1,
+                        'travel_rule/vasps/': 1,
                     },
                 },
                 'private': {
+                    'get': {
+                        'travel_rule/contacts/': 1,
+                        'contacts/{contact_uuid}/': 1,
+                        'earn/subscriptions/': 1,
+                        'earn/transactions/': 1,
+                    },
                     'post': {
                         'account_balances/': 1,
                         'account_balances/{currency}/': 1,
@@ -152,6 +159,7 @@ class bitstamp extends bitstamp$1 {
                         'transfer-from-main/': 1,
                         'my_trading_pairs/': 1,
                         'fees/trading/': 1,
+                        'fees/trading/{pair}': 1,
                         'fees/withdrawal/': 1,
                         'fees/withdrawal/{currency}/': 1,
                         'withdrawal-requests/': 1,
@@ -325,6 +333,10 @@ class bitstamp extends bitstamp$1 {
                         'dgld_address/': 1,
                         'ldo_withdrawal/': 1,
                         'ldo_address/': 1,
+                        'travel_rule/contacts/': 1,
+                        'earn/subscribe/': 1,
+                        'earn/subscriptions/setting/': 1,
+                        'earn/unsubscribe': 1,
                     },
                 },
             },
@@ -505,6 +517,7 @@ class bitstamp extends bitstamp$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1347,9 +1360,8 @@ class bitstamp extends bitstamp$1 {
         }
         const response = await this[method](this.extend(request, params));
         const order = this.parseOrder(response, market);
-        return this.extend(order, {
-            'type': type,
-        });
+        order['type'] = type;
+        return order;
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**

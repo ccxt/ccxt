@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import { Balances, Int, OrderSide, OrderType } from './base/types.js';
+import { Int, OrderSide, OrderType, OHLCV, Trade, Balances } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -155,6 +155,7 @@ export default class kraken extends Exchange {
                         'Depth': 1,
                         'OHLC': 1,
                         'Spread': 1,
+                        'SystemStatus': 1,
                         'Ticker': 1,
                         'Time': 1,
                         'Trades': 1,
@@ -167,6 +168,7 @@ export default class kraken extends Exchange {
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
+                        'CancelAllOrdersAfter': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
                         'ClosedOrders': 6,
@@ -203,6 +205,11 @@ export default class kraken extends Exchange {
                         'CreateSubaccount': 3,
                         'AccountTransfer': 3,
                         // earn
+                        'Earn/Allocate': 3,
+                        'Earn/Deallocate': 3,
+                        'Earn/AllocateStatus': 3,
+                        'Earn/DeallocateStatus': 3,
+                        'Earn/Strategies': 3,
                         'Earn/Allocations': 3,
                     },
                 },
@@ -361,6 +368,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchMarkets
          * @description retrieves data on all markets for kraken
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTradableAssetPairs
          * @param {object} [params] extra parameters specific to the exchange api endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -492,6 +500,7 @@ export default class kraken extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -548,6 +557,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getAssetInfo
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -608,6 +618,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTradingFee
          * @description fetch the trading fees for a market
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} a [fee structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#fee-structure}
@@ -679,6 +690,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the kraken api endpoint
@@ -783,6 +795,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -812,7 +825,7 @@ export default class kraken extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -820,6 +833,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
@@ -866,14 +880,21 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getOHLCData
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 720) as OHLCV[];
+        }
         const market = this.market (symbol);
         const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
         const request = {
@@ -947,11 +968,7 @@ export default class kraken extends Exchange {
         } else {
             direction = 'in';
         }
-        const time = this.safeNumber (item, 'time');
-        let timestamp = undefined;
-        if (time !== undefined) {
-            timestamp = this.parseToInt (time * 1000);
-        }
+        const timestamp = this.safeTimestamp (item, 'time');
         return {
             'info': item,
             'id': id,
@@ -978,16 +995,19 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchLedger
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @returns {object} a [ledger structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ledger-structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -996,6 +1016,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.privatePostLedgers (this.extend (request, params));
         // {  error: [],
         //   result: { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1158,6 +1179,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getRecentTrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1256,9 +1278,11 @@ export default class kraken extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
-            account['total'] = this.safeString (balances, currencyId);
-            result[code] = balances[currencyId];
+            account['used'] = this.safeString (balance, 'hold_trade');
+            account['total'] = this.safeString (balance, 'balance');
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -1268,6 +1292,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
          */
@@ -1275,11 +1300,16 @@ export default class kraken extends Exchange {
         const response = await this.privatePostBalanceEx (params);
         //
         //     {
-        //         "error":[],
-        //         "result":{
-        //             "ZUSD":"58.8649",
-        //             "KFEE":"4399.43",
-        //             "XXBT":"0.0000034506",
+        //         "error": [],
+        //         "result": {
+        //             "ZUSD": {
+        //                 "balance": 25435.21,
+        //                 "hold_trade": 8249.76
+        //             },
+        //             "XXBT": {
+        //                 "balance": 1.2435,
+        //                 "hold_trade": 0.8423
+        //             }
         //         }
         //     }
         //
@@ -1510,7 +1540,16 @@ export default class kraken extends Exchange {
             id = this.safeString (txid, 0);
         }
         const clientOrderId = this.safeString (order, 'userref');
-        const rawTrades = this.safeValue (order, 'trades');
+        const rawTrades = this.safeValue (order, 'trades', []);
+        const trades = [];
+        for (let i = 0; i < rawTrades.length; i++) {
+            const rawTrade = rawTrades[i];
+            if (typeof rawTrade === 'string') {
+                trades.push (this.safeTrade ({ 'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {}}));
+            } else {
+                trades.push (rawTrade);
+            }
+        }
         stopPrice = this.safeNumber (order, 'stopprice', stopPrice);
         return this.safeOrder ({
             'id': id,
@@ -1534,7 +1573,7 @@ export default class kraken extends Exchange {
             'average': average,
             'remaining': undefined,
             'fee': fee,
-            'trades': rawTrades,
+            'trades': trades,
         }, market);
     }
 
@@ -1667,6 +1706,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
          * @param {string} symbol not used by kraken fetchOrder
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -1728,7 +1768,8 @@ export default class kraken extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
         const order = this.parseOrder (this.extend ({ 'id': id }, result[id]));
-        return this.extend ({ 'info': response }, order);
+        order['info'] = order;
+        return order;
     }
 
     async fetchOrderTrades (id: string, symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1736,6 +1777,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1809,7 +1851,7 @@ export default class kraken extends Exchange {
             const tradesFilteredBySymbol = this.filterBySymbol (trades, symbol);
             result = this.arrayConcat (result, tradesFilteredBySymbol);
         }
-        return result;
+        return result as Trade[];
     }
 
     async fetchOrdersByIds (ids, symbol: string = undefined, params = {}) {
@@ -1835,6 +1877,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -1895,6 +1938,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#cancelOrder
          * @description cancels an open order
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the kraken api endpoint
@@ -1925,6 +1969,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#cancelOrders
          * @description cancel multiple orders
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
          * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the kraken api endpoint
@@ -1950,6 +1995,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -1962,7 +2008,9 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchOpenOrders
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1994,15 +2042,18 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchClosedOrders
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of  orde structures to retrieve
          * @param {object} [params] extra parameters specific to the kraken api endpoint
+         * @param {int} [params.until] timestamp in ms of the latest entry
          * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
@@ -2012,6 +2063,7 @@ export default class kraken extends Exchange {
             request['userref'] = clientOrderId;
             query = this.omit (params, [ 'userref', 'clientOrderId' ]);
         }
+        [ request, params ] = this.handleUntilOption ('end', request, params);
         const response = await this.privatePostClosedOrders (this.extend (request, query));
         //
         //     {
@@ -2195,7 +2247,9 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#fetchDeposits
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @description fetch all deposits made to an account
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2233,6 +2287,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.kraken.com/rest/#tag/Market-Data/operation/getServerTime
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -2256,6 +2311,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2293,6 +2349,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#createDepositAddress
          * @description create a currency deposit address
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
@@ -2341,6 +2398,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object} an [address structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#address-structure}
@@ -2424,6 +2482,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#withdraw
          * @description make a withdrawal
+         * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2461,6 +2520,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#fetchPositions
          * @description fetch all open positions
+         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
          * @param {string[]|undefined} symbols not used by kraken fetchPositions ()
          * @param {object} [params] extra parameters specific to the kraken api endpoint
          * @returns {object[]} a list of [position structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#position-structure}
@@ -2534,6 +2594,7 @@ export default class kraken extends Exchange {
     async transferOut (code: string, amount, params = {}) {
         /**
          * @description transfer from spot wallet to futures wallet
+         * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
          * @param {str} code Unified currency code
          * @param {float} amount Size of the transfer
          * @param {dict} [params] Exchange specific parameters

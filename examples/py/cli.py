@@ -117,7 +117,7 @@ async def main():
     if not argv.exchange_id:
         print_usage()
         sys.exit()
-    
+
     # check here if we have a arg like this: binance.fetchOrders()
     call_reg = "\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)"
     match = re.match(call_reg, argv.exchange_id)
@@ -211,11 +211,9 @@ async def main():
                 is_ws_method = True # handle ws methods
             print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
             while True:
-                result = None
-                if asyncio.iscoroutinefunction(method):
-                    result = await method(*args)
-                else:
-                    result = method(*args)
+                result = method(*args)
+                if asyncio.iscoroutine(result):
+                    result = await result
                 if argv.table:
                     result = list(result.values()) if isinstance(result, dict) else result
                     print(table([exchange.omit(v, 'info') for v in result]))

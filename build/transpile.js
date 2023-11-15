@@ -288,6 +288,14 @@ class Transpiler {
             [ /\.customParseOrderBook\s/g, '.custom_parse_order_book'],
             [ /\.filterByArrayPositions\s/g, '.filter_by_array_positions'],
             [ /\.handleTriggerPrices\s/g, '.handle_trigger_prices'],
+            [ /\.handleMaxEntriesPerRequestAndParams\s/g, '.handle_max_entries_per_request_and_params'],
+            [ /\.safeDeterministicCall\s/g, '.safe_deterministic_call'],
+            [ /\.fetchPaginatedCallDynamic\s/g, '.fetch_paginated_call_dynamic'],
+            [ /\.fetchPaginatedCallDeterministic\s/g, '.fetch_paginated_call_deterministic'],
+            [ /\.fetchPaginatedCallCursor\s/g, '.fetch_paginated_call_cursor'],
+            [ /\.removeRepeatedElementsFromArray\s/g, '.remove_repeated_elements_from_array'],
+            [ /\.stringToCharsArray\s/g, '.string_to_chars_array'],
+            [ /\.handleUntilOption\s/g, '.handle_until_option'],
             [ /\ssha(1|256|384|512)([,)])/g, ' \'sha$1\'$2'], // from js imports to this
             [ /\s(md5|secp256k1|ed25519|keccak)([,)])/g, ' \'$1\'$2'], // from js imports to this
 
@@ -466,7 +474,7 @@ class Transpiler {
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @see( .*)/g, '$1see$2' ], // docstring @see
+            [ /(\s+) \* @see( .*)/g, '$1:see:$2' ], // docstring @see
             [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
             [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
@@ -688,7 +696,7 @@ class Transpiler {
     getTypescriptRemovalRegexes() {
         return [
             [ /\((\w+)\sas\s\w+\)/g, '$1'], // remove (this as any) or (x as number) paren included
-            [ /\sas \w+(\[])?/g, ''], // remove any "as any" or "as number" or "as trade[]"
+            [ /\sas (Dictionary<)?\w+(\[])?(>)?/g, ''], // remove any "as any" or "as number" or "as trade[]"
             [ /([let|const][^:]+):([^=]+)(\s+=.*$)/g, '$1$3'], // remove variable type
         ]
     }
@@ -906,6 +914,9 @@ class Transpiler {
         }
         if (bodyAsString.match (/: OrderSide/)) {
             libraries.push ('from ccxt.base.types import OrderSide')
+        }
+        if (bodyAsString.match (/: List\[OrderRequest\]/)) {
+            libraries.push ('from ccxt.base.types import OrderRequest')
         }
         if (bodyAsString.match (/: OrderType/)) {
             libraries.push ('from ccxt.base.types import OrderType')
@@ -2149,6 +2160,9 @@ class Transpiler {
 
 
         // ########### PHP ###########
+        php = php.replace('use Exception; // a common import', '')
+        phpAsync = phpAsync.replace('use Exception; // a common import', '')
+
         phpAsync = phpAsync.replace (/\<\?php(.*?)namespace ccxt\\async;/sg, '');
         phpAsync = phpAsync.replace ('\nuse React\\Async;','').replace ('\nuse React\\Promise;', ''); // no longer needed, as hardcoded in top lines of test_async.php
         phpAsync = phpAsync.replace ('(this,','($this,');
@@ -2434,13 +2448,20 @@ class Transpiler {
                 "",
                 "",
             ],
+            pyPro: [
+                "import asyncio",
+                "import ccxt.pro as ccxt  # noqa: E402",
+                "",
+                "",
+                "",
+            ],
             phpAsync: [
                 "",
                 "error_reporting(E_ALL | E_STRICT);",
                 "date_default_timezone_set('UTC');",
                 "",
                 "use ccxt\\Precise;",
-                "use React\\Async;",
+                "use React\\Async;",    
                 "use React\\Promise;",
                 "",
                 "",
@@ -2458,6 +2479,7 @@ class Transpiler {
             const tsFile = examplesFolders.ts + filenameWithExtenstion
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
+                const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                 log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
@@ -2472,30 +2494,37 @@ class Transpiler {
                 const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
                 let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
                 // ###### replace common (synchronity agnostic) syntaxes ######
-                const fixPython = (body, isAsync)=> {
+                const fixPython = (body)=> {
                     return this.regexAll (body, [
                         [ /console\.log/g, 'print' ],
+                        // in python import ccxt.pro as ccxt
+                        [ /ccxt.pro/g, 'ccxt' ],
                         // cases like: exchange = new ccxt.binance ()
                         //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
                         // cases like: exchange = new ccxt['name' or name] ()
                         [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        // cases like: exchange = new ccxt.pro['name' or name] ()
+                        [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
                     ]);
                 };
-                const fixPhp = (body, isAsync)=> {
-                    let asyncSub = isAsync ? 'async\\' : '';
+                const fixPhp = (body)=> {
                     const regexes = [
                         [ /\$console\->log/g, 'var_dump' ],
+                        // cases like: exchange = new ccxt.pro.huobi ()
+                        [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
                         // cases like: exchange = new ccxt.huobi ()
-                        [ /new \$ccxt->/g, 'new \\ccxt\\' + asyncSub ],
+                        [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
                         // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /new \$ccxt\[(?:['"]|)(.*?)(?:['"]|)\]\(/g, 'new (\'\\\\ccxt\\\\' + asyncSub + '$1\')(' ],
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                        // cases like: exchange = new ccxt.pro['huobi' or varname] ()
+                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
                     ];
                     return this.regexAll (body, regexes);
                 };
 
                 const finalBodies = {};
-                finalBodies.pyAsync = fixPython (pythonAsyncBody, true);
-                finalBodies.phpAsync = fixPhp (phpAsyncBody, true);
+                finalBodies.pyAsync = fixPython (pythonAsyncBody);
+                finalBodies.phpAsync = fixPhp (phpAsyncBody);
 
                 // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
                 for (const funcName of allDetectedFunctionNames) {
@@ -2523,7 +2552,7 @@ class Transpiler {
                 }
 
                 // write files
-                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + fileHeaders.pyAsync + finalBodies.pyAsync)
+                overwriteFile (examplesFolders.py  + fileName + '.py', preambles.pyAsync + (isCcxtPro ? fileHeaders.pyPro : fileHeaders.pyAsync) + finalBodies.pyAsync)
                 overwriteFile (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
@@ -2573,7 +2602,7 @@ class Transpiler {
         let jsFiles = [];
         this.getAllFilesRecursively(jsFolder, jsFiles);
 
-        jsFiles.filter(f => !f.includes(".d.ts")).map (jsFilePath => {
+        jsFiles.filter(f => !f.includes(".d.ts") && !f.includes(".tsbuildinfo")).map (jsFilePath => {
             const content = fs.readFileSync (jsFilePath, 'utf8');
             if (content.indexOf (this.getJsPreamble()) === -1) {
                 let contents = [
@@ -2602,7 +2631,8 @@ class Transpiler {
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, jsFolder, exchanges }
 
-        if (!child) {
+        const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
+        if (!transpilingSingleExchange && !child) {
             createFolderRecursively (python2Folder)
             createFolderRecursively (python3Folder)
             createFolderRecursively (phpFolder)
@@ -2620,19 +2650,21 @@ class Transpiler {
             return
         }
 
-        this.transpileBaseMethods ()
+        if (!transpilingSingleExchange) {
+            this.transpileBaseMethods ()
 
-        //*/
+            //*/
 
-        this.transpileErrorHierarchy ()
+            this.transpileErrorHierarchy ()
 
-        this.transpileTests ()
+            this.transpileTests ()
 
-        // this.transpilePhpBaseClassMethods ()
+            // this.transpilePhpBaseClassMethods ()
 
-        this.transpileExamples ()
+            this.transpileExamples ()
 
-        this.addGeneratedHeaderToJs ('./js/')
+            this.addGeneratedHeaderToJs ('./js/')
+        }
 
         log.bright.green ('Transpiled successfully.')
     }

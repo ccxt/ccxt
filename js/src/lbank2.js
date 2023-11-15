@@ -424,6 +424,7 @@ export default class lbank2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -520,6 +521,7 @@ export default class lbank2 extends Exchange {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -1508,8 +1510,10 @@ export default class lbank2 extends Exchange {
             const options = this.safeValue(this.options, 'fetchOrder', {});
             method = this.safeString(options, 'method', 'fetchOrderSupplement');
         }
-        const result = await this[method](id, symbol, params);
-        return result;
+        if (method === 'fetchOrderSupplement') {
+            return await this.fetchOrderSupplement(id, symbol, params);
+        }
+        return await this.fetchOrderDefault(id, symbol, params);
     }
     async fetchOrderSupplement(id, symbol = undefined, params = {}) {
         this.checkRequiredSymbol('fetchOrder', symbol);
@@ -1580,12 +1584,13 @@ export default class lbank2 extends Exchange {
             return this.parseOrder(result[0]);
         }
         else {
-            const parsedOrders = [];
-            for (let i = 0; i < numOrders; i++) {
-                const parsedOrder = this.parseOrder(result[i]);
-                parsedOrders.push(parsedOrder);
-            }
-            return parsedOrders;
+            // const parsedOrders = [];
+            // for (let i = 0; i < numOrders; i++) {
+            //     const parsedOrder = this.parseOrder (result[i]);
+            //     parsedOrders.push (parsedOrder);
+            // }
+            // return parsedOrders;
+            throw new BadRequest(this.id + ' fetchOrder() can only fetch one order at a time');
         }
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {

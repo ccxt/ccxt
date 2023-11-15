@@ -213,6 +213,7 @@ class coinfalcon extends coinfalcon$1 {
                         'max': undefined,
                     },
                 },
+                'created': undefined,
                 'info': market,
             });
         }
@@ -312,7 +313,7 @@ class coinfalcon extends coinfalcon$1 {
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
-        return this.filterByArray(result, 'symbol', symbols);
+        return this.filterByArrayTickers(result, 'symbol', symbols);
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         /**
@@ -933,9 +934,9 @@ class coinfalcon extends coinfalcon$1 {
         const amountString = this.safeString(transaction, 'amount');
         const amount = this.parseNumber(amountString);
         const feeCostString = this.safeString(transaction, 'fee');
-        let feeCost = 0;
+        let feeCost = '0';
         if (feeCostString !== undefined) {
-            feeCost = this.parseNumber(feeCostString);
+            feeCost = feeCostString;
         }
         return {
             'info': transaction,
@@ -957,7 +958,7 @@ class coinfalcon extends coinfalcon$1 {
             'updated': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber(feeCost),
             },
         };
     }
