@@ -3,7 +3,7 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Int, OHLCV } from '../base/types.js';
+import { Int, OHLCV, OrderSide, OrderType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, Trade } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -24,6 +24,7 @@ export default class hitbtc extends hitbtcRest {
                 'watchOrders': true,
                 'watchOHLCV': true,
                 'watchMyTrades': false,
+                'createOrderWs': true,
             },
             'urls': {
                 'api': {
@@ -970,6 +971,45 @@ export default class hitbtc extends hitbtcRest {
             'mode': mode,
         };
         return await this.subscribePrivate (name, undefined, this.extend (request, params));
+    }
+
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc#createOrder
+         * @description create a trade order
+         * @see https://api.hitbtc.com/#create-new-spot-order
+         * @see https://api.hitbtc.com/#create-margin-order
+         * @see https://api.hitbtc.com/#create-futures-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the hitbtc api endpoint
+         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
+         * @param {bool} [params.margin] true for creating a margin order
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        [ request, params ] = this.createOrderRequest (market, marketType, marginMode, type, side, amount, price, params);
+        request = this.extend (request, params);
+        if (marketType === 'swap') {
+            return await this.subscribePrivate ('futures_new_order', symbol, request);
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            return await this.subscribePrivate ('margin_new_order', symbol, request);
+        } else {
+            return await this.subscribePrivate ('spot_new_order', symbol, request);
+        }
     }
 
     handleBalance (client: Client, message) {

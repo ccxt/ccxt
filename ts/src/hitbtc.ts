@@ -3,7 +3,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { BadSymbol, BadRequest, OnMaintenance, AccountSuspended, PermissionDenied, ExchangeError, RateLimitExceeded, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, AuthenticationError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers } from './base/types.js';
+import { Int, OrderSide, OrderType, FundingRateHistory, OHLCV, Ticker, Order, OrderBook, Dictionary, Position, Str, Trade, Balances, Transaction, MarginMode, Tickers, Market } from './base/types.js';
 
 /**
  * @class hitbtc
@@ -2159,19 +2159,33 @@ export default class hitbtc extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const isLimit = (type === 'limit');
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
-        const timeInForce = this.safeString (params, 'timeInForce');
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
+        let request = undefined;
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        [ request, params ] = this.createOrderRequest (market, marketType, marginMode, type, side, amount, price, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            response = await this.privatePostFuturesOrder (this.extend (request, params));
+        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
+            response = await this.privatePostMarginOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostSpotOrder (this.extend (request, params));
+        }
+        return this.parseOrder (response, market);
+    }
+
+    createOrderRequest (market: Market, marketType: string, marginMode: string, type: OrderType, side: OrderSide, amount, price = undefined, params = {}) {
+        const isLimit = (type === 'limit');
+        const reduceOnly = this.safeValue (params, 'reduceOnly');
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
         const request = {
             'type': type,
             'side': side,
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (market['symbol'], amount),
             'symbol': market['id'],
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
@@ -2203,7 +2217,7 @@ export default class hitbtc extends Exchange {
             if (price === undefined) {
                 throw new ExchangeError (this.id + ' createOrder() requires a price argument for limit orders');
             }
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         if ((timeInForce === 'GTD')) {
             const expireTime = this.safeString (params, 'expire_time');
@@ -2212,7 +2226,7 @@ export default class hitbtc extends Exchange {
             }
         }
         if (triggerPrice !== undefined) {
-            request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['stop_price'] = this.priceToPrecision (market['symbol'], triggerPrice);
             if (isLimit) {
                 request['type'] = 'stopLimit';
             } else if (type === 'market') {
@@ -2229,15 +2243,7 @@ export default class hitbtc extends Exchange {
             }
             request['margin_mode'] = marginMode;
         }
-        let response = undefined;
-        if (marketType === 'swap') {
-            response = await this.privatePostFuturesOrder (this.extend (request, params));
-        } else if ((marketType === 'margin') || (marginMode !== undefined)) {
-            response = await this.privatePostMarginOrder (this.extend (request, params));
-        } else {
-            response = await this.privatePostSpotOrder (this.extend (request, params));
-        }
-        return this.parseOrder (response, market);
+        return [ request, params ];
     }
 
     parseOrderStatus (status) {
