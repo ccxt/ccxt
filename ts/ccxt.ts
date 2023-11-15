@@ -133,6 +133,7 @@ import okcoin from  './src/okcoin.js'
 import okex from  './src/okex.js'
 import okex5 from  './src/okex5.js'
 import okx from  './src/okx.js'
+import p2b from  './src/p2b.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
@@ -302,6 +303,7 @@ const exchanges = {
     'okex':                   okex,
     'okex5':                  okex5,
     'okx':                    okx,
+    'p2b':                    p2b,
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
@@ -549,6 +551,7 @@ export {
     okex,
     okex5,
     okx,
+    p2b,
     paymium,
     phemex,
     poloniex,

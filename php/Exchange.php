@@ -450,6 +450,7 @@ class Exchange {
         'okex',
         'okex5',
         'okx',
+        'p2b',
         'paymium',
         'phemex',
         'poloniex',
