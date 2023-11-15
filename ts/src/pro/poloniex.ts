@@ -240,7 +240,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('createOrder', this.extend (request, params));
     }
 
-    handleCreateOrder (client: Client, message) {
+    handleOrderRequest (client: Client, message) {
         //
         //    {
         //        "id": "1234567",
@@ -1123,9 +1123,9 @@ export default class poloniex extends poloniexRest {
             'trades': this.handleTrade,
             'orders': this.handleOrder,
             'balances': this.handleBalance,
-            'createOrder': this.handleCreateOrder,
-            'cancelOrder': this.handleCreateOrder,
-            'cancelAllOrders': this.handleCreateOrder,
+            'createOrder': this.handleOrderRequest,
+            'cancelOrder': this.handleOrderRequest,
+            'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate,
         };
         const method = this.safeValue (methods, type);
@@ -1138,7 +1138,7 @@ export default class poloniex extends poloniexRest {
             if (orderId === '0') {
                 this.handleErrorMessage (client, item);
             } else {
-                return this.handleCreateOrder (client, message);
+                return this.handleOrderRequest (client, message);
             }
         } else {
             const data = this.safeValue (message, 'data', []);
