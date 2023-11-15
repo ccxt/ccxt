@@ -262,7 +262,7 @@ class ImplicitAPI:
     private_post_v5_asset_transfer_save_transfer_sub_member = privatePostV5AssetTransferSaveTransferSubMember = Entry('v5/asset/transfer/save-transfer-sub-member', 'private', 'POST', {'cost': 150})
     private_post_v5_asset_transfer_universal_transfer = privatePostV5AssetTransferUniversalTransfer = Entry('v5/asset/transfer/universal-transfer', 'private', 'POST', {'cost': 10})
     private_post_v5_asset_deposit_deposit_to_account = privatePostV5AssetDepositDepositToAccount = Entry('v5/asset/deposit/deposit-to-account', 'private', 'POST', {'cost': 5})
-    private_post_v5_asset_withdraw_create = privatePostV5AssetWithdrawCreate = Entry('v5/asset/withdraw/create', 'private', 'POST', {'cost': 300})
+    private_post_v5_asset_withdraw_create = privatePostV5AssetWithdrawCreate = Entry('v5/asset/withdraw/create', 'private', 'POST', {'cost': 50})
     private_post_v5_asset_withdraw_cancel = privatePostV5AssetWithdrawCancel = Entry('v5/asset/withdraw/cancel', 'private', 'POST', {'cost': 50})
     private_post_v5_user_create_sub_member = privatePostV5UserCreateSubMember = Entry('v5/user/create-sub-member', 'private', 'POST', {'cost': 10})
     private_post_v5_user_create_sub_api = privatePostV5UserCreateSubApi = Entry('v5/user/create-sub-api', 'private', 'POST', {'cost': 10})

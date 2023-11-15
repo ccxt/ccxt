@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -447,68 +447,67 @@ class ndax(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'InstrumentId')
-            # lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = self.safe_string(market, 'Product1')
-            quoteId = self.safe_string(market, 'Product2')
-            base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
-            quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
-            sessionStatus = self.safe_string(market, 'SessionStatus')
-            isDisable = self.safe_value(market, 'IsDisable')
-            sessionRunning = (sessionStatus == 'Running')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': (sessionRunning and not isDisable),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_number(market, 'QuantityIncrement'),
-                    'price': self.safe_number(market, 'PriceIncrement'),
+        return self.parse_markets(response)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'InstrumentId')
+        # lowercaseId = self.safe_string_lower(market, 'symbol')
+        baseId = self.safe_string(market, 'Product1')
+        quoteId = self.safe_string(market, 'Product2')
+        base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
+        quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
+        sessionStatus = self.safe_string(market, 'SessionStatus')
+        isDisable = self.safe_value(market, 'IsDisable')
+        sessionRunning = (sessionStatus == 'Running')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (sessionRunning and not isDisable),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_number(market, 'QuantityIncrement'),
+                'price': self.safe_number(market, 'PriceIncrement'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'MinimumQuantity'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': self.safe_number(market, 'MinimumPrice'),
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'MinimumQuantity'),
+                    'max': None,
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.safe_number(market, 'MinimumPrice'),
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=6, amountKey=8):
         nonce = None

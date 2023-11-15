@@ -788,7 +788,7 @@ abstract class bybit extends \ccxt\async\Exchange {
         return $this->request('v5/asset/deposit/deposit-to-account', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_v5_asset_withdraw_create($params = array()) {
-        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 300));
+        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     public function private_post_v5_asset_withdraw_cancel($params = array()) {
         return $this->request('v5/asset/withdraw/cancel', 'private', 'POST', $params, null, null, array("cost" => 50));
@@ -1628,7 +1628,7 @@ abstract class bybit extends \ccxt\async\Exchange {
         return $this->request('v5/asset/deposit/deposit-to-account', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostV5AssetWithdrawCreate($params = array()) {
-        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 300));
+        return $this->request('v5/asset/withdraw/create', 'private', 'POST', $params, null, null, array("cost" => 50));
     }
     public function privatePostV5AssetWithdrawCancel($params = array()) {
         return $this->request('v5/asset/withdraw/cancel', 'private', 'POST', $params, null, null, array("cost" => 50));

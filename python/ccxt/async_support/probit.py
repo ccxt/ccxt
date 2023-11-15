@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -284,72 +284,70 @@ class probit(Exchange, ImplicitAPI):
         #     }
         #
         markets = self.safe_value(response, 'data', [])
-        result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'id')
-            baseId = self.safe_string(market, 'base_currency_id')
-            quoteId = self.safe_string(market, 'quote_currency_id')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            closed = self.safe_value(market, 'closed', False)
-            takerFeeRate = self.safe_string(market, 'taker_fee_rate')
-            taker = Precise.string_div(takerFeeRate, '100')
-            makerFeeRate = self.safe_string(market, 'maker_fee_rate')
-            maker = Precise.string_div(makerFeeRate, '100')
-            result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': not closed,
-                'contract': False,
-                'linear': 'rfwf',
-                'inverse': 3,
-                'taker': self.parse_number(taker),
-                'maker': self.parse_number(maker),
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
-                    'price': self.safe_number(market, 'price_increment'),
-                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'cost_precision'))),
+        return self.parse_markets(markets)
+
+    def parse_market(self, market) -> Market:
+        id = self.safe_string(market, 'id')
+        baseId = self.safe_string(market, 'base_currency_id')
+        quoteId = self.safe_string(market, 'quote_currency_id')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        closed = self.safe_value(market, 'closed', False)
+        takerFeeRate = self.safe_string(market, 'taker_fee_rate')
+        taker = Precise.string_div(takerFeeRate, '100')
+        makerFeeRate = self.safe_string(market, 'maker_fee_rate')
+        maker = Precise.string_div(makerFeeRate, '100')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': not closed,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.parse_number(taker),
+            'maker': self.parse_number(maker),
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_precision'))),
+                'price': self.safe_number(market, 'price_increment'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': self.safe_number(market, 'min_quantity'),
-                        'max': self.safe_number(market, 'max_quantity'),
-                    },
-                    'price': {
-                        'min': self.safe_number(market, 'min_price'),
-                        'max': self.safe_number(market, 'max_price'),
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'min_cost'),
-                        'max': self.safe_number(market, 'max_cost'),
-                    },
+                'amount': {
+                    'min': self.safe_number(market, 'min_quantity'),
+                    'max': self.safe_number(market, 'max_quantity'),
                 },
-                'created': None,
-                'info': market,
-            })
-        return result
+                'price': {
+                    'min': self.safe_number(market, 'min_price'),
+                    'max': self.safe_number(market, 'max_price'),
+                },
+                'cost': {
+                    'min': self.safe_number(market, 'min_cost'),
+                    'max': self.safe_number(market, 'max_cost'),
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     async def fetch_currencies(self, params={}):
         """
