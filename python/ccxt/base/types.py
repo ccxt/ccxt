@@ -42,6 +42,7 @@ class Entry:
 IndexType = Union[str, int]
 Numeric = Union[None, str, float, int, Decimal]
 String = Optional[str]
+Strings = Optional[List[str]]
 Int = Optional[int]
 Bool = Optional[bool]
 Fee = Optional[Dict[str, Any]]
