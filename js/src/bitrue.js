@@ -632,79 +632,74 @@ export default class bitrue extends Exchange {
             await this.loadTimeDifference();
         }
         const markets = this.safeValue(response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'symbol');
-            const lowercaseId = this.safeStringLower(market, 'symbol');
-            const baseId = this.safeString(market, 'baseAsset');
-            const quoteId = this.safeString(market, 'quoteAsset');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const filters = this.safeValue(market, 'filters', []);
-            const filtersByType = this.indexBy(filters, 'filterType');
-            const status = this.safeString(market, 'status');
-            const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
-            const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
-            const defaultPricePrecision = this.safeString(market, 'pricePrecision');
-            const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
-            const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
-            const amountPrecision = this.safeString(amountFilter, 'volumeScale', defaultAmountPrecision);
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': (status === 'TRADING'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber(this.parsePrecision(amountPrecision)),
-                    'price': this.parseNumber(this.parsePrecision(pricePrecision)),
-                    'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'baseAssetPrecision'))),
-                    'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'symbol');
+        const lowercaseId = this.safeStringLower(market, 'symbol');
+        const baseId = this.safeString(market, 'baseAsset');
+        const quoteId = this.safeString(market, 'quoteAsset');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const filters = this.safeValue(market, 'filters', []);
+        const filtersByType = this.indexBy(filters, 'filterType');
+        const status = this.safeString(market, 'status');
+        const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+        const defaultPricePrecision = this.safeString(market, 'pricePrecision');
+        const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
+        const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
+        const amountPrecision = this.safeString(amountFilter, 'volumeScale', defaultAmountPrecision);
+        return {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (status === 'TRADING'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber(this.parsePrecision(amountPrecision)),
+                'price': this.parseNumber(this.parsePrecision(pricePrecision)),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
                 },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(amountFilter, 'minQty'),
-                        'max': this.safeNumber(amountFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': this.safeNumber(priceFilter, 'minPrice'),
-                        'max': this.safeNumber(priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber(amountFilter, 'minVal'),
-                        'max': undefined,
-                    },
+                'amount': {
+                    'min': this.safeNumber(amountFilter, 'minQty'),
+                    'max': this.safeNumber(amountFilter, 'maxQty'),
                 },
-                'created': undefined,
-                'info': market,
-            };
-            result.push(entry);
-        }
-        return result;
+                'price': {
+                    'min': this.safeNumber(priceFilter, 'minPrice'),
+                    'max': this.safeNumber(priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber(amountFilter, 'minVal'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     parseBalance(response) {
         const result = {
@@ -1827,6 +1822,7 @@ export default class bitrue extends Exchange {
             'status': status,
             'updated': updated,
             'internal': false,
+            'comment': undefined,
             'fee': fee,
         };
     }

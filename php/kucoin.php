@@ -1743,8 +1743,8 @@ class kucoin extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @see https://docs.kucoin.com/#get-part-order-book-aggregated
-         * @see https://docs.kucoin.com/#get-full-order-book-aggregated
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the kucoin api endpoint
@@ -1754,7 +1754,6 @@ class kucoin extends Exchange {
         $market = $this->market($symbol);
         $level = $this->safe_integer($params, 'level', 2);
         $request = array( 'symbol' => $market['id'] );
-        $method = 'publicGetMarketOrderbookLevelLevelLimit';
         $isAuthenticated = $this->check_required_credentials(false);
         $response = null;
         if (!$isAuthenticated || $limit !== null) {
@@ -1769,10 +1768,10 @@ class kucoin extends Exchange {
                 }
                 $request['limit'] = $limit ? $limit : 100;
             }
+            $response = $this->publicGetMarketOrderbookLevelLevelLimit (array_merge($request, $params));
         } else {
-            $method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
+            $response = $this->privateGetMarketOrderbookLevel2 (array_merge($request, $params));
         }
-        $response = $this->$method (array_merge($request, $params));
         //
         // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
@@ -3102,6 +3101,7 @@ class kucoin extends Exchange {
                 $updated = $updated * 1000;
             }
         }
+        $internal = $this->safe_value($transaction, 'isInner');
         $tag = $this->safe_string($transaction, 'memo');
         return array(
             'info' => $transaction,
@@ -3121,6 +3121,7 @@ class kucoin extends Exchange {
             'type' => $type,
             'status' => $this->parse_transaction_status($rawStatus),
             'comment' => $this->safe_string($transaction, 'remark'),
+            'internal' => $internal,
             'fee' => $fee,
             'updated' => $updated,
         );

@@ -443,7 +443,7 @@ class bybit extends bybit$1 {
                         'v5/asset/transfer/save-transfer-sub-member': 150,
                         'v5/asset/transfer/universal-transfer': 10,
                         'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/withdraw/create': 300,
+                        'v5/asset/withdraw/create': 50,
                         'v5/asset/withdraw/cancel': 50,
                         // user
                         'v5/user/create-sub-member': 10,
@@ -3592,7 +3592,7 @@ class bybit extends bybit$1 {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['reduceOnly'] = true;
         }
-        else if (isStopLoss || isTakeProfit) {
+        if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
                 const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                 request['stopLoss'] = this.priceToPrecision(symbol, slTriggerPrice);
@@ -4401,11 +4401,6 @@ class bybit extends bybit$1 {
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
-        else {
-            if (since !== undefined) {
-                throw new errors.BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
-            }
-        }
         const response = await this.privateGetV5OrderHistory(this.extend(request, params));
         //
         //     {
@@ -4780,11 +4775,6 @@ class bybit extends bybit$1 {
         params = this.omit(params, ['endTime', 'till', 'until']);
         if (endTime !== undefined) {
             request['endTime'] = endTime;
-        }
-        else {
-            if (since !== undefined) {
-                throw new errors.BadRequest(this.id + ' fetchOrders() requires until/endTime when since is provided.');
-            }
         }
         const response = await this.privateGetV5ExecutionList(this.extend(request, params));
         //
@@ -5190,6 +5180,8 @@ class bybit extends bybit$1 {
             'status': status,
             'updated': updated,
             'fee': fee,
+            'internal': undefined,
+            'comment': undefined,
         };
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {

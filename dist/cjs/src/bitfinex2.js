@@ -2169,6 +2169,7 @@ class bitfinex2 extends bitfinex2$1 {
             'tagTo': tag,
             'updated': updated,
             'comment': comment,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber(feeCost),

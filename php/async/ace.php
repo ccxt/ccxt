@@ -169,9 +169,9 @@ class ace extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for ace
-             * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---$market-pair
+             * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing market data
              */
             $response = Async\await($this->publicGetOapiV2ListMarketPair ());
             //
@@ -188,68 +188,66 @@ class ace extends Exchange {
             //         }
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $market = $response[$i];
-                $base = $this->safe_string($market, 'base');
-                $baseCode = $this->safe_currency_code($base);
-                $quote = $this->safe_string($market, 'quote');
-                $quoteCode = $this->safe_currency_code($quote);
-                $symbol = $base . '/' . $quote;
-                $result[] = array(
-                    'id' => $this->safe_string($market, 'symbol'),
-                    'uppercaseId' => null,
-                    'symbol' => $symbol,
-                    'base' => $baseCode,
-                    'baseId' => $this->safe_integer($market, 'baseCurrencyId'),
-                    'quote' => $quoteCode,
-                    'quoteId' => $this->safe_integer($market, 'quoteCurrencyId'),
-                    'settle' => null,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'derivative' => false,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($market, 'minLimitBaseAmount'),
-                            'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'precision' => array(
-                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
-                    ),
-                    'active' => null,
-                    'created' => null,
-                    'info' => $market,
-                );
-            }
-            return $result;
+            return $this->parse_markets($response);
         }) ();
+    }
+
+    public function parse_market($market): array {
+        $baseId = $this->safe_string($market, 'base');
+        $base = $this->safe_currency_code($baseId);
+        $quoteId = $this->safe_string($market, 'quote');
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = $base . '/' . $quote;
+        return array(
+            'id' => $this->safe_string($market, 'symbol'),
+            'uppercaseId' => null,
+            'symbol' => $symbol,
+            'base' => $base,
+            'baseId' => $baseId,
+            'quote' => $quote,
+            'quoteId' => $quoteId,
+            'settle' => null,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'minLimitBaseAmount'),
+                    'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'precision' => array(
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+            ),
+            'active' => null,
+            'created' => null,
+            'info' => $market,
+        );
     }
 
     public function parse_ticker($ticker, $market = null): array {

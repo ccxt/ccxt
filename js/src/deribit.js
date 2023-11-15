@@ -2309,6 +2309,8 @@ export default class deribit extends Exchange {
             'status': status,
             'updated': updated,
             'network': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

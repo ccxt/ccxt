@@ -301,71 +301,68 @@ class bitopro extends bitopro$1 {
         //         ]
         //     }
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const active = !this.safeValue(market, 'maintain');
-            const id = this.safeString(market, 'pair');
-            const uppercaseId = id.toUpperCase();
-            const baseId = this.safeString(market, 'base');
-            const quoteId = this.safeString(market, 'quote');
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const symbol = base + '/' + quote;
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber(market, 'minLimitBaseAmount'),
-                    'max': this.safeNumber(market, 'maxLimitBaseAmount'),
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push({
-                'id': id,
-                'uppercaseId': uppercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'settle': undefined,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'derivative': false,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'limits': limits,
-                'precision': {
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
-                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
-                },
-                'active': active,
-                'created': undefined,
-                'info': market,
-            });
-        }
-        return result;
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const active = !this.safeValue(market, 'maintain');
+        const id = this.safeString(market, 'pair');
+        const uppercaseId = id.toUpperCase();
+        const baseId = this.safeString(market, 'base');
+        const quoteId = this.safeString(market, 'quote');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const symbol = base + '/' + quote;
+        const limits = {
+            'amount': {
+                'min': this.safeNumber(market, 'minLimitBaseAmount'),
+                'max': this.safeNumber(market, 'maxLimitBaseAmount'),
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'leverage': {
+                'min': undefined,
+                'max': undefined,
+            },
+        };
+        return {
+            'id': id,
+            'uppercaseId': uppercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': base,
+            'quoteId': quote,
+            'settle': undefined,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'limits': limits,
+            'precision': {
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'quotePrecision'))),
+                'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'basePrecision'))),
+            },
+            'active': active,
+            'created': undefined,
+            'info': market,
+        };
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1396,6 +1393,7 @@ class bitopro extends bitopro$1 {
             'tagTo': tag,
             'updated': undefined,
             'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.safeNumber(transaction, 'fee'),

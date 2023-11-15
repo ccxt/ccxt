@@ -1767,6 +1767,7 @@ export default class kuna extends Exchange {
         const type = this.safeStringLower(transaction, 'type');
         const address = this.safeString(transaction, 'address');
         const isDeposit = (type === 'deposit');
+        const parsedType = isDeposit ? type : 'withdrawal';
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -1779,13 +1780,14 @@ export default class kuna extends Exchange {
             'address': address,
             'addressTo': address,
             'amount': this.safeNumber(transaction, 'amount'),
-            'type': !isDeposit ? 'withdrawal' : type,
+            'type': parsedType,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
             'updated': this.parse8601(this.safeString(transaction, 'updatedAt')),
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'memo'),
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber(transaction, 'fee'),
                 'currency': code,

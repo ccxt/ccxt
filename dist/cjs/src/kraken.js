@@ -1710,9 +1710,7 @@ class kraken extends kraken$1 {
         if (!(id in result)) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        const order = this.parseOrder(this.extend({ 'id': id }, result[id]));
-        order['info'] = order;
-        return order;
+        return this.parseOrder(this.extend({ 'id': id }, result[id]));
     }
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -2159,6 +2157,8 @@ class kraken extends kraken$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
+            'comment': undefined,
+            'internal': undefined,
             'fee': {
                 'currency': code,
                 'cost': feeCost,

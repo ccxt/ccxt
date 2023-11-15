@@ -288,11 +288,7 @@ export default class timex extends Exchange {
         //         }
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            result.push(this.parseMarket(response[i]));
-        }
-        return result;
+        return this.parseMarkets(response);
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -449,6 +445,8 @@ export default class timex extends Exchange {
             'currency': this.safeCurrencyCode(undefined, currency),
             'status': 'ok',
             'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
             'fee': undefined,
         };
     }

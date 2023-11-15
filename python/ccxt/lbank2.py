@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank2 import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Order, OrderBook, OrderSide, OrderType, Ticker, Tickers, Trade, Transaction
-from typing import Optional
+from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, String, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -629,7 +628,7 @@ class lbank2(Exchange, ImplicitAPI):
         first = self.safe_value(data, 0, {})
         return self.parse_ticker(first, market)
 
-    def fetch_tickers(self, symbols: Optional[List[str]] = None, params={}) -> Tickers:
+    def fetch_tickers(self, symbols: List[str] = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :see: https://www.lbank.info/en-US/docs/index.html#query-current-market-data-new
@@ -703,7 +702,7 @@ class lbank2(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_tickers(data, symbols)
 
-    def fetch_order_book(self, symbol: str, limit: Optional[int] = None, params={}) -> OrderBook:
+    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://www.lbank.info/en-US/docs/index.html#query-market-depth
@@ -876,7 +875,7 @@ class lbank2(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.lbank.info/en-US/docs/index.html#query-historical-transactions
@@ -943,7 +942,7 @@ class lbank2(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://www.lbank.info/en-US/docs/index.html#query-k-bar-data
@@ -1423,7 +1422,7 @@ class lbank2(Exchange, ImplicitAPI):
             'average': None,
         }, market)
 
-    def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order(self, id: str, symbol: String = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://www.lbank.info/en-US/docs/index.html#query-order
@@ -1441,7 +1440,7 @@ class lbank2(Exchange, ImplicitAPI):
             return self.fetch_order_supplement(id, symbol, params)
         return self.fetch_order_default(id, symbol, params)
 
-    def fetch_order_supplement(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order_supplement(self, id: str, symbol: String = None, params={}):
         self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
@@ -1474,7 +1473,7 @@ class lbank2(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', {})
         return self.parse_order(result)
 
-    def fetch_order_default(self, id: str, symbol: Optional[str] = None, params={}):
+    def fetch_order_default(self, id: str, symbol: String = None, params={}):
         # Id can be a list of ids delimited by a comma
         self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
@@ -1517,7 +1516,7 @@ class lbank2(Exchange, ImplicitAPI):
             # return parsedOrders
             raise BadRequest(self.id + ' fetchOrder() can only fetch one order at a time')
 
-    def fetch_my_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    def fetch_my_trades(self, symbol: String = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
         :see: https://www.lbank.info/en-US/docs/index.html#past-transaction-details
@@ -1570,7 +1569,7 @@ class lbank2(Exchange, ImplicitAPI):
         trades = self.safe_value(response, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
         :see: https://www.lbank.info/en-US/docs/index.html#query-all-orders
@@ -1625,7 +1624,7 @@ class lbank2(Exchange, ImplicitAPI):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: String = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
         :see: https://www.lbank.info/en-US/docs/index.html#current-pending-order
@@ -1677,7 +1676,7 @@ class lbank2(Exchange, ImplicitAPI):
         orders = self.safe_value(result, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def cancel_order(self, id: str, symbol: Optional[str] = None, params={}):
+    def cancel_order(self, id: str, symbol: String = None, params={}):
         """
         cancels an open order
         :see: https://www.lbank.info/en-US/docs/index.html#cancel-order-new
@@ -1714,7 +1713,7 @@ class lbank2(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data', {})
         return result
 
-    def cancel_all_orders(self, symbol: Optional[str] = None, params={}):
+    def cancel_all_orders(self, symbol: String = None, params={}):
         """
         cancel all open orders in a market
         :see: https://www.lbank.info/en-US/docs/index.html#cancel-all-pending-orders-for-a-single-trading-pair
@@ -2008,7 +2007,7 @@ class lbank2(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def fetch_deposits(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :see: https://www.lbank.info/en-US/docs/index.html#get-recharge-history
@@ -2057,7 +2056,7 @@ class lbank2(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'depositOrders', [])
         return self.parse_transactions(deposits, currency, since, limit)
 
-    def fetch_withdrawals(self, code: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: String = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
         :see: https://www.lbank.info/en-US/docs/index.html#get-withdrawal-history
@@ -2243,7 +2242,7 @@ class lbank2(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Optional[List[str]] = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: List[str] = None, params={}):
         """
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
         :see: https://www.lbank.info/en-US/docs/index.html#get-all-coins-information

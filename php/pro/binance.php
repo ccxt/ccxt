@@ -2382,8 +2382,10 @@ class binance extends \ccxt\async\binance {
                 $market = $this->get_market_from_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }
-            $defaultType = $this->safe_string_2($this->options, 'watchPositions', 'defaultType', 'future');
-            $type = $this->safe_string($params, 'type', $defaultType);
+            $type = $this->handle_market_type_and_params('watchPositions', $market, $params);
+            if ($type === 'spot' || $type === 'margin') {
+                $type = 'future';
+            }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchPositions', $market, $params);
             if ($this->isLinear ($type, $subType)) {
@@ -2533,7 +2535,7 @@ class binance extends \ccxt\async\binance {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_symbol($marketId),
+            'symbol' => $this->safe_symbol($marketId, null, null, 'future'),
             'notional' => null,
             'marginMode' => $this->safe_string($position, 'mt'),
             'liquidationPrice' => null,

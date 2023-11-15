@@ -913,21 +913,30 @@ class Transpiler {
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
             libraries.push ('import numbers')
         }
-        const matchAgainst = [ /-> Balances:/, /-> Market:/, /-> Order:/, /-> OrderBook:/, /: OrderSide/, /: OrderType/, /: IndexType/, /\[FundingHistory/, /-> Ticker:/, /-> Tickers:/, /-> MarginMode:/, /-> (?:List\[)?Trade/, /-> (?:List\[)?Transaction/, /-> Greeks:/ ]
-        const objects = [ 'Balances', 'Market', 'Order', 'OrderBook', 'OrderSide', 'OrderType', 'IndexType', 'FundingHistory', 'Ticker', 'Tickers', 'MarginMode', 'Trade', 'Transaction', 'Greeks' ]
+        const matchObject = {
+            'Balances': /-> Balances:/,
+            'Greeks': /-> Greeks:/,
+            'Int': /: Int =/,
+            'MarginMode': /-> MarginMode:/,
+            'Market': /-> Market:/,
+            'Order': /-> Order:/,
+            'OrderBook': /-> OrderBook:/,
+            'OrderRequest': /: (?:List\[)?OrderRequest/,
+            'OrderSide': /: OrderSide/,
+            'OrderType': /: OrderType/,
+            'IndexType': /: IndexType/,
+            'FundingHistory': /\[FundingHistory/,
+            'String': /: String =/,
+            'Ticker': /-> Ticker:/,
+            'Tickers': /-> Tickers:/,
+            'Trade': /-> (?:List\[)?Trade/,
+            'Transaction': /-> (?:List\[)?Transaction/,
+        }
         const matches = []
         let match
-        const listRegex = /: List\[(\w+)\]/g
-        const pythonBuiltIns = [ 'int', 'float', 'str', 'bool', 'dict', 'list']
-        while (match = listRegex.exec (bodyAsString)) {
-            if (!pythonBuiltIns.includes (match[1])) {
-                matches.push (match[1])
-            }
-        }
-        for (let i = 0; i < matchAgainst.length; i++) {
-            const regex = matchAgainst[i]
+        for (const [ object, regex ] of Object.entries (matchObject)) {
             if (bodyAsString.match (regex)) {
-                matches.push (objects[i])
+                matches.push (object)
             }
         }
         if (matches.length) {
@@ -1553,10 +1562,11 @@ class Transpiler {
             const phpTypes = {
                 'any': 'mixed',
                 'string': 'string',
+                'Str': '?string',
                 'number': 'float',
                 'boolean': 'bool',
                 'IndexType': 'int|string',
-                'Int': 'int',
+                'Int': '?int',
                 'OrderType': 'string',
                 'OrderSide': 'string',
             }
@@ -1580,7 +1590,8 @@ class Transpiler {
                     const type = secondPart[0].trim ()
                     const phpType = phpTypes[type] ?? type
                     const resolveType = phpType.match (phpArrayRegex) ? 'array' : phpType
-                    return (nullable && (resolveType !== 'mixed') ? '?' : '') + resolveType + ' $' + variable + endpart
+                    const ignore = (resolveType === 'mixed' || type === 'Str' || type === 'Int')
+                    return (nullable && !ignore ? '?' : '') + resolveType + ' $' + variable + endpart
                 }
             }).join (', ').trim ()
                 .replace (/undefined/g, 'null')
@@ -1610,10 +1621,11 @@ class Transpiler {
             // remove excessive spacing from argument defaults in Python method signature
             const pythonTypes = {
                 'string': 'str',
+                'Str': 'String',
                 'number': 'float',
                 'any': 'Any',
                 'boolean': 'bool',
-                'Int': 'int',
+                'Int': 'Int',
                 'OHLCV': 'list',
             }
             const unwrapLists = (type) => {
@@ -1632,16 +1644,10 @@ class Transpiler {
                     const type = typeParts[0]
                     typeParts[0] = ''
                     let variable = parts[0]
-                    const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
+                    // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                     variable = variable.replace (/\?$/, '')
                     const rawType = unwrapLists (type)
-                    let resolvedType
-                    if (nullable) {
-                        resolvedType = 'Optional[' + rawType + ']'
-                    } else {
-                        resolvedType = rawType
-                    }
-                    return variable + ': ' + resolvedType + typeParts.join (' ')
+                    return variable + ': ' + rawType + typeParts.join (' ')
                 } else {
                     return x.replace (' = ', '=')
                 }

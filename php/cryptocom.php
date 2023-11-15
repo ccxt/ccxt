@@ -2357,6 +2357,7 @@ class cryptocom extends Exchange {
             'status' => $status,
             'updated' => $this->safe_integer($transaction, 'update_time'),
             'internal' => null,
+            'comment' => $this->safe_string($transaction, 'client_wid'),
             'fee' => $fee,
         );
     }

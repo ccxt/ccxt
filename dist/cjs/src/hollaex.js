@@ -1651,6 +1651,8 @@ class hollaex extends hollaex$1 {
             'currency': currency['code'],
             'status': status,
             'updated': updated,
+            'comment': this.safeString(transaction, 'message'),
+            'internal': undefined,
             'fee': fee,
         };
     }

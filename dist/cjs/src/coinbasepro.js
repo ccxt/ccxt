@@ -1787,6 +1787,7 @@ class coinbasepro extends coinbasepro$1 {
             'tagTo': undefined,
             'updated': this.parse8601(this.safeString(transaction, 'processed_at')),
             'comment': undefined,
+            'internal': false,
             'fee': fee,
         };
     }

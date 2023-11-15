@@ -294,99 +294,96 @@ export default class whitebit extends Exchange {
         //        }
         //    ]
         //
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString(market, 'name');
-            const baseId = this.safeString(market, 'stock');
-            let quoteId = this.safeString(market, 'money');
-            quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
-            const base = this.safeCurrencyCode(baseId);
-            const quote = this.safeCurrencyCode(quoteId);
-            const active = this.safeValue(market, 'tradesEnabled');
-            const isCollateral = this.safeValue(market, 'isCollateral');
-            const typeId = this.safeString(market, 'type');
-            let type = undefined;
-            let settle = undefined;
-            let settleId = undefined;
-            let symbol = base + '/' + quote;
-            const swap = typeId === 'futures';
-            const margin = isCollateral && !swap;
-            let contract = false;
-            const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
-            const contractSize = amountPrecision;
-            let linear = undefined;
-            let inverse = undefined;
-            if (swap) {
-                settleId = quoteId;
-                settle = this.safeCurrencyCode(settleId);
-                symbol = symbol + ':' + settle;
-                type = 'swap';
-                contract = true;
-                linear = true;
-                inverse = false;
-            }
-            else {
-                type = 'spot';
-            }
-            const takerFeeRate = this.safeString(market, 'takerFee');
-            const taker = Precise.stringDiv(takerFeeRate, '100');
-            const makerFeeRate = this.safeString(market, 'makerFee');
-            const maker = Precise.stringDiv(makerFeeRate, '100');
-            const entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': type,
-                'spot': !swap,
-                'margin': margin,
-                'swap': swap,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': this.parseNumber(taker),
-                'maker': this.parseNumber(maker),
-                'contractSize': contractSize,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': amountPrecision,
-                    'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber(market, 'minAmount'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber(market, 'minTotal'),
-                        'max': this.safeNumber(market, 'maxTotal'),
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            };
-            result.push(entry);
+        return this.parseMarkets(markets);
+    }
+    parseMarket(market) {
+        const id = this.safeString(market, 'name');
+        const baseId = this.safeString(market, 'stock');
+        let quoteId = this.safeString(market, 'money');
+        quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const active = this.safeValue(market, 'tradesEnabled');
+        const isCollateral = this.safeValue(market, 'isCollateral');
+        const typeId = this.safeString(market, 'type');
+        let type = undefined;
+        let settle = undefined;
+        let settleId = undefined;
+        let symbol = base + '/' + quote;
+        const swap = typeId === 'futures';
+        const margin = isCollateral && !swap;
+        let contract = false;
+        const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
+        const contractSize = amountPrecision;
+        let linear = undefined;
+        let inverse = undefined;
+        if (swap) {
+            settleId = quoteId;
+            settle = this.safeCurrencyCode(settleId);
+            symbol = symbol + ':' + settle;
+            type = 'swap';
+            contract = true;
+            linear = true;
+            inverse = false;
         }
-        return result;
+        else {
+            type = 'spot';
+        }
+        const takerFeeRate = this.safeString(market, 'takerFee');
+        const taker = Precise.stringDiv(takerFeeRate, '100');
+        const makerFeeRate = this.safeString(market, 'makerFee');
+        const maker = Precise.stringDiv(makerFeeRate, '100');
+        return {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': !swap,
+            'margin': margin,
+            'swap': swap,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.parseNumber(taker),
+            'maker': this.parseNumber(maker),
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber(market, 'minAmount'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber(market, 'minTotal'),
+                    'max': this.safeNumber(market, 'maxTotal'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -1815,6 +1812,7 @@ export default class whitebit extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'description'),
+            'internal': undefined,
             'fee': {
                 'cost': this.safeNumber(transaction, 'fee'),
                 'currency': this.safeCurrencyCode(currencyId, currency),
